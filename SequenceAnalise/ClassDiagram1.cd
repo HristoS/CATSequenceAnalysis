@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SequenceAnalise.DNA" Collapsed="true">
+    <Position X="17" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAIAAAAAAAAgAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>DNA.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SequenceAnalise.CATProfil">
+    <Position X="4" Y="0.75" Width="1.5" />
+    <NestedTypes>
+      <Class Name="SequenceAnalise.CATProfil.CATProfilSlim" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DNA.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAABAAACAAAAAAAAAAAAAAAACAAAAACgAARAAAAAAAA=</HashCode>
+      <FileName>DNA.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SequenceAnalise.BenchmarkProfil">
+    <Position X="6.25" Y="0.75" Width="1.5" />
+    <NestedTypes>
+      <Class Name="SequenceAnalise.BenchmarkProfil.BenchmarkProfilSlim" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DNA.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAICAAQQAAAIgAAABAUAAACEAAAAEQAIFBEAAAAA=</HashCode>
+      <FileName>DNA.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SequenceAnalise.Benchmark">
+    <Position X="11.75" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>DNA.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SequenceAnalise.BenchmarkRepository">
+    <Position X="9.75" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoAAQAqAAEAAA=</HashCode>
+      <FileName>DNA.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="SequenceAnalise.Base" Collapsed="true">
+    <Position X="16.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAEAAA=</HashCode>
+      <FileName>DNA.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
