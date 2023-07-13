@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SequenceAnalyses
 {
-    public class NeedlemanWunsch
+    public static class NeedlemanWunsch
     {
         private const int matchScore = 2;
         private const int mismatchScore = -1;
@@ -14,7 +14,6 @@ namespace SequenceAnalyses
 
         //http://www.codeproject.com/Tips/638377/Needleman-Wunsch-Algorithm-in-Csharp
         public static double Calculate(string refSeq, string alignSeq)
-
         {
             int refSeqCnt = refSeq.Length + 1;
             int alineSeqCnt = alignSeq.Length + 1;

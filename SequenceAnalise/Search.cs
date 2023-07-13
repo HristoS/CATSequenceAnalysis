@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Accord.Math;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -47,127 +48,185 @@ namespace SequenceAnalyses
             }
         }
 
-        public static void GeneratePermutationData(int length)
+        public static IEnumerable<string> GetPermutationsQ(string start, string end, bool include)
         {
-            var ascii = Encoding.ASCII;
-            var bufferSize = length + CATProfileSlim.GetSize();
-            using (var resultFile = File.Create($"Permutation_{length}.dat", bufferSize))
+            var values = new char[] { 'A', 'C', 'G', 'T' };
+
+            if (start.Length != end.Length)
+                throw new ArgumentException();
+
+            var startValue = start.Select((x, i) => values.IndexOf(x) * Math.Pow(values.Length, i)).Sum(x => x);
+            var endValue = end.Select((x, i) => values.IndexOf(x) * Math.Pow(values.Length, i)).Sum(x => x);
+
+            if (startValue >= endValue)
+                throw new ArgumentException();
+
+            var sequenceLenght = start.Length;
+
+            var permutations = endValue - startValue;
+            permutations = include ? permutations + 1 : permutations;
+            var counter = start.Select(x => values.IndexOf(x)).ToArray();
+            //var counterEnd = end.Select(x => values.IndexOf(x)).ToArray();
+
+            for (double i = 0; i < permutations; i++)
             {
-                foreach (var permutation in GetPermutations(length))
+                var sequence = new char[sequenceLenght];
+                for (int j = 0; j < sequenceLenght; j++)
                 {
-                    var dna = new DNA(permutation);
-
-                    var cat = dna.CATProfile.GetCATProfilSlim();
-                    var asciiStr = ascii.GetBytes(permutation);
-
-                    resultFile.Write(asciiStr);
-                    resultFile.Write(cat.Serialize());
+                    sequence[j] = values[counter[j]];
                 }
 
-                resultFile.Flush();
-            }
-        }
+                yield return new string(sequence);
 
-        public static IEnumerable<CATProfile> GetProfile(int length)
-        {
-            var ascii = Encoding.ASCII;
-            var bufferSize = length + CATProfileSlim.GetSize();
-            var offset = 0;
-            using (var resultFile = File.OpenRead($"Permutation_{length}.dat"))
-            {
-                resultFile.Seek(0, SeekOrigin.Begin);
-                var buffer = new byte[bufferSize];
-                while (resultFile.Read(buffer, offset, bufferSize) > 0)
+                // update counter
+                counter[0]++;
+                for (int j = 0; j < counter.Length - 1; j++)
                 {
-                    var dnaString = ascii.GetString(buffer, 0, length);
-                    var cat = new CATProfileSlim();
-                    cat.Deserialize(buffer.Skip(length).ToArray());
-                    yield return cat.GetCATProfile(dnaString);
-                }
-            }
-        }
-
-        public static IEnumerable<CATProfile> GetProfile(int length, string file)
-        {
-            var ascii = Encoding.ASCII;
-            var bufferSize = length + CATProfileSlim.GetSize();
-            var offset = 0;
-            using (var resultFile = File.OpenRead($"{file}"))
-            {
-                resultFile.Seek(0, SeekOrigin.Begin);
-                var buffer = new byte[bufferSize];
-                while (resultFile.Read(buffer, offset, bufferSize) > 0)
-                {
-                    var dnaString = ascii.GetString(buffer, 0, length);
-                    var cat = new CATProfileSlim();
-                    cat.Deserialize(buffer.Skip(length).ToArray());
-                    yield return cat.GetCATProfile(dnaString);
+                    if (counter[j] >= values.Length)
+                    {
+                        counter[j] = 0;
+                        counter[j + 1]++;
+                    }
                 }
             }
         }
 
-        public static long GetTotalRecords(int length)
+        public static IEnumerable<string> GetPermutationsAtoC(int sequenceLenght, bool inclusive)
         {
-            FileInfo fi = new FileInfo($"Permutation_{length}.dat");
-            var bufferSize = length + CATProfileSlim.GetSize();
-            return fi.Length / bufferSize;
+            return Search.GetPermutationsQ(new string(Enumerable.Repeat('A', sequenceLenght).ToArray()), new string(Enumerable.Repeat('C', sequenceLenght).ToArray()), inclusive);
         }
 
-        public static string GetDNAAt(int length, int index)
+        public static IEnumerable<string> GetPermutationsCtoG(int sequenceLenght, bool inclusive)
         {
-            var ascii = Encoding.ASCII;
-            var bufferSize = length + CATProfileSlim.GetSize();
-            var offset = 0;
-            using (var resultFile = File.OpenRead($"Permutation_{length}.dat"))
-            {
-                var buffer = new byte[bufferSize];
-                resultFile.Seek(index * bufferSize, SeekOrigin.Begin);
-                resultFile.Read(buffer, offset, bufferSize);
-                return ascii.GetString(buffer, 0, length);
-            }
+            return Search.GetPermutationsQ(new string(Enumerable.Repeat('C', sequenceLenght).ToArray()), new string(Enumerable.Repeat('G', sequenceLenght).ToArray()), inclusive);
         }
 
-        public static void GenerateRandomSeq(int count, int sequenceLenght)
+        public static IEnumerable<string> GetPermutationsGtoT(int sequenceLenght, bool inclusive)
         {
-            Console.WriteLine($"Generate {count} seq");
-            var ascii = Encoding.ASCII;
-            var bufferSize = sequenceLenght + CATProfileSlim.GetSize();
-            using (var resultFile = File.Create($"{count}_Random_{sequenceLenght}.dat", bufferSize))
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    var dnaStr = Generator.GetRandomDNA(sequenceLenght);
-                    var dna = new DNA(dnaStr);
-
-                    var cat = dna.CATProfile.GetCATProfilSlim();
-                    var asciiStr = ascii.GetBytes(dnaStr);
-
-                    resultFile.Write(asciiStr);
-                    resultFile.Write(cat.Serialize());
-                }
-
-                resultFile.Flush();
-            }
-            Console.WriteLine($"END Generate {count} seq");
+            return Search.GetPermutationsQ(new string(Enumerable.Repeat('G', sequenceLenght).ToArray()), new string(Enumerable.Repeat('T', sequenceLenght).ToArray()), inclusive);
         }
 
-        public static IEnumerable<CATProfile> GetProfile(int count, int sequenceLenght)
-        {
-            var ascii = Encoding.ASCII;
-            var bufferSize = sequenceLenght + CATProfileSlim.GetSize();
-            var offset = 0;
-            using (var resultFile = File.OpenRead($"{count}_Random_{sequenceLenght}.dat"))
-            {
-                resultFile.Seek(0, SeekOrigin.Begin);
-                var buffer = new byte[bufferSize];
-                while (resultFile.Read(buffer, offset, bufferSize) > 0)
-                {
-                    var dnaString = ascii.GetString(buffer, 0, sequenceLenght);
-                    var cat = new CATProfileSlim();
-                    cat.Deserialize(buffer.Skip(sequenceLenght).ToArray());
-                    yield return cat.GetCATProfile(dnaString);
-                }
-            }
-        }
+        //public static void GeneratePermutationData(int length)
+        //{
+        //    var ascii = Encoding.ASCII;
+        //    var bufferSize = length + CATProfileSlim.GetSize();
+        //    using (var resultFile = File.Create($"Permutation_{length}.dat", bufferSize))
+        //    {
+        //        foreach (var permutation in GetPermutations(length))
+        //        {
+        //            var dna = new DNA(permutation);
+
+        //            var cat = dna.CATProfile.GetCATProfilSlim();
+        //            var asciiStr = ascii.GetBytes(permutation);
+
+        //            resultFile.Write(asciiStr);
+        //            resultFile.Write(cat.Serialize());
+        //        }
+
+        //        resultFile.Flush();
+        //    }
+        //}
+
+        //public static IEnumerable<CATProfile> GetProfile(int length)
+        //{
+        //    var ascii = Encoding.ASCII;
+        //    var bufferSize = length + CATProfileSlim.GetSize();
+        //    var offset = 0;
+        //    using (var resultFile = File.OpenRead($"Permutation_{length}.dat"))
+        //    {
+        //        resultFile.Seek(0, SeekOrigin.Begin);
+        //        var buffer = new byte[bufferSize];
+        //        while (resultFile.Read(buffer, offset, bufferSize) > 0)
+        //        {
+        //            var dnaString = ascii.GetString(buffer, 0, length);
+        //            var cat = new CATProfileSlim();
+        //            cat.Deserialize(buffer.Skip(length).ToArray());
+        //            yield return cat.GetCATProfile(dnaString);
+        //        }
+        //    }
+        //}
+
+        //public static IEnumerable<CATProfile> GetProfile(int length, string file)
+        //{
+        //    var ascii = Encoding.ASCII;
+        //    var bufferSize = length + CATProfileSlim.GetSize();
+        //    var offset = 0;
+        //    using (var resultFile = File.OpenRead($"{file}"))
+        //    {
+        //        resultFile.Seek(0, SeekOrigin.Begin);
+        //        var buffer = new byte[bufferSize];
+        //        while (resultFile.Read(buffer, offset, bufferSize) > 0)
+        //        {
+        //            var dnaString = ascii.GetString(buffer, 0, length);
+        //            var cat = new CATProfileSlim();
+        //            cat.Deserialize(buffer.Skip(length).ToArray());
+        //            yield return cat.GetCATProfile(dnaString);
+        //        }
+        //    }
+        //}
+
+        //public static long GetTotalRecords(int length)
+        //{
+        //    FileInfo fi = new FileInfo($"Permutation_{length}.dat");
+        //    var bufferSize = length + CATProfileSlim.GetSize();
+        //    return fi.Length / bufferSize;
+        //}
+
+        //public static string GetDNAAt(int length, int index)
+        //{
+        //    var ascii = Encoding.ASCII;
+        //    var bufferSize = length + CATProfileSlim.GetSize();
+        //    var offset = 0;
+        //    using (var resultFile = File.OpenRead($"Permutation_{length}.dat"))
+        //    {
+        //        var buffer = new byte[bufferSize];
+        //        resultFile.Seek(index * bufferSize, SeekOrigin.Begin);
+        //        resultFile.Read(buffer, offset, bufferSize);
+        //        return ascii.GetString(buffer, 0, length);
+        //    }
+        //}
+
+        //public static void GenerateRandomSeq(int count, int sequenceLenght)
+        //{
+        //    Console.WriteLine($"Generate {count} seq");
+        //    var ascii = Encoding.ASCII;
+        //    var bufferSize = sequenceLenght + CATProfileSlim.GetSize();
+        //    using (var resultFile = File.Create($"{count}_Random_{sequenceLenght}.dat", bufferSize))
+        //    {
+        //        for (int i = 0; i < count; i++)
+        //        {
+        //            var dnaStr = Generator.GetRandomDNA(sequenceLenght);
+        //            var dna = new DNA(dnaStr);
+
+        //            var cat = dna.CATProfile.GetCATProfilSlim();
+        //            var asciiStr = ascii.GetBytes(dnaStr);
+
+        //            resultFile.Write(asciiStr);
+        //            resultFile.Write(cat.Serialize());
+        //        }
+
+        //        resultFile.Flush();
+        //    }
+        //    Console.WriteLine($"END Generate {count} seq");
+        //}
+
+        //public static IEnumerable<CATProfile> GetProfile(int count, int sequenceLenght)
+        //{
+        //    var ascii = Encoding.ASCII;
+        //    var bufferSize = sequenceLenght + CATProfileSlim.GetSize();
+        //    var offset = 0;
+        //    using (var resultFile = File.OpenRead($"{count}_Random_{sequenceLenght}.dat"))
+        //    {
+        //        resultFile.Seek(0, SeekOrigin.Begin);
+        //        var buffer = new byte[bufferSize];
+        //        while (resultFile.Read(buffer, offset, bufferSize) > 0)
+        //        {
+        //            var dnaString = ascii.GetString(buffer, 0, sequenceLenght);
+        //            var cat = new CATProfileSlim();
+        //            cat.Deserialize(buffer.Skip(sequenceLenght).ToArray());
+        //            yield return cat.GetCATProfile(dnaString);
+        //        }
+        //    }
+        //}
     }
 }
