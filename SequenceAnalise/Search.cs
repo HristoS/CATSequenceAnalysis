@@ -1,11 +1,10 @@
 ﻿using Accord.Math;
+using MathNet.Numerics;
+using SequenceAnalise;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static SequenceAnalyses.CATProfile;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Net;
 
 namespace SequenceAnalyses
 {
@@ -106,127 +105,187 @@ namespace SequenceAnalyses
             return Search.GetPermutationsQ(new string(Enumerable.Repeat('G', sequenceLenght).ToArray()), new string(Enumerable.Repeat('T', sequenceLenght).ToArray()), inclusive);
         }
 
-        //public static void GeneratePermutationData(int length)
-        //{
-        //    var ascii = Encoding.ASCII;
-        //    var bufferSize = length + CATProfileSlim.GetSize();
-        //    using (var resultFile = File.Create($"Permutation_{length}.dat", bufferSize))
-        //    {
-        //        foreach (var permutation in GetPermutations(length))
-        //        {
-        //            var dna = new DNA(permutation);
+        public static async Task<double> IterateInParalel(int sequenceLenght, Action<string> iterator)
+        {
+            var taskAtoC = Task.Run<double>(() =>
+            {
+                var totalRecords = 0d;
 
-        //            var cat = dna.CATProfile.GetCATProfilSlim();
-        //            var asciiStr = ascii.GetBytes(permutation);
+                foreach (var permutation in Search.GetPermutationsAtoC(sequenceLenght, false))
+                {
+                    totalRecords++;
+                    iterator(permutation);
+                }
 
-        //            resultFile.Write(asciiStr);
-        //            resultFile.Write(cat.Serialize());
-        //        }
+                return totalRecords;
+            });
+            var taskCtoG = Task.Run<double>(() =>
+            {
+                var totalRecords = 0d;
 
-        //        resultFile.Flush();
-        //    }
-        //}
+                foreach (var permutation in Search.GetPermutationsCtoG(sequenceLenght, false))
+                {
+                    totalRecords++;
+                    iterator(permutation);
+                }
 
-        //public static IEnumerable<CATProfile> GetProfile(int length)
-        //{
-        //    var ascii = Encoding.ASCII;
-        //    var bufferSize = length + CATProfileSlim.GetSize();
-        //    var offset = 0;
-        //    using (var resultFile = File.OpenRead($"Permutation_{length}.dat"))
-        //    {
-        //        resultFile.Seek(0, SeekOrigin.Begin);
-        //        var buffer = new byte[bufferSize];
-        //        while (resultFile.Read(buffer, offset, bufferSize) > 0)
-        //        {
-        //            var dnaString = ascii.GetString(buffer, 0, length);
-        //            var cat = new CATProfileSlim();
-        //            cat.Deserialize(buffer.Skip(length).ToArray());
-        //            yield return cat.GetCATProfile(dnaString);
-        //        }
-        //    }
-        //}
+                return totalRecords;
+            });
+            var taskGtoT = Task.Run<double>(() =>
+            {
+                var totalRecords = 0d;
 
-        //public static IEnumerable<CATProfile> GetProfile(int length, string file)
-        //{
-        //    var ascii = Encoding.ASCII;
-        //    var bufferSize = length + CATProfileSlim.GetSize();
-        //    var offset = 0;
-        //    using (var resultFile = File.OpenRead($"{file}"))
-        //    {
-        //        resultFile.Seek(0, SeekOrigin.Begin);
-        //        var buffer = new byte[bufferSize];
-        //        while (resultFile.Read(buffer, offset, bufferSize) > 0)
-        //        {
-        //            var dnaString = ascii.GetString(buffer, 0, length);
-        //            var cat = new CATProfileSlim();
-        //            cat.Deserialize(buffer.Skip(length).ToArray());
-        //            yield return cat.GetCATProfile(dnaString);
-        //        }
-        //    }
-        //}
+                foreach (var permutation in Search.GetPermutationsGtoT(sequenceLenght, true))
+                {
+                    totalRecords++;
+                    iterator(permutation);
+                }
 
-        //public static long GetTotalRecords(int length)
-        //{
-        //    FileInfo fi = new FileInfo($"Permutation_{length}.dat");
-        //    var bufferSize = length + CATProfileSlim.GetSize();
-        //    return fi.Length / bufferSize;
-        //}
+                return totalRecords;
+            });
 
-        //public static string GetDNAAt(int length, int index)
-        //{
-        //    var ascii = Encoding.ASCII;
-        //    var bufferSize = length + CATProfileSlim.GetSize();
-        //    var offset = 0;
-        //    using (var resultFile = File.OpenRead($"Permutation_{length}.dat"))
-        //    {
-        //        var buffer = new byte[bufferSize];
-        //        resultFile.Seek(index * bufferSize, SeekOrigin.Begin);
-        //        resultFile.Read(buffer, offset, bufferSize);
-        //        return ascii.GetString(buffer, 0, length);
-        //    }
-        //}
+            return (await Task.WhenAll(taskAtoC, taskCtoG, taskGtoT)).Sum();
+        }
 
-        //public static void GenerateRandomSeq(int count, int sequenceLenght)
-        //{
-        //    Console.WriteLine($"Generate {count} seq");
-        //    var ascii = Encoding.ASCII;
-        //    var bufferSize = sequenceLenght + CATProfileSlim.GetSize();
-        //    using (var resultFile = File.Create($"{count}_Random_{sequenceLenght}.dat", bufferSize))
-        //    {
-        //        for (int i = 0; i < count; i++)
-        //        {
-        //            var dnaStr = Generator.GetRandomDNA(sequenceLenght);
-        //            var dna = new DNA(dnaStr);
+        /// <summary>
+        /// Generates the colision report.
+        /// Generates sequenceCount random DNA sequens with length sequenceLenght. Finds all colisions from all posible permutation for the generated sequence.
+        /// Applays NeedlemanWunsch aligment on sequence whihch are in collision.
+        /// </summary>
+        /// <param name="sequenceCount">The sequence count.</param>
+        /// <param name="sequenceLenght">The sequence lenght.</param>
+        /// <param name="result">The result file.</param>
+        public static async Task GenerateColisionReport(int sequenceCount, int sequenceLenght, StreamWriter result)
+        {
+            ConcurrentDictionary<string, double> results = new ConcurrentDictionary<string, double>();
+            ConcurrentDictionary<string, ConcurrentDictionary<string, int>> labaledResults = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>();
+            var labels = new Dictionary<string, List<double>>()
+                        {
+                            { "0.0", new List<double>()},
+                            { "0.1", new List<double>()},
+                            { "0.2", new List<double>()},
+                            { "0.3", new List<double>()},
+                            { "0.4", new List<double>()},
+                            { "0.5", new List<double>()},
+                            { "0.6", new List<double>()},
+                            { "0.7", new List<double>()},
+                            { "0.8", new List<double>()},
+                            { "0.9", new List<double>()},
+                            { "1.0", new List<double>()},
+                        };
+            List<CATProfile> randomDNAProfiles = new List<CATProfile>();
+            for (int i = 0; i < sequenceCount; i++)
+            {
+                var str = Generator.GetRandomDNA(sequenceLenght);
+                results[str] = 0;
+                labaledResults[str] = new ConcurrentDictionary<string, int>(new Dictionary<string, int>()
+                        {
+                            { "0.0", 0},
+                            { "0.1", 0},
+                            { "0.2", 0},
+                            { "0.3", 0},
+                            { "0.4", 0},
+                            { "0.5", 0},
+                            { "0.6", 0},
+                            { "0.7", 0},
+                            { "0.8", 0},
+                            { "0.9", 0},
+                            { "1.0", 0},
+                        });
+                randomDNAProfiles.Add(new CATProfile(str));
+            }
 
-        //            var cat = dna.CATProfile.GetCATProfilSlim();
-        //            var asciiStr = ascii.GetBytes(dnaStr);
+            double totalRecords = await Search.IterateInParalel(sequenceLenght, (permutation) =>
+            {
+                var profile = new CATProfile(permutation);
+                foreach (var random in randomDNAProfiles)
+                {
+                    var catComparison = CATProfile.Compare(profile, random);
+                    if (catComparison == 1d)
+                    {
+                        var res = NeedlemanWunsch.Calculate(random.DnaString, permutation);
+                        var label = res.ToString("0.000").Substring(0, 3);
+                        var labelResult = labaledResults.GetOrAdd(random.DnaString, (key) => new ConcurrentDictionary<string, int>());
+                        labelResult.AddOrUpdate(label, (key) => 1, (key, value) => value + 1);
+                    }
+                }
+            });
 
-        //            resultFile.Write(asciiStr);
-        //            resultFile.Write(cat.Serialize());
-        //        }
+            result.WriteLine($"dna string ,totalRecords, cat matches, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0");
 
-        //        resultFile.Flush();
-        //    }
-        //    Console.WriteLine($"END Generate {count} seq");
-        //}
+            var totals = new List<double>();
+            foreach (var res in labaledResults)
+            {
+                double total = res.Value.Values.Sum();
+                totals.Add(total);
+                result.WriteLine($"{res.Key}, {totalRecords}, {total}, {string.Join(",", res.Value.OrderBy(x => x.Key).Select(x => x.Value * 100 / total))}");
+                foreach (var label in labels)
+                {
+                    label.Value.Add(res.Value[label.Key] * 100 / total);
+                }
+                result.Flush();
+            }
 
-        //public static IEnumerable<CATProfile> GetProfile(int count, int sequenceLenght)
-        //{
-        //    var ascii = Encoding.ASCII;
-        //    var bufferSize = sequenceLenght + CATProfileSlim.GetSize();
-        //    var offset = 0;
-        //    using (var resultFile = File.OpenRead($"{count}_Random_{sequenceLenght}.dat"))
-        //    {
-        //        resultFile.Seek(0, SeekOrigin.Begin);
-        //        var buffer = new byte[bufferSize];
-        //        while (resultFile.Read(buffer, offset, bufferSize) > 0)
-        //        {
-        //            var dnaString = ascii.GetString(buffer, 0, sequenceLenght);
-        //            var cat = new CATProfileSlim();
-        //            cat.Deserialize(buffer.Skip(sequenceLenght).ToArray());
-        //            yield return cat.GetCATProfile(dnaString);
-        //        }
-        //    }
-        //}
+            result.WriteLine($"Average:, {100 * totals.Average() / totalRecords}, {totals.Average()}, {string.Join(",", labels.OrderBy(x => x.Key).Select(x => x.Value.Average()))}, {labels.OrderBy(x => x.Key).Select(x => x.Value.Average()).Sum()}");
+        }
+
+        public static (double CATComparison, double CATms, double NWComparison, double NWms) CompareCATWithNW(DNA dna, DNA dna2)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            double CATComparison = CATProfile.Compare(dna.CATProfile, dna2.CATProfile);
+            sw.Stop();
+            double CATms = sw.Elapsed.TotalMilliseconds;
+            sw.Restart();
+
+            var NWComparison = NeedlemanWunsch.Calculate(dna.DnaString, dna2.DnaString);
+            sw.Stop();
+            double NWms = sw.Elapsed.TotalMilliseconds;
+
+            return (CATComparison, CATms, NWComparison, NWms);
+        }
+
+        public static (double CATComparison, double CATms, double NWComparison, double NWms) CompareCATWithKMP(DNA dna, DNA dna2)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            double CATComparison = CATProfile.Compare(dna.CATProfile, dna2.CATProfile);
+            sw.Stop();
+            double CATms = sw.Elapsed.TotalMilliseconds;
+            sw.Restart();
+
+            var NWComparison = PatternSearchingKMP.KMPSearch(dna2.DnaString, dna.DnaString);
+            sw.Stop();
+            double NWms = sw.Elapsed.TotalMilliseconds;
+
+            return (CATComparison, CATms, NWComparison.Count, NWms);
+        }
+
+        public static string Format((double CATComparison, double CATms, double NWComparison, double NWms) result)
+        {
+            return $"{result.CATComparison}, {result.CATms}, {result.NWComparison}, {result.NWms}";
+        }
+
+        public static DNA ExactSame(DNA dna)
+        {
+            return dna;
+        }
+
+        public static DNA SubsequenceFirstHalf(DNA dna, double lenght)
+        {
+            return new DNA(dna.DnaString.Substring(0, (int)lenght));
+        }
+
+        public static DNA SubsequenceSecondHalf(DNA dna, double lenght)
+        {
+            return new DNA(dna.DnaString.Substring((int)(dna.DnaString.Length - lenght)));
+        }
+
+        public static DNA SubsequenceInTheMiddle(DNA dna, double lenght)
+        {
+            return new DNA(dna.DnaString.Substring((int)((dna.DnaString.Length - lenght) / 2), (int)lenght));
+        }
     }
 }

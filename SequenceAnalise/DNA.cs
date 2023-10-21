@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Clipper2Lib;
+using System;
 
 namespace SequenceAnalyses
 {
@@ -19,20 +20,17 @@ namespace SequenceAnalyses
 
             this.CATProfile = new CATProfile(dnaString);
         }
-
-        public (double exactMatch, double gaps) NeedlemanWunschResult(string alignSeq)
-        {
-            return (NeedlemanWunsch.Calculate(this.DnaString, alignSeq), 0);
-        }
     }
 
     public class CATProfile
     {
-        private const double acDistance = 0.86d;
+        private const double acDistance = 0.75d; // 1 full match on each of the other benchmarks
         private BenchmarkProfile a;
         private BenchmarkProfile t;
         private BenchmarkProfile c;
         private string dnaString;
+        private readonly PathsD path = new PathsD();
+        private readonly double area;
 
         public string DnaString => dnaString;
 
@@ -47,9 +45,11 @@ namespace SequenceAnalyses
             double nearMatchesA = 0d;
             double nearMatchesT = 0d;
             double nearMatchesC = 0d;
+
             double dnaDistanceA = 0d;
             double dnaDistanceT = 0d;
             double dnaDistanceC = 0d;
+
             double exactMatchesA = 0d;
             double exactMatchesT = 0d;
             double exactMatchesC = 0d;
@@ -57,81 +57,90 @@ namespace SequenceAnalyses
             double prevMatchesA = 0d;
             double prevMatchesT = 0d;
             double prevMatchesC = 0d;
-            double bonus = 1; // 2 - Benchmark.maxPoint;
+
             double bonusTotalA = 0;
             double bonusTotalT = 0;
             double bonusTotalC = 0;
+
+            double sequencePrevLengthC = 0;
+            double sequencePrevLengthA = 0;
+            double sequencePrevLengthT = 0;
+
             for (int i = 0; i < dnaString.Length; i++)
             {
+                var nearMatchC = benchmarkC.NearMatch(i, dnaString[i]);
                 var nearMatchA = benchmarkA.NearMatch(i, dnaString[i]);
                 var nearMatchT = benchmarkT.NearMatch(i, dnaString[i]);
 
-                var exacatMatchA = benchmarkA.ExactMatch(i, dnaString[i]);
-                var exacatMatchT = benchmarkT.ExactMatch(i, dnaString[i]);
+                var exactMatchC = benchmarkC.ExactMatch(i, dnaString[i]);
+                var exactMatchA = benchmarkA.ExactMatch(i, dnaString[i]);
+                var exactMatchT = benchmarkT.ExactMatch(i, dnaString[i]);
 
-                var exacatMatchC = benchmarkC.ExactMatch(i, dnaString[i]);//(nearMatchA + nearMatchT);//
-                var nearMatchC = benchmarkC.NearMatch(i, dnaString[i]);//(exacatMatchA + exacatMatchT) / 2; //
+                nearMatchesC += nearMatchC + prevMatchesC * nearMatchC;
+                nearMatchesA += nearMatchA + prevMatchesA * nearMatchA;
+                nearMatchesT += nearMatchT + prevMatchesT * nearMatchT;
 
-                nearMatchesA += (nearMatchA + prevMatchesA * (nearMatchA - 0d));
-                nearMatchesT += (nearMatchT + prevMatchesT * (nearMatchT - 0d));
-                nearMatchesC += (nearMatchC + prevMatchesC * (nearMatchC - 0d));
+                exactMatchesC += exactMatchC + prevMatchesC * exactMatchC;
+                exactMatchesA += exactMatchA + prevMatchesA * exactMatchA;
+                exactMatchesT += exactMatchT + prevMatchesT * exactMatchT;
 
-                exactMatchesA += (exacatMatchA + prevMatchesA * exacatMatchC);
-                exactMatchesT += (exacatMatchT + prevMatchesT * exacatMatchT);
-                exactMatchesC += (exacatMatchC + prevMatchesC * exacatMatchC);
+                prevMatchesC = sequencePrevLengthC / (i + 1) + exactMatchC + nearMatchC - Benchmark.minPoint;
+                prevMatchesA = sequencePrevLengthA / (i + 1) + exactMatchA + nearMatchA - Benchmark.minPoint;
+                prevMatchesT = sequencePrevLengthT / (i + 1) + exactMatchT + nearMatchT - Benchmark.minPoint;
 
-                prevMatchesA = (exacatMatchA + nearMatchA - Benchmark.minPoint) / Benchmark.maxPoint; // [bonus, 0]
-                prevMatchesT = (exacatMatchT + nearMatchT - Benchmark.minPoint) / Benchmark.maxPoint; // [bonus, 0]
-                prevMatchesC = (exacatMatchC + nearMatchC - Benchmark.minPoint) / Benchmark.maxPoint; // [bonus, 0]
+                bonusTotalC += i == dnaString.Length - 1 ? 0 : prevMatchesC;
+                bonusTotalA += i == dnaString.Length - 1 ? 0 : prevMatchesA;
+                bonusTotalT += i == dnaString.Length - 1 ? 0 : prevMatchesT;
 
-                bonusTotalA += prevMatchesA;
-                bonusTotalT += prevMatchesT;
-                bonusTotalC += prevMatchesC;
-
-                if (i == dnaString.Length - 1)
-                {
-                    nearMatchesA += (nearMatchA + prevMatchesA * nearMatchA);
-                    nearMatchesT += (nearMatchT + prevMatchesT * nearMatchT);
-                    nearMatchesC += (nearMatchC + prevMatchesC * nearMatchC);
-
-                    exactMatchesA += (exacatMatchA + prevMatchesA * exacatMatchC);
-                    exactMatchesT += (exacatMatchT + prevMatchesT * exacatMatchT);
-                    exactMatchesC += (exacatMatchC + prevMatchesC * exacatMatchC);
-                }
+                sequencePrevLengthC += prevMatchesC;
+                sequencePrevLengthA += prevMatchesA;
+                sequencePrevLengthT += prevMatchesT;
             }
-            var bonusTotal = (bonusTotalA + bonusTotalT + bonusTotalC) / 3d;
 
-            dnaDistanceA = (nearMatchesA + exactMatchesA) / (double)(bonusTotal + dnaString.Length);
-            dnaDistanceT = (nearMatchesT + exactMatchesT) / (double)(bonusTotal + dnaString.Length);
-            dnaDistanceC = (nearMatchesC + exactMatchesC) / (double)(bonusTotal + dnaString.Length);
+            dnaDistanceC = (nearMatchesC + exactMatchesC) / (double)(bonusTotalC + dnaString.Length);
+            dnaDistanceA = (nearMatchesA + exactMatchesA) / (double)(bonusTotalA + dnaString.Length);
+            dnaDistanceT = (nearMatchesT + exactMatchesT) / (double)(bonusTotalT + dnaString.Length);
 
             a = new BenchmarkProfile(dnaDistanceA, 1, dnaString.Length);
             t = new BenchmarkProfile(dnaDistanceT, 1, dnaString.Length);
             c = new BenchmarkProfile(dnaDistanceC, acDistance, dnaString.Length);
-            if (CanContribute() == false)
-            {
-                bonusTotal.ToString();
-            }
+
             a.Calculate(t);
             t.Calculate(a);
             c.Calculate(a);
+
+            path.Add(Clipper.MakePath(new double[] { c.D * 100, c.H * 100, a.D * 100, a.H * 100, t.D * 100, t.H * 100 }));
+            area = Math.Abs(Clipper.Area(path));
         }
 
-        public static double CompareFixed(CATProfile x, CATProfile y)
+        public static double CompareAreas(CATProfile x, CATProfile y)
         {
-            var resA = Math.Sqrt(Math.Pow(x.a.D - y.a.D, 2) + Math.Pow(x.a.H - y.a.H, 2));
-            var resT = Math.Sqrt(Math.Pow(x.t.D - y.t.D, 2) + Math.Pow(x.t.H - y.t.H, 2));
+            var intersect = Clipper.Intersect(x.path, y.path, FillRule.NonZero, 8);
+            return Clipper.Area(intersect) / Math.Min(x.area, y.area);
 
-            return ((resA + resT) / 2d);
+            var areaX = Math.Abs(x.c.D * (x.a.H - x.t.H) + x.a.D * (x.t.H - x.c.H) + x.t.D * (x.c.H - x.a.H)) / 2;
+            var areaY = Math.Abs(y.c.D * (y.a.H - y.t.H) + y.a.D * (y.t.H - y.c.H) + y.t.D * (y.c.H - y.a.H)) / 2;
+
+            return Math.Min(x.dnaString.Length, y.dnaString.Length) / Math.Max(x.dnaString.Length, y.dnaString.Length) + Math.Min(areaX, areaY) / Math.Max(areaX, areaY);
+        }
+
+        public static double CompareDistances(CATProfile x, CATProfile y)
+        {
+            var resC = Math.Sqrt(Math.Pow(x.c.D - y.c.D, 2) + Math.Pow(x.c.H - y.c.H, 2));// + Math.Pow((x.c.DNADistance - y.c.DNADistance), 2));
+            var resA = Math.Sqrt(Math.Pow(x.a.D - y.a.D, 2) + Math.Pow(x.a.H - y.a.H, 2));// + Math.Pow((x.a.DNADistance - y.a.DNADistance), 2));
+            var resT = Math.Sqrt(Math.Pow(x.t.D - y.t.D, 2) + Math.Pow(x.t.H - y.t.H, 2));// + Math.Pow((x.t.DNADistance - y.t.DNADistance), 2));
+
+            //var resA = Math.Sqrt(Math.Pow(x.a.D - y.a.D, 2) + Math.Pow((x.a.DNADistance - y.a.DNADistance), 2));
+            //var resT = Math.Sqrt(Math.Pow(x.t.D - y.t.D, 2) + Math.Pow((x.t.DNADistance - y.t.DNADistance), 2));
+            //var resC = Math.Sqrt(Math.Pow(x.c.D - y.c.D, 2) + Math.Pow((x.c.DNADistance - y.c.DNADistance), 2));
+
+            return 1 - (resC + resA + resT) / 3d;
         }
 
         public static double Compare(CATProfile x, CATProfile y)
         {
-            var resA = Math.Sqrt(Math.Pow(x.a.D - y.a.D, 2) + Math.Pow(x.a.H - y.a.H, 2));// + Math.Pow((x.a.DNADistance - y.a.DNADistance), 2));
-            var resT = Math.Sqrt(Math.Pow(x.t.D - y.t.D, 2) + Math.Pow(x.t.H - y.t.H, 2));// + Math.Pow((x.t.DNADistance - y.t.DNADistance), 2));
-            var resC = Math.Sqrt(Math.Pow(x.c.D - y.c.D, 2) + Math.Pow(x.c.H - y.c.H, 2));// + Math.Pow((x.c.DNADistance - y.c.DNADistance), 2));
-
-            return 1 - ((resC + resA + resT) / 3d);
+            //return CompareAreas(x, y);
+            return CompareDistances(x, y);
         }
 
         public bool AreEqual(CATProfile profile)
@@ -147,13 +156,6 @@ namespace SequenceAnalyses
                 && a.DNADistance + c.DNADistance > acDistance
                 && a.DNADistance + acDistance > c.DNADistance
                 && c.DNADistance + acDistance > a.DNADistance;
-        }
-
-        private bool CanContribute(double distanceA, double distanceT)
-        {
-            return distanceA + distanceT > 1
-               && distanceA + 1 > distanceT
-               && distanceT + 1 > distanceA;
         }
     }
 
@@ -224,7 +226,7 @@ namespace SequenceAnalyses
     public class Benchmark
     {
         public const double maxPoint = 1d;
-        public const double minPoint = 0.36d;
+        public const double minPoint = 0.4d;
         private double[] baseDistance = new double[4] { 0d, 0.6d, minPoint, 0.6d };
         private string baseSequence;
 
@@ -257,6 +259,8 @@ namespace SequenceAnalyses
         {
             return this.baseSequence[index % baseSequence.Length] == @base ? maxPoint : 0;
         }
+
+        //public double Accumulate(int index, char @base)
     }
 
     public static class BenchmarkRepository
