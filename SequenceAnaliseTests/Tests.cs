@@ -15,7 +15,7 @@ namespace SequenceAnaliseTests
             yield return 15;
         }
 
-        public static IEnumerable<(int count, int secuenceLength)> CompareCATwithNWProvider()
+        public static IEnumerable<(int count, int sequenceLength)> CompareCATwithNWProvider()
         {
             yield return (50, 100);
             yield return (50, 1_000);
@@ -23,7 +23,7 @@ namespace SequenceAnaliseTests
             yield return (1, 50_000);
         }
 
-        public static IEnumerable<(int count, int secuenceLength)> CompareCATwithNWLongProvider()
+        public static IEnumerable<(int count, int sequenceLength)> CompareCATwithNWLongProvider()
         {
             for (int i = 0; i < 50; i++)
             {
@@ -36,52 +36,42 @@ namespace SequenceAnaliseTests
         {
         }
 
-        [Test]
-        public void SecialCase()
-        {
-            //var dna = "TACACGCACG";
-            var dna = "CATTTGGGAAAGTSC";
-            var catProfile = new CATProfile(dna);
-
-            CATProfile.Compare(catProfile, catProfile);
-        }
-
         [Test, TestCaseSource(nameof(SequenceLengthProvider))]
-        public async Task CanContrinuteForFormigTringle(int sequenceLength)
+        public async Task CanContributeForFormingTriangle(int sequenceLength)
         {
-            ConcurrentDictionary<string, bool> cannotContrubute = new ConcurrentDictionary<string, bool>();
+            ConcurrentDictionary<string, bool> cannotContribute = new ConcurrentDictionary<string, bool>();
 
-            var totalRecords = await Search.IterateInParalel(sequenceLength, (permutation) =>
+            var totalRecords = await Search.IterateInParallel(sequenceLength, (permutation) =>
             {
                 var profile = new CATProfile(permutation);
                 if (profile.CanContribute() == false)
                 {
-                    cannotContrubute.AddOrUpdate(permutation, (key) => false, (key, val) => false);
+                    cannotContribute.AddOrUpdate(permutation, (key) => false, (key, val) => false);
                 }
             });
 
-            Assert.That(cannotContrubute.Count, Is.EqualTo(0));
+            Assert.That(cannotContribute.Count, Is.EqualTo(0));
         }
 
         [Test, TestCaseSource(nameof(SequenceLengthProvider))]
-        public async Task ColisionReportFor_1000(int sequenceLength)
+        public async Task CollisionReportFor_1000(int sequenceLength)
         {
             using var result = File.CreateText($"SearchResults{sequenceLength}.csv");
-            await Search.GenerateColisionReport(100, sequenceLength, result);
+            await Search.GenerateCollisionReport(1000, sequenceLength, result);
             Assert.Pass();
         }
 
         [Test, TestCaseSource(nameof(CompareCATwithNWProvider))]
-        public async Task CompareCATwithNW((int count, int secuenceLength) input)
+        public async Task CompareCATwithNW((int count, int sequenceLength) input)
         {
-            var ssl50 = (int)(input.secuenceLength * 0.5);
-            var ssl70 = (int)(input.secuenceLength * 0.7);
-            var ssl90 = (int)(input.secuenceLength * 0.9);
-            var ssl97 = (int)(input.secuenceLength * 0.97);
+            var ssl50 = (int)(input.sequenceLength * 0.5);
+            var ssl70 = (int)(input.sequenceLength * 0.7);
+            var ssl90 = (int)(input.sequenceLength * 0.9);
+            var ssl97 = (int)(input.sequenceLength * 0.97);
 
             var halfs = new List<int>() { ssl50, ssl70, ssl90, ssl97 };
 
-            var randomSecuenceLength = new List<int> { ssl50, ssl70, ssl90, ssl97, input.secuenceLength };
+            var randomSequenceLength = new List<int> { ssl50, ssl70, ssl90, ssl97, input.sequenceLength };
 
             Task<List<string>>[] experiments = new Task<List<string>>[input.count];
             for (int i = 0; i < input.count; i++)
@@ -90,7 +80,7 @@ namespace SequenceAnaliseTests
                 {
                     List<string> result = new List<string>();
 
-                    var dna = new DNA(Generator.GetRandomDNA(input.secuenceLength));
+                    var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength));
                     var exactSame = Search.ExactSame(dna);
                     result.Add($"{dna.DnaString.Length}, {dna.DnaString.Length}, WithItself, {Search.Format(Search.CompareCATWithNW(dna, exactSame))}");
 
@@ -105,11 +95,11 @@ namespace SequenceAnaliseTests
                         result.Add($"{dna.DnaString.Length}, {half}, Middle, {Search.Format(Search.CompareCATWithNW(dna, middle))}");
                     }
 
-                    foreach (var rnd in randomSecuenceLength)
+                    foreach (var rnd in randomSequenceLength)
                     {
                         var dna2 = new DNA(Generator.GetRandomDNA(rnd));
-                        var aproximate = Search.CompareCATWithNW(dna, dna2);
-                        result.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(aproximate)}");
+                        var approximate = Search.CompareCATWithNW(dna, dna2);
+                        result.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(approximate)}");
                     }
 
                     return result;
@@ -119,7 +109,7 @@ namespace SequenceAnaliseTests
             await Task.WhenAll(experiments);
             var results = experiments.SelectMany(x => x.Result).ToList();
 
-            using var report = File.CreateText($"CompareCATWithNW_{input.secuenceLength}_{input.count}.csv");
+            using var report = File.CreateText($"CompareCATWithNW_{input.sequenceLength}_{input.count}.csv");
             report.WriteLine($"Dna1 Length, Dna2 Length, Kind, CAT Result, CAT ms, NW Result, NW ms");
             foreach (var item in results)
             {
@@ -131,20 +121,20 @@ namespace SequenceAnaliseTests
         }
 
         [Test, TestCaseSource(nameof(CompareCATwithNWLongProvider))]
-        public void CompareCATwithNWLong((int experiment, int secuenceLength) input)
+        public void CompareCATwithNWLong((int experiment, int sequenceLength) input)
         {
-            var ssl50 = (int)(input.secuenceLength * 0.5);
-            var ssl70 = (int)(input.secuenceLength * 0.7);
-            var ssl90 = (int)(input.secuenceLength * 0.9);
-            var ssl97 = (int)(input.secuenceLength * 0.97);
+            var ssl50 = (int)(input.sequenceLength * 0.5);
+            var ssl70 = (int)(input.sequenceLength * 0.7);
+            var ssl90 = (int)(input.sequenceLength * 0.9);
+            var ssl97 = (int)(input.sequenceLength * 0.97);
 
             var halfs = new List<int>() { ssl50, ssl70, ssl90, ssl97 };
 
-            var randomSecuenceLength = new List<int> { ssl50, ssl70, ssl90, ssl97, input.secuenceLength };
+            var randomSequenceLength = new List<int> { ssl50, ssl70, ssl90, ssl97, input.sequenceLength };
 
             List<string> results = new List<string>();
 
-            var dna = new DNA(Generator.GetRandomDNA(input.secuenceLength));
+            var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength));
             var exactSame = Search.ExactSame(dna);
             results.Add($"{dna.DnaString.Length}, {dna.DnaString.Length}, WithItself, {Search.Format(Search.CompareCATWithNW(dna, exactSame))}");
 
@@ -159,14 +149,14 @@ namespace SequenceAnaliseTests
                 results.Add($"{dna.DnaString.Length}, {half}, Middle, {Search.Format(Search.CompareCATWithNW(dna, middle))}");
             }
 
-            foreach (var rnd in randomSecuenceLength)
+            foreach (var rnd in randomSequenceLength)
             {
                 var dna2 = new DNA(Generator.GetRandomDNA(rnd));
-                var aproximate = Search.CompareCATWithNW(dna, dna2);
-                results.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(aproximate)}");
+                var approximate = Search.CompareCATWithNW(dna, dna2);
+                results.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(approximate)}");
             }
 
-            using var report = File.CreateText($"CompareCATWithNW_{input.secuenceLength}_{input.experiment}.csv");
+            using var report = File.CreateText($"CompareCATWithNW_{input.sequenceLength}_{input.experiment}.csv");
             report.WriteLine($"Dna1 Length, Dna2 Length, Kind, CAT Result, CAT ms, NW Result, NW ms");
             foreach (var item in results)
             {
@@ -178,16 +168,16 @@ namespace SequenceAnaliseTests
         }
 
         [Test, TestCaseSource(nameof(CompareCATwithNWProvider))]
-        public async Task CompareCATWithKMP((int count, int secuenceLength) input)
+        public async Task CompareCATWithKMP((int count, int sequenceLength) input)
         {
-            var ssl50 = (int)(input.secuenceLength * 0.5);
-            var ssl70 = (int)(input.secuenceLength * 0.7);
-            var ssl90 = (int)(input.secuenceLength * 0.9);
-            var ssl97 = (int)(input.secuenceLength * 0.97);
+            var ssl50 = (int)(input.sequenceLength * 0.5);
+            var ssl70 = (int)(input.sequenceLength * 0.7);
+            var ssl90 = (int)(input.sequenceLength * 0.9);
+            var ssl97 = (int)(input.sequenceLength * 0.97);
 
             var halfs = new List<int>() { ssl50, ssl70, ssl90, ssl97 };
 
-            var randomSecuenceLength = new List<int> { ssl50, ssl70, ssl90, ssl97, input.secuenceLength };
+            var randomSequenceLength = new List<int> { ssl50, ssl70, ssl90, ssl97, input.sequenceLength };
 
             Task<List<string>>[] experiments = new Task<List<string>>[input.count];
             for (int i = 0; i < input.count; i++)
@@ -196,7 +186,7 @@ namespace SequenceAnaliseTests
                 {
                     List<string> result = new List<string>();
 
-                    var dna = new DNA(Generator.GetRandomDNA(input.secuenceLength));
+                    var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength));
                     var exactSame = Search.ExactSame(dna);
                     result.Add($"{dna.DnaString.Length}, {dna.DnaString.Length}, WithItself, {Search.Format(Search.CompareCATWithKMP(dna, exactSame))}");
 
@@ -211,11 +201,11 @@ namespace SequenceAnaliseTests
                         result.Add($"{dna.DnaString.Length}, {half}, Middle, {Search.Format(Search.CompareCATWithKMP(dna, middle))}");
                     }
 
-                    foreach (var rnd in randomSecuenceLength)
+                    foreach (var rnd in randomSequenceLength)
                     {
                         var dna2 = new DNA(Generator.GetRandomDNA(rnd));
-                        var aproximate = Search.CompareCATWithKMP(dna, dna2);
-                        result.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(aproximate)}");
+                        var approximate = Search.CompareCATWithKMP(dna, dna2);
+                        result.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(approximate)}");
                     }
 
                     return result;
@@ -225,7 +215,7 @@ namespace SequenceAnaliseTests
             await Task.WhenAll(experiments);
             var results = experiments.SelectMany(x => x.Result).ToList();
 
-            using var report = File.CreateText($"CompareCATWithKMP_{input.secuenceLength}_{input.count}.csv");
+            using var report = File.CreateText($"CompareCATWithKMP_{input.sequenceLength}_{input.count}.csv");
             report.WriteLine($"Dna1 Length, Dna2 Length, Kind, CAT Result, CAT ms, NW Result, NW ms");
             foreach (var item in results)
             {

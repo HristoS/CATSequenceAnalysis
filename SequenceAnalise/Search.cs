@@ -10,19 +10,19 @@ namespace SequenceAnalyses
 {
     public static class Search
     {
-        public static IEnumerable<string> GetPermutations(int sequenceLenght)
+        public static IEnumerable<string> GetPermutations(int sequenceLength)
         {
             var values = new char[] { 'A', 'C', 'G', 'T' };
             // var values = new Dictionary<int, object[]>(parameters.Select((p, index) => new KeyValuePair<int, object[]>(index, p.GetCachedValue(handler).ToArray())).OrderBy(k => k.Key));
-            //var lenghts = values.Select(v => v.Value.Length);
-            var permutations = Math.Pow(values.Length, sequenceLenght);// values.Any() ? lenghts.Aggregate(1, (acc, v) => acc * v) : 0;
-            var counter = Enumerable.Repeat(0, sequenceLenght).ToArray(); //  values.Select(v => 0).ToArray();
+            //var lengths = values.Select(v => v.Value.Length);
+            var permutations = Math.Pow(values.Length, sequenceLength);// values.Any() ? lengths.Aggregate(1, (acc, v) => acc * v) : 0;
+            var counter = Enumerable.Repeat(0, sequenceLength).ToArray(); //  values.Select(v => 0).ToArray();
 
             for (double i = 0; i < permutations; i++)
             {
                 //var parameterValues = new Dictionary<string, object>();
-                var sequence = new char[sequenceLenght];
-                for (int j = 0; j < sequenceLenght; j++)
+                var sequence = new char[sequenceLength];
+                for (int j = 0; j < sequenceLength; j++)
                 {
                     sequence[j] = values[counter[j]];
                 }
@@ -105,7 +105,7 @@ namespace SequenceAnalyses
             return Search.GetPermutationsQ(new string(Enumerable.Repeat('G', sequenceLenght).ToArray()), new string(Enumerable.Repeat('T', sequenceLenght).ToArray()), inclusive);
         }
 
-        public static async Task<double> IterateInParalel(int sequenceLenght, Action<string> iterator)
+        public static async Task<double> IterateInParallel(int sequenceLenght, Action<string> iterator)
         {
             var taskAtoC = Task.Run<double>(() =>
             {
@@ -148,17 +148,17 @@ namespace SequenceAnalyses
         }
 
         /// <summary>
-        /// Generates the colision report.
+        /// Generates the collision report.
         /// Generates sequenceCount random DNA sequens with length sequenceLenght. Finds all colisions from all posible permutation for the generated sequence.
-        /// Applays NeedlemanWunsch aligment on sequence whihch are in collision.
+        /// Apples NeedlemanWunsch aliment on sequence which are in collision.
         /// </summary>
         /// <param name="sequenceCount">The sequence count.</param>
-        /// <param name="sequenceLenght">The sequence lenght.</param>
+        /// <param name="sequenceLenght">The sequence length.</param>
         /// <param name="result">The result file.</param>
-        public static async Task GenerateColisionReport(int sequenceCount, int sequenceLenght, StreamWriter result)
+        public static async Task GenerateCollisionReport(int sequenceCount, int sequenceLenght, StreamWriter result)
         {
             ConcurrentDictionary<string, double> results = new ConcurrentDictionary<string, double>();
-            ConcurrentDictionary<string, ConcurrentDictionary<string, int>> labaledResults = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>();
+            ConcurrentDictionary<string, ConcurrentDictionary<string, int>> labeledResults = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>();
             var labels = new Dictionary<string, List<double>>()
                         {
                             { "0.0", new List<double>()},
@@ -178,7 +178,7 @@ namespace SequenceAnalyses
             {
                 var str = Generator.GetRandomDNA(sequenceLenght);
                 results[str] = 0;
-                labaledResults[str] = new ConcurrentDictionary<string, int>(new Dictionary<string, int>()
+                labeledResults[str] = new ConcurrentDictionary<string, int>(new Dictionary<string, int>()
                         {
                             { "0.0", 0},
                             { "0.1", 0},
@@ -195,7 +195,7 @@ namespace SequenceAnalyses
                 randomDNAProfiles.Add(new CATProfile(str));
             }
 
-            double totalRecords = await Search.IterateInParalel(sequenceLenght, (permutation) =>
+            double totalRecords = await Search.IterateInParallel(sequenceLenght, (permutation) =>
             {
                 var profile = new CATProfile(permutation);
                 foreach (var random in randomDNAProfiles)
@@ -205,7 +205,7 @@ namespace SequenceAnalyses
                     {
                         var res = NeedlemanWunsch.Calculate(random.DnaString, permutation);
                         var label = res.ToString("0.000").Substring(0, 3);
-                        var labelResult = labaledResults.GetOrAdd(random.DnaString, (key) => new ConcurrentDictionary<string, int>());
+                        var labelResult = labeledResults.GetOrAdd(random.DnaString, (key) => new ConcurrentDictionary<string, int>());
                         labelResult.AddOrUpdate(label, (key) => 1, (key, value) => value + 1);
                     }
                 }
@@ -214,7 +214,7 @@ namespace SequenceAnalyses
             result.WriteLine($"dna string ,totalRecords, cat matches, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0");
 
             var totals = new List<double>();
-            foreach (var res in labaledResults)
+            foreach (var res in labeledResults)
             {
                 double total = res.Value.Values.Sum();
                 totals.Add(total);
@@ -273,19 +273,19 @@ namespace SequenceAnalyses
             return dna;
         }
 
-        public static DNA SubsequenceFirstHalf(DNA dna, double lenght)
+        public static DNA SubsequenceFirstHalf(DNA dna, double length)
         {
-            return new DNA(dna.DnaString.Substring(0, (int)lenght));
+            return new DNA(dna.DnaString.Substring(0, (int)length));
         }
 
-        public static DNA SubsequenceSecondHalf(DNA dna, double lenght)
+        public static DNA SubsequenceSecondHalf(DNA dna, double length)
         {
-            return new DNA(dna.DnaString.Substring((int)(dna.DnaString.Length - lenght)));
+            return new DNA(dna.DnaString.Substring((int)(dna.DnaString.Length - length)));
         }
 
-        public static DNA SubsequenceInTheMiddle(DNA dna, double lenght)
+        public static DNA SubsequenceInTheMiddle(DNA dna, double length)
         {
-            return new DNA(dna.DnaString.Substring((int)((dna.DnaString.Length - lenght) / 2), (int)lenght));
+            return new DNA(dna.DnaString.Substring((int)((dna.DnaString.Length - length) / 2), (int)length));
         }
     }
 }
