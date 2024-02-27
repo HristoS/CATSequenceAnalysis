@@ -11,9 +11,9 @@ namespace SequenceAnalyses
     {
         private static RandomNumberGenerator rngCsp = RandomNumberGenerator.Create();
 
-        public static string GetRandomDNA(int lenght)
+        public static string GetRandomDNA(int length)
         {
-            byte[] dna = new byte[lenght];
+            byte[] dna = new byte[length];
             rngCsp.GetBytes(dna);
             StringBuilder sb = new StringBuilder();
             foreach (byte basis in dna)

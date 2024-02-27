@@ -60,7 +60,7 @@ namespace SequenceAnalyses
             if (startValue >= endValue)
                 throw new ArgumentException();
 
-            var sequenceLenght = start.Length;
+            var sequenceLength = start.Length;
 
             var permutations = endValue - startValue;
             permutations = include ? permutations + 1 : permutations;
@@ -69,8 +69,8 @@ namespace SequenceAnalyses
 
             for (double i = 0; i < permutations; i++)
             {
-                var sequence = new char[sequenceLenght];
-                for (int j = 0; j < sequenceLenght; j++)
+                var sequence = new char[sequenceLength];
+                for (int j = 0; j < sequenceLength; j++)
                 {
                     sequence[j] = values[counter[j]];
                 }
@@ -90,28 +90,28 @@ namespace SequenceAnalyses
             }
         }
 
-        public static IEnumerable<string> GetPermutationsAtoC(int sequenceLenght, bool inclusive)
+        public static IEnumerable<string> GetPermutationsAtoC(int sequenceLength, bool inclusive)
         {
-            return Search.GetPermutationsQ(new string(Enumerable.Repeat('A', sequenceLenght).ToArray()), new string(Enumerable.Repeat('C', sequenceLenght).ToArray()), inclusive);
+            return Search.GetPermutationsQ(new string(Enumerable.Repeat('A', sequenceLength).ToArray()), new string(Enumerable.Repeat('C', sequenceLength).ToArray()), inclusive);
         }
 
-        public static IEnumerable<string> GetPermutationsCtoG(int sequenceLenght, bool inclusive)
+        public static IEnumerable<string> GetPermutationsCtoG(int sequenceLength, bool inclusive)
         {
-            return Search.GetPermutationsQ(new string(Enumerable.Repeat('C', sequenceLenght).ToArray()), new string(Enumerable.Repeat('G', sequenceLenght).ToArray()), inclusive);
+            return Search.GetPermutationsQ(new string(Enumerable.Repeat('C', sequenceLength).ToArray()), new string(Enumerable.Repeat('G', sequenceLength).ToArray()), inclusive);
         }
 
-        public static IEnumerable<string> GetPermutationsGtoT(int sequenceLenght, bool inclusive)
+        public static IEnumerable<string> GetPermutationsGtoT(int sequenceLength, bool inclusive)
         {
-            return Search.GetPermutationsQ(new string(Enumerable.Repeat('G', sequenceLenght).ToArray()), new string(Enumerable.Repeat('T', sequenceLenght).ToArray()), inclusive);
+            return Search.GetPermutationsQ(new string(Enumerable.Repeat('G', sequenceLength).ToArray()), new string(Enumerable.Repeat('T', sequenceLength).ToArray()), inclusive);
         }
 
-        public static async Task<double> IterateInParallel(int sequenceLenght, Action<string> iterator)
+        public static async Task<double> IterateInParallel(int sequenceLength, Action<string> iterator)
         {
             var taskAtoC = Task.Run<double>(() =>
             {
                 var totalRecords = 0d;
 
-                foreach (var permutation in Search.GetPermutationsAtoC(sequenceLenght, false))
+                foreach (var permutation in Search.GetPermutationsAtoC(sequenceLength, false))
                 {
                     totalRecords++;
                     iterator(permutation);
@@ -123,7 +123,7 @@ namespace SequenceAnalyses
             {
                 var totalRecords = 0d;
 
-                foreach (var permutation in Search.GetPermutationsCtoG(sequenceLenght, false))
+                foreach (var permutation in Search.GetPermutationsCtoG(sequenceLength, false))
                 {
                     totalRecords++;
                     iterator(permutation);
@@ -135,7 +135,7 @@ namespace SequenceAnalyses
             {
                 var totalRecords = 0d;
 
-                foreach (var permutation in Search.GetPermutationsGtoT(sequenceLenght, true))
+                foreach (var permutation in Search.GetPermutationsGtoT(sequenceLength, true))
                 {
                     totalRecords++;
                     iterator(permutation);
@@ -149,13 +149,13 @@ namespace SequenceAnalyses
 
         /// <summary>
         /// Generates the collision report.
-        /// Generates sequenceCount random DNA sequens with length sequenceLenght. Finds all colisions from all posible permutation for the generated sequence.
+        /// Generates sequenceCount random DNA sequens with length sequenceLength. Finds all collisions from all possible permutation for the generated sequence.
         /// Apples NeedlemanWunsch aliment on sequence which are in collision.
         /// </summary>
         /// <param name="sequenceCount">The sequence count.</param>
-        /// <param name="sequenceLenght">The sequence length.</param>
+        /// <param name="sequenceLength">The sequence length.</param>
         /// <param name="result">The result file.</param>
-        public static async Task GenerateCollisionReport(int sequenceCount, int sequenceLenght, StreamWriter result)
+        public static async Task GenerateCollisionReport(int sequenceCount, int sequenceLength, StreamWriter result)
         {
             ConcurrentDictionary<string, double> results = new ConcurrentDictionary<string, double>();
             ConcurrentDictionary<string, ConcurrentDictionary<string, int>> labeledResults = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>();
@@ -176,7 +176,7 @@ namespace SequenceAnalyses
             List<CATProfile> randomDNAProfiles = new List<CATProfile>();
             for (int i = 0; i < sequenceCount; i++)
             {
-                var str = Generator.GetRandomDNA(sequenceLenght);
+                var str = Generator.GetRandomDNA(sequenceLength);
                 results[str] = 0;
                 labeledResults[str] = new ConcurrentDictionary<string, int>(new Dictionary<string, int>()
                         {
@@ -195,7 +195,7 @@ namespace SequenceAnalyses
                 randomDNAProfiles.Add(new CATProfile(str));
             }
 
-            double totalRecords = await Search.IterateInParallel(sequenceLenght, (permutation) =>
+            double totalRecords = await Search.IterateInParallel(sequenceLength, (permutation) =>
             {
                 var profile = new CATProfile(permutation);
                 foreach (var random in randomDNAProfiles)

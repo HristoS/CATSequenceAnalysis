@@ -36,22 +36,22 @@ namespace SequenceAnalyses
             {
                 for (int j = 1; j < refSeqCnt; j++)
                 {
-                    int scroeDiag = 0;
+                    int scoreDiag = 0;
                     if (refSeq.Substring(j - 1, 1) == alignSeq.Substring(i - 1, 1))
-                        scroeDiag = scoringMatrix[i - 1, j - 1] + matchScore;
+                        scoreDiag = scoringMatrix[i - 1, j - 1] + matchScore;
                     else
-                        scroeDiag = scoringMatrix[i - 1, j - 1] + mismatchScore;
+                        scoreDiag = scoringMatrix[i - 1, j - 1] + mismatchScore;
 
-                    int scroeLeft = scoringMatrix[i, j - 1] + gapScore;
-                    int scroeUp = scoringMatrix[i - 1, j] + gapScore;
+                    int scoreLeft = scoringMatrix[i, j - 1] + gapScore;
+                    int scoreUp = scoringMatrix[i - 1, j] + gapScore;
 
-                    int maxScore = Math.Max(Math.Max(scroeDiag, scroeLeft), scroeUp);
+                    int maxScore = Math.Max(Math.Max(scoreDiag, scoreLeft), scoreUp);
 
                     scoringMatrix[i, j] = maxScore;
                 }
             }
 
-            //Traceback Step
+            //TraceBack Step
             char[] alineSeqArray = alignSeq.ToCharArray();
             char[] refSeqArray = refSeq.ToCharArray();
 
@@ -61,15 +61,15 @@ namespace SequenceAnalyses
             int n = refSeqCnt - 1;
             while (m > 0 && n > 0)
             {
-                int scroeDiag = 0;
+                int scoreDiag = 0;
 
                 //Remembering that the scoring scheme is +2 for a match, -1 for a mismatch and -2 for a gap
                 if (alineSeqArray[m - 1] == refSeqArray[n - 1])
-                    scroeDiag = 2;
+                    scoreDiag = 2;
                 else
-                    scroeDiag = -1;
+                    scoreDiag = -1;
 
-                if (m > 0 && n > 0 && scoringMatrix[m, n] == scoringMatrix[m - 1, n - 1] + scroeDiag)
+                if (m > 0 && n > 0 && scoringMatrix[m, n] == scoringMatrix[m - 1, n - 1] + scoreDiag)
                 {
                     AlignmentA = refSeqArray[n - 1] + AlignmentA;
                     AlignmentB = alineSeqArray[m - 1] + AlignmentB;
