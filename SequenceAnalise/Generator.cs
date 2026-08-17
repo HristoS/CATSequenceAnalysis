@@ -1,28 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
 namespace SequenceAnalyses
 {
-    public class Generator
+    public static class Generator
     {
-        private static RandomNumberGenerator rngCsp = RandomNumberGenerator.Create();
+        // Index matches Base's declared order (A, T, C, G), so seeded output is stable.
+        private static readonly char[] Bases = { 'A', 'T', 'C', 'G' };
 
-        public static string GetRandomDNA(int length)
+        public static string GetRandomDNA(int length) => GetRandomDNA(length, Random.Shared);
+
+        public static string GetRandomDNA(int length, int seed) => GetRandomDNA(length, new Random(seed));
+
+        public static string GetRandomDNA(int length, Random random)
         {
-            byte[] dna = new byte[length];
-            rngCsp.GetBytes(dna);
-            StringBuilder sb = new StringBuilder();
-            foreach (byte basis in dna)
+            var dna = new char[length];
+            for (int i = 0; i < length; i++)
             {
-                Base b = (Base)(basis % Enum.GetValues(typeof(Base)).Length);
-                sb.Append(b.ToString());
+                dna[i] = Bases[random.Next(Bases.Length)];
             }
 
-            return sb.ToString();
+            return new string(dna);
         }
     }
 }

@@ -1,4 +1,9 @@
 
+# Manuscript-in-preparation: withheld from the public repo until after journal submission, so a
+# plagiarism/similarity checker never finds this exact prose already publicly indexed. Remove this
+# line (and commit the file) once that concern no longer applies.
+docs/zcurve-windowed-profile.md
+
 # Created by https://www.toptal.com/developers/gitignore/api/dotnetcore,csharp,visualstudio,aspnetcore
 # Edit at https://www.toptal.com/developers/gitignore?templates=dotnetcore,csharp,visualstudio,aspnetcore
 

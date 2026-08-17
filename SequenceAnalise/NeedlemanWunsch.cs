@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
 namespace SequenceAnalyses
 {
@@ -15,98 +11,75 @@ namespace SequenceAnalyses
         //http://www.codeproject.com/Tips/638377/Needleman-Wunsch-Algorithm-in-Csharp
         public static double Calculate(string refSeq, string alignSeq)
         {
-            int refSeqCnt = refSeq.Length + 1;
-            int alineSeqCnt = alignSeq.Length + 1;
-
-            int[,] scoringMatrix = new int[alineSeqCnt, refSeqCnt];
-
-            //Initialization Step - filled with 0 for the first row and the first column of matrix
-            for (int i = 0; i < alineSeqCnt; i++)
+            // Keep the shorter sequence as the "column" dimension so the two rolling
+            // rows below cost O(min(len)) instead of O(max(len)); the DP score itself
+            // is symmetric in ref/align, but swapping transposes the matrix, so the
+            // left/up tie-break priority below must be flipped to match to keep the
+            // exact same chosen alignment (and match count) as the un-swapped case.
+            bool swapped = refSeq.Length > alignSeq.Length;
+            if (swapped)
             {
-                scoringMatrix[i, 0] = i * gapScore;
+                (refSeq, alignSeq) = (alignSeq, refSeq);
             }
+
+            int refSeqCnt = refSeq.Length + 1;
+            int alignSeqCnt = alignSeq.Length + 1;
+
+            int[] prevScore = new int[refSeqCnt];
+            int[] currScore = new int[refSeqCnt];
+            int[] prevMatches = new int[refSeqCnt];
+            int[] currMatches = new int[refSeqCnt];
 
             for (int j = 0; j < refSeqCnt; j++)
             {
-                scoringMatrix[0, j] = j * gapScore;
+                prevScore[j] = j * gapScore;
             }
 
-            //Matrix Fill Step
-            for (int i = 1; i < alineSeqCnt; i++)
+            for (int i = 1; i < alignSeqCnt; i++)
             {
+                currScore[0] = i * gapScore;
+                currMatches[0] = 0;
+
+                char alignChar = alignSeq[i - 1];
+
                 for (int j = 1; j < refSeqCnt; j++)
                 {
-                    int scoreDiag = 0;
-                    if (refSeq.Substring(j - 1, 1) == alignSeq.Substring(i - 1, 1))
-                        scoreDiag = scoringMatrix[i - 1, j - 1] + matchScore;
+                    bool isMatch = refSeq[j - 1] == alignChar;
+                    int scoreDiag = prevScore[j - 1] + (isMatch ? matchScore : mismatchScore);
+                    int scoreLeft = currScore[j - 1] + gapScore;
+                    int scoreUp = prevScore[j] + gapScore;
+
+                    // Tie-break priority mirrors what a backward traceback over the
+                    // (possibly transposed) full matrix would pick: diag first, then
+                    // whichever of left/up corresponds to the original "left" move.
+                    bool diagWins = swapped
+                        ? scoreDiag >= scoreUp && scoreDiag >= scoreLeft
+                        : scoreDiag >= scoreLeft && scoreDiag >= scoreUp;
+
+                    if (diagWins)
+                    {
+                        currScore[j] = scoreDiag;
+                        currMatches[j] = prevMatches[j - 1] + (isMatch ? 1 : 0);
+                    }
+                    else if (swapped ? scoreUp >= scoreLeft : scoreLeft >= scoreUp)
+                    {
+                        currScore[j] = swapped ? scoreUp : scoreLeft;
+                        currMatches[j] = swapped ? prevMatches[j] : currMatches[j - 1];
+                    }
                     else
-                        scoreDiag = scoringMatrix[i - 1, j - 1] + mismatchScore;
-
-                    int scoreLeft = scoringMatrix[i, j - 1] + gapScore;
-                    int scoreUp = scoringMatrix[i - 1, j] + gapScore;
-
-                    int maxScore = Math.Max(Math.Max(scoreDiag, scoreLeft), scoreUp);
-
-                    scoringMatrix[i, j] = maxScore;
+                    {
+                        currScore[j] = swapped ? scoreLeft : scoreUp;
+                        currMatches[j] = swapped ? currMatches[j - 1] : prevMatches[j];
+                    }
                 }
+
+                (prevScore, currScore) = (currScore, prevScore);
+                (prevMatches, currMatches) = (currMatches, prevMatches);
             }
 
-            //TraceBack Step
-            char[] alineSeqArray = alignSeq.ToCharArray();
-            char[] refSeqArray = refSeq.ToCharArray();
+            int exactMatch = prevMatches[refSeqCnt - 1];
 
-            string AlignmentA = string.Empty;
-            string AlignmentB = string.Empty;
-            int m = alineSeqCnt - 1;
-            int n = refSeqCnt - 1;
-            while (m > 0 && n > 0)
-            {
-                int scoreDiag = 0;
-
-                //Remembering that the scoring scheme is +2 for a match, -1 for a mismatch and -2 for a gap
-                if (alineSeqArray[m - 1] == refSeqArray[n - 1])
-                    scoreDiag = 2;
-                else
-                    scoreDiag = -1;
-
-                if (m > 0 && n > 0 && scoringMatrix[m, n] == scoringMatrix[m - 1, n - 1] + scoreDiag)
-                {
-                    AlignmentA = refSeqArray[n - 1] + AlignmentA;
-                    AlignmentB = alineSeqArray[m - 1] + AlignmentB;
-                    m = m - 1;
-                    n = n - 1;
-                }
-                else if (n > 0 && scoringMatrix[m, n] == scoringMatrix[m, n - 1] - 2)
-                {
-                    AlignmentA = refSeqArray[n - 1] + AlignmentA;
-                    AlignmentB = "-" + AlignmentB;
-                    n = n - 1;
-                }
-                else //if (m > 0 && scoringMatrix[m, n] == scoringMatrix[m - 1, n] + -2)
-                {
-                    AlignmentA = "-" + AlignmentA;
-                    AlignmentB = alineSeqArray[m - 1] + AlignmentB;
-                    m = m - 1;
-                }
-            }
-
-            int exactMatch = 0;
-            int gaps = 0;
-            for (int i = 0; i < AlignmentA.Length; i++)
-            {
-                exactMatch += AlignmentA[i] == AlignmentB[i] ? 1 : 0;
-                gaps += AlignmentA[i] == '-' || AlignmentB[i] == '-' ? 1 : 0;
-            }
-
-            //return (exactMatch, gaps);
             return exactMatch / (double)Math.Min(refSeq.Length, alignSeq.Length);
-            //int[,] matrix = InitScoringMatrix(alignSeq.Length, refSeq.Length);
-
-            //FillScoringMatrix(refSeq, alignSeq, matrix);
-            //print(refSeq, alignSeq, matrix);
-            //string copyRefSeq = refSeq;
-            //string copyAlignSeq = alignSeq;
-            //return Traceback(ref copyRefSeq, ref copyAlignSeq, matrix);
         }
     }
 }

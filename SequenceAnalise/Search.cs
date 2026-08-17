@@ -90,61 +90,67 @@ namespace SequenceAnalyses
             }
         }
 
-        public static IEnumerable<string> GetPermutationsAtoC(int sequenceLength, bool inclusive)
+        // Inverse of the value computation in GetPermutationsQ: decodes a base-4 index
+        // back into the sequence it corresponds to (position 0 is the least significant digit).
+        private static string ValueToSequence(double value, int sequenceLength)
         {
-            return Search.GetPermutationsQ(new string(Enumerable.Repeat('A', sequenceLength).ToArray()), new string(Enumerable.Repeat('C', sequenceLength).ToArray()), inclusive);
+            var values = new char[] { 'A', 'C', 'G', 'T' };
+            var sequence = new char[sequenceLength];
+            for (int i = 0; i < sequenceLength; i++)
+            {
+                sequence[i] = values[(int)(value % values.Length)];
+                value = Math.Floor(value / values.Length);
+            }
+
+            return new string(sequence);
         }
 
-        public static IEnumerable<string> GetPermutationsCtoG(int sequenceLength, bool inclusive)
+        public static Task<double> IterateInParallel(int sequenceLength, Action<string> iterator)
         {
-            return Search.GetPermutationsQ(new string(Enumerable.Repeat('C', sequenceLength).ToArray()), new string(Enumerable.Repeat('G', sequenceLength).ToArray()), inclusive);
+            return IterateInParallel(sequenceLength, Environment.ProcessorCount, iterator);
         }
 
-        public static IEnumerable<string> GetPermutationsGtoT(int sequenceLength, bool inclusive)
+        public static async Task<double> IterateInParallel(int sequenceLength, int degreeOfParallelism, Action<string> iterator)
         {
-            return Search.GetPermutationsQ(new string(Enumerable.Repeat('G', sequenceLength).ToArray()), new string(Enumerable.Repeat('T', sequenceLength).ToArray()), inclusive);
-        }
+            double totalPermutations = Math.Pow(4, sequenceLength);
+            int shardCount = (int)Math.Max(1, Math.Min(degreeOfParallelism, totalPermutations));
 
-        public static async Task<double> IterateInParallel(int sequenceLength, Action<string> iterator)
-        {
-            var taskAtoC = Task.Run<double>(() =>
+            double baseSize = Math.Floor(totalPermutations / shardCount);
+            double remainder = totalPermutations - baseSize * shardCount;
+
+            var tasks = new Task<double>[shardCount];
+            double cursor = 0;
+            for (int shard = 0; shard < shardCount; shard++)
             {
-                var totalRecords = 0d;
+                double shardSize = baseSize + (shard < remainder ? 1 : 0);
+                var startSequence = ValueToSequence(cursor, sequenceLength);
+                cursor += shardSize;
+                var endSequence = ValueToSequence(cursor - 1, sequenceLength);
 
-                foreach (var permutation in Search.GetPermutationsAtoC(sequenceLength, false))
+                tasks[shard] = Task.Run<double>(() =>
                 {
-                    totalRecords++;
-                    iterator(permutation);
-                }
+                    // GetPermutationsQ requires a strictly wider start/end range, so a
+                    // single-sequence shard (only possible when totalPermutations is small
+                    // relative to the requested parallelism) has to be handled directly.
+                    if (startSequence == endSequence)
+                    {
+                        iterator(startSequence);
+                        return 1d;
+                    }
 
-                return totalRecords;
-            });
-            var taskCtoG = Task.Run<double>(() =>
-            {
-                var totalRecords = 0d;
+                    var totalRecords = 0d;
 
-                foreach (var permutation in Search.GetPermutationsCtoG(sequenceLength, false))
-                {
-                    totalRecords++;
-                    iterator(permutation);
-                }
+                    foreach (var permutation in Search.GetPermutationsQ(startSequence, endSequence, true))
+                    {
+                        totalRecords++;
+                        iterator(permutation);
+                    }
 
-                return totalRecords;
-            });
-            var taskGtoT = Task.Run<double>(() =>
-            {
-                var totalRecords = 0d;
+                    return totalRecords;
+                });
+            }
 
-                foreach (var permutation in Search.GetPermutationsGtoT(sequenceLength, true))
-                {
-                    totalRecords++;
-                    iterator(permutation);
-                }
-
-                return totalRecords;
-            });
-
-            return (await Task.WhenAll(taskAtoC, taskCtoG, taskGtoT)).Sum();
+            return (await Task.WhenAll(tasks)).Sum();
         }
 
         /// <summary>
@@ -154,8 +160,9 @@ namespace SequenceAnalyses
         /// </summary>
         /// <param name="sequenceCount">The sequence count.</param>
         /// <param name="sequenceLength">The sequence length.</param>
+        /// <param name="seed">Seed for the random reference sequences, so the report is reproducible.</param>
         /// <param name="result">The result file.</param>
-        public static async Task GenerateCollisionReport(int sequenceCount, int sequenceLength, StreamWriter result)
+        public static async Task GenerateCollisionReport(int sequenceCount, int sequenceLength, int seed, StreamWriter result)
         {
             ConcurrentDictionary<string, double> results = new ConcurrentDictionary<string, double>();
             ConcurrentDictionary<string, ConcurrentDictionary<string, int>> labeledResults = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>();
@@ -176,7 +183,7 @@ namespace SequenceAnalyses
             List<CATProfile> randomDNAProfiles = new List<CATProfile>();
             for (int i = 0; i < sequenceCount; i++)
             {
-                var str = Generator.GetRandomDNA(sequenceLength);
+                var str = Generator.GetRandomDNA(sequenceLength, new Random(HashCode.Combine(seed, i)));
                 results[str] = 0;
                 labeledResults[str] = new ConcurrentDictionary<string, int>(new Dictionary<string, int>()
                         {

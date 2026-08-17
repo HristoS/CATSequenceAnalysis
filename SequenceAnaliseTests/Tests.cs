@@ -57,7 +57,7 @@ namespace SequenceAnaliseTests
         public async Task CollisionReportFor_1000(int sequenceLength)
         {
             using var result = File.CreateText($"SearchResults{sequenceLength}.csv");
-            await Search.GenerateCollisionReport(1000, sequenceLength, result);
+            await Search.GenerateCollisionReport(1000, sequenceLength, seed: sequenceLength, result);
             Assert.Pass();
         }
 
@@ -80,7 +80,8 @@ namespace SequenceAnaliseTests
                 {
                     List<string> result = new List<string>();
 
-                    var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength));
+                    var rng = new Random(HashCode.Combine(input.sequenceLength, i));
+                    var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength, rng));
                     var exactSame = Search.ExactSame(dna);
                     result.Add($"{dna.DnaString.Length}, {dna.DnaString.Length}, WithItself, {Search.Format(Search.CompareCATWithNW(dna, exactSame))}");
 
@@ -97,7 +98,7 @@ namespace SequenceAnaliseTests
 
                     foreach (var rnd in randomSequenceLength)
                     {
-                        var dna2 = new DNA(Generator.GetRandomDNA(rnd));
+                        var dna2 = new DNA(Generator.GetRandomDNA(rnd, rng));
                         var approximate = Search.CompareCATWithNW(dna, dna2);
                         result.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(approximate)}");
                     }
@@ -134,7 +135,8 @@ namespace SequenceAnaliseTests
 
             List<string> results = new List<string>();
 
-            var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength));
+            var rng = new Random(HashCode.Combine(input.sequenceLength, input.experiment));
+            var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength, rng));
             var exactSame = Search.ExactSame(dna);
             results.Add($"{dna.DnaString.Length}, {dna.DnaString.Length}, WithItself, {Search.Format(Search.CompareCATWithNW(dna, exactSame))}");
 
@@ -151,7 +153,7 @@ namespace SequenceAnaliseTests
 
             foreach (var rnd in randomSequenceLength)
             {
-                var dna2 = new DNA(Generator.GetRandomDNA(rnd));
+                var dna2 = new DNA(Generator.GetRandomDNA(rnd, rng));
                 var approximate = Search.CompareCATWithNW(dna, dna2);
                 results.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(approximate)}");
             }
@@ -186,7 +188,8 @@ namespace SequenceAnaliseTests
                 {
                     List<string> result = new List<string>();
 
-                    var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength));
+                    var rng = new Random(HashCode.Combine(input.sequenceLength, i));
+                    var dna = new DNA(Generator.GetRandomDNA(input.sequenceLength, rng));
                     var exactSame = Search.ExactSame(dna);
                     result.Add($"{dna.DnaString.Length}, {dna.DnaString.Length}, WithItself, {Search.Format(Search.CompareCATWithKMP(dna, exactSame))}");
 
@@ -203,7 +206,7 @@ namespace SequenceAnaliseTests
 
                     foreach (var rnd in randomSequenceLength)
                     {
-                        var dna2 = new DNA(Generator.GetRandomDNA(rnd));
+                        var dna2 = new DNA(Generator.GetRandomDNA(rnd, rng));
                         var approximate = Search.CompareCATWithKMP(dna, dna2);
                         result.Add($"{dna.DnaString.Length}, {dna2.DnaString.Length}, Random, {Search.Format(approximate)}");
                     }

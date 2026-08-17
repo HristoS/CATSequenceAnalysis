@@ -1,114 +1,96 @@
 # CATSequenceAnalysis
 
-## Tests 
- Test ceases have 3 tetsCases sources, which can be edited and allows you to run the test with variety of sequence lengths. 
-  - SequenceLengthProvider - is the source for CanContributeForFormingTriangle and CollisionReportFor_1000
-    - CanContributeForFormingTriangle - test if sequences with provided length can contribute for applying of trilateration method, i.e. calculated CAT profile can form a triangle which is essential for method of trilateration 
-    - CollisionReportFor_1000 - generate report with number collisions which can occurs for all combination for a sequence with a particular length.
-  - CompareCATwithNWProvider - is the source for CompareCATwithNW and CompareCATwithNWLong
-    - CompareCATwithNW and CompareCATWithKMP generates report from CAT and Needleman–Wunsch or Knuth–Morris–Pratt comparison, where a subsequence with different length and from different places (from the first half, from the second half, from the middle) is taken from the input sequence. This tests also generates sequence with random length and makes the same comparison.
-  - CompareCATwithNWLongProvider - source for CompareCATwithNWLong, which is similar to CompareCATwithNW, but for each experiment (input source) a new task is starter for a faster execution of the test
+Research code for a PhD project introducing **CAT**, a GPS-trilateration-inspired method for
+alignment-free DNA sequence similarity profiling (Gancheva & Stoev, 2019, 2024), and its extension
+with a windowed Z-curve profile that fixes CAT's large-length discriminative collapse and adds
+streaming construction and localization at genome scale.
 
- - CombineCompareCATWithKMP - must be ran after CompareCATWithKMP to combine all reports in a single csv for an easier processing of the results. 
- - CombineCompareCATWithNW - must be ran after CompareCATwithNW to combine all reports in a single csv for an easier processing of the results.  
+A full write-up (theory, diagrams, and the empirical evidence behind the Z-curve extension —
+performance and reliability from 20,000 bp up to a synthetic 3,100,000,000 bp genome-scale
+reference) is in preparation as a manuscript and is not included in this repository ahead of
+submission. The raw results backing that document's numbers are in [results/](results/) (see
+`results/README.md` for which file maps to which reported result), so every reported figure remains
+independently reproducible from the code here even without the write-up itself.
 
-All reports are generated in the \SequenceAnaliseTests\bin\Debug\net6.0 folder. 
+## Project layout
 
- ## Reports' header legend 
+- `SequenceAnalise/` — the library:
+  - `DNA.cs` — `CATProfile`, `Benchmark`, `BenchmarkProfile`, `BenchmarkRepository`: the original
+    trilateration method.
+  - `WindowedProfile.cs` — an alignment-free method using per-window k-mer frequency vectors.
+  - `ZCurveProfile.cs` — `ZCurveProfile` (single-point Z-curve endpoint) and
+    `ZCurveWindowedProfile` (the windowed extension this project is building toward publication,
+    including `FromStream`/`FromPrecomputedWindows` for genome-scale, non-materialized
+    construction).
+  - `NeedlemanWunsch.cs`, `PatternSearchingKMP.cs` — baseline alignment algorithms.
+  - `Generator.cs`, `Search.cs` — sequence generation and the experiment harness.
+- `SequenceAnaliseTests/` — NUnit 4 tests, two kinds:
+  - Correctness tests (`WindowedProfileTests.cs`, `ZCurveProfileTests.cs`,
+    `ZCurveWindowedProfileTests.cs`, `GeneratorTests.cs`) — fast, deterministic.
+  - Long-running benchmark/experiment suites — `Tests.cs` (the original CAT vs. Needleman–Wunsch/KMP
+    comparison harness; see the report legend below) and `Trilateration*.cs` +
+    `GenomeScaleStreamingTests.cs` (the performance and reliability evidence for
+    `ZCurveWindowedProfile`; some individual cases run for tens of minutes at the largest lengths
+    tested).
+- `results/` — CSV snapshots of the benchmark results reported above (not currently backed by a
+  public write-up; see [How to run tests](#how-to-run-tests) to reproduce them directly).
 
-- Dna1 Length - length of the 1-st DNA sequence
-- Dna2 Length - length of the 1-st DNA sequence
-- Kind - kind of teh second sequence, if it is a subsequence form the 1-st one and from which part is taken (from the first half, from the second half, from the middle) or it is random generated sequence 
-- CAT Result - rate of similarity after comparison with CAT in [0-1]
-- CAT ms - time in ms to perform the comparison with CAT
-- NW Result	- rate of similarity after comparison with Needleman–Wunsch in [0-1]
-- NW ms - time in ms to perform the comparison with Needleman–Wunsch
-- KMP Result	- rate of similarity after comparison with Knuth–Morris–Pratt in [0-1]
-- KMP ms - time in ms to perform the comparison with Knuth–Morris–Pratt
+## Tests
 
-- dna string - raw data of the sequence 
-- totalRecords - total number of all combination for a sequence with length given as input parameter 
-- cat matches - total number of collisions 
-- [0.1 - 1.0] - rate of similarity after comparison with Needleman–Wunsch for a sequence which is discovered as collision based on CAT
+Three `TestCaseSource` groups in `Tests.cs` parameterize the original CAT experiment harness across
+sequence lengths:
+  - `SequenceLengthProvider` — source for `CanContributeForFormingTriangle` and
+    `CollisionReportFor_1000`.
+    - `CanContributeForFormingTriangle` — tests whether sequences of the given length satisfy the
+      triangle-inequality precondition trilateration depends on.
+    - `CollisionReportFor_1000` — reports how many collisions occur across all sequences of a given
+      length.
+  - `CompareCATwithNWProvider` — source for `CompareCATwithNW` and `CompareCATwithNWLong`.
+    - `CompareCATwithNW`/`CompareCATWithKMP` compare CAT against Needleman–Wunsch or
+      Knuth–Morris–Pratt on subsequences (first half, second half, middle) and random-length
+      sequences taken from an input sequence.
+  - `CompareCATwithNWLongProvider` — source for `CompareCATwithNWLong`, same as `CompareCATwithNW`
+    but each experiment runs as its own task for faster execution.
+
+- `CombineCompareCATWithKMP` — run after `CompareCATWithKMP` to merge all per-case reports into one CSV.
+- `CombineCompareCATWithNW` — run after `CompareCATwithNW` to merge all per-case reports into one CSV.
+
+All reports from this harness are generated in `SequenceAnaliseTests\bin\Debug\net10.0`. The newer
+`Trilateration*.cs`/`GenomeScaleStreamingTests.cs` benchmarks write to the same folder; see
+`results/README.md` for their column legend and what each file backs.
+
+### Reports' header legend (`Tests.cs` harness: `CompareCATwithNW`/`CompareCATWithKMP`)
+
+- Dna1 Length / Dna2 Length — length of the 1st/2nd DNA sequence
+- Kind — whether the 2nd sequence is a subsequence of the 1st (first half, second half, middle) or
+  randomly generated
+- CAT Result / NW Result / KMP Result — similarity in [0, 1]
+- CAT ms / NW ms / KMP ms — time in ms to perform that comparison
+- dna string — raw sequence data
+- totalRecords — total combinations for a sequence of the given length
+- cat matches — total collisions found
+- `[0.1 - 1.0]` — Needleman–Wunsch similarity for a sequence flagged as a CAT collision
 
 ## How to run tests
 
- Open *sln file and run desired test from the test explorer https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022. Keep in mind that some test takes longer (up to couple of hours) based on the machine and sequence length which is examined. This is the reason why tests generate reports in *.csv for storing the results. 
+Open the `*.sln` file and run the desired test from
+[Test Explorer](https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022),
+or use `dotnet test --filter "Name=<TestName>"`. Some experiments in `Tests.cs` take up to a couple
+of hours depending on the machine and sequence length; several benchmarks in `Trilateration*.cs`/
+`GenomeScaleStreamingTests.cs` take tens of minutes at their largest length (3,100,000,000 bp) — see
+each file's own doc comment, and `results/README.md`, before running the full sweep.
 
 > **Warning:**
-> For localizations like German where separator for csv is ';' and decimal separator is ',' instead of '.' opening the reports in Excel could appear weird - https://answers.microsoft.com/en-us/msoffice/forum/all/power-query-how-to-import-a-csv-file-that-does-not/e19fe942-80ad-4ac1-a164-061e7cac9486      
+> For locales like German, where the CSV separator is `;` and the decimal separator is `,` instead
+> of `.`, opening these reports in Excel can look wrong —
+> [see this thread](https://answers.microsoft.com/en-us/msoffice/forum/all/power-query-how-to-import-a-csv-file-that-does-not/e19fe942-80ad-4ac1-a164-061e7cac9486).
 
-## Block diagram of CAT method for DNA sequence analysis
+## The CAT method, briefly
 
-```plantuml
-@startuml
-skinparam classFontSize 25
-skinparam classFontColor red
-
-start
-partition "Local Variables"{
-:Benchmark.minPoint = 0.4d
-Benchmark.maxPoint = 1d
-baseDistance = new double[4] { 0d, 0.6d, Benchmark.minPoint, 0.6d } 
-nearMatches = 0d
-exactMatches = 0d 
-prevMatches = 0d  
-bonusTotal = 0d ;
-}
-partition "Loop"{
-while (index < dnaStr.Length) is (yes)
--[#green]->
-: @base = dnaStr[index];
-:var nearMatch = 0d 
-exactMatch = 0d;
-partition "**function** Near Matches" {
-    if(Benchmark[(index + 0) % Benchmark.Length] == @base) then (yes)
-    -[#green]->
-        :nearMatch += (baseDistance[0] + prevMatches * baseDistance[0]);
-    endif 
-    -[#green]->
-    if(Benchmark[(index + 1) % Benchmark.Length] == @base) then (yes)
-    -[#green]->
-        :nearMatch += (baseDistance[1] + prevMatches * baseDistance[1]);
-    endif
-    -[#green]->
-    if(Benchmark[(index + 2) % Benchmark.Length] == @base) then (yes)
-    -[#green]->
-        :nearMatch += (baseDistance[2] + prevMatches * baseDistance[2]);
-    endif
-    -[#green]->
-    if(Benchmark[(index + 3) % Benchmark.Length] == @base) then (yes)
-    -[#green]->
-        :nearMatch += (baseDistance[3] + prevMatches * baseDistance[3]);
-    endif
-    -[#green]->
-}
-
-partition "**function** Exact Match" {
-
-    if(Benchmark[index % Benchmark.Length] == @base) then (yes)
-    -[#green]->
-        :exactMatch = Benchmark.maxPoint;
-    endif
-}
-
-partition "Dependency to previous matches and index" {
-:nearMatches += nearMatch + prevMatches * nearMatch 
-exactMatches += exactMatch + prevMatches * exactMatch 
-prevMatches = sequencePrevLength / (i + 1) + exactMatch + nearMatch - Benchmark.minPoint
-bonusTotal += i != dnaString.Length - 1 ? 0 : prevMatches
-sequencePrevLength +=  prevMatches;
-}
-
-backward: index++;
-
-endwhile (no)
--[#red]->
-}
-:**dnaDistance** = (nearMatches + exactMatches) / (double)(bonusTotal + dnaString.Length)
-**cos** = (Math.Pow(dnaDistance, 2) + Math.Pow(benchmarkDistance, 2) - Math.Pow(profile.dnaDistance, 2)) / (2 * dnaDistance * benchmarkDistance)
-**d** = dnaDistance * cos
-**h** = Math.Sqrt(Math.Pow(dnaDistance, 2) - Math.Pow(dnaDistance * benchmarkCOS, 2));
-stop
-@enduml
-```
+CAT compresses a DNA sequence into a single point via trilateration against three fixed reference
+cycles (`SequenceAnalise/DNA.cs`: `CATProfile`, `Benchmark`). `ZCurveWindowedProfile`
+(`SequenceAnalise/ZCurveProfile.cs`) extends this with a windowed Z-curve profile that avoids a
+large-sequence-length ceiling present in the original single-point construction; see each class's
+own doc comments, and `results/README.md`, for how the reported performance/reliability figures are
+reproduced. Full theoretical motivation and diagrams are in the manuscript in preparation (see
+above).

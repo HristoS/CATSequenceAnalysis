@@ -6,6 +6,45 @@ namespace SequenceAnalyses
     public enum Base
     { A, T, C, G };
 
+    public class BucketDistributor
+    {
+        /// <summary>
+        /// Distributes a total sum of 1.0 into a set number of buckets,
+        /// where each previous bucket is multiplied by a specific growth factor.
+        /// </summary>
+        /// <param name="bucketCount">The number of buckets (e.g., 8, 16, 20, 32)</param>
+        /// <param name="multiplier">The multiplier factor between adjacent buckets (e.g., 1.2, 1.5, 2.0)</param>
+        /// <returns>An array of doubles representing the distributed values summing up to 1.0</returns>
+        public static double[] DistributeValues(int bucketCount, double multiplier, double totalSum)
+        {
+            double[] buckets = new double[bucketCount];
+
+            // Handle edge case where multiplier is 1 (equal distribution)
+            if (Math.Abs(multiplier - 1.0) < 0.000001)
+            {
+                double evenShare = totalSum / bucketCount;
+                for (int i = 0; i < bucketCount; i++)
+                {
+                    buckets[i] = evenShare;
+                }
+                return buckets;
+            }
+
+            // Calculate the value of the final, smallest bucket (Bucket N)
+            // Formula: B_n = T * (r - 1) / (r^N - 1)
+            double smallestBucket = totalSum * (multiplier - 1.0) / (Math.Pow(multiplier, bucketCount) - 1.0);
+
+            // Fill the array from Bucket 1 (largest) down to Bucket N (smallest)
+            for (int i = 0; i < bucketCount; i++)
+            {
+                int exponent = bucketCount - 1 - i;
+                buckets[i] = smallestBucket * Math.Pow(multiplier, exponent);
+            }
+
+            return buckets;
+        }
+    }
+
     public class DNA
     {
         //private static NeedlemanWunsch NeedlemanWunschCalculation = new NeedlemanWunsch();
@@ -24,13 +63,31 @@ namespace SequenceAnalyses
 
     public class CATProfile
     {
-        private const double acDistance = 0.75d; // 1 full match on each of the other benchmarks
+        // Benchmark separations, derived from aligned-position matches between the benchmark
+        // strings themselves (BenchmarkRepository.A="ACGT", T="GTAC", C="AGTC"): distance = 1 -
+        // (shared positions / 4). A-T share 0 of 4 positions -> 1.0. A-C and T-C each share
+        // exactly 1 of 4 (position 0 and position 3 respectively) -> 0.75. A-T-C therefore form a
+        // fixed, valid triangle (0.75+0.75>1, 1+0.75>0.75), used below for true trilateration.
+        private const double atDistance = 1d;
+
+        private const double acDistance = 0.75d;
+        private const double tcDistance = 0.75d;
+
+        // Fixed reference positions for A, T, C in one shared plane: A at the origin, T on the
+        // x-axis at distance atDistance, and C placed so |A-C|=acDistance and |T-C|=tcDistance.
+        private static readonly double cRefX = (acDistance * acDistance - tcDistance * tcDistance + atDistance * atDistance) / (2 * atDistance);
+
+        private static readonly double cRefY = Math.Sqrt(acDistance * acDistance - cRefX * cRefX);
+
         private BenchmarkProfile a;
         private BenchmarkProfile t;
         private BenchmarkProfile c;
         private string dnaString;
-        private readonly PathsD path = new PathsD();
-        private readonly double area;
+
+        // The DNA sequence's location, trilaterated from its three measured distances
+        // (a.DNADistance, t.DNADistance, c.DNADistance) against the fixed A/T/C triangle above -
+        // one point in a single shared frame, rather than three separately-framed projections.
+        public (double X, double Y) Point { get; private set; }
 
         public string DnaString => dnaString;
 
@@ -42,99 +99,80 @@ namespace SequenceAnalyses
         public CATProfile(Benchmark benchmarkA, Benchmark benchmarkT, Benchmark benchmarkC, string dnaString)
         {
             this.dnaString = dnaString;
-            double nearMatchesA = 0d;
-            double nearMatchesT = 0d;
-            double nearMatchesC = 0d;
-
-            double dnaDistanceA = 0d;
-            double dnaDistanceT = 0d;
-            double dnaDistanceC = 0d;
-
-            double exactMatchesA = 0d;
-            double exactMatchesT = 0d;
-            double exactMatchesC = 0d;
-
-            double prevMatchesA = 0d;
-            double prevMatchesT = 0d;
-            double prevMatchesC = 0d;
-
-            double bonusTotalA = 0;
-            double bonusTotalT = 0;
-            double bonusTotalC = 0;
-
-            double sequencePrevLengthC = 0;
-            double sequencePrevLengthA = 0;
-            double sequencePrevLengthT = 0;
+            double matchPointsC = 0d;
+            double matchPointsA = 0d;
+            double matchPointsT = 0d;
 
             for (int i = 0; i < dnaString.Length; i++)
             {
-                var nearMatchC = benchmarkC.NearMatch(i, dnaString[i]);
-                var nearMatchA = benchmarkA.NearMatch(i, dnaString[i]);
-                var nearMatchT = benchmarkT.NearMatch(i, dnaString[i]);
+                var @base = dnaString[i];
 
-                var exactMatchC = benchmarkC.ExactMatch(i, dnaString[i]);
-                var exactMatchA = benchmarkA.ExactMatch(i, dnaString[i]);
-                var exactMatchT = benchmarkT.ExactMatch(i, dnaString[i]);
-
-                nearMatchesC += nearMatchC + prevMatchesC * nearMatchC;
-                nearMatchesA += nearMatchA + prevMatchesA * nearMatchA;
-                nearMatchesT += nearMatchT + prevMatchesT * nearMatchT;
-
-                exactMatchesC += exactMatchC + prevMatchesC * exactMatchC;
-                exactMatchesA += exactMatchA + prevMatchesA * exactMatchA;
-                exactMatchesT += exactMatchT + prevMatchesT * exactMatchT;
-
-                prevMatchesC = sequencePrevLengthC / (i + 1) + exactMatchC + nearMatchC - Benchmark.minPoint;
-                prevMatchesA = sequencePrevLengthA / (i + 1) + exactMatchA + nearMatchA - Benchmark.minPoint;
-                prevMatchesT = sequencePrevLengthT / (i + 1) + exactMatchT + nearMatchT - Benchmark.minPoint;
-
-                bonusTotalC += i == dnaString.Length - 1 ? 0 : prevMatchesC;
-                bonusTotalA += i == dnaString.Length - 1 ? 0 : prevMatchesA;
-                bonusTotalT += i == dnaString.Length - 1 ? 0 : prevMatchesT;
-
-                sequencePrevLengthC += prevMatchesC;
-                sequencePrevLengthA += prevMatchesA;
-                sequencePrevLengthT += prevMatchesT;
+                matchPointsC += benchmarkC.Match(i, @base);
+                matchPointsA += benchmarkA.Match(i, @base);
+                matchPointsT += benchmarkT.Match(i, @base);
             }
 
-            dnaDistanceC = (nearMatchesC + exactMatchesC) / (double)(bonusTotalC + dnaString.Length);
-            dnaDistanceA = (nearMatchesA + exactMatchesA) / (double)(bonusTotalA + dnaString.Length);
-            dnaDistanceT = (nearMatchesT + exactMatchesT) / (double)(bonusTotalT + dnaString.Length);
+            double dnaDistanceC = matchPointsC / (double)(dnaString.Length);
+            double dnaDistanceA = matchPointsA / (double)(dnaString.Length);
+            double dnaDistanceT = matchPointsT / (double)(dnaString.Length);
 
-            a = new BenchmarkProfile(dnaDistanceA, 1, dnaString.Length);
-            t = new BenchmarkProfile(dnaDistanceT, 1, dnaString.Length);
+            a = new BenchmarkProfile(dnaDistanceA, atDistance, dnaString.Length);
+            t = new BenchmarkProfile(dnaDistanceT, atDistance, dnaString.Length);
             c = new BenchmarkProfile(dnaDistanceC, acDistance, dnaString.Length);
 
             a.Calculate(t);
             t.Calculate(a);
             c.Calculate(a);
 
+            Point = Trilaterate(dnaDistanceA, dnaDistanceT, dnaDistanceC);
+        }
+
+        // Standard 2D trilateration (the same linearization GPS receivers use): with A/T/C fixed
+        // at known positions, subtracting the |P-A|^2=dA^2 equation from |P-T|^2=dT^2 and from
+        // |P-C|^2=dC^2 eliminates the quadratic terms and leaves two linear equations for (x,y).
+        private static (double X, double Y) Trilaterate(double dA, double dT, double dC)
+        {
+            double x = (dA * dA - dT * dT + atDistance * atDistance) / (2 * atDistance);
+            double y = (dA * dA - dC * dC + acDistance * acDistance - 2 * cRefX * x) / (2 * cRefY);
+            return (x, y);
+        }
+
+        private PathsD BuildPath()
+        {
+            var path = new PathsD();
             path.Add(Clipper.MakePath(new double[] { c.D * 100, c.H * 100, a.D * 100, a.H * 100, t.D * 100, t.H * 100 }));
-            area = Math.Abs(Clipper.Area(path));
+            return path;
         }
 
         public static double CompareAreas(CATProfile x, CATProfile y)
         {
-            var intersect = Clipper.Intersect(x.path, y.path, FillRule.NonZero, 8);
-            return Clipper.Area(intersect) / Math.Min(x.area, y.area);
-
-            var areaX = Math.Abs(x.c.D * (x.a.H - x.t.H) + x.a.D * (x.t.H - x.c.H) + x.t.D * (x.c.H - x.a.H)) / 2;
-            var areaY = Math.Abs(y.c.D * (y.a.H - y.t.H) + y.a.D * (y.t.H - y.c.H) + y.t.D * (y.c.H - y.a.H)) / 2;
-
-            return Math.Min(x.dnaString.Length, y.dnaString.Length) / Math.Max(x.dnaString.Length, y.dnaString.Length) + Math.Min(areaX, areaY) / Math.Max(areaX, areaY);
+            var xPath = x.BuildPath();
+            var yPath = y.BuildPath();
+            var intersect = Clipper.Intersect(xPath, yPath, FillRule.NonZero, 8);
+            return Clipper.Area(intersect) / Math.Min(Math.Abs(Clipper.Area(xPath)), Math.Abs(Clipper.Area(yPath)));
         }
 
         public static double CompareDistances(CATProfile x, CATProfile y)
         {
-            var resC = Math.Sqrt(Math.Pow(x.c.D - y.c.D, 2) + Math.Pow(x.c.H - y.c.H, 2));// + Math.Pow((x.c.DNADistance - y.c.DNADistance), 2));
-            var resA = Math.Sqrt(Math.Pow(x.a.D - y.a.D, 2) + Math.Pow(x.a.H - y.a.H, 2));// + Math.Pow((x.a.DNADistance - y.a.DNADistance), 2));
-            var resT = Math.Sqrt(Math.Pow(x.t.D - y.t.D, 2) + Math.Pow(x.t.H - y.t.H, 2));// + Math.Pow((x.t.DNADistance - y.t.DNADistance), 2));
+            var dC = x.c.D - y.c.D;
+            var hC = x.c.H - y.c.H;
+            var dA = x.a.D - y.a.D;
+            var hA = x.a.H - y.a.H;
+            var dT = x.t.D - y.t.D;
+            var hT = x.t.H - y.t.H;
 
-            //var resA = Math.Sqrt(Math.Pow(x.a.D - y.a.D, 2) + Math.Pow((x.a.DNADistance - y.a.DNADistance), 2));
-            //var resT = Math.Sqrt(Math.Pow(x.t.D - y.t.D, 2) + Math.Pow((x.t.DNADistance - y.t.DNADistance), 2));
-            //var resC = Math.Sqrt(Math.Pow(x.c.D - y.c.D, 2) + Math.Pow((x.c.DNADistance - y.c.DNADistance), 2));
+            var resC = Math.Sqrt(dC * dC + hC * hC);
+            var resA = Math.Sqrt(dA * dA + hA * hA);
+            var resT = Math.Sqrt(dT * dT + hT * hT);
 
             return 1 - (resC + resA + resT) / 3d;
+        }
+
+        public static double CompareTrilateration(CATProfile x, CATProfile y)
+        {
+            var dx = x.Point.X - y.Point.X;
+            var dy = x.Point.Y - y.Point.Y;
+            return 1 - Math.Sqrt(dx * dx + dy * dy);
         }
 
         public static double Compare(CATProfile x, CATProfile y)
@@ -204,7 +242,7 @@ namespace SequenceAnalyses
 
         private double BenchmarkCOS(BenchmarkProfile profile)
         {
-            return (Math.Pow(this.dnaDistance, 2) + Math.Pow(benchmarkDistance, 2) - Math.Pow(profile.dnaDistance, 2)) / (2 * this.dnaDistance * benchmarkDistance);
+            return (this.dnaDistance * this.dnaDistance + benchmarkDistance * benchmarkDistance - profile.dnaDistance * profile.dnaDistance) / (2 * this.dnaDistance * benchmarkDistance);
         }
 
         private double BenchmarkD(double benchmarkCOS)
@@ -214,7 +252,8 @@ namespace SequenceAnalyses
 
         private double BenchmarkH(double benchmarkCOS)
         {
-            return Math.Sqrt(Math.Pow(this.dnaDistance, 2) - Math.Pow(this.dnaDistance * benchmarkCOS, 2));
+            var d = this.dnaDistance * benchmarkCOS;
+            return Math.Sqrt(this.dnaDistance * this.dnaDistance - d * d);
         }
 
         public bool AreEqual(BenchmarkProfile profil)
