@@ -107,9 +107,9 @@ namespace SequenceAnalyses
             {
                 var @base = dnaString[i];
 
-                matchPointsC += benchmarkC.Match(i, @base);
-                matchPointsA += benchmarkA.Match(i, @base);
-                matchPointsT += benchmarkT.Match(i, @base);
+                matchPointsC += benchmarkC.NearMatch(i, @base) + benchmarkC.ExactMatch(i, @base);
+                matchPointsA += benchmarkA.NearMatch(i, @base) + benchmarkA.ExactMatch(i, @base);
+                matchPointsT += benchmarkT.NearMatch(i, @base) + benchmarkT.ExactMatch(i, @base);
             }
 
             double dnaDistanceC = matchPointsC / (double)(dnaString.Length);
