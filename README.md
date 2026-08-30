@@ -7,10 +7,11 @@ streaming construction and localization at genome scale.
 
 A full write-up (theory, diagrams, and the empirical evidence behind the Z-curve extension —
 performance and reliability from 20,000 bp up to a synthetic 3,100,000,000 bp genome-scale
-reference) is in preparation as a manuscript and is not included in this repository ahead of
-submission. The raw results backing that document's numbers are in [results/](results/) (see
-`results/README.md` for which file maps to which reported result), so every reported figure remains
-independently reproducible from the code here even without the write-up itself.
+reference, plus validation against 30 real bacterial genomes) is in preparation as a manuscript and
+is not included in this repository ahead of submission. The raw results backing that document's
+numbers are in [results/](results/) (see `results/README.md` for which file maps to which reported
+result), so every reported figure remains independently reproducible from the code here even without
+the write-up itself.
 
 ## Project layout
 
@@ -22,16 +23,26 @@ independently reproducible from the code here even without the write-up itself.
     `ZCurveWindowedProfile` (the windowed extension this project is building toward publication,
     including `FromStream`/`FromPrecomputedWindows` for genome-scale, non-materialized
     construction).
+  - `FastaReader.cs` — gzip-transparent FASTA parser used to load real reference genomes (see
+    `data/genomes/`) into `CATProfile`/`ZCurveWindowedProfile`, alongside `Generator.cs`'s synthetic
+    sequences.
   - `NeedlemanWunsch.cs`, `PatternSearchingKMP.cs` — baseline alignment algorithms.
   - `Generator.cs`, `Search.cs` — sequence generation and the experiment harness.
 - `SequenceAnaliseTests/` — NUnit 4 tests, two kinds:
   - Correctness tests (`WindowedProfileTests.cs`, `ZCurveProfileTests.cs`,
-    `ZCurveWindowedProfileTests.cs`, `GeneratorTests.cs`) — fast, deterministic.
+    `ZCurveWindowedProfileTests.cs`, `GeneratorTests.cs`, `FastaReaderTests.cs`,
+    `RealGenomeProfileTests.cs`) — fast, deterministic.
   - Long-running benchmark/experiment suites — `Tests.cs` (the original CAT vs. Needleman–Wunsch/KMP
-    comparison harness; see the report legend below) and `Trilateration*.cs` +
+    comparison harness; see the report legend below), `Trilateration*.cs` +
     `GenomeScaleStreamingTests.cs` (the performance and reliability evidence for
     `ZCurveWindowedProfile`; some individual cases run for tens of minutes at the largest lengths
-    tested).
+    tested), and `RealGenomeDistanceMatrixBenchmark.cs` (all pairwise comparisons among the 30 real
+    genomes in `data/genomes/`, a few minutes).
+  - `GenomeCatalog.cs` — locates `data/genomes/` from the test binary's runtime location; not a test
+    itself.
+- `data/genomes/` — 30 real, complete RefSeq bacterial reference genomes (gzip FASTA), spanning six
+  phyla and several deliberate same-species/same-genus pairs; see `data/genomes/README.md` for
+  accessions, checksums, and why these 30 in particular.
 - `results/` — CSV snapshots of the benchmark results reported above (not currently backed by a
   public write-up; see [How to run tests](#how-to-run-tests) to reproduce them directly).
 
@@ -79,6 +90,8 @@ or use `dotnet test --filter "Name=<TestName>"`. Some experiments in `Tests.cs` 
 of hours depending on the machine and sequence length; several benchmarks in `Trilateration*.cs`/
 `GenomeScaleStreamingTests.cs` take tens of minutes at their largest length (3,100,000,000 bp) — see
 each file's own doc comment, and `results/README.md`, before running the full sweep.
+`RealGenomeDistanceMatrixBenchmark`'s all-pairs sweep across the 30 real genomes in `data/genomes/`
+is much cheaper (a few minutes) since none of those genomes exceed ~8.7 Mbp.
 
 > **Warning:**
 > For locales like German, where the CSV separator is `;` and the decimal separator is `,` instead

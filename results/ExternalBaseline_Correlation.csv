@@ -1,0 +1,4 @@
+Comparison, PairCount, PearsonR
+ZCurve_vs_Mash_AllPairs, 435, 0.3397071258003158
+ZCurve_vs_Mash_ExcludingDifferentPhylum, 105, 0.4460996836493433
+ZCurve_vs_FastANI, 14, 0.2485906717463967

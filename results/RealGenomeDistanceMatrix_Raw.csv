@@ -1,0 +1,436 @@
+OrganismA, OrganismB, RelationshipLevel, ZCurveCompare
+Escherichia coli K-12 MG1655, Escherichia coli O157:H7 Sakai, SameSpecies, 0.8187111204787518
+Escherichia coli K-12 MG1655, Shigella flexneri 2a 301, SamePhylum, 0.8267655723884865
+Escherichia coli K-12 MG1655, Klebsiella pneumoniae MGH 78578, SamePhylum, 0.7794265595317456
+Escherichia coli K-12 MG1655, Salmonella enterica Typhimurium LT2, SamePhylum, 0.8174911638986556
+Escherichia coli K-12 MG1655, Yersinia pestis CO92, SamePhylum, 0.8047807547309537
+Escherichia coli K-12 MG1655, Yersinia pseudotuberculosis IP 32953, SamePhylum, 0.803743904971919
+Escherichia coli K-12 MG1655, Pseudomonas aeruginosa PAO1, SamePhylum, 0.6533753857944229
+Escherichia coli K-12 MG1655, Vibrio cholerae N16961, SamePhylum, 0.8243875898074007
+Escherichia coli K-12 MG1655, Haemophilus influenzae Rd KW20, SamePhylum, 0.7085838422155826
+Escherichia coli K-12 MG1655, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.7166610831532219
+Escherichia coli K-12 MG1655, Bacillus subtilis 168, DifferentPhylum, 0.7624043723356231
+Escherichia coli K-12 MG1655, Bacillus anthracis Ames, DifferentPhylum, 0.6356417869551612
+Escherichia coli K-12 MG1655, Bacillus cereus ATCC 14579, DifferentPhylum, 0.6329578175270862
+Escherichia coli K-12 MG1655, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.6077704094611274
+Escherichia coli K-12 MG1655, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.5977921722718823
+Escherichia coli K-12 MG1655, Listeria monocytogenes EGD-e, DifferentPhylum, 0.6908680368743092
+Escherichia coli K-12 MG1655, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.728722536061259
+Escherichia coli K-12 MG1655, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.7168835430955245
+Escherichia coli K-12 MG1655, Enterococcus faecalis V583, DifferentPhylum, 0.6829624621843333
+Escherichia coli K-12 MG1655, Clostridioides difficile 630, DifferentPhylum, 0.5160548588642306
+Escherichia coli K-12 MG1655, Mycoplasmoides genitalium G37, DifferentPhylum, 0.6147162626501778
+Escherichia coli K-12 MG1655, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7423597453024628
+Escherichia coli K-12 MG1655, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.6724629005384128
+Escherichia coli K-12 MG1655, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.6436993900181929
+Escherichia coli K-12 MG1655, Streptomyces coelicolor A3(2), DifferentPhylum, 0.5535230911356692
+Escherichia coli K-12 MG1655, Helicobacter pylori 26695, DifferentPhylum, 0.7105966481066308
+Escherichia coli K-12 MG1655, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.5737668929281571
+Escherichia coli K-12 MG1655, Borreliella burgdorferi B31, DifferentPhylum, 0.5307564281089653
+Escherichia coli K-12 MG1655, Deinococcus radiodurans R1, DifferentPhylum, 0.6466978699487833
+Escherichia coli O157:H7 Sakai, Shigella flexneri 2a 301, SamePhylum, 0.81979119970929
+Escherichia coli O157:H7 Sakai, Klebsiella pneumoniae MGH 78578, SamePhylum, 0.7721938523196776
+Escherichia coli O157:H7 Sakai, Salmonella enterica Typhimurium LT2, SamePhylum, 0.8097469475237096
+Escherichia coli O157:H7 Sakai, Yersinia pestis CO92, SamePhylum, 0.8010504136972701
+Escherichia coli O157:H7 Sakai, Yersinia pseudotuberculosis IP 32953, SamePhylum, 0.8003420640571153
+Escherichia coli O157:H7 Sakai, Pseudomonas aeruginosa PAO1, SamePhylum, 0.6478285810786202
+Escherichia coli O157:H7 Sakai, Vibrio cholerae N16961, SamePhylum, 0.8185621354619458
+Escherichia coli O157:H7 Sakai, Haemophilus influenzae Rd KW20, SamePhylum, 0.7051731449352273
+Escherichia coli O157:H7 Sakai, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.7175010338249094
+Escherichia coli O157:H7 Sakai, Bacillus subtilis 168, DifferentPhylum, 0.7629441016685273
+Escherichia coli O157:H7 Sakai, Bacillus anthracis Ames, DifferentPhylum, 0.6402610898032015
+Escherichia coli O157:H7 Sakai, Bacillus cereus ATCC 14579, DifferentPhylum, 0.6372983399826055
+Escherichia coli O157:H7 Sakai, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.6090701612187861
+Escherichia coli O157:H7 Sakai, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.59819622269202
+Escherichia coli O157:H7 Sakai, Listeria monocytogenes EGD-e, DifferentPhylum, 0.6907303317005913
+Escherichia coli O157:H7 Sakai, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.7281983252446406
+Escherichia coli O157:H7 Sakai, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.7145287009937629
+Escherichia coli O157:H7 Sakai, Enterococcus faecalis V583, DifferentPhylum, 0.6841272191730097
+Escherichia coli O157:H7 Sakai, Clostridioides difficile 630, DifferentPhylum, 0.5219171218638017
+Escherichia coli O157:H7 Sakai, Mycoplasmoides genitalium G37, DifferentPhylum, 0.6021649378326048
+Escherichia coli O157:H7 Sakai, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7322306551467476
+Escherichia coli O157:H7 Sakai, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.6671092145351055
+Escherichia coli O157:H7 Sakai, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.6368430010350613
+Escherichia coli O157:H7 Sakai, Streptomyces coelicolor A3(2), DifferentPhylum, 0.5459487097505673
+Escherichia coli O157:H7 Sakai, Helicobacter pylori 26695, DifferentPhylum, 0.7065738559453043
+Escherichia coli O157:H7 Sakai, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.5749519131329588
+Escherichia coli O157:H7 Sakai, Borreliella burgdorferi B31, DifferentPhylum, 0.5255732503888016
+Escherichia coli O157:H7 Sakai, Deinococcus radiodurans R1, DifferentPhylum, 0.6399407153431642
+Shigella flexneri 2a 301, Klebsiella pneumoniae MGH 78578, SamePhylum, 0.7815573016933552
+Shigella flexneri 2a 301, Salmonella enterica Typhimurium LT2, SamePhylum, 0.8189705416658407
+Shigella flexneri 2a 301, Yersinia pestis CO92, SamePhylum, 0.8061318079805926
+Shigella flexneri 2a 301, Yersinia pseudotuberculosis IP 32953, SamePhylum, 0.8063388142612248
+Shigella flexneri 2a 301, Pseudomonas aeruginosa PAO1, SamePhylum, 0.6551294736697293
+Shigella flexneri 2a 301, Vibrio cholerae N16961, SamePhylum, 0.8250733649280002
+Shigella flexneri 2a 301, Haemophilus influenzae Rd KW20, SamePhylum, 0.7066576529401425
+Shigella flexneri 2a 301, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.7166079121791594
+Shigella flexneri 2a 301, Bacillus subtilis 168, DifferentPhylum, 0.7634198940535764
+Shigella flexneri 2a 301, Bacillus anthracis Ames, DifferentPhylum, 0.6349622381307887
+Shigella flexneri 2a 301, Bacillus cereus ATCC 14579, DifferentPhylum, 0.6318389962632195
+Shigella flexneri 2a 301, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.6048737005912601
+Shigella flexneri 2a 301, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.5935978755220686
+Shigella flexneri 2a 301, Listeria monocytogenes EGD-e, DifferentPhylum, 0.6894255554228237
+Shigella flexneri 2a 301, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.7274982048854118
+Shigella flexneri 2a 301, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.7144344159781736
+Shigella flexneri 2a 301, Enterococcus faecalis V583, DifferentPhylum, 0.6822010212874023
+Shigella flexneri 2a 301, Clostridioides difficile 630, DifferentPhylum, 0.5148283819013028
+Shigella flexneri 2a 301, Mycoplasmoides genitalium G37, DifferentPhylum, 0.6081996924106932
+Shigella flexneri 2a 301, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7384304570885423
+Shigella flexneri 2a 301, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.6733008120511204
+Shigella flexneri 2a 301, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.6456231713408025
+Shigella flexneri 2a 301, Streptomyces coelicolor A3(2), DifferentPhylum, 0.5553881283694946
+Shigella flexneri 2a 301, Helicobacter pylori 26695, DifferentPhylum, 0.7075649526125725
+Shigella flexneri 2a 301, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.5702401813874889
+Shigella flexneri 2a 301, Borreliella burgdorferi B31, DifferentPhylum, 0.5237206970808601
+Shigella flexneri 2a 301, Deinococcus radiodurans R1, DifferentPhylum, 0.6474781654369977
+Klebsiella pneumoniae MGH 78578, Salmonella enterica Typhimurium LT2, SamePhylum, 0.7909495928192732
+Klebsiella pneumoniae MGH 78578, Yersinia pestis CO92, SamePhylum, 0.7358400645634098
+Klebsiella pneumoniae MGH 78578, Yersinia pseudotuberculosis IP 32953, SamePhylum, 0.7361104286716369
+Klebsiella pneumoniae MGH 78578, Pseudomonas aeruginosa PAO1, SamePhylum, 0.760831490865167
+Klebsiella pneumoniae MGH 78578, Vibrio cholerae N16961, SamePhylum, 0.7439135173586262
+Klebsiella pneumoniae MGH 78578, Haemophilus influenzae Rd KW20, SamePhylum, 0.5910196612161519
+Klebsiella pneumoniae MGH 78578, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.6008689033398878
+Klebsiella pneumoniae MGH 78578, Bacillus subtilis 168, DifferentPhylum, 0.668429978300029
+Klebsiella pneumoniae MGH 78578, Bacillus anthracis Ames, DifferentPhylum, 0.5215860968536425
+Klebsiella pneumoniae MGH 78578, Bacillus cereus ATCC 14579, DifferentPhylum, 0.5192356651170587
+Klebsiella pneumoniae MGH 78578, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.48187431032087935
+Klebsiella pneumoniae MGH 78578, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.4699745182025564
+Klebsiella pneumoniae MGH 78578, Listeria monocytogenes EGD-e, DifferentPhylum, 0.5732652464955303
+Klebsiella pneumoniae MGH 78578, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.6107136823285171
+Klebsiella pneumoniae MGH 78578, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.5920961431721365
+Klebsiella pneumoniae MGH 78578, Enterococcus faecalis V583, DifferentPhylum, 0.5643908504370114
+Klebsiella pneumoniae MGH 78578, Clostridioides difficile 630, DifferentPhylum, 0.39557381228213717
+Klebsiella pneumoniae MGH 78578, Mycoplasmoides genitalium G37, DifferentPhylum, 0.48526249289989265
+Klebsiella pneumoniae MGH 78578, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.6350050528206246
+Klebsiella pneumoniae MGH 78578, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.7819764794409116
+Klebsiella pneumoniae MGH 78578, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.7586964771149733
+Klebsiella pneumoniae MGH 78578, Streptomyces coelicolor A3(2), DifferentPhylum, 0.673814048730131
+Klebsiella pneumoniae MGH 78578, Helicobacter pylori 26695, DifferentPhylum, 0.5944418140050665
+Klebsiella pneumoniae MGH 78578, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.4420775999529126
+Klebsiella pneumoniae MGH 78578, Borreliella burgdorferi B31, DifferentPhylum, 0.4060206154747097
+Klebsiella pneumoniae MGH 78578, Deinococcus radiodurans R1, DifferentPhylum, 0.7573101770920567
+Salmonella enterica Typhimurium LT2, Yersinia pestis CO92, SamePhylum, 0.7912241811746279
+Salmonella enterica Typhimurium LT2, Yersinia pseudotuberculosis IP 32953, SamePhylum, 0.790808217846078
+Salmonella enterica Typhimurium LT2, Pseudomonas aeruginosa PAO1, SamePhylum, 0.6782517303436997
+Salmonella enterica Typhimurium LT2, Vibrio cholerae N16961, SamePhylum, 0.8074252793387857
+Salmonella enterica Typhimurium LT2, Haemophilus influenzae Rd KW20, SamePhylum, 0.6825027929104107
+Salmonella enterica Typhimurium LT2, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.6916228956398104
+Salmonella enterica Typhimurium LT2, Bacillus subtilis 168, DifferentPhylum, 0.7438480877194524
+Salmonella enterica Typhimurium LT2, Bacillus anthracis Ames, DifferentPhylum, 0.6123053631963904
+Salmonella enterica Typhimurium LT2, Bacillus cereus ATCC 14579, DifferentPhylum, 0.6096425900997784
+Salmonella enterica Typhimurium LT2, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.5803592033033103
+Salmonella enterica Typhimurium LT2, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.5682970764258812
+Salmonella enterica Typhimurium LT2, Listeria monocytogenes EGD-e, DifferentPhylum, 0.6655134771508608
+Salmonella enterica Typhimurium LT2, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.7042550642786366
+Salmonella enterica Typhimurium LT2, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.6916662814739913
+Salmonella enterica Typhimurium LT2, Enterococcus faecalis V583, DifferentPhylum, 0.6587670613130934
+Salmonella enterica Typhimurium LT2, Clostridioides difficile 630, DifferentPhylum, 0.49039991331581045
+Salmonella enterica Typhimurium LT2, Mycoplasmoides genitalium G37, DifferentPhylum, 0.5900969432950055
+Salmonella enterica Typhimurium LT2, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7221060382922772
+Salmonella enterica Typhimurium LT2, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.6979532495219103
+Salmonella enterica Typhimurium LT2, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.669469184501668
+Salmonella enterica Typhimurium LT2, Streptomyces coelicolor A3(2), DifferentPhylum, 0.5794732936622138
+Salmonella enterica Typhimurium LT2, Helicobacter pylori 26695, DifferentPhylum, 0.684209667700812
+Salmonella enterica Typhimurium LT2, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.5454192614309561
+Salmonella enterica Typhimurium LT2, Borreliella burgdorferi B31, DifferentPhylum, 0.5019783578730845
+Salmonella enterica Typhimurium LT2, Deinococcus radiodurans R1, DifferentPhylum, 0.6739230742815363
+Yersinia pestis CO92, Yersinia pseudotuberculosis IP 32953, SameGenus, 0.8126497484654116
+Yersinia pestis CO92, Pseudomonas aeruginosa PAO1, SamePhylum, 0.5948276627711768
+Yersinia pestis CO92, Vibrio cholerae N16961, SamePhylum, 0.8285995149584122
+Yersinia pestis CO92, Haemophilus influenzae Rd KW20, SamePhylum, 0.7487992638880199
+Yersinia pestis CO92, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.7585245168721702
+Yersinia pestis CO92, Bacillus subtilis 168, DifferentPhylum, 0.7870506990968693
+Yersinia pestis CO92, Bacillus anthracis Ames, DifferentPhylum, 0.6857570761092644
+Yersinia pestis CO92, Bacillus cereus ATCC 14579, DifferentPhylum, 0.6841879720579533
+Yersinia pestis CO92, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.6568058975579174
+Yersinia pestis CO92, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.6466276682153329
+Yersinia pestis CO92, Listeria monocytogenes EGD-e, DifferentPhylum, 0.7316836178414223
+Yersinia pestis CO92, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.7644229709728407
+Yersinia pestis CO92, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.75407339302873
+Yersinia pestis CO92, Enterococcus faecalis V583, DifferentPhylum, 0.7245493148790936
+Yersinia pestis CO92, Clostridioides difficile 630, DifferentPhylum, 0.5688753117721947
+Yersinia pestis CO92, Mycoplasmoides genitalium G37, DifferentPhylum, 0.6600958590502802
+Yersinia pestis CO92, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7686785200802171
+Yersinia pestis CO92, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.6142626849335642
+Yersinia pestis CO92, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.5842123977948055
+Yersinia pestis CO92, Streptomyces coelicolor A3(2), DifferentPhylum, 0.4923737077904623
+Yersinia pestis CO92, Helicobacter pylori 26695, DifferentPhylum, 0.7435734148602879
+Yersinia pestis CO92, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.6193199736314123
+Yersinia pestis CO92, Borreliella burgdorferi B31, DifferentPhylum, 0.5759405757221991
+Yersinia pestis CO92, Deinococcus radiodurans R1, DifferentPhylum, 0.5847927557916135
+Yersinia pseudotuberculosis IP 32953, Pseudomonas aeruginosa PAO1, SamePhylum, 0.5955853589117803
+Yersinia pseudotuberculosis IP 32953, Vibrio cholerae N16961, SamePhylum, 0.8268061195866425
+Yersinia pseudotuberculosis IP 32953, Haemophilus influenzae Rd KW20, SamePhylum, 0.7482585256836904
+Yersinia pseudotuberculosis IP 32953, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.7602631870122459
+Yersinia pseudotuberculosis IP 32953, Bacillus subtilis 168, DifferentPhylum, 0.7871948068548964
+Yersinia pseudotuberculosis IP 32953, Bacillus anthracis Ames, DifferentPhylum, 0.6870935276171068
+Yersinia pseudotuberculosis IP 32953, Bacillus cereus ATCC 14579, DifferentPhylum, 0.6848622036405148
+Yersinia pseudotuberculosis IP 32953, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.6592986306193529
+Yersinia pseudotuberculosis IP 32953, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.6478222010995411
+Yersinia pseudotuberculosis IP 32953, Listeria monocytogenes EGD-e, DifferentPhylum, 0.7323389533158773
+Yersinia pseudotuberculosis IP 32953, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.7646842768032022
+Yersinia pseudotuberculosis IP 32953, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.7544199241306759
+Yersinia pseudotuberculosis IP 32953, Enterococcus faecalis V583, DifferentPhylum, 0.7260537191118761
+Yersinia pseudotuberculosis IP 32953, Clostridioides difficile 630, DifferentPhylum, 0.5701295243646866
+Yersinia pseudotuberculosis IP 32953, Mycoplasmoides genitalium G37, DifferentPhylum, 0.6628603842121006
+Yersinia pseudotuberculosis IP 32953, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.774990932965171
+Yersinia pseudotuberculosis IP 32953, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.6145100383615316
+Yersinia pseudotuberculosis IP 32953, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.5832073136255622
+Yersinia pseudotuberculosis IP 32953, Streptomyces coelicolor A3(2), DifferentPhylum, 0.49162761604881855
+Yersinia pseudotuberculosis IP 32953, Helicobacter pylori 26695, DifferentPhylum, 0.7450452015219664
+Yersinia pseudotuberculosis IP 32953, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.6244676562937839
+Yersinia pseudotuberculosis IP 32953, Borreliella burgdorferi B31, DifferentPhylum, 0.5724385856433674
+Yersinia pseudotuberculosis IP 32953, Deinococcus radiodurans R1, DifferentPhylum, 0.5838658090222237
+Pseudomonas aeruginosa PAO1, Vibrio cholerae N16961, SamePhylum, 0.6015024341240827
+Pseudomonas aeruginosa PAO1, Haemophilus influenzae Rd KW20, SamePhylum, 0.41913480740808295
+Pseudomonas aeruginosa PAO1, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.43238925726739164
+Pseudomonas aeruginosa PAO1, Bacillus subtilis 168, DifferentPhylum, 0.512162897777161
+Pseudomonas aeruginosa PAO1, Bacillus anthracis Ames, DifferentPhylum, 0.3540247230523176
+Pseudomonas aeruginosa PAO1, Bacillus cereus ATCC 14579, DifferentPhylum, 0.3513688233292782
+Pseudomonas aeruginosa PAO1, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.3076503922959837
+Pseudomonas aeruginosa PAO1, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.2944337665555836
+Pseudomonas aeruginosa PAO1, Listeria monocytogenes EGD-e, DifferentPhylum, 0.40737244530825123
+Pseudomonas aeruginosa PAO1, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.4443224355708325
+Pseudomonas aeruginosa PAO1, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.42557920505887514
+Pseudomonas aeruginosa PAO1, Enterococcus faecalis V583, DifferentPhylum, 0.3991048104306839
+Pseudomonas aeruginosa PAO1, Clostridioides difficile 630, DifferentPhylum, 0.2232833492147036
+Pseudomonas aeruginosa PAO1, Mycoplasmoides genitalium G37, DifferentPhylum, 0.3114148850944951
+Pseudomonas aeruginosa PAO1, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.4624531451946896
+Pseudomonas aeruginosa PAO1, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.8436438433464775
+Pseudomonas aeruginosa PAO1, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.85390728120481
+Pseudomonas aeruginosa PAO1, Streptomyces coelicolor A3(2), DifferentPhylum, 0.8065411441898437
+Pseudomonas aeruginosa PAO1, Helicobacter pylori 26695, DifferentPhylum, 0.4270743869578444
+Pseudomonas aeruginosa PAO1, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.2675164857949711
+Pseudomonas aeruginosa PAO1, Borreliella burgdorferi B31, DifferentPhylum, 0.22778951599948838
+Pseudomonas aeruginosa PAO1, Deinococcus radiodurans R1, DifferentPhylum, 0.8403975493349931
+Vibrio cholerae N16961, Haemophilus influenzae Rd KW20, SamePhylum, 0.7550464989774641
+Vibrio cholerae N16961, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.7695671314529635
+Vibrio cholerae N16961, Bacillus subtilis 168, DifferentPhylum, 0.8025299583858816
+Vibrio cholerae N16961, Bacillus anthracis Ames, DifferentPhylum, 0.6889092507629191
+Vibrio cholerae N16961, Bacillus cereus ATCC 14579, DifferentPhylum, 0.6867173450404864
+Vibrio cholerae N16961, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.6584366475068301
+Vibrio cholerae N16961, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.6501753037084956
+Vibrio cholerae N16961, Listeria monocytogenes EGD-e, DifferentPhylum, 0.7370529928212431
+Vibrio cholerae N16961, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.7756618419890987
+Vibrio cholerae N16961, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.7660239942150469
+Vibrio cholerae N16961, Enterococcus faecalis V583, DifferentPhylum, 0.7291873426899659
+Vibrio cholerae N16961, Clostridioides difficile 630, DifferentPhylum, 0.5690598389888624
+Vibrio cholerae N16961, Mycoplasmoides genitalium G37, DifferentPhylum, 0.6609362730126334
+Vibrio cholerae N16961, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7781959871446316
+Vibrio cholerae N16961, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.6201367525488083
+Vibrio cholerae N16961, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.5892665266269035
+Vibrio cholerae N16961, Streptomyces coelicolor A3(2), DifferentPhylum, 0.4979255287661999
+Vibrio cholerae N16961, Helicobacter pylori 26695, DifferentPhylum, 0.7547459924493323
+Vibrio cholerae N16961, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.6267197732298728
+Vibrio cholerae N16961, Borreliella burgdorferi B31, DifferentPhylum, 0.5745121128771529
+Vibrio cholerae N16961, Deinococcus radiodurans R1, DifferentPhylum, 0.5870457031762288
+Haemophilus influenzae Rd KW20, Acinetobacter baumannii ATCC 17978, SamePhylum, 0.8297456620051064
+Haemophilus influenzae Rd KW20, Bacillus subtilis 168, DifferentPhylum, 0.7889913766373656
+Haemophilus influenzae Rd KW20, Bacillus anthracis Ames, DifferentPhylum, 0.7976672402088125
+Haemophilus influenzae Rd KW20, Bacillus cereus ATCC 14579, DifferentPhylum, 0.7962328302631271
+Haemophilus influenzae Rd KW20, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.7798418091946762
+Haemophilus influenzae Rd KW20, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.7754883715469417
+Haemophilus influenzae Rd KW20, Listeria monocytogenes EGD-e, DifferentPhylum, 0.8087046906308482
+Haemophilus influenzae Rd KW20, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.8082429946252147
+Haemophilus influenzae Rd KW20, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.816718629644725
+Haemophilus influenzae Rd KW20, Enterococcus faecalis V583, DifferentPhylum, 0.8092394432224443
+Haemophilus influenzae Rd KW20, Clostridioides difficile 630, DifferentPhylum, 0.7077300826117359
+Haemophilus influenzae Rd KW20, Mycoplasmoides genitalium G37, DifferentPhylum, 0.7853300700094895
+Haemophilus influenzae Rd KW20, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.8139218960703616
+Haemophilus influenzae Rd KW20, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.4344376757071693
+Haemophilus influenzae Rd KW20, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.4038941683316465
+Haemophilus influenzae Rd KW20, Streptomyces coelicolor A3(2), DifferentPhylum, 0.3117318420698848
+Haemophilus influenzae Rd KW20, Helicobacter pylori 26695, DifferentPhylum, 0.8038484824285321
+Haemophilus influenzae Rd KW20, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7545317449899798
+Haemophilus influenzae Rd KW20, Borreliella burgdorferi B31, DifferentPhylum, 0.7159430843055716
+Haemophilus influenzae Rd KW20, Deinococcus radiodurans R1, DifferentPhylum, 0.4031360104532543
+Acinetobacter baumannii ATCC 17978, Bacillus subtilis 168, DifferentPhylum, 0.7963525526245404
+Acinetobacter baumannii ATCC 17978, Bacillus anthracis Ames, DifferentPhylum, 0.7980088834540154
+Acinetobacter baumannii ATCC 17978, Bacillus cereus ATCC 14579, DifferentPhylum, 0.7960868993763481
+Acinetobacter baumannii ATCC 17978, Staphylococcus aureus NCTC 8325, DifferentPhylum, 0.7873916746493992
+Acinetobacter baumannii ATCC 17978, Staphylococcus epidermidis ATCC 12228, DifferentPhylum, 0.78089923426073
+Acinetobacter baumannii ATCC 17978, Listeria monocytogenes EGD-e, DifferentPhylum, 0.8173529181453474
+Acinetobacter baumannii ATCC 17978, Streptococcus pneumoniae TIGR4, DifferentPhylum, 0.8234848495104246
+Acinetobacter baumannii ATCC 17978, Streptococcus pyogenes M1 GAS, DifferentPhylum, 0.8327391165835261
+Acinetobacter baumannii ATCC 17978, Enterococcus faecalis V583, DifferentPhylum, 0.8159235595876966
+Acinetobacter baumannii ATCC 17978, Clostridioides difficile 630, DifferentPhylum, 0.7064251977617639
+Acinetobacter baumannii ATCC 17978, Mycoplasmoides genitalium G37, DifferentPhylum, 0.7907750386491894
+Acinetobacter baumannii ATCC 17978, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.821462544425355
+Acinetobacter baumannii ATCC 17978, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.44994503374588635
+Acinetobacter baumannii ATCC 17978, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.41913414877165134
+Acinetobacter baumannii ATCC 17978, Streptomyces coelicolor A3(2), DifferentPhylum, 0.3268945531722872
+Acinetobacter baumannii ATCC 17978, Helicobacter pylori 26695, DifferentPhylum, 0.8132325385035769
+Acinetobacter baumannii ATCC 17978, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7599545255537312
+Acinetobacter baumannii ATCC 17978, Borreliella burgdorferi B31, DifferentPhylum, 0.7123044684822288
+Acinetobacter baumannii ATCC 17978, Deinococcus radiodurans R1, DifferentPhylum, 0.41891971721192844
+Bacillus subtilis 168, Bacillus anthracis Ames, SameGenus, 0.7494395145985507
+Bacillus subtilis 168, Bacillus cereus ATCC 14579, SameGenus, 0.7480361890352829
+Bacillus subtilis 168, Staphylococcus aureus NCTC 8325, SamePhylum, 0.7287934153365088
+Bacillus subtilis 168, Staphylococcus epidermidis ATCC 12228, SamePhylum, 0.7197023909110032
+Bacillus subtilis 168, Listeria monocytogenes EGD-e, SamePhylum, 0.787541974981991
+Bacillus subtilis 168, Streptococcus pneumoniae TIGR4, SamePhylum, 0.8040434128017219
+Bacillus subtilis 168, Streptococcus pyogenes M1 GAS, SamePhylum, 0.8033299805468822
+Bacillus subtilis 168, Enterococcus faecalis V583, SamePhylum, 0.7810030471742381
+Bacillus subtilis 168, Clostridioides difficile 630, SamePhylum, 0.6440030339253466
+Bacillus subtilis 168, Mycoplasmoides genitalium G37, DifferentPhylum, 0.7429836330203148
+Bacillus subtilis 168, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.801225993120757
+Bacillus subtilis 168, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.5301895451961731
+Bacillus subtilis 168, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.5005372316781745
+Bacillus subtilis 168, Streptomyces coelicolor A3(2), DifferentPhylum, 0.4094795215950111
+Bacillus subtilis 168, Helicobacter pylori 26695, DifferentPhylum, 0.7866824510474052
+Bacillus subtilis 168, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.6996349063424306
+Bacillus subtilis 168, Borreliella burgdorferi B31, DifferentPhylum, 0.6619392945009195
+Bacillus subtilis 168, Deinococcus radiodurans R1, DifferentPhylum, 0.4954575297161937
+Bacillus anthracis Ames, Bacillus cereus ATCC 14579, SameGenus, 0.8220890401189276
+Bacillus anthracis Ames, Staphylococcus aureus NCTC 8325, SamePhylum, 0.8197714929178405
+Bacillus anthracis Ames, Staphylococcus epidermidis ATCC 12228, SamePhylum, 0.8125898051709738
+Bacillus anthracis Ames, Listeria monocytogenes EGD-e, SamePhylum, 0.8055353337759282
+Bacillus anthracis Ames, Streptococcus pneumoniae TIGR4, SamePhylum, 0.7860252998614349
+Bacillus anthracis Ames, Streptococcus pyogenes M1 GAS, SamePhylum, 0.7999343138481871
+Bacillus anthracis Ames, Enterococcus faecalis V583, SamePhylum, 0.8094609374641358
+Bacillus anthracis Ames, Clostridioides difficile 630, SamePhylum, 0.7670823610282211
+Bacillus anthracis Ames, Mycoplasmoides genitalium G37, DifferentPhylum, 0.8129102590362635
+Bacillus anthracis Ames, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7788171240396624
+Bacillus anthracis Ames, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.3670816998297659
+Bacillus anthracis Ames, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.3388563778364887
+Bacillus anthracis Ames, Streptomyces coelicolor A3(2), DifferentPhylum, 0.24679856660623067
+Bacillus anthracis Ames, Helicobacter pylori 26695, DifferentPhylum, 0.7825231886844808
+Bacillus anthracis Ames, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7951750467179635
+Bacillus anthracis Ames, Borreliella burgdorferi B31, DifferentPhylum, 0.7429726939834587
+Bacillus anthracis Ames, Deinococcus radiodurans R1, DifferentPhylum, 0.3447458542387961
+Bacillus cereus ATCC 14579, Staphylococcus aureus NCTC 8325, SamePhylum, 0.8183193205237919
+Bacillus cereus ATCC 14579, Staphylococcus epidermidis ATCC 12228, SamePhylum, 0.8114062242789281
+Bacillus cereus ATCC 14579, Listeria monocytogenes EGD-e, SamePhylum, 0.8045991944285229
+Bacillus cereus ATCC 14579, Streptococcus pneumoniae TIGR4, SamePhylum, 0.7833565166659814
+Bacillus cereus ATCC 14579, Streptococcus pyogenes M1 GAS, SamePhylum, 0.799046062641838
+Bacillus cereus ATCC 14579, Enterococcus faecalis V583, SamePhylum, 0.8099204545907444
+Bacillus cereus ATCC 14579, Clostridioides difficile 630, SamePhylum, 0.7673563659832401
+Bacillus cereus ATCC 14579, Mycoplasmoides genitalium G37, DifferentPhylum, 0.8122324663249392
+Bacillus cereus ATCC 14579, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7772613080192531
+Bacillus cereus ATCC 14579, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.36484639877803016
+Bacillus cereus ATCC 14579, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.33635730333315395
+Bacillus cereus ATCC 14579, Streptomyces coelicolor A3(2), DifferentPhylum, 0.24414949874899405
+Bacillus cereus ATCC 14579, Helicobacter pylori 26695, DifferentPhylum, 0.7803509360214029
+Bacillus cereus ATCC 14579, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7921257250368754
+Bacillus cereus ATCC 14579, Borreliella burgdorferi B31, DifferentPhylum, 0.740018339789396
+Bacillus cereus ATCC 14579, Deinococcus radiodurans R1, DifferentPhylum, 0.3414461429137122
+Staphylococcus aureus NCTC 8325, Staphylococcus epidermidis ATCC 12228, SameGenus, 0.8233760624466535
+Staphylococcus aureus NCTC 8325, Listeria monocytogenes EGD-e, SamePhylum, 0.7935428917290935
+Staphylococcus aureus NCTC 8325, Streptococcus pneumoniae TIGR4, SamePhylum, 0.7692887836882918
+Staphylococcus aureus NCTC 8325, Streptococcus pyogenes M1 GAS, SamePhylum, 0.7881830435620096
+Staphylococcus aureus NCTC 8325, Enterococcus faecalis V583, SamePhylum, 0.8002109150617034
+Staphylococcus aureus NCTC 8325, Clostridioides difficile 630, SamePhylum, 0.784162040740624
+Staphylococcus aureus NCTC 8325, Mycoplasmoides genitalium G37, DifferentPhylum, 0.8191068516730626
+Staphylococcus aureus NCTC 8325, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7656155289733694
+Staphylococcus aureus NCTC 8325, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.3264371958893407
+Staphylococcus aureus NCTC 8325, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.2949897229256411
+Staphylococcus aureus NCTC 8325, Streptomyces coelicolor A3(2), DifferentPhylum, 0.20335952056984707
+Staphylococcus aureus NCTC 8325, Helicobacter pylori 26695, DifferentPhylum, 0.7635668331553948
+Staphylococcus aureus NCTC 8325, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7998736789651624
+Staphylococcus aureus NCTC 8325, Borreliella burgdorferi B31, DifferentPhylum, 0.7573819966248223
+Staphylococcus aureus NCTC 8325, Deinococcus radiodurans R1, DifferentPhylum, 0.293849229425587
+Staphylococcus epidermidis ATCC 12228, Listeria monocytogenes EGD-e, SamePhylum, 0.7857471243609363
+Staphylococcus epidermidis ATCC 12228, Streptococcus pneumoniae TIGR4, SamePhylum, 0.7604286841274517
+Staphylococcus epidermidis ATCC 12228, Streptococcus pyogenes M1 GAS, SamePhylum, 0.7819456124055824
+Staphylococcus epidermidis ATCC 12228, Enterococcus faecalis V583, SamePhylum, 0.7935118867184842
+Staphylococcus epidermidis ATCC 12228, Clostridioides difficile 630, SamePhylum, 0.7818114348772873
+Staphylococcus epidermidis ATCC 12228, Mycoplasmoides genitalium G37, DifferentPhylum, 0.8221293157926526
+Staphylococcus epidermidis ATCC 12228, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.7585813739099679
+Staphylococcus epidermidis ATCC 12228, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.31266063380955855
+Staphylococcus epidermidis ATCC 12228, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.27995002208820485
+Staphylococcus epidermidis ATCC 12228, Streptomyces coelicolor A3(2), DifferentPhylum, 0.19000283966636589
+Staphylococcus epidermidis ATCC 12228, Helicobacter pylori 26695, DifferentPhylum, 0.7580236709939603
+Staphylococcus epidermidis ATCC 12228, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.8012435218297509
+Staphylococcus epidermidis ATCC 12228, Borreliella burgdorferi B31, DifferentPhylum, 0.7671368372597192
+Staphylococcus epidermidis ATCC 12228, Deinococcus radiodurans R1, DifferentPhylum, 0.28072990198488057
+Listeria monocytogenes EGD-e, Streptococcus pneumoniae TIGR4, SamePhylum, 0.8071259280856304
+Listeria monocytogenes EGD-e, Streptococcus pyogenes M1 GAS, SamePhylum, 0.821595405635371
+Listeria monocytogenes EGD-e, Enterococcus faecalis V583, SamePhylum, 0.8167133819838636
+Listeria monocytogenes EGD-e, Clostridioides difficile 630, SamePhylum, 0.7238773393889919
+Listeria monocytogenes EGD-e, Mycoplasmoides genitalium G37, DifferentPhylum, 0.7927219384643683
+Listeria monocytogenes EGD-e, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.8058865257935525
+Listeria monocytogenes EGD-e, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.42435512563225686
+Listeria monocytogenes EGD-e, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.39302425993887946
+Listeria monocytogenes EGD-e, Streptomyces coelicolor A3(2), DifferentPhylum, 0.302442767472925
+Listeria monocytogenes EGD-e, Helicobacter pylori 26695, DifferentPhylum, 0.7999572910644763
+Listeria monocytogenes EGD-e, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7568247144284084
+Listeria monocytogenes EGD-e, Borreliella burgdorferi B31, DifferentPhylum, 0.7124562300766908
+Listeria monocytogenes EGD-e, Deinococcus radiodurans R1, DifferentPhylum, 0.3931833698590521
+Streptococcus pneumoniae TIGR4, Streptococcus pyogenes M1 GAS, SameGenus, 0.8219291121747483
+Streptococcus pneumoniae TIGR4, Enterococcus faecalis V583, SamePhylum, 0.8065659631067972
+Streptococcus pneumoniae TIGR4, Clostridioides difficile 630, SamePhylum, 0.6922942109236301
+Streptococcus pneumoniae TIGR4, Mycoplasmoides genitalium G37, DifferentPhylum, 0.773387603790234
+Streptococcus pneumoniae TIGR4, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.8107545565969166
+Streptococcus pneumoniae TIGR4, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.464280685153143
+Streptococcus pneumoniae TIGR4, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.43202270951129007
+Streptococcus pneumoniae TIGR4, Streptomyces coelicolor A3(2), DifferentPhylum, 0.3412857772874982
+Streptococcus pneumoniae TIGR4, Helicobacter pylori 26695, DifferentPhylum, 0.8008559694839237
+Streptococcus pneumoniae TIGR4, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7386634250031869
+Streptococcus pneumoniae TIGR4, Borreliella burgdorferi B31, DifferentPhylum, 0.6846776748732535
+Streptococcus pneumoniae TIGR4, Deinococcus radiodurans R1, DifferentPhylum, 0.4315599430505195
+Streptococcus pyogenes M1 GAS, Enterococcus faecalis V583, SamePhylum, 0.8218149968481955
+Streptococcus pyogenes M1 GAS, Clostridioides difficile 630, SamePhylum, 0.7134401431432895
+Streptococcus pyogenes M1 GAS, Mycoplasmoides genitalium G37, DifferentPhylum, 0.7942304958657901
+Streptococcus pyogenes M1 GAS, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.8152738492254546
+Streptococcus pyogenes M1 GAS, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.44211917064866924
+Streptococcus pyogenes M1 GAS, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.41069944567427663
+Streptococcus pyogenes M1 GAS, Streptomyces coelicolor A3(2), DifferentPhylum, 0.3189102793869488
+Streptococcus pyogenes M1 GAS, Helicobacter pylori 26695, DifferentPhylum, 0.8096467947877012
+Streptococcus pyogenes M1 GAS, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7572330940089075
+Streptococcus pyogenes M1 GAS, Borreliella burgdorferi B31, DifferentPhylum, 0.708805282938048
+Streptococcus pyogenes M1 GAS, Deinococcus radiodurans R1, DifferentPhylum, 0.40944912619586504
+Enterococcus faecalis V583, Clostridioides difficile 630, SamePhylum, 0.7318627346161588
+Enterococcus faecalis V583, Mycoplasmoides genitalium G37, DifferentPhylum, 0.7944471158155023
+Enterococcus faecalis V583, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.8053154276674904
+Enterococcus faecalis V583, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.41611159799293496
+Enterococcus faecalis V583, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.384771419967878
+Enterococcus faecalis V583, Streptomyces coelicolor A3(2), DifferentPhylum, 0.2932775233181173
+Enterococcus faecalis V583, Helicobacter pylori 26695, DifferentPhylum, 0.7959867274982999
+Enterococcus faecalis V583, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7651658036653828
+Enterococcus faecalis V583, Borreliella burgdorferi B31, DifferentPhylum, 0.7198410423501298
+Enterococcus faecalis V583, Deinococcus radiodurans R1, DifferentPhylum, 0.38730164961407676
+Clostridioides difficile 630, Mycoplasmoides genitalium G37, DifferentPhylum, 0.7862732924717227
+Clostridioides difficile 630, Mycoplasmoides pneumoniae M129, DifferentPhylum, 0.6941739897149403
+Clostridioides difficile 630, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.24099823620083183
+Clostridioides difficile 630, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.2097279734320734
+Clostridioides difficile 630, Streptomyces coelicolor A3(2), DifferentPhylum, 0.11945489441425705
+Clostridioides difficile 630, Helicobacter pylori 26695, DifferentPhylum, 0.6910336084731095
+Clostridioides difficile 630, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7756364517076275
+Clostridioides difficile 630, Borreliella burgdorferi B31, DifferentPhylum, 0.7477306953316938
+Clostridioides difficile 630, Deinococcus radiodurans R1, DifferentPhylum, 0.21150452415502785
+Mycoplasmoides genitalium G37, Mycoplasmoides pneumoniae M129, SameGenus, 0.7625087591976162
+Mycoplasmoides genitalium G37, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.3158850224371771
+Mycoplasmoides genitalium G37, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.29313500741150866
+Mycoplasmoides genitalium G37, Streptomyces coelicolor A3(2), DifferentPhylum, 0.1947734154927372
+Mycoplasmoides genitalium G37, Helicobacter pylori 26695, DifferentPhylum, 0.7689320337501169
+Mycoplasmoides genitalium G37, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.8040413750809905
+Mycoplasmoides genitalium G37, Borreliella burgdorferi B31, DifferentPhylum, 0.7739097683618316
+Mycoplasmoides genitalium G37, Deinococcus radiodurans R1, DifferentPhylum, 0.28475023784422593
+Mycoplasmoides pneumoniae M129, Mycobacterium tuberculosis H37Rv, DifferentPhylum, 0.4747033915804042
+Mycoplasmoides pneumoniae M129, Mycolicibacterium smegmatis MC2 155, DifferentPhylum, 0.45373311289075413
+Mycoplasmoides pneumoniae M129, Streptomyces coelicolor A3(2), DifferentPhylum, 0.35497669279434607
+Mycoplasmoides pneumoniae M129, Helicobacter pylori 26695, DifferentPhylum, 0.7960417239899629
+Mycoplasmoides pneumoniae M129, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.7267389828677613
+Mycoplasmoides pneumoniae M129, Borreliella burgdorferi B31, DifferentPhylum, 0.6877135781949777
+Mycoplasmoides pneumoniae M129, Deinococcus radiodurans R1, DifferentPhylum, 0.44374553910034675
+Mycobacterium tuberculosis H37Rv, Mycolicibacterium smegmatis MC2 155, SamePhylum, 0.8544345428243233
+Mycobacterium tuberculosis H37Rv, Streptomyces coelicolor A3(2), SamePhylum, 0.7966082808271086
+Mycobacterium tuberculosis H37Rv, Helicobacter pylori 26695, DifferentPhylum, 0.4420286534418715
+Mycobacterium tuberculosis H37Rv, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.2821326753128681
+Mycobacterium tuberculosis H37Rv, Borreliella burgdorferi B31, DifferentPhylum, 0.23847314461627478
+Mycobacterium tuberculosis H37Rv, Deinococcus radiodurans R1, DifferentPhylum, 0.8419147548282616
+Mycolicibacterium smegmatis MC2 155, Streptomyces coelicolor A3(2), SamePhylum, 0.8232719063156241
+Mycolicibacterium smegmatis MC2 155, Helicobacter pylori 26695, DifferentPhylum, 0.41297231841181137
+Mycolicibacterium smegmatis MC2 155, Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.2519704860243883
+Mycolicibacterium smegmatis MC2 155, Borreliella burgdorferi B31, DifferentPhylum, 0.2187086771430249
+Mycolicibacterium smegmatis MC2 155, Deinococcus radiodurans R1, DifferentPhylum, 0.8540682050389972
+Streptomyces coelicolor A3(2), Helicobacter pylori 26695, DifferentPhylum, 0.32183524978380185
+Streptomyces coelicolor A3(2), Campylobacter jejuni NCTC 11168, DifferentPhylum, 0.15988430710470536
+Streptomyces coelicolor A3(2), Borreliella burgdorferi B31, DifferentPhylum, 0.11707086432725611
+Streptomyces coelicolor A3(2), Deinococcus radiodurans R1, DifferentPhylum, 0.8120058775095103
+Helicobacter pylori 26695, Campylobacter jejuni NCTC 11168, SamePhylum, 0.7352562646001121
+Helicobacter pylori 26695, Borreliella burgdorferi B31, DifferentPhylum, 0.6938148390668701
+Helicobacter pylori 26695, Deinococcus radiodurans R1, DifferentPhylum, 0.41031499572747765
+Campylobacter jejuni NCTC 11168, Borreliella burgdorferi B31, DifferentPhylum, 0.7589365834596459
+Campylobacter jejuni NCTC 11168, Deinococcus radiodurans R1, DifferentPhylum, 0.24984706208430096
+Borreliella burgdorferi B31, Deinococcus radiodurans R1, DifferentPhylum, 0.20718482786056902

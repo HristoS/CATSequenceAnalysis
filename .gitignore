@@ -1,8 +1,9 @@
 
-# Manuscript-in-preparation: withheld from the public repo until after journal submission, so a
-# plagiarism/similarity checker never finds this exact prose already publicly indexed. Remove this
-# line (and commit the file) once that concern no longer applies.
-docs/zcurve-windowed-profile.md
+# Everything under docs/ is manuscript-in-preparation material (the paper itself, fact-check notes,
+# feature-planning docs, and any Word/HTML export the authors are round-tripping through) - withheld
+# from the public repo until after journal submission, so a plagiarism/similarity checker never finds
+# this exact prose already publicly indexed. Revisit once that concern no longer applies.
+docs/
 
 # Created by https://www.toptal.com/developers/gitignore/api/dotnetcore,csharp,visualstudio,aspnetcore
 # Edit at https://www.toptal.com/developers/gitignore?templates=dotnetcore,csharp,visualstudio,aspnetcore

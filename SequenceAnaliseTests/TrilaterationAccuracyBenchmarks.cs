@@ -16,12 +16,16 @@ namespace SequenceAnaliseTests
     /// single run).
     ///
     /// CAT column note: this uses CATProfile.CompareTrilateration, not the default
-    /// CATProfile.Compare() (CompareDistances). Compare() currently returns NaN unconditionally
-    /// under the working tree's uncommitted Benchmark.Match rewrite - CanContribute() (the
-    /// triangle-inequality precondition CompareDistances' sqrt depends on) was measured False at
-    /// every length from 10 to 20,000, a regression from the committed behavior CLAUDE.md
-    /// documents (held up to length 10,000,000). CompareTrilateration has no such sqrt and remains
-    /// numerically sound, so it's used here as the working CAT baseline pending a fix upstream.
+    /// CATProfile.Compare() (CompareDistances). An earlier revision of Benchmark.Match (since fixed
+    /// by commit 30a5f65, "fix the build") made CanContribute() evaluate False at every length
+    /// tested, which made CompareDistances' sqrt return NaN unconditionally; re-verified directly
+    /// against current HEAD (2026-08-25) that CanContribute() now returns True and CompareDistances
+    /// is numerically valid at every length tested (500-20,000), so that regression no longer
+    /// applies. CompareTrilateration is nonetheless kept here rather than switched back to
+    /// Compare()/CompareDistances, since it was already the metric this file's committed results
+    /// were measured with, and switching now would silently change what "the CAT column" means
+    /// between runs for no benefit - see docs/zcurve-windowed-profile.md §8.4 for what the
+    /// resulting CAT figures show once valid.
     /// </summary>
     public class TrilaterationAccuracyBenchmarks
     {
@@ -115,12 +119,9 @@ namespace SequenceAnaliseTests
                 foreach (var rate in AccuracyBenchmarkShared.MutationRates)
                 {
                     var mutated = AccuracyBenchmarkShared.Mutate(baseDna, rate, seed: BenchmarkTiming.Seed(length, "mut", seed, rate));
-                    // CATProfile.Compare() (CompareDistances) returns NaN under the current
-                    // uncommitted Benchmark.Match rewrite - CanContribute() is false at every
-                    // length tested (10-20,000), violating the triangle-inequality precondition
-                    // CompareDistances' sqrt relies on. CompareTrilateration avoids that sqrt
-                    // entirely (pure linear algebra) and is the numerically-sound CAT baseline
-                    // until that regression is fixed - see the article's evidence section.
+                    // CompareTrilateration kept as the CAT baseline for continuity with this file's
+                    // committed results (see the class remarks) - CompareDistances is valid again as
+                    // of commit 30a5f65, this is no longer a NaN workaround.
                     var cat = CATProfile.CompareTrilateration(baseCat, new CATProfile(mutated));
                     var zc = ZCurveWindowedProfile.Compare(baseZc, new ZCurveWindowedProfile(mutated));
                     var nw = NeedlemanWunsch.Calculate(baseDna, mutated);

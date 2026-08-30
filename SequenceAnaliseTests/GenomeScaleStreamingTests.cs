@@ -139,7 +139,26 @@ namespace SequenceAnaliseTests
             TestContext.Out.WriteLine($"raw sequence as a single string would be: {rawSequenceBytes:N0} bytes ({rawSequenceBytes / 1e9:F2} GB)");
             TestContext.Out.WriteLine($"compression ratio (raw string : profile): {(double)rawSequenceBytes / profileBytes:N0} : 1");
 
+            using (var report = File.CreateText($"GenomeScaleStorageFootprint_{length}.csv"))
+            {
+                report.WriteLine("Length, WindowSize, WindowCount, ProfileBytes, RawSequenceBytes, CompressionRatio");
+                report.WriteLine($"{length}, {windowSize}, {windowCount}, {profileBytes}, {rawSequenceBytes}, {(double)rawSequenceBytes / profileBytes}");
+            }
+
             Assert.That(windowCount, Is.GreaterThan(0));
+        }
+
+// Times how long it takes to drain a reader alone, with no profile accumulation, using the
+        // same buffer size as ZCurveWindowedProfile.FromStream - lets a caller isolate pure
+        // accumulation cost by building an identical reader (same parameters/seed, so the same
+        // control-flow/RNG cost) and subtracting this from the full FromStream time.
+        private static double DrainMs(TextReader reader)
+        {
+            var buffer = new char[65536];
+            var sw = Stopwatch.StartNew();
+            while (reader.Read(buffer, 0, buffer.Length) > 0) { }
+            sw.Stop();
+            return sw.Elapsed.TotalMilliseconds;
         }
 
         [Test]
@@ -161,6 +180,12 @@ namespace SequenceAnaliseTests
             sw.Stop();
             var buildMs = sw.Elapsed.TotalMilliseconds;
 
+            // Isolate profile-computation cost from the cost of obtaining the underlying bases:
+            // replay an identical reader (same parameters/seed) purely to drain it, then subtract
+            // that from the full build time above.
+            var readerOnlyMs = DrainMs(new PlantedFragmentReader(referenceLength, plantedOffset, gene, seed: 1));
+            var accumulationOnlyMs = buildMs - readerOnlyMs;
+
             var query = new ZCurveWindowedProfile(gene, windowSize);
 
             sw.Restart();
@@ -172,10 +197,17 @@ namespace SequenceAnaliseTests
 
             TestContext.Out.WriteLine(
                 $"referenceLength={referenceLength:N0}  referenceWindows={reference.Windows.Count:N0}  buildMs={buildMs:F0} " +
-                $"({referenceLength / (buildMs / 1000d):N0} bases/s)");
+                $"({referenceLength / (buildMs / 1000d):N0} bases/s)  readerOnlyMs={readerOnlyMs:F0}  " +
+                $"accumulationOnlyMs={accumulationOnlyMs:F0} ({referenceLength / (accumulationOnlyMs / 1000d):N0} bases/s)");
             TestContext.Out.WriteLine(
                 $"geneLength={geneLength}  plantedOffset={plantedOffset:N0} (window {expectedOffset:N0})  " +
                 $"foundOffset={offset:N0}  score={score}  searchMs={searchMs:F1}");
+
+            using (var report = File.CreateText($"GenomeScalePlantedGeneLocalization_{referenceLength}.csv"))
+            {
+                report.WriteLine("ReferenceLength, ReferenceWindows, WindowSize, BuildMs, BasesPerSec, ReaderOnlyMs, AccumulationOnlyMs, AccumulationBasesPerSec, GeneLength, PlantedOffset, ExpectedWindow, FoundOffset, Score, SearchMs");
+                report.WriteLine($"{referenceLength}, {reference.Windows.Count}, {windowSize}, {buildMs}, {referenceLength / (buildMs / 1000d)}, {readerOnlyMs}, {accumulationOnlyMs}, {referenceLength / (accumulationOnlyMs / 1000d)}, {geneLength}, {plantedOffset}, {expectedOffset}, {offset}, {score}, {searchMs}");
+            }
 
             Assert.That(offset, Is.EqualTo(expectedOffset),
                 "the planted gene should localize to the exact window it was inserted at, even inside a 3.1 billion bp reference");

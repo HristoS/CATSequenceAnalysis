@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace SequenceAnalyses
 {
@@ -51,8 +52,16 @@ namespace SequenceAnalyses
 
         public int K { get; }
 
+        // Concrete array, not List<T>: BestAlignment/Compare index this in a loop that can run
+        // O(windowCount^2) times for two profiles of very different lengths (same reasoning as
+        // ZCurveWindowedProfile - see docs/zcurve-windowed-profile.md §8.7/§9). The public Windows
+        // property below still exposes IReadOnlyList<Window> unchanged (arrays implement it,
+        // including .Count -> .Length), so WindowedProfileTests.cs - the only consumer of this class
+        // outside this file - is unaffected.
+        private readonly Window[] _windows;
+
         /// <summary>Ordered per-window k-mer profiles; window i covers bases [i*WindowSize, (i+1)*WindowSize).</summary>
-        public IReadOnlyList<Window> Windows { get; }
+        public IReadOnlyList<Window> Windows => _windows;
 
         public WindowedProfile(string dnaString, int windowSize = DefaultWindowSize, int k = DefaultK)
         {
@@ -65,10 +74,10 @@ namespace SequenceAnalyses
             WindowSize = windowSize;
             K = k;
 
-            var windows = new List<Window>(dnaString.Length / windowSize);
-            for (int start = 0; start + windowSize <= dnaString.Length; start += windowSize)
-                windows.Add(BuildWindow(dnaString, start, windowSize, k));
-            Windows = windows;
+            var windows = new Window[dnaString.Length / windowSize];
+            for (int w = 0, start = 0; w < windows.Length; w++, start += windowSize)
+                windows[w] = BuildWindow(dnaString, start, windowSize, k);
+            _windows = windows;
         }
 
         private static Window BuildWindow(string seq, int start, int length, int k)
@@ -90,7 +99,15 @@ namespace SequenceAnalyses
 
                 rolling = ((rolling << 2) | baseIndex) & mask;
                 if (++valid >= k)
-                    counts[rolling] = counts.TryGetValue(rolling, out var c) ? c + 1 : 1;
+                {
+                    // CollectionsMarshal.GetValueRefOrAddDefault: one dictionary probe for the slot
+                    // instead of TryGetValue-then-indexer-set (two probes). A newly-added slot comes
+                    // back at default(int) = 0, so a plain increment is correct either way - called
+                    // once per valid k-mer position across the whole sequence, the hottest loop in
+                    // profile construction.
+                    ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(counts, rolling, out _);
+                    count++;
+                }
             }
 
             return new Window(counts);
@@ -131,19 +148,21 @@ namespace SequenceAnalyses
             if (query.WindowSize != reference.WindowSize || query.K != reference.K)
                 throw new ArgumentException("Profiles must share the same window size and k.");
 
-            var q = query.Windows;
-            var r = reference.Windows;
-            if (q.Count == 0 || r.Count < q.Count) return (double.NaN, -1);
+            // Array-typed locals, not the public IReadOnlyList<Window> property: direct array
+            // element access instead of an interface-dispatched indexer call in the hot loop below.
+            var q = query._windows;
+            var r = reference._windows;
+            if (q.Length == 0 || r.Length < q.Length) return (double.NaN, -1);
 
             double best = double.NegativeInfinity;
             int bestOffset = -1;
-            for (int offset = 0; offset + q.Count <= r.Count; offset++)
+            for (int offset = 0; offset + q.Length <= r.Length; offset++)
             {
                 double sum = 0;
-                for (int j = 0; j < q.Count; j++)
+                for (int j = 0; j < q.Length; j++)
                     sum += Cosine(q[j], r[offset + j]);
 
-                double score = sum / q.Count;
+                double score = sum / q.Length;
                 if (score > best)
                 {
                     best = score;
@@ -160,7 +179,7 @@ namespace SequenceAnalyses
         /// </summary>
         public static double Compare(WindowedProfile x, WindowedProfile y)
         {
-            var (shorter, longer) = x.Windows.Count <= y.Windows.Count ? (x, y) : (y, x);
+            var (shorter, longer) = x._windows.Length <= y._windows.Length ? (x, y) : (y, x);
             var (score, _) = BestAlignment(shorter, longer);
             return double.IsNaN(score) ? 0 : score;
         }

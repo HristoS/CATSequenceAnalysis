@@ -1,0 +1,3 @@
+Metric, CheckpointCount, Score
+EndpointCompare, 1, 1
+TrajectoryCompare, 20, 0.6613337281355097

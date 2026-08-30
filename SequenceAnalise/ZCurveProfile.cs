@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace SequenceAnalyses
 {
@@ -157,8 +158,19 @@ namespace SequenceAnalyses
 
         public int WindowSize { get; }
 
+        // Concrete array, not just List<T>: BestAlignment/Compare index this millions of times when
+        // comparing whole real genomes of very different lengths (measured: 183.8s to compare 435
+        // real-genome pairs - see docs §8.7), and accessing it through the public IReadOnlyList<T>
+        // property in that hot loop means every q[j]/r[offset+j] goes through an interface-dispatch
+        // indexer call the JIT can't inline or bounds-check-eliminate as aggressively as a direct
+        // array access. The public Windows property below still exposes IReadOnlyList<T> unchanged
+        // (arrays implement it, including .Count -> .Length), so every existing caller of
+        // Windows.Count/Windows[i] elsewhere in this codebase is unaffected; only BestAlignment/
+        // Compare read _windows directly, since they're the only genuinely hot consumers.
+        private readonly (double X, double Y, double Z)[] _windows;
+
         /// <summary>Ordered per-window local Z-curve axis averages; window i covers bases [i*WindowSize, (i+1)*WindowSize).</summary>
-        public IReadOnlyList<(double X, double Y, double Z)> Windows { get; }
+        public IReadOnlyList<(double X, double Y, double Z)> Windows => _windows;
 
         public ZCurveWindowedProfile(string dnaString, int windowSize = DefaultWindowSize)
         {
@@ -168,8 +180,8 @@ namespace SequenceAnalyses
             DnaString = dnaString;
             WindowSize = windowSize;
 
-            var windows = new List<(double X, double Y, double Z)>(dnaString.Length / windowSize);
-            for (int start = 0; start + windowSize <= dnaString.Length; start += windowSize)
+            var windows = new (double X, double Y, double Z)[dnaString.Length / windowSize];
+            for (int w = 0, start = 0; w < windows.Length; w++, start += windowSize)
             {
                 long sumX = 0, sumY = 0, sumZ = 0;
                 for (int i = start; i < start + windowSize; i++)
@@ -179,16 +191,16 @@ namespace SequenceAnalyses
                     sumY += y;
                     sumZ += z;
                 }
-                windows.Add((sumX / (double)windowSize, sumY / (double)windowSize, sumZ / (double)windowSize));
+                windows[w] = (sumX / (double)windowSize, sumY / (double)windowSize, sumZ / (double)windowSize);
             }
-            Windows = windows;
+            _windows = windows;
         }
 
-        private ZCurveWindowedProfile(string? dnaString, int windowSize, IReadOnlyList<(double X, double Y, double Z)> windows)
+        private ZCurveWindowedProfile(string? dnaString, int windowSize, (double X, double Y, double Z)[] windows)
         {
             DnaString = dnaString;
             WindowSize = windowSize;
-            Windows = windows;
+            _windows = windows;
         }
 
         /// <summary>
@@ -219,9 +231,10 @@ namespace SequenceAnalyses
             }
 
             // Defensive copy: unlike the string-based constructor (which always builds its own
-            // fresh List), this factory would otherwise share storage with a caller-owned list
-            // that could be mutated later out from under the profile.
-            return new ZCurveWindowedProfile(dnaString, windowSize, windows.ToList());
+            // fresh array), this factory would otherwise share storage with a caller-owned
+            // collection that could be mutated later out from under the profile. Always copies via
+            // ToArray() even when windows is already an array, for exactly that reason.
+            return new ZCurveWindowedProfile(dnaString, windowSize, windows.ToArray());
         }
 
         /// <summary>
@@ -267,7 +280,7 @@ namespace SequenceAnalyses
                 }
             }
 
-            return new ZCurveWindowedProfile(null, windowSize, windows);
+            return new ZCurveWindowedProfile(null, windowSize, windows.ToArray());
         }
 
         private static double Distance((double X, double Y, double Z) a, (double X, double Y, double Z) b)
@@ -290,20 +303,24 @@ namespace SequenceAnalyses
             if (query.WindowSize != reference.WindowSize)
                 throw new ArgumentException("Profiles must share the same window size.");
 
-            var q = query.Windows;
-            var r = reference.Windows;
-            if (q.Count == 0 || r.Count < q.Count) return (double.NaN, -1);
+            // Array-typed locals, not the public IReadOnlyList<T> property: this loop is the
+            // measured hot path (up to O(windowCount^2) per call for two whole genomes of very
+            // different lengths - see docs §8.7/§9), so every q[j]/r[offset+j] here goes through a
+            // direct array element access instead of an interface-dispatched indexer call.
+            var q = query._windows;
+            var r = reference._windows;
+            if (q.Length == 0 || r.Length < q.Length) return (double.NaN, -1);
 
             double best = double.NegativeInfinity;
             int bestOffset = -1;
-            for (int offset = 0; offset + q.Count <= r.Count; offset++)
+            for (int offset = 0; offset + q.Length <= r.Length; offset++)
             {
                 double sumDistance = 0;
-                for (int j = 0; j < q.Count; j++)
+                for (int j = 0; j < q.Length; j++)
                     sumDistance += Distance(q[j], r[offset + j]);
 
                 // Same "1 - average distance" convention as ZCurveProfile.Compare.
-                double score = 1 - sumDistance / q.Count;
+                double score = 1 - sumDistance / q.Length;
                 if (score > best)
                 {
                     best = score;
@@ -320,7 +337,7 @@ namespace SequenceAnalyses
         /// </summary>
         public static double Compare(ZCurveWindowedProfile x, ZCurveWindowedProfile y)
         {
-            var (shorter, longer) = x.Windows.Count <= y.Windows.Count ? (x, y) : (y, x);
+            var (shorter, longer) = x._windows.Length <= y._windows.Length ? (x, y) : (y, x);
             var (score, _) = BestAlignment(shorter, longer);
             return double.IsNaN(score) ? 0 : score;
         }
