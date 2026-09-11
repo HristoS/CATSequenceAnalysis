@@ -1,4 +1,4 @@
 Method, GenomeCount, PairCount, BuildOrSketchMs, CompareMs, TotalMs, Measurement
-ZCurveWindowedProfile, 30, 435, 5650.1801, 133182.705, 138832.88509999998, live
+ZCurveWindowedProfile, 30, 435, 3161.443, 20281.4935, 23442.9365, live
 Mash, 30, 435, , , 6000, external-Docker (see results/raw/README.md)
 FastANI, 30, 435, , , 93000, external-Docker (see results/raw/README.md)

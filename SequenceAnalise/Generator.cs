@@ -5,7 +5,7 @@ namespace SequenceAnalyses
     public static class Generator
     {
         // Index matches Base's declared order (A, T, C, G), so seeded output is stable.
-        private static readonly char[] Bases = { 'A', 'T', 'C', 'G' };
+        private static readonly char[] bases = { 'A', 'T', 'C', 'G' };
 
         public static string GetRandomDNA(int length) => GetRandomDNA(length, Random.Shared);
 
@@ -16,7 +16,7 @@ namespace SequenceAnalyses
             var dna = new char[length];
             for (int i = 0; i < length; i++)
             {
-                dna[i] = Bases[random.Next(Bases.Length)];
+                dna[i] = bases[random.Next(bases.Length)];
             }
 
             return new string(dna);

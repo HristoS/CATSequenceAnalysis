@@ -17,22 +17,22 @@ namespace SequenceAnaliseTests
         // as a string or array, so it has no length ceiling tied to .NET's string/array limits.
         private sealed class RandomDnaReader : TextReader
         {
-            private static readonly char[] Bases = { 'A', 'T', 'C', 'G' };
-            private readonly Random _random;
-            private long _remaining;
+            private static readonly char[] bases = { 'A', 'T', 'C', 'G' };
+            private readonly Random random;
+            private long remaining;
 
             public RandomDnaReader(long length, int seed)
             {
-                _random = new Random(seed);
-                _remaining = length;
+                random = new Random(seed);
+                remaining = length;
             }
 
             public override int Read(char[] buffer, int index, int count)
             {
-                int n = (int)Math.Min(count, _remaining);
+                int n = (int)Math.Min(count, remaining);
                 for (int i = 0; i < n; i++)
-                    buffer[index + i] = Bases[_random.Next(4)];
-                _remaining -= n;
+                    buffer[index + i] = bases[random.Next(4)];
+                remaining -= n;
                 return n;
             }
         }
@@ -42,30 +42,30 @@ namespace SequenceAnaliseTests
         // searching for a specific known sequence within a much larger genome-scale reference.
         private sealed class PlantedFragmentReader : TextReader
         {
-            private static readonly char[] Bases = { 'A', 'T', 'C', 'G' };
-            private readonly Random _random;
-            private readonly string _fragment;
-            private readonly long _fragmentOffset;
-            private readonly long _totalLength;
-            private long _position;
+            private static readonly char[] bases = { 'A', 'T', 'C', 'G' };
+            private readonly Random random;
+            private readonly string fragment;
+            private readonly long fragmentOffset;
+            private readonly long totalLength;
+            private long position;
 
             public PlantedFragmentReader(long totalLength, long fragmentOffset, string fragment, int seed)
             {
-                _random = new Random(seed);
-                _fragment = fragment;
-                _fragmentOffset = fragmentOffset;
-                _totalLength = totalLength;
+                random = new Random(seed);
+                this.fragment = fragment;
+                this.fragmentOffset = fragmentOffset;
+                this.totalLength = totalLength;
             }
 
             public override int Read(char[] buffer, int index, int count)
             {
                 int written = 0;
-                while (written < count && _position < _totalLength)
+                while (written < count && position < totalLength)
                 {
-                    buffer[index + written] = _position >= _fragmentOffset && _position < _fragmentOffset + _fragment.Length
-                        ? _fragment[(int)(_position - _fragmentOffset)]
-                        : Bases[_random.Next(4)];
-                    _position++;
+                    buffer[index + written] = position >= fragmentOffset && position < fragmentOffset + fragment.Length
+                        ? fragment[(int)(position - fragmentOffset)]
+                        : bases[random.Next(4)];
+                    position++;
                     written++;
                 }
                 return written;
@@ -83,29 +83,29 @@ namespace SequenceAnaliseTests
         // probability `rate`.
         private sealed class MutatingDnaReader : TextReader
         {
-            private static readonly char[] Bases = { 'A', 'T', 'C', 'G' };
-            private readonly Random _baseRandom;
-            private readonly Random _mutationRandom;
-            private readonly double _rate;
-            private long _remaining;
+            private static readonly char[] bases = { 'A', 'T', 'C', 'G' };
+            private readonly Random baseRandom;
+            private readonly Random mutationRandom;
+            private readonly double rate;
+            private long remaining;
 
             public MutatingDnaReader(long length, int baseSeed, int mutationSeed, double rate)
             {
-                _baseRandom = new Random(baseSeed);
-                _mutationRandom = new Random(mutationSeed);
-                _rate = rate;
-                _remaining = length;
+                baseRandom = new Random(baseSeed);
+                mutationRandom = new Random(mutationSeed);
+                this.rate = rate;
+                remaining = length;
             }
 
             public override int Read(char[] buffer, int index, int count)
             {
-                int n = (int)Math.Min(count, _remaining);
+                int n = (int)Math.Min(count, remaining);
                 for (int i = 0; i < n; i++)
                 {
-                    char baseChar = Bases[_baseRandom.Next(4)];
-                    buffer[index + i] = _mutationRandom.NextDouble() < _rate ? Bases[_mutationRandom.Next(4)] : baseChar;
+                    char baseChar = bases[baseRandom.Next(4)];
+                    buffer[index + i] = mutationRandom.NextDouble() < rate ? bases[mutationRandom.Next(4)] : baseChar;
                 }
-                _remaining -= n;
+                remaining -= n;
                 return n;
             }
         }
@@ -130,7 +130,7 @@ namespace SequenceAnaliseTests
             const int windowSize = ZCurveWindowedProfile.DefaultWindowSize;
 
             long windowCount = length / windowSize;
-            long profileBytes = windowCount * 3 * sizeof(double); // 3 doubles per window, no other per-window state
+            long profileBytes = windowCount * 3 * sizeof(float); // 3 floats per window (one per axis), no other per-window state
             long rawSequenceBytes = length * sizeof(char); // UTF-16, what a single in-memory string would cost
 
             TestContext.Out.WriteLine($"length={length:N0} bp, windowSize={windowSize}");
@@ -196,7 +196,7 @@ namespace SequenceAnaliseTests
             int expectedOffset = (int)(plantedOffset / windowSize);
 
             TestContext.Out.WriteLine(
-                $"referenceLength={referenceLength:N0}  referenceWindows={reference.Windows.Count:N0}  buildMs={buildMs:F0} " +
+                $"referenceLength={referenceLength:N0}  referenceWindows={reference.WindowCount:N0}  buildMs={buildMs:F0} " +
                 $"({referenceLength / (buildMs / 1000d):N0} bases/s)  readerOnlyMs={readerOnlyMs:F0}  " +
                 $"accumulationOnlyMs={accumulationOnlyMs:F0} ({referenceLength / (accumulationOnlyMs / 1000d):N0} bases/s)");
             TestContext.Out.WriteLine(
@@ -206,7 +206,7 @@ namespace SequenceAnaliseTests
             using (var report = File.CreateText($"GenomeScalePlantedGeneLocalization_{referenceLength}.csv"))
             {
                 report.WriteLine("ReferenceLength, ReferenceWindows, WindowSize, BuildMs, BasesPerSec, ReaderOnlyMs, AccumulationOnlyMs, AccumulationBasesPerSec, GeneLength, PlantedOffset, ExpectedWindow, FoundOffset, Score, SearchMs");
-                report.WriteLine($"{referenceLength}, {reference.Windows.Count}, {windowSize}, {buildMs}, {referenceLength / (buildMs / 1000d)}, {readerOnlyMs}, {accumulationOnlyMs}, {referenceLength / (accumulationOnlyMs / 1000d)}, {geneLength}, {plantedOffset}, {expectedOffset}, {offset}, {score}, {searchMs}");
+                report.WriteLine($"{referenceLength}, {reference.WindowCount}, {windowSize}, {buildMs}, {referenceLength / (buildMs / 1000d)}, {readerOnlyMs}, {accumulationOnlyMs}, {referenceLength / (accumulationOnlyMs / 1000d)}, {geneLength}, {plantedOffset}, {expectedOffset}, {offset}, {score}, {searchMs}");
             }
 
             Assert.That(offset, Is.EqualTo(expectedOffset),
@@ -233,7 +233,7 @@ namespace SequenceAnaliseTests
             var baseProfile = ZCurveWindowedProfile.FromStream(
                 new RandomDnaReader(length, BenchmarkTiming.Seed(length, "genome-base")), windowSize);
             sw.Stop();
-            TestContext.Out.WriteLine($"base build: {sw.Elapsed.TotalSeconds:F1} s, windows={baseProfile.Windows.Count:N0}");
+            TestContext.Out.WriteLine($"base build: {sw.Elapsed.TotalSeconds:F1} s, windows={baseProfile.WindowCount:N0}");
 
             sw.Restart();
             var unrelatedProfile = ZCurveWindowedProfile.FromStream(
@@ -266,7 +266,7 @@ namespace SequenceAnaliseTests
             // Fragment-localization timing - fresh small query against the already-built base.
             var query = new ZCurveWindowedProfile(Generator.GetRandomDNA(localizationQueryLength, seed: 999), windowSize);
             var localizationMs = BenchmarkTiming.Measure(1, () => ZCurveWindowedProfile.BestAlignment(query, baseProfile));
-            int offsetsSearched = baseProfile.Windows.Count - query.Windows.Count + 1;
+            int offsetsSearched = baseProfile.WindowCount - query.WindowCount + 1;
 
             TestContext.Out.WriteLine("--- Reliability row (Length, Condition, Score) ---");
             foreach (var (condition, score) in results)
@@ -275,7 +275,7 @@ namespace SequenceAnaliseTests
             TestContext.Out.WriteLine($"margin (50% - Unrelated) = {margin}");
 
             TestContext.Out.WriteLine("--- Comparison-cost row (Length, Windows, WholeVsWholeCompareMs, LocalizationMs, OffsetsSearched) ---");
-            TestContext.Out.WriteLine($"{length}, {baseProfile.Windows.Count}, {compareMs[0]}, {localizationMs[0]}, {offsetsSearched}");
+            TestContext.Out.WriteLine($"{length}, {baseProfile.WindowCount}, {compareMs[0]}, {localizationMs[0]}, {offsetsSearched}");
 
             using (var report = File.CreateText($"GenomeScaleReliability_{length}.csv"))
             {
@@ -286,7 +286,7 @@ namespace SequenceAnaliseTests
             using (var report = File.CreateText($"GenomeScaleCompareTime_{length}.csv"))
             {
                 report.WriteLine("Length, WindowCount, WholeVsWholeCompareMs, LocalizationQueryLength, LocalizationMs, OffsetsSearched");
-                report.WriteLine($"{length}, {baseProfile.Windows.Count}, {compareMs[0]}, {localizationQueryLength}, {localizationMs[0]}, {offsetsSearched}");
+                report.WriteLine($"{length}, {baseProfile.WindowCount}, {compareMs[0]}, {localizationQueryLength}, {localizationMs[0]}, {offsetsSearched}");
             }
 
             Assert.That(results.First(r => r.Condition == "Mutation_0.50").Score, Is.GreaterThan(unrelatedScore),

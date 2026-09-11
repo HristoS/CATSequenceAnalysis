@@ -7,7 +7,7 @@ namespace SequenceAnaliseTests
     /// the C(30,2) = 435 unique pairs among data/genomes/'s 30 real bacterial chromosomes, each
     /// pair labeled by a taxonomically conservative relationship level (see
     /// <see cref="RelationshipLevel"/>) and scored with <see cref="ZCurveWindowedProfile.Compare"/>.
-    /// Produces the evidence for the manuscript's real-data section: whether mean similarity is
+    /// Produces the real-data evidence: whether mean similarity is
     /// monotonically ordered by genuine phylogenetic distance across a real, unselected sample,
     /// not just a handful of pairs picked to make the point.
     ///
@@ -25,7 +25,7 @@ namespace SequenceAnaliseTests
         // Taxonomy labels (Genomes, RelationshipLevel, Classify) live in GenomeTaxonomy.cs, shared
         // with ExternalBaselineComparisonBenchmark.cs so both benchmarks compare against the exact
         // same relationship labels rather than two copies that could silently drift apart.
-        private static readonly GenomeMeta[] Genomes = GenomeTaxonomy.Genomes;
+        private static readonly GenomeMeta[] genomes = GenomeTaxonomy.Genomes;
         private static RelationshipLevel Classify(GenomeMeta a, GenomeMeta b) => GenomeTaxonomy.Classify(a, b);
 
         private static double Mean(List<double> v) => v.Average();
@@ -40,7 +40,7 @@ namespace SequenceAnaliseTests
         [Test]
         public void PairwiseDistanceMatrixAcrossAllRealGenomes()
         {
-            var profiles = Genomes.Select(g =>
+            var profiles = genomes.Select(g =>
             {
                 var primary = FastaReader.ReadPrimaryRecord(GenomeCatalog.PathTo(g.FileName));
                 return (Meta: g, Profile: new ZCurveWindowedProfile(primary.Sequence));
@@ -55,7 +55,7 @@ namespace SequenceAnaliseTests
                     rows.Add((profiles[i].Meta, profiles[j].Meta, level, score));
                 }
 
-            Assert.That(rows.Count, Is.EqualTo(Genomes.Length * (Genomes.Length - 1) / 2));
+            Assert.That(rows.Count, Is.EqualTo(genomes.Length * (genomes.Length - 1) / 2));
 
             using (var raw = File.CreateText("RealGenomeDistanceMatrix_Raw.csv"))
             {

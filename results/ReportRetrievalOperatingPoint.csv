@@ -1,0 +1,5 @@
+Threshold, Method, ScoreCutoff, Precision, Recall, F1
+SameGenusOrCloser_vs_Rest, ZCurveWindowedProfile, 0.8187110805327197, 0.14814814814814814, 0.5, 0.22857142857142856
+SameGenusOrCloser_vs_Rest, Mash, 0.756239, 0.35294117647058826, 0.75, 0.48
+SamePhylumOrCloser_vs_DifferentPhylum, ZCurveWindowedProfile, 0.7166079669725731, 0.4215686274509804, 0.819047619047619, 0.5566343042071197
+SamePhylumOrCloser_vs_DifferentPhylum, Mash, 0.704019, 0.9696969696969697, 0.6095238095238096, 0.7485380116959065

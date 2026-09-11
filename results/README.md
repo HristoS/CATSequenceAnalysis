@@ -11,7 +11,28 @@ minutes to nearly an hour at the largest length tested). The "Section" column be
 manuscript currently in preparation and not yet public; it is included here for the authors' own
 cross-referencing and can be disregarded by anyone without that document.
 
-**2026-08-29 re-measurement (genome-scale search).** `GenomeScalePlantedGeneLocalization_3100000000.csv`
+**2026-09-04, second pass (Mash head-to-head).** `ReportRetrievalClassification.csv` gained a `Method`
+column and Mash rows; `ReportRetrievalOperatingPoint.csv` is new. The finding is not favorable to
+`ZCurveWindowedProfile` and is reported as measured: at both relationship thresholds **Mash ranks
+better** (AUC 0.969 vs. 0.835 and 0.802 vs. 0.789; best-operating-point F1 0.480 vs. 0.229 and 0.749 vs.
+0.557), on identical pairs and labels. §8.7's "Mash saturates, this method stays graded" result is
+unaffected and still reproduces — but it describes the shape of the score, not retrieval accuracy, and
+§8.8 now says so explicitly rather than leaving the stronger reading available. Mash/FastANI raw-file
+parsing moved to a shared `ExternalBaselineData.cs` (same rationale as `GenomeTaxonomy.cs`) so both
+benchmarks read the committed TSVs through one code path; `ExternalBaseline_*.csv` re-ran bit-for-bit
+identical after that refactor.
+
+**2026-09-04 addition (retrieval framing, window-size sweep, off-floor correlation).**
+`ReportRetrievalClassification.csv` and `WindowSizeSensitivity.csv` are new, addressing two gaps §9
+previously listed as open: a threshold-based retrieval framing (ROC-AUC at two relationship
+thresholds, computed by a new `RetrievalClassificationBenchmark.cs`) and a window-size sensitivity
+sweep on real genomes (w ∈ {250, 500, 1000, 2000} bp, by a new `WindowSizeSensitivityBenchmark.cs`; a
+100 bp point was tried and dropped on cost grounds — see that file's doc comment). `ExternalBaseline_Correlation.csv`
+gained a third row, `ZCurve_vs_Mash_OffFloorOnly` (22 pairs, r=0.3919), backing a figure the manuscript's
+§8.7 prose already stated but that no committed artifact previously supported
+(`docs/zcurve-windowed-profile-factcheck.md`'s 2026-09-04 pass).
+
+**2026-08-29 re-measurement (genome-scale search), superseded by the 2026-08-31 entry below.** `GenomeScalePlantedGeneLocalization_3100000000.csv`
 was regenerated after the same optimization pass described below: `SearchMs` dropped from 590 to
 371.3 (the fragment query here is only 4 windows regardless of reference size, so this was already
 the cheap case, but the array-access fix still removes real per-call overhead across the ~25 million
@@ -34,6 +55,33 @@ signal than across the full corpus (both figures are in `ExternalBaseline_Correl
 FastANI's own coverage gap (it returns no result at all for genomes below its effective identity
 threshold) turned out to be a citable finding in its own right, not a run-configuration problem: see
 `ExternalBaseline_Summary.csv`'s `FastAniPairCount` column.
+
+**2026-08-31 regeneration (vectorized comparison).** `ReportTrilaterationBuildTime.csv`,
+`ReportTrilaterationCompareTime_WholeSequence.csv`, `ReportTrilaterationLocalizationTime.csv`, and
+`ExternalBaseline_*.csv` were regenerated after `ZCurveWindowedProfile` switched its window store
+from one interleaved `(X,Y,Z)` array of doubles to three per-axis float arrays, and its alignment
+search to explicit SIMD over them. Comparison got substantially cheaper: whole-vs-whole at
+10,240,000 bp went 0.3534 ms to 0.06358 ms, fragment localization 4.1809 ms to 2.378 ms, and the
+full 435-pair real-genome sweep 133.2 s to 28.6 s, and genome-scale fragment search 371.3 ms to 141.7 ms. Storage halved as a side effect of the float element type: a genome-scale profile is now 74.4 MB rather than 148.8 MB, an 83:1 compression ratio against the raw sequence rather than 42:1 (`GenomeScaleStorageFootprint_3100000000.csv`, whose byte calculation was corrected from `sizeof(double)` to `sizeof(float)` to match). Scores are unchanged to the precision reported
+anywhere (the four relationship-level means stay 0.8187 / 0.7914 / 0.7573 / 0.6063); float storage
+shifts them by 1e-9 to 1.6e-8, which is far below any reported digit and is safe because each stored
+value is a mean of `w` terms from {-1, 0, +1} and so takes one of only `2w+1` values in [-1, 1].
+
+Construction figures in the same file are *not* comparable to the 2026-08-25 snapshot they replace,
+and the difference is machine state rather than code. Untouched `CATProfile` construction measured
+1.05-2.6x slower than its own published figures across several runs on 2026-08-30, and running the
+build benchmark in complete isolation did not recover it, so the earlier session's machine was
+simply faster. The numbers here come from a freshly restarted machine, where throughput was finally
+stable across all eight lengths (CAT 7.2-8.5M bases/s, ZCurve 39.6-49.7M), and CAT is re-reported
+alongside ZCurve so the two stay comparable within this snapshot. On that basis there is no evidence
+the per-axis layout hurt construction: ZCurve is slightly slower than the old snapshot at short
+lengths and slightly faster at the longest, and the CAT/ZCurve ratio (4.7-6.7x) sits in its usual
+band.
+
+Two genome-scale rows are known-stale and flagged as such in the prose: the 3,100,000,000 bp row of
+the comparison-cost table and its reliability counterpart both come from
+`GenomeScaleComparisonAndReliability`, which was not re-run because it costs the better part of an
+hour. They are upper bounds now, not current measurements.
 
 **2026-08-29 optimization pass.** `ExternalBaseline_Runtime.csv`'s `ZCurveWindowedProfile` row was
 regenerated after a targeted performance pass on the measured bottleneck: `ZCurveWindowedProfile`'s
@@ -100,8 +148,11 @@ automatically.
 | `ReportRegionalStructureDetection.csv` | §5.1 | AT-rich/GC-rich structured sequence vs. its shuffle: endpoint (blind to the shuffle) vs. k=20 trajectory (partially detects it) |
 | `ExternalBaseline_Raw.csv` | §8.7 | All 435 pairs: `ZCurveWindowedProfile.Compare`, Mash distance/similarity, and FastANI % identity (where available) side by side |
 | `ExternalBaseline_Summary.csv` | §8.7 | Same data, aggregated to mean/stdev per relationship level for all three methods, including each method's pair coverage |
-| `ExternalBaseline_Correlation.csv` | §8.7 | Pearson r between `ZCurveWindowedProfile` and each baseline, both across all 435 pairs and restricted to the pairs where Mash retains a graded signal |
+| `ExternalBaseline_Correlation.csv` | §8.7 | Pearson r between `ZCurveWindowedProfile` and each baseline: all 435 pairs, excluding DifferentPhylum, off Mash's resolution floor only (22 pairs), and vs. FastANI (14 pairs) |
 | `ExternalBaseline_Runtime.csv` | §8.7 | Wall-clock for building+comparing the full 30-genome corpus: `ZCurveWindowedProfile` (live), Mash and FastANI (external Docker run, see `results/raw/README.md`) |
+| `ReportRetrievalClassification.csv` | §8.8 | ROC-AUC (Mann-Whitney rank-sum) for `ZCurveWindowedProfile` **and Mash**, at two binary relationship thresholds over the same 435 pairs: same-genus-or-closer vs. rest, and same-phylum-or-closer vs. different-phylum |
+| `ReportRetrievalOperatingPoint.csv` | §8.8 | Precision/recall/F1 at the F1-maximizing cutoff, both methods, both thresholds |
+| `WindowSizeSensitivity.csv` | §8.9 | Relationship-level mean/stdev at four window sizes (250/500/1000/2000 bp) on the same 30-genome corpus |
 
 `ReportCATWithKMP.csv` and `GenomeScaleCeilingProbe.csv` (present in the build output folder but
 not here) are excluded: the former belongs to the pre-existing `Tests.cs` experiment suite, unrelated

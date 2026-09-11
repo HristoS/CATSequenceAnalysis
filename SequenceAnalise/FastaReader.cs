@@ -123,39 +123,39 @@ namespace SequenceAnalyses
 
         private sealed class FastaSequenceReader : TextReader
         {
-            private readonly StreamReader _inner;
-            private readonly string _recordId;
-            private bool _foundStart;
-            private bool _finished;
-            private string? _currentLine;
-            private int _linePos;
+            private readonly StreamReader inner;
+            private readonly string recordId;
+            private bool foundStart;
+            private bool finished;
+            private string? currentLine;
+            private int linePos;
 
             public FastaSequenceReader(Stream stream, string recordId)
             {
-                _inner = new StreamReader(stream);
-                _recordId = recordId;
+                inner = new StreamReader(stream);
+                this.recordId = recordId;
             }
 
             public override int Read(char[] buffer, int index, int count)
             {
-                if (_finished) return 0;
+                if (finished) return 0;
 
                 int written = 0;
                 while (written < count)
                 {
-                    if (_currentLine is null || _linePos >= _currentLine.Length)
+                    if (currentLine is null || linePos >= currentLine.Length)
                     {
                         if (!AdvanceLine())
                         {
-                            _finished = true;
+                            finished = true;
                             break;
                         }
                         continue;
                     }
 
-                    int toCopy = Math.Min(_currentLine.Length - _linePos, count - written);
-                    _currentLine.CopyTo(_linePos, buffer, index + written, toCopy);
-                    _linePos += toCopy;
+                    int toCopy = Math.Min(currentLine.Length - linePos, count - written);
+                    currentLine.CopyTo(linePos, buffer, index + written, toCopy);
+                    linePos += toCopy;
                     written += toCopy;
                 }
 
@@ -168,30 +168,30 @@ namespace SequenceAnalyses
             {
                 while (true)
                 {
-                    var line = _inner.ReadLine();
+                    var line = inner.ReadLine();
                     if (line is null) return false;
                     if (line.Length == 0) continue;
 
                     if (line[0] == '>')
                     {
-                        if (_foundStart) return false; // reached the next record: this one is done
+                        if (foundStart) return false; // reached the next record: this one is done
 
                         var (id, _) = ParseHeader(line);
-                        _foundStart = id == _recordId;
+                        foundStart = id == recordId;
                         continue;
                     }
 
-                    if (!_foundStart) continue; // body line of a record we're skipping past
+                    if (!foundStart) continue; // body line of a record we're skipping past
 
-                    _currentLine = line.ToUpperInvariant();
-                    _linePos = 0;
+                    currentLine = line.ToUpperInvariant();
+                    linePos = 0;
                     return true;
                 }
             }
 
             protected override void Dispose(bool disposing)
             {
-                if (disposing) _inner.Dispose();
+                if (disposing) inner.Dispose();
                 base.Dispose(disposing);
             }
         }

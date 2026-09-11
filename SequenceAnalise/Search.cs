@@ -4,7 +4,6 @@ using SequenceAnalise;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net;
 
 namespace SequenceAnalyses
 {
@@ -241,16 +240,16 @@ namespace SequenceAnalyses
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            double CATComparison = CATProfile.Compare(dna.CATProfile, dna2.CATProfile);
+            double catComparison = CATProfile.Compare(dna.CATProfile, dna2.CATProfile);
             sw.Stop();
-            double CATms = sw.Elapsed.TotalMilliseconds;
+            double catMs = sw.Elapsed.TotalMilliseconds;
             sw.Restart();
 
-            var NWComparison = NeedlemanWunsch.Calculate(dna.DnaString, dna2.DnaString);
+            var nwComparison = NeedlemanWunsch.Calculate(dna.DnaString, dna2.DnaString);
             sw.Stop();
-            double NWms = sw.Elapsed.TotalMilliseconds;
+            double nwMs = sw.Elapsed.TotalMilliseconds;
 
-            return (CATComparison, CATms, NWComparison, NWms);
+            return (catComparison, catMs, nwComparison, nwMs);
         }
 
         public static (double CATComparison, double CATms, double NWComparison, double NWms) CompareCATWithKMP(DNA dna, DNA dna2)
@@ -258,16 +257,16 @@ namespace SequenceAnalyses
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            double CATComparison = CATProfile.Compare(dna.CATProfile, dna2.CATProfile);
+            double catComparison = CATProfile.Compare(dna.CATProfile, dna2.CATProfile);
             sw.Stop();
-            double CATms = sw.Elapsed.TotalMilliseconds;
+            double catMs = sw.Elapsed.TotalMilliseconds;
             sw.Restart();
 
-            var NWComparison = PatternSearchingKMP.KMPSearch(dna2.DnaString, dna.DnaString);
+            var nwComparison = PatternSearchingKMP.KMPSearch(dna2.DnaString, dna.DnaString);
             sw.Stop();
-            double NWms = sw.Elapsed.TotalMilliseconds;
+            double nwMs = sw.Elapsed.TotalMilliseconds;
 
-            return (CATComparison, CATms, NWComparison.Count, NWms);
+            return (catComparison, catMs, nwComparison.Count, nwMs);
         }
 
         public static string Format((double CATComparison, double CATms, double NWComparison, double NWms) result)

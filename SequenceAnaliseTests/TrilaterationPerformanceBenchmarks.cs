@@ -12,8 +12,8 @@ namespace SequenceAnaliseTests
     /// </summary>
     public class TrilaterationPerformanceBenchmarks
     {
-        private const int Repetitions = BenchmarkTiming.DefaultRepetitions;
-        private const int LocalizationQueryLength = 5_000;
+        private const int repetitions = BenchmarkTiming.DefaultRepetitions;
+        private const int localizationQueryLength = 5_000;
 
         public static IEnumerable<int> PerformanceLengthProvider()
         {
@@ -32,8 +32,8 @@ namespace SequenceAnaliseTests
         {
             var dna = Generator.GetRandomDNA(length, seed: BenchmarkTiming.Seed(length, "build"));
 
-            var catMs = BenchmarkTiming.Measure(Repetitions, () => new CATProfile(dna));
-            var zcMs = BenchmarkTiming.Measure(Repetitions, () => new ZCurveWindowedProfile(dna));
+            var catMs = BenchmarkTiming.Measure(repetitions, () => new CATProfile(dna));
+            var zcMs = BenchmarkTiming.Measure(repetitions, () => new ZCurveWindowedProfile(dna));
 
             var catAvg = catMs.Average();
             var zcAvg = zcMs.Average();
@@ -61,18 +61,18 @@ namespace SequenceAnaliseTests
             var zcX = new ZCurveWindowedProfile(dnaX);
             var zcY = new ZCurveWindowedProfile(dnaY);
 
-            var catMs = BenchmarkTiming.Measure(Repetitions, () => CATProfile.Compare(catX, catY));
-            var zcMs = BenchmarkTiming.Measure(Repetitions, () => ZCurveWindowedProfile.Compare(zcX, zcY));
+            var catMs = BenchmarkTiming.Measure(repetitions, () => CATProfile.Compare(catX, catY));
+            var zcMs = BenchmarkTiming.Measure(repetitions, () => ZCurveWindowedProfile.Compare(zcX, zcY));
 
             var catAvg = catMs.Average();
             var zcAvg = zcMs.Average();
 
             TestContext.Out.WriteLine(
-                $"length={length,9}  CAT compare avg={catAvg,10:F5} ms  ZCurve compare avg={zcAvg,10:F5} ms  windowCount={zcX.Windows.Count}");
+                $"length={length,9}  CAT compare avg={catAvg,10:F5} ms  ZCurve compare avg={zcAvg,10:F5} ms  windowCount={zcX.WindowCount}");
 
             using var report = File.CreateText($"TrilaterationCompareTime_WholeSequence_{length}.csv");
             report.WriteLine("Length, WindowCount, CAT Rep1 ms, CAT Rep2 ms, CAT Rep3 ms, CAT Rep4 ms, CAT Rep5 ms, CAT Avg ms, ZCurve Rep1 ms, ZCurve Rep2 ms, ZCurve Rep3 ms, ZCurve Rep4 ms, ZCurve Rep5 ms, ZCurve Avg ms");
-            report.WriteLine($"{length}, {zcX.Windows.Count}, {string.Join(", ", catMs)}, {catAvg}, {string.Join(", ", zcMs)}, {zcAvg}");
+            report.WriteLine($"{length}, {zcX.WindowCount}, {string.Join(", ", catMs)}, {catAvg}, {string.Join(", ", zcMs)}, {zcAvg}");
             report.Flush();
 
             Assert.Pass();
@@ -84,26 +84,26 @@ namespace SequenceAnaliseTests
         [Test, TestCaseSource(nameof(PerformanceLengthProvider))]
         public void NewTrilaterationLocalizationTime(int referenceLength)
         {
-            var query = Generator.GetRandomDNA(LocalizationQueryLength, seed: BenchmarkTiming.Seed(referenceLength, "query"));
+            var query = Generator.GetRandomDNA(localizationQueryLength, seed: BenchmarkTiming.Seed(referenceLength, "query"));
             var reference = Generator.GetRandomDNA(referenceLength, seed: BenchmarkTiming.Seed(referenceLength, "reference"));
 
             var queryProfile = new ZCurveWindowedProfile(query);
             var referenceProfile = new ZCurveWindowedProfile(reference);
 
-            var ms = BenchmarkTiming.Measure(Repetitions, () => ZCurveWindowedProfile.BestAlignment(queryProfile, referenceProfile));
+            var ms = BenchmarkTiming.Measure(repetitions, () => ZCurveWindowedProfile.BestAlignment(queryProfile, referenceProfile));
             var (score, offset) = ZCurveWindowedProfile.BestAlignment(queryProfile, referenceProfile);
 
             var avg = ms.Average();
-            int offsetsSearched = referenceProfile.Windows.Count - queryProfile.Windows.Count + 1;
-            double windowComparisonsPerSecond = (double)offsetsSearched * queryProfile.Windows.Count / (avg / 1000d);
+            int offsetsSearched = referenceProfile.WindowCount - queryProfile.WindowCount + 1;
+            double windowComparisonsPerSecond = (double)offsetsSearched * queryProfile.WindowCount / (avg / 1000d);
 
             TestContext.Out.WriteLine(
-                $"referenceLength={referenceLength,9}  queryWindows={queryProfile.Windows.Count}  referenceWindows={referenceProfile.Windows.Count}  " +
+                $"referenceLength={referenceLength,9}  queryWindows={queryProfile.WindowCount}  referenceWindows={referenceProfile.WindowCount}  " +
                 $"offsetsSearched={offsetsSearched}  avg={avg,10:F3} ms  ({windowComparisonsPerSecond,14:N0} window-comparisons/s)  offset={offset}  score={score}");
 
             using var report = File.CreateText($"TrilaterationLocalizationTime_{referenceLength}.csv");
             report.WriteLine("ReferenceLength, QueryLength, QueryWindowCount, ReferenceWindowCount, OffsetsSearched, Rep1 ms, Rep2 ms, Rep3 ms, Rep4 ms, Rep5 ms, Avg ms, WindowComparisonsPerSec, Offset");
-            report.WriteLine($"{referenceLength}, {LocalizationQueryLength}, {queryProfile.Windows.Count}, {referenceProfile.Windows.Count}, {offsetsSearched}, {string.Join(", ", ms)}, {avg}, {windowComparisonsPerSecond}, {offset}");
+            report.WriteLine($"{referenceLength}, {localizationQueryLength}, {queryProfile.WindowCount}, {referenceProfile.WindowCount}, {offsetsSearched}, {string.Join(", ", ms)}, {avg}, {windowComparisonsPerSecond}, {offset}");
             report.Flush();
 
             Assert.Pass();
@@ -133,11 +133,11 @@ namespace SequenceAnaliseTests
 
             TestContext.Out.WriteLine(
                 $"length={length:N0}  build={buildMs[0]:F1} ms ({length / (buildMs[0] / 1000d):N0} bases/s)  " +
-                $"windows={profile.Windows.Count:N0}  wholeVsWholeCompare={compareMs[0]:F3} ms");
+                $"windows={profile.WindowCount:N0}  wholeVsWholeCompare={compareMs[0]:F3} ms");
 
             using var report = File.CreateText("GenomeScaleCeilingProbe.csv");
             report.WriteLine("Length, BuildMs, WindowCount, CompareMs");
-            report.WriteLine($"{length}, {buildMs[0]}, {profile.Windows.Count}, {compareMs[0]}");
+            report.WriteLine($"{length}, {buildMs[0]}, {profile.WindowCount}, {compareMs[0]}");
             report.Flush();
 
             Assert.Pass();

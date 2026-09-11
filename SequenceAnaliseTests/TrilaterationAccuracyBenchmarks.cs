@@ -24,14 +24,14 @@ namespace SequenceAnaliseTests
     /// applies. CompareTrilateration is nonetheless kept here rather than switched back to
     /// Compare()/CompareDistances, since it was already the metric this file's committed results
     /// were measured with, and switching now would silently change what "the CAT column" means
-    /// between runs for no benefit - see docs/zcurve-windowed-profile.md §8.4 for what the
+    /// between runs for no benefit - see the notes under docs/ for what the
     /// resulting CAT figures show once valid.
     /// </summary>
     public class TrilaterationAccuracyBenchmarks
     {
-        private const int GridConditionCount = 9; // 8 mutation rates + 1 "unrelated"
-        private const double GoThresholdSeconds = 60;
-        private const double SpotCheckThresholdSeconds = 600;
+        private const int gridConditionCount = 9; // 8 mutation rates + 1 "unrelated"
+        private const double goThresholdSeconds = 60;
+        private const double spotCheckThresholdSeconds = 600;
 
         public static IEnumerable<int> NWCalibrationLengthProvider()
         {
@@ -69,10 +69,10 @@ namespace SequenceAnaliseTests
 
             var ms = BenchmarkTiming.Measure(BenchmarkTiming.DefaultRepetitions, () => NeedlemanWunsch.Calculate(refSeq, alignSeq));
             var avg = ms.Average();
-            var projectedFullGridSeconds = avg * GridConditionCount * AccuracyBenchmarkShared.SeedCount / 1000d;
+            var projectedFullGridSeconds = avg * gridConditionCount * AccuracyBenchmarkShared.SeedCount / 1000d;
 
-            string verdict = projectedFullGridSeconds <= GoThresholdSeconds ? "Go"
-                : projectedFullGridSeconds <= SpotCheckThresholdSeconds ? "SpotCheck"
+            string verdict = projectedFullGridSeconds <= goThresholdSeconds ? "Go"
+                : projectedFullGridSeconds <= spotCheckThresholdSeconds ? "SpotCheck"
                 : "Skip";
 
             TestContext.Out.WriteLine($"length={length,7}  NW avg={avg,10:F3} ms  projectedFullGridSeconds={projectedFullGridSeconds,10:F1}  verdict={verdict}");

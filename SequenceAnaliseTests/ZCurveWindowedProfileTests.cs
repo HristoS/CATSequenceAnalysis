@@ -118,7 +118,7 @@ namespace SequenceAnaliseTests
         [Test]
         public void RehydratedFromPrecomputedWindowsMatchesFreshlyBuiltProfile()
         {
-            // Answers a reviewer question about the article: is profile construction genuinely a
+            // Answers a likely reviewer question: is profile construction genuinely a
             // separate, cacheable step, or just conceptually separable? This proves it end-to-end -
             // a profile rebuilt only from stored window vectors (no original sequence) scores
             // identically to the profile it was cached from.

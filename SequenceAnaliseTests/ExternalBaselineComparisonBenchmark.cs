@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using SequenceAnalyses;
 
 namespace SequenceAnaliseTests
@@ -9,8 +8,8 @@ namespace SequenceAnaliseTests
     /// Compares ZCurveWindowedProfile against two established alignment-free baselines - Mash
     /// (Ondov et al., 2016) and FastANI (Jain et al., 2018) - on the exact same 30-genome real
     /// bacterial corpus and taxonomy labels used throughout RealGenomeDistanceMatrixBenchmark.cs.
-    /// Addresses the manuscript's own §9 gap ("No comparison against an established alignment-free
-    /// baseline").
+    /// Addresses a known evaluation gap: no comparison against an established alignment-free
+    /// baseline.
     ///
     /// Mash and FastANI were run once, externally, via Docker (not from this test - see
     /// results/raw/README.md for exact commands/versions/digests); their raw TSV output is committed
@@ -23,68 +22,19 @@ namespace SequenceAnaliseTests
     {
         // Wall-clock for the two Docker runs, measured once from the host (see results/raw/README.md).
         // Not measured by this test itself - only ZCurveWindowedProfile's timing below is live.
-        private const double MashDockerRunSeconds = 6.0;
-        private const double FastAniDockerRunSeconds = 93.0;
+        private const double mashDockerRunSeconds = 6.0;
+        private const double fastAniDockerRunSeconds = 93.0;
 
         // Static, not a `new[] { ... }` literal re-allocated on every call.
-        private static readonly RelationshipLevel[] RelationshipLevelsInOrder =
+        private static readonly RelationshipLevel[] relationshipLevelsInOrder =
             { RelationshipLevel.SameSpecies, RelationshipLevel.SameGenus, RelationshipLevel.SamePhylum, RelationshipLevel.DifferentPhylum };
 
-        private static string FindRepoRoot()
-        {
-            // GenomeCatalog.DirectoryPath is <repoRoot>/data/genomes - walk up two levels from there.
-            var dataDir = Directory.GetParent(GenomeCatalog.DirectoryPath) ?? throw new DirectoryNotFoundException();
-            var repoRoot = dataDir.Parent ?? throw new DirectoryNotFoundException();
-            return repoRoot.FullName;
-        }
+        // Raw-file parsing (Mash/FastANI TSV under results/raw/) lives in ExternalBaselineData.cs,
+        // shared with RetrievalClassificationBenchmark.cs so both read the same source files through
+        // the same code rather than two copies that could drift apart.
+        private static string RawResultsPath(string fileName) => ExternalBaselineData.RawResultsPath(fileName);
 
-        private static string RawResultsPath(string fileName) =>
-            Path.Combine(FindRepoRoot(), "results", "raw", fileName);
-
-        private static string PairKey(string fileA, string fileB) =>
-            string.CompareOrdinal(fileA, fileB) <= 0 ? $"{fileA}|{fileB}" : $"{fileB}|{fileA}";
-
-        /// <summary>Reference, Query, Distance, PValue, SharedHashes/SketchSize - mash dist output.</summary>
-        private static Dictionary<string, double> ParseMashDistances(string path)
-        {
-            var result = new Dictionary<string, double>();
-            foreach (var line in File.ReadLines(path))
-            {
-                var cols = line.Split('\t');
-                var (fileA, fileB) = (cols[0], cols[1]);
-                var distance = double.Parse(cols[2], CultureInfo.InvariantCulture);
-                var key = PairKey(fileA, fileB);
-                // Mash's Jaccard-derived distance is symmetric by construction; keep the first value
-                // seen per unordered pair rather than assuming and skip verifying the reverse direction.
-                result.TryAdd(key, distance);
-            }
-            return result;
-        }
-
-        /// <summary>Query, Reference, ANI%, bidirectional fragment mappings, total query fragments.
-        /// Only pairs above FastANI's effective identity threshold appear at all - averages both
-        /// directions when both are present (ANI is not perfectly symmetric; one direction otherwise).</summary>
-        private static Dictionary<string, List<double>> ParseFastAni(string path)
-        {
-            var result = new Dictionary<string, List<double>>();
-            foreach (var line in File.ReadLines(path))
-            {
-                var cols = line.Split('\t');
-                var fileA = Path.GetFileName(cols[0]);
-                var fileB = Path.GetFileName(cols[1]);
-                if (fileA == fileB) continue; // skip self-pairs (always ANI=100, not a comparison)
-                var ani = double.Parse(cols[2], CultureInfo.InvariantCulture);
-                var key = PairKey(fileA, fileB);
-
-                // CollectionsMarshal.GetValueRefOrAddDefault: one dictionary probe that returns a
-                // mutable ref to the slot, instead of the usual TryGetValue-then-indexer-set pattern
-                // (two probes). exists is false only the first time a given pair's key is seen.
-                ref var list = ref CollectionsMarshal.GetValueRefOrAddDefault(result, key, out bool exists);
-                if (!exists) list = new List<double>();
-                list!.Add(ani);
-            }
-            return result;
-        }
+        private static string PairKey(string fileA, string fileB) => ExternalBaselineData.PairKey(fileA, fileB);
 
         private static double Mean(IReadOnlyList<double> v) => v.Average();
 
@@ -114,8 +64,8 @@ namespace SequenceAnaliseTests
         [Test]
         public void CompareAgainstMashAndFastAni()
         {
-            var mash = ParseMashDistances(RawResultsPath("mash_dist_raw.tsv"));
-            var fastAni = ParseFastAni(RawResultsPath("fastani_raw.tsv"));
+            var mash = ExternalBaselineData.ParseMashDistances(RawResultsPath("mash_dist_raw.tsv"));
+            var fastAni = ExternalBaselineData.ParseFastAni(RawResultsPath("fastani_raw.tsv"));
 
             var genomes = GenomeTaxonomy.Genomes;
             int expectedPairs = genomes.Length * (genomes.Length - 1) / 2;
@@ -174,9 +124,9 @@ namespace SequenceAnaliseTests
             using (var summary = File.CreateText("ExternalBaseline_Summary.csv"))
             {
                 summary.WriteLine("RelationshipLevel, PairCount, ZCurveMean, ZCurveStdDev, MashSimilarityMean, MashSimilarityStdDev, FastAniPairCount, FastAniMeanPercent, FastAniStdDevPercent");
-                for (int lvl = 0; lvl < RelationshipLevelsInOrder.Length; lvl++)
+                for (int lvl = 0; lvl < relationshipLevelsInOrder.Length; lvl++)
                 {
-                    var level = RelationshipLevelsInOrder[lvl];
+                    var level = relationshipLevelsInOrder[lvl];
                     if (!byLevel.TryGetValue(level, out var levelRows)) continue;
                     var zcurveScores = levelRows.Select(r => r.ZCurve).ToList();
                     var mashScores = levelRows.Select(r => r.MashSimilarity).ToList();
@@ -214,15 +164,31 @@ namespace SequenceAnaliseTests
             var pearsonZCurveMashInformativeRange = Pearson(zCurveInformative, mashInformative);
             var mashDifferentPhylumMean = Mean(byLevel[RelationshipLevel.DifferentPhylum].Select(r => r.MashSimilarity).ToList());
 
+            // Mash's resolution floor is not one value but two: 369 pairs sit at distance 1 (zero
+            // shared hashes) and a further 44 sit at exactly 0.295981 - the distance implied by a
+            // *single* shared hash in a 1000-hash sketch at k=21, -(1/21)*ln(2j/(1+j)) at j=1/1000
+            // (verified numerically). Excluding DifferentPhylum (as above) still leaves floor-valued
+            // pairs mixed in with genuinely graded ones; excluding both floor values instead isolates
+            // the pairs where Mash is actually still discriminating, which is the more honest subset
+            // to correlate against - the manuscript leads with this figure, so unlike the two above it
+            // needs its own row rather than living only in prose.
+            static bool IsAtMashFloor(double distance) => distance >= 1.0 || Math.Abs(distance - 0.295981) < 1e-6;
+            var offFloorRows = rows.Where(r => !IsAtMashFloor(r.MashDistance)).ToList();
+            var zCurveOffFloor = offFloorRows.Select(r => r.ZCurve).ToList();
+            var mashOffFloor = offFloorRows.Select(r => r.MashSimilarity).ToList();
+            var pearsonZCurveMashOffFloor = zCurveOffFloor.Count > 1 ? Pearson(zCurveOffFloor, mashOffFloor) : double.NaN;
+
             using (var corr = File.CreateText("ExternalBaseline_Correlation.csv"))
             {
                 corr.WriteLine("Comparison, PairCount, PearsonR");
                 corr.WriteLine($"ZCurve_vs_Mash_AllPairs, {zCurveAll.Count}, {pearsonZCurveMash}");
                 corr.WriteLine($"ZCurve_vs_Mash_ExcludingDifferentPhylum, {zCurveInformative.Count}, {pearsonZCurveMashInformativeRange}");
+                corr.WriteLine($"ZCurve_vs_Mash_OffFloorOnly, {zCurveOffFloor.Count}, {pearsonZCurveMashOffFloor}");
                 corr.WriteLine($"ZCurve_vs_FastANI, {zCurveVsFastAniSubset.Count}, {pearsonZCurveFastAni}");
             }
             TestContext.Out.WriteLine($"Pearson r: ZCurve vs Mash all pairs (n={zCurveAll.Count}) = {pearsonZCurveMash:F4}; " +
                 $"excluding DifferentPhylum (n={zCurveInformative.Count}) = {pearsonZCurveMashInformativeRange:F4}; " +
+                $"off Mash's resolution floor only (n={zCurveOffFloor.Count}) = {pearsonZCurveMashOffFloor:F4}; " +
                 $"ZCurve vs FastANI (n={zCurveVsFastAniSubset.Count}) = {pearsonZCurveFastAni:F4}");
             TestContext.Out.WriteLine($"Mash similarity, DifferentPhylum mean = {mashDifferentPhylumMean:F4} (saturated near zero - exact k-mers essentially never match by chance at this divergence)");
 
@@ -232,11 +198,11 @@ namespace SequenceAnaliseTests
                 runtime.WriteLine($"ZCurveWindowedProfile, {genomes.Length}, {expectedPairs}, " +
                     $"{buildStopwatch.Elapsed.TotalMilliseconds}, {compareStopwatch.Elapsed.TotalMilliseconds}, " +
                     $"{buildStopwatch.Elapsed.TotalMilliseconds + compareStopwatch.Elapsed.TotalMilliseconds}, live");
-                runtime.WriteLine($"Mash, {genomes.Length}, {expectedPairs}, , , {MashDockerRunSeconds * 1000}, external-Docker (see results/raw/README.md)");
-                runtime.WriteLine($"FastANI, {genomes.Length}, {expectedPairs}, , , {FastAniDockerRunSeconds * 1000}, external-Docker (see results/raw/README.md)");
+                runtime.WriteLine($"Mash, {genomes.Length}, {expectedPairs}, , , {mashDockerRunSeconds * 1000}, external-Docker (see results/raw/README.md)");
+                runtime.WriteLine($"FastANI, {genomes.Length}, {expectedPairs}, , , {fastAniDockerRunSeconds * 1000}, external-Docker (see results/raw/README.md)");
             }
             TestContext.Out.WriteLine($"ZCurveWindowedProfile: build={buildStopwatch.ElapsedMilliseconds}ms compare={compareStopwatch.ElapsedMilliseconds}ms " +
-                $"total={buildStopwatch.ElapsedMilliseconds + compareStopwatch.ElapsedMilliseconds}ms; Mash={MashDockerRunSeconds}s; FastANI={FastAniDockerRunSeconds}s");
+                $"total={buildStopwatch.ElapsedMilliseconds + compareStopwatch.ElapsedMilliseconds}ms; Mash={mashDockerRunSeconds}s; FastANI={fastAniDockerRunSeconds}s");
             TestContext.Out.WriteLine($"Coverage: ZCurve {rows.Length}/{expectedPairs}, Mash {rows.Count(r => mash.ContainsKey(PairKey(r.A.FileName, r.B.FileName)))}/{expectedPairs}, FastANI {fastAniCovered}/{expectedPairs}");
 
             // Central claims - each one is what the data actually showed, not an a priori assumption
@@ -257,6 +223,10 @@ namespace SequenceAnaliseTests
             //    how it was run: it returns usable output for a small minority of pairs, while both
             //    ZCurveWindowedProfile and Mash remain defined for all 435.
             Assert.That(fastAniCovered, Is.LessThan(expectedPairs));
+            // 4. Only a small minority of pairs carry a genuinely graded Mash signal at all - the
+            //    corpus is dominated by floor-valued pairs, which is exactly why the off-floor
+            //    correlation above is the more informative figure than the raw all-pairs one.
+            Assert.That(offFloorRows.Count, Is.EqualTo(22));
         }
     }
 }

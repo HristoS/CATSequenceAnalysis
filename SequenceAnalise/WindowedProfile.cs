@@ -54,14 +54,14 @@ namespace SequenceAnalyses
 
         // Concrete array, not List<T>: BestAlignment/Compare index this in a loop that can run
         // O(windowCount^2) times for two profiles of very different lengths (same reasoning as
-        // ZCurveWindowedProfile - see docs/zcurve-windowed-profile.md §8.7/§9). The public Windows
+        // ZCurveWindowedProfile). The public Windows
         // property below still exposes IReadOnlyList<Window> unchanged (arrays implement it,
         // including .Count -> .Length), so WindowedProfileTests.cs - the only consumer of this class
         // outside this file - is unaffected.
-        private readonly Window[] _windows;
+        private readonly Window[] windows;
 
         /// <summary>Ordered per-window k-mer profiles; window i covers bases [i*WindowSize, (i+1)*WindowSize).</summary>
-        public IReadOnlyList<Window> Windows => _windows;
+        public IReadOnlyList<Window> Windows => windows;
 
         public WindowedProfile(string dnaString, int windowSize = DefaultWindowSize, int k = DefaultK)
         {
@@ -77,7 +77,7 @@ namespace SequenceAnalyses
             var windows = new Window[dnaString.Length / windowSize];
             for (int w = 0, start = 0; w < windows.Length; w++, start += windowSize)
                 windows[w] = BuildWindow(dnaString, start, windowSize, k);
-            _windows = windows;
+            this.windows = windows;
         }
 
         private static Window BuildWindow(string seq, int start, int length, int k)
@@ -150,8 +150,8 @@ namespace SequenceAnalyses
 
             // Array-typed locals, not the public IReadOnlyList<Window> property: direct array
             // element access instead of an interface-dispatched indexer call in the hot loop below.
-            var q = query._windows;
-            var r = reference._windows;
+            var q = query.windows;
+            var r = reference.windows;
             if (q.Length == 0 || r.Length < q.Length) return (double.NaN, -1);
 
             double best = double.NegativeInfinity;
@@ -179,7 +179,7 @@ namespace SequenceAnalyses
         /// </summary>
         public static double Compare(WindowedProfile x, WindowedProfile y)
         {
-            var (shorter, longer) = x._windows.Length <= y._windows.Length ? (x, y) : (y, x);
+            var (shorter, longer) = x.windows.Length <= y.windows.Length ? (x, y) : (y, x);
             var (score, _) = BestAlignment(shorter, longer);
             return double.IsNaN(score) ? 0 : score;
         }

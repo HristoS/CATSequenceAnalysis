@@ -10,7 +10,7 @@ namespace SequenceAnaliseTests
         // algorithm already duplicated in ZCurveProfileTests.cs / ZCurveWindowedProfileTests.cs;
         // shared here so the small-scale (NW-anchored) and large-scale (known-by-construction)
         // accuracy tables are provably driven by the identical mutation procedure - important
-        // since the article presents both tables side by side as one reliability argument.
+        // since both tables are presented side by side as one reliability argument.
         public static string Mutate(string s, double rate, int seed)
         {
             var rng = new Random(seed);
