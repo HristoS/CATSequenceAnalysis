@@ -32,7 +32,7 @@ namespace SequenceAnaliseTests
     {
         private static readonly GenomeMeta[] genomes = GenomeTaxonomy.Genomes;
 
-        private static double ComputeAuc(List<double> positiveScores, List<double> negativeScores)
+        internal static double ComputeAuc(List<double> positiveScores, List<double> negativeScores)
         {
             var combined = positiveScores.Select(s => (Score: s, IsPositive: true))
                 .Concat(negativeScores.Select(s => (Score: s, IsPositive: false)))

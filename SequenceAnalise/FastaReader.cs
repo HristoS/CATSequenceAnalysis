@@ -17,14 +17,14 @@ namespace SequenceAnalyses
 
     /// <summary>
     /// Minimal FASTA parser (transparently handles ".gz") for real reference-genome files, so
-    /// CATProfile/ZCurveWindowedProfile can be built from the downloaded RefSeq assemblies under
+    /// ZCurveWindowedProfile/WindowedProfile can be built from the downloaded RefSeq assemblies under
     /// data/genomes/ instead of only from Generator's synthetic sequences.
     ///
     /// Several of those real assemblies carry IUPAC ambiguity codes beyond ACGT (N, and in three
     /// cases K/M/R/S/W/Y - confirmed by direct inspection, not assumed), which real sequencing and
     /// assembly data legitimately contains. No filtering or validation of the alphabet happens
-    /// here: both Benchmark.NearMatch/ExactMatch (DNA.cs) and ZCurveProfile.Axes already treat an
-    /// unrecognized character as a harmless zero-contribution/full-mismatch rather than throwing,
+    /// here: ZCurveProfile.Axes treats an unrecognized character as a harmless zero contribution,
+    /// and WindowedProfile restarts its rolling k-mer at one, rather than either throwing,
     /// so passing these characters through unchanged is safe for every profile type in this
     /// project.
     /// </summary>

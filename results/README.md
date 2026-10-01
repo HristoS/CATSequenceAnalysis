@@ -2,7 +2,7 @@
 
 These CSVs are the merged/summary outputs of the benchmark suite in
 `SequenceAnaliseTests/Trilateration*.cs`, `GenomeScaleStreamingTests.cs`,
-`RealGenomeDistanceMatrixBenchmark.cs`, `PhageMotivatingExampleTests.cs`,
+`RealGenomeDistanceMatrixBenchmark.cs`,
 `WindowingStrategyBenchmark.cs`, and `ExternalBaselineComparisonBenchmark.cs`, covering construction cost, comparison cost, reliability
 against known mutation rates from 20,000 bp up to a synthetic 3,100,000,000 bp genome-scale
 reference, and (as of 2026-08-25) validation against real bacterial genomes. They're committed as a
@@ -10,6 +10,59 @@ snapshot so these figures can be checked without re-running the benchmarks (some
 minutes to nearly an hour at the largest length tested). The "Section" column below refers to a
 manuscript currently in preparation and not yet public; it is included here for the authors' own
 cross-referencing and can be disregarded by anyone without that document.
+
+**2026-09-26, window count, viral corpus, and `ZCurveProfileLadder`.** A 31-genome viral corpus (5.4–236 kbp,
+`data/genomes/viral/README.md`) was added, because 64 kbp windows leave most viruses with **zero** windows. In that case
+`ZCurveWindowedProfile.Compare` returns 0, which is indistinguishable from "unrelated".
+- `MultiResolution_WindowCount.csv`: each corpus is pushed to coarser levels, so the same pairs are measured throughout.
+  **What matters is how many windows the shorter sequence keeps.**
+  - Bacteria show no AUC loss down to a median of about 4 windows (500 bp → 512 kbp windows: 0.835 → 0.851 same-genus-or-closer), and
+    fail only once pairs become incomparable.
+  - Viral same-genus AUC declines gently as the median window count falls: 0.881 (18) → 0.876 (9) → 0.863 (4) → 0.850 (2).
+  - Viral same-family-or-closer AUC is weak at every level (about 0.60). The method barely separates viral families, and window size
+    doesn't change that.
+  - Rows with incomparable pairs report two AUCs: "AllPairs" scores them as 0, and "ComparableOnly" is a biased subset of the larger genomes.
+    Neither is a valid quality measure.
+- `MultiResolution_LadderRule.csv`: the new library class `ZCurveProfileLadder` (levels 500 bp / 2 / 8 / 32 kbp, derived by
+  `Downsample`) compares each pair at the coarsest level leaving the shorter sequence ≥ 8 windows, and returns null if it
+  has none even at 500 bp.
+  - Bacteria: all 435 pairs go to 32 kbp. AUC is 0.853 / 0.783 (identical to that level's sweep row), and compare time is **8.6 ms vs 23.5 s**.
+  - Viruses: 312 / 117 / 36 pairs at 500 bp / 2 kbp / 8 kbp. AUC *rises* to 0.895 / 0.643 from 0.881 / 0.594, but treat that
+    as a **likely artifact**. Coarser levels score systematically higher, the level is chosen by genome length, and the largest viruses
+    (herpes, pox) share families, so length leaks into the ranking. Scores from different levels aren't on a common scale:
+    rank candidates for a query at one level.
+
+**2026-09-26, multi-resolution profiles (`MultiResolutionBenchmark.cs`).** Three new files. Every
+profile is built once at 500 bp. Coarser levels come from the new `ZCurveWindowedProfile.Downsample`, which
+matches profiles built directly from DNA: the 1,000/2,000 bp rows reproduce `WindowSizeSensitivity.csv` to about 3e-9.
+- `MultiResolution_Sweep.csv`: window size 500 → 64,000 bp. **Retrieval AUC doesn't degrade across this range.**
+  Same-genus AUC goes 0.835 → 0.855, and same-phylum AUC goes 0.789 → 0.783. All-pairs compare time drops from 22.4 s to 2.7 ms
+  (about 8,400x). Caveats: the same-genus threshold has only 8 positive pairs, so differences of about 0.02 aren't
+  significant. And the smallest genome still has 9 windows at 64 kbp, so this doesn't reach the
+  single-window collapse regime. That regime is expected once windows approach the genome length, but wasn't measured here.
+- `MultiResolution_CoarseToFine.csv`: fragment localization, coarse level first, then a 500 bp refine near
+  the coarse hit, against the full 500 bp search. It works when the fragment spans **at least about 2 coarse windows**:
+  10 kbp at k=4/8 and 50 kbp at k=4/8/16 found the identical offset in 40/40 and 30/30 trials. It fails when the fragment
+  spans only one coarse window: 2 kbp at k=4 matched only 2/10, and 10 kbp at k=16 matched 8/10. At k≥8 a 2 kbp fragment has no coarse window at all.
+  Median speedup was 3–16x. Absolute times are already ≤2 ms per bacterial genome, so this only matters at
+  larger reference sizes, which weren't measured here. The full 500 bp search itself put 2 kbp fragments within one window
+  of the truth in only 8/10 trials, against 9/10 and 10/10 for longer fragments.
+- `MultiResolution_GcAxisWeight.csv`: weighting the GC (z) axis in the distance. Weight 1 is the current metric and
+  reproduces `ReportRetrievalClassification.csv` exactly. **Down-weighting GC to 0.5 improved both AUCs** (0.837 / 0.806,
+  against 0.835 / 0.789). Up-weighting hurt both, and dropping GC entirely (weight 0) collapsed ranking (0.606 / 0.709).
+  This is one corpus with no held-out set, so treat 0.5 as a lead for a finer sweep, not a tuned value.
+- **int16-sum storage, prototyped and removed (negative result).** Per-window int16 axis sums (6 bytes per window, not 12)
+  compared with AVX2 integer math (`pmaddwd`) matched the production scores to 4.5e-7, but comparison was **0.94x, slower**
+  (21.9 s vs. 20.5 s for 435 pairs). It halves storage but doesn't speed up comparison, so the prototype, its test and its CSV
+  were deleted. Don't retry it without a new idea.
+
+**2026-09-26, CAT implementation removed.** `CATProfile` and its harness were deleted from the
+codebase (last present in commit `e152aa4`). The committed snapshots below that include CAT data —
+`ReportPhageMotivatingExample.csv` and the CAT columns of `ReportTrilaterationBuildTime.csv`,
+`ReportTrilaterationCompareTime_WholeSequence.csv`, and `ReportTrilaterationAccuracy_*.csv` — are
+left as-is as historical evidence, but can no longer be regenerated from the current code:
+`PhageMotivatingExampleTests.cs` is gone, and the three `Trilateration*` benchmarks now emit
+ZCurve/NW columns only. Check out `e152aa4` to reproduce the CAT figures.
 
 **2026-09-04, second pass (Mash head-to-head).** `ReportRetrievalClassification.csv` gained a `Method`
 column and Mash rows; `ReportRetrievalOperatingPoint.csv` is new. The finding is not favorable to
@@ -129,7 +182,7 @@ automatically.
 
 | File | Section | Content |
 |---|---|---|
-| `ReportTrilaterationBuildTime.csv` | §8.1 | Profile construction time, CAT vs `ZCurveWindowedProfile`, 20,000–10,240,000 bp |
+| `ReportTrilaterationBuildTime.csv` | §8.1 | Profile construction time, `ZCurveWindowedProfile` (CAT columns are historical — see 2026-09-26), 20,000–10,240,000 bp |
 | `ReportTrilaterationCompareTime_WholeSequence.csv` | §8.2 | Whole-vs-whole comparison time, same length sweep |
 | `ReportTrilaterationLocalizationTime.csv` | §8.2 | Fragment-localization (`BestAlignment`) search time, same sweep |
 | `ReportReliabilityAtScale_Summary.csv` | §8.3 | Known-mutation-rate reliability grid, mean/stdev per condition, 20,000–10,240,000 bp |
@@ -143,7 +196,7 @@ automatically.
 | `GenomeScaleStorageFootprint_3100000000.csv` | §8.5 | Profile size vs. raw-sequence size and compression ratio at 3,100,000,000 bp |
 | `RealGenomeDistanceMatrix_Raw.csv` | §8.6 | All 435 pairwise `ZCurveWindowedProfile.Compare` scores among the 30 real genomes in `data/genomes/`, each labeled by relationship level |
 | `RealGenomeDistanceMatrix_Summary.csv` | §8.6 | Same data, aggregated to mean/stdev/min/max per relationship level (same species / same genus / same phylum / different phylum) |
-| `ReportPhageMotivatingExample.csv` | §2.3 | `CATProfile.Compare` between the real phiX174 and lambda phage genomes — the false-positive that motivates the whole manuscript |
+| `ReportPhageMotivatingExample.csv` | §2.3 | CAT's `Compare` between the real phiX174 and lambda phage genomes — the false-positive that motivates the whole manuscript (historical; generator removed, see 2026-09-26) |
 | `ReportWindowingStrategy.csv` | §5.3 | Unrelated-pair drift (short length vs. long length) under all three profile constructions: raw endpoint, fixed checkpoint count, fixed window size |
 | `ReportRegionalStructureDetection.csv` | §5.1 | AT-rich/GC-rich structured sequence vs. its shuffle: endpoint (blind to the shuffle) vs. k=20 trajectory (partially detects it) |
 | `ExternalBaseline_Raw.csv` | §8.7 | All 435 pairs: `ZCurveWindowedProfile.Compare`, Mash distance/similarity, and FastANI % identity (where available) side by side |
@@ -153,9 +206,13 @@ automatically.
 | `ReportRetrievalClassification.csv` | §8.8 | ROC-AUC (Mann-Whitney rank-sum) for `ZCurveWindowedProfile` **and Mash**, at two binary relationship thresholds over the same 435 pairs: same-genus-or-closer vs. rest, and same-phylum-or-closer vs. different-phylum |
 | `ReportRetrievalOperatingPoint.csv` | §8.8 | Precision/recall/F1 at the F1-maximizing cutoff, both methods, both thresholds |
 | `WindowSizeSensitivity.csv` | §8.9 | Relationship-level mean/stdev at four window sizes (250/500/1000/2000 bp) on the same 30-genome corpus |
+| `MultiResolution_Sweep.csv` | — | Relationship means/SD, retrieval AUC and all-pairs compare time at 500–64,000 bp, all derived by `Downsample` from 500 bp profiles |
+| `MultiResolution_CoarseToFine.csv` | — | Per-trial fragment localization: full 500 bp search vs. coarse (k = 4/8/16) + refine; same-offset flag, scores, timings |
+| `MultiResolution_WindowCount.csv` | — | Bacterial (500 bp–2 Mbp) and viral (500 bp–16 kbp) level sweeps: shorter-sequence window counts, incomparable pairs, AUC at two relationship thresholds |
+| `MultiResolution_LadderRule.csv` | — | `ZCurveProfileLadder.Compare` vs. fine-only `Compare` on both corpora: level chosen per pair, AUC, compare time |
+| `MultiResolution_GcAxisWeight.csv` | — | Retrieval AUC with the GC (z) axis weighted 0–16 in the distance |
 
 `ReportCATWithKMP.csv` and `GenomeScaleCeilingProbe.csv` (present in the build output folder but
-not here) are excluded: the former belongs to the pre-existing `Tests.cs` experiment suite, unrelated
-to this evaluation; the latter is a superseded probe (string-constructor ceiling at 1,070,000,000 bp)
+not here) are excluded: the former belongs to the removed CAT experiment suite; the latter is a superseded probe (string-constructor ceiling at 1,070,000,000 bp)
 whose result isn't currently referenced anywhere — see the note in
 `TrilaterationPerformanceBenchmarks.cs` if reviving it.

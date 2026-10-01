@@ -69,7 +69,7 @@ namespace SequenceAnaliseTests
         {
             // Two independently generated random sequences converge to ~25% each base, so their
             // Z-curve endpoints land close together too - the same false-positive shape reported
-            // for CATProfile.Compare on real unrelated same-composition sequences (phiX174 vs
+            // for the original CAT method on real unrelated same-composition sequences (phiX174 vs
             // lambda phage, ~0.99) is expected here for the same underlying reason.
             var x = new ZCurveProfile(Generator.GetRandomDNA(50_000, seed: 1));
             var y = new ZCurveProfile(Generator.GetRandomDNA(50_000, seed: 2));
@@ -90,7 +90,7 @@ namespace SequenceAnaliseTests
             // 5000, 0.983 at length 50000) - unrelated pairs drift toward 1 as length grows, since
             // the endpoint is a length-normalized sum concentrating by the law of large numbers.
             // That means this margin should be expected to shrink at longer lengths, the same
-            // large-N collapse already documented for CATProfile's single point.
+            // large-N collapse the original CAT method's single point showed.
             var dna = Generator.GetRandomDNA(1000, seed: 7);
             var nearDuplicate = Mutate(dna, rate: 0.03, seed: 11); // 97% identity
             var unrelated = Generator.GetRandomDNA(1000, seed: 8);

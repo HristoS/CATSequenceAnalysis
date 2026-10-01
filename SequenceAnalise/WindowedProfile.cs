@@ -10,14 +10,14 @@ namespace SequenceAnalyses
     /// the shorter window-vector along the longer one to find the best-matching contiguous region,
     /// which both scores similarity and localizes where a fragment sits within a larger sequence.
     ///
-    /// Complements <see cref="CATProfile"/>: CATProfile compresses a whole sequence to a single
-    /// point — fast and O(n), but composition-only, so it cannot separate unrelated sequences that
-    /// share base composition (empirically phiX174 vs lambda phage score ~0.99). WindowedProfile
-    /// keeps per-window k-mer detail, which restores that discrimination: on real sequences it
+    /// Any single-point compression of a whole sequence (as the original CAT method used) is
+    /// composition-only, so it cannot separate unrelated sequences that share base composition
+    /// (empirically phiX174 vs lambda phage scored ~0.99). WindowedProfile keeps per-window k-mer
+    /// detail, which restores that discrimination: on real sequences it
     /// localizes exact fragments to the correct window offset, detects diverged fragments down to
     /// ~70% identity, and separates unrelated sequences (cosine ~0.5–0.67) from true fragments
     /// (~0.77–1.0). Cost: O(n) build, and memory O((n / windowSize) * distinct-k-mers-per-window),
-    /// so it is heavier than a single CATProfile point — suited to reads and small/medium genomes
+    /// so it is heavier than a single-point profile — suited to reads and small/medium genomes
     /// or read-vs-genome localization rather than whole-large-genome-vs-genome at once.
     /// </summary>
     public sealed class WindowedProfile

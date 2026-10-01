@@ -3,7 +3,7 @@
 30 complete RefSeq reference genomes, gzip-compressed FASTA as provided by NCBI, downloaded 2026-08-21 from
 the NCBI Genomes FTP site (`https://ftp.ncbi.nlm.nih.gov/genomes/all/`). Chosen to give a real-world
 phylogenetic distance ladder — several same-species/same-genus pairs, several same-family relatives, and
-several different-phylum outgroups — so `ZCurveWindowedProfile`/`CATProfile` similarity scores can be
+several different-phylum outgroups — so `ZCurveWindowedProfile` similarity scores can be
 checked against genuine evolutionary relationships instead of only synthetic random-substitution mutants
 (the gap flagged in `docs/zcurve-windowed-profile-factcheck.md`, "Real biological data").
 
@@ -77,11 +77,11 @@ from the downloaded bytes rather than taken from the source page.
 | `lambda_phage_GCF_000840245.1.fna.gz` | *Escherichia phage Lambda* (NC_001416.1) | GCF_000840245.1 | 1 | 48,502 |
 
 These two are the real genomes behind §2.3's motivating claim — two unrelated bacteriophages of
-similar composition (45% GC vs 50% GC) that `CATProfile.Compare` scores indistinguishably from a
-near-duplicate — computed by `PhageMotivatingExampleTests.cs` (see
-`docs/zcurve-windowed-profile-factcheck.md`, discrepancy 3, for why this needed fixing: the claim
-previously had no backing genome data or test anywhere in the repository). Not part of the
-30-genome bacterial corpus below or its taxonomic labeling in `RealGenomeDistanceMatrixBenchmark.cs`.
+similar composition (45% GC vs 50% GC) that the original CAT method scored indistinguishably from a
+near-duplicate (`results/ReportPhageMotivatingExample.csv`; the CAT code and its test were removed on
+2026-09-26 and live in git history at `e152aa4`). Not part of the 30-genome bacterial corpus below or its
+taxonomic labeling in `RealGenomeDistanceMatrixBenchmark.cs`. Both are also members of the viral corpus in
+[`viral/`](viral/README.md).
 
 Two organisms surfaced under names newer than the ones most papers still use — NCBI's current taxonomy has
 reclassified *Mycobacterium smegmatis* → *Mycolicibacterium smegmatis*, *Mycoplasma* → *Mycoplasmoides*
@@ -145,5 +145,5 @@ under the same accession.
 
 These are the raw multi-FASTA downloads only — nothing in this repo parses them yet. Loading (strip headers,
 concatenate or select the primary chromosome, decide how to handle the extra plasmid/contig sequences several
-of these assemblies carry) and wiring them into an actual `ZCurveWindowedProfile`/`CATProfile` comparison
+of these assemblies carry) and wiring them into an actual `ZCurveWindowedProfile` comparison
 experiment is separate follow-up work.

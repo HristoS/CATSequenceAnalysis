@@ -6,11 +6,9 @@ namespace SequenceAnaliseTests
     /// Reliability evidence: the known-mutation-rate grid (same procedure as
     /// TrilaterationAccuracyBenchmarks) at lengths where Needleman-Wunsch is no longer affordable
     /// as a ground truth. The mutation rate itself is the ground truth here, exactly known by
-    /// construction, which is what makes it possible to test reliability at the scale where CAT's
-    /// large-N collapse (see CLAUDE.md) was diagnosed, not just at the small scale NW can validate.
-    ///
-    /// ZCurveWindowedProfile only, per project scope - no CATProfile construction (building it 50x
-    /// per length is real cost for data outside current scope, more so as lengths reach millions).
+    /// construction, which is what makes it possible to test reliability at the scale where the
+    /// original CAT method's large-N collapse was diagnosed, not just at the small scale NW can
+    /// validate.
     /// </summary>
     public class TrilaterationReliabilityAtScaleBenchmarks
     {

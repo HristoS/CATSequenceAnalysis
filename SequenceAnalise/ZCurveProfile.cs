@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.Linq;
 using System.Runtime.Intrinsics;
 
@@ -11,14 +12,14 @@ namespace SequenceAnalyses
     /// average (sum / bases-seen-so-far) is sampled at <see cref="CheckpointCount"/> evenly-spaced
     /// positions, giving a fixed-size trajectory - a coarse sketch of the walk's shape - in one
     /// real, shared 3D frame derived directly from the bases' own chemistry, rather than
-    /// trilaterated against an arbitrary periodic benchmark string the way
-    /// <see cref="CATProfile.Point"/> is.
+    /// trilaterated against an arbitrary periodic benchmark string the way the original CAT
+    /// method was.
     ///
     /// With CheckpointCount = 1 (the default), the single checkpoint is the whole-sequence
     /// endpoint - mathematically just a linear recombination of base composition (#A,#C,#G,#T), so
     /// it cannot separate two sequences that share composition but differ in base order (verified:
     /// shuffling a sequence leaves this endpoint exactly unchanged). That's the same ceiling
-    /// documented for CATProfile's single-point compression in CLAUDE.md. Raising CheckpointCount
+    /// the original CAT method's single-point compression hit. Raising CheckpointCount
     /// trades that blindness for sensitivity to *regional* composition trends along the sequence
     /// (e.g. an AT-rich half followed by a GC-rich half reads differently from either half alone,
     /// and differently from a global shuffle of the same two halves) - still O(n) to build and
@@ -92,8 +93,7 @@ namespace SequenceAnalyses
         };
 
         /// <summary>
-        /// Endpoint-only similarity in the same "1 - Euclidean distance" convention as
-        /// <see cref="CATProfile.CompareTrilateration"/>: 1 for identical endpoints, falling off
+        /// Endpoint-only similarity as "1 - Euclidean distance": 1 for identical endpoints, falling off
         /// as the two sequences' composition-derived coordinates diverge. Ignores every checkpoint
         /// but the last; use <see cref="CompareTrajectory"/> to use all of them.
         /// </summary>
@@ -341,6 +341,106 @@ namespace SequenceAnalyses
             return new ZCurveWindowedProfile(null, windowSize, xs.ToArray(), ys.ToArray(), zs.ToArray());
         }
 
+        /// <summary>
+        /// Coarser profile derived from this one without the original sequence: each output window
+        /// is the mean of <paramref name="factor"/> consecutive windows, so the result has
+        /// WindowSize * factor. Every window holds exactly WindowSize bases (the trailing partial
+        /// window is always dropped), so a mean of equal-sized means is the mean over all their
+        /// bases - this reproduces <c>new ZCurveWindowedProfile(dna, WindowSize * factor)</c> up to
+        /// float rounding, including the window count (a trailing partial group is dropped too).
+        ///
+        /// <paramref name="phase"/> skips that many leading windows first. Coarse windows can only
+        /// start at multiples of <paramref name="factor"/> fine windows, so a fragment that begins
+        /// mid-group lines up with none of them; building each phase 0..factor-1 of a short query
+        /// covers every alignment for coarse-to-fine search.
+        /// </summary>
+        private const uint binaryMagic = 0x5057435A; // "ZCWP" read as a little-endian uint32
+        private const ushort binaryFormatVersion = 1;
+        private const int binaryHeaderSize = 16;
+
+        /// <summary>
+        /// Serializes the windows (never the DNA string) in the storage format of
+        /// docs/database-decision.md §4.3: "ZCWP" | uint16 version | uint16 reserved | int32
+        /// windowSize | int32 windowCount | float32 xs[n] | ys[n] | zs[n], all little-endian. The
+        /// per-axis blocks match the in-memory layout, so a reader can fetch just windows [a, b) of
+        /// a stored object with three byte-range reads.
+        /// </summary>
+        public byte[] ToBinary()
+        {
+            int n = xs.Length;
+            var bytes = new byte[binaryHeaderSize + 12 * n];
+            var span = bytes.AsSpan();
+            BinaryPrimitives.WriteUInt32LittleEndian(span, binaryMagic);
+            BinaryPrimitives.WriteUInt16LittleEndian(span[4..], binaryFormatVersion);
+            BinaryPrimitives.WriteInt32LittleEndian(span[8..], WindowSize);
+            BinaryPrimitives.WriteInt32LittleEndian(span[12..], n);
+            WriteAxis(span.Slice(binaryHeaderSize, 4 * n), xs);
+            WriteAxis(span.Slice(binaryHeaderSize + 4 * n, 4 * n), ys);
+            WriteAxis(span.Slice(binaryHeaderSize + 8 * n, 4 * n), zs);
+            return bytes;
+        }
+
+        /// <summary>Inverse of <see cref="ToBinary"/>; the result carries no DNA string.</summary>
+        public static ZCurveWindowedProfile FromBinary(ReadOnlySpan<byte> bytes)
+        {
+            if (bytes.Length < binaryHeaderSize || BinaryPrimitives.ReadUInt32LittleEndian(bytes) != binaryMagic)
+                throw new FormatException("Not a ZCWP profile.");
+            var version = BinaryPrimitives.ReadUInt16LittleEndian(bytes[4..]);
+            if (version != binaryFormatVersion)
+                throw new FormatException($"Unsupported ZCWP format version {version}.");
+
+            int windowSize = BinaryPrimitives.ReadInt32LittleEndian(bytes[8..]);
+            int n = BinaryPrimitives.ReadInt32LittleEndian(bytes[12..]);
+            if (windowSize < 1 || n < 0 || bytes.Length != binaryHeaderSize + 12L * n)
+                throw new FormatException("ZCWP header does not match the payload length.");
+
+            return new ZCurveWindowedProfile(null, windowSize,
+                ReadAxis(bytes.Slice(binaryHeaderSize, 4 * n)),
+                ReadAxis(bytes.Slice(binaryHeaderSize + 4 * n, 4 * n)),
+                ReadAxis(bytes.Slice(binaryHeaderSize + 8 * n, 4 * n)));
+        }
+
+        private static void WriteAxis(Span<byte> destination, float[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+                BinaryPrimitives.WriteSingleLittleEndian(destination[(4 * i)..], values[i]);
+        }
+
+        private static float[] ReadAxis(ReadOnlySpan<byte> source)
+        {
+            var values = new float[source.Length / 4];
+            for (int i = 0; i < values.Length; i++)
+                values[i] = BinaryPrimitives.ReadSingleLittleEndian(source[(4 * i)..]);
+            return values;
+        }
+
+        public ZCurveWindowedProfile Downsample(int factor, int phase = 0)
+        {
+            if (factor < 1) throw new ArgumentOutOfRangeException(nameof(factor));
+            if (phase < 0 || phase >= factor) throw new ArgumentOutOfRangeException(nameof(phase));
+
+            int count = Math.Max(0, (xs.Length - phase) / factor);
+            var coarseXs = new float[count];
+            var coarseYs = new float[count];
+            var coarseZs = new float[count];
+            for (int w = 0, start = phase; w < count; w++, start += factor)
+            {
+                double sumX = 0, sumY = 0, sumZ = 0;
+                for (int i = start; i < start + factor; i++)
+                {
+                    sumX += xs[i];
+                    sumY += ys[i];
+                    sumZ += zs[i];
+                }
+                coarseXs[w] = (float)(sumX / factor);
+                coarseYs[w] = (float)(sumY / factor);
+                coarseZs[w] = (float)(sumZ / factor);
+            }
+
+            // A phase-shifted profile no longer starts at base 0 of DnaString, so it doesn't carry it.
+            return new ZCurveWindowedProfile(phase == 0 ? DnaString : null, WindowSize * factor, coarseXs, coarseYs, coarseZs);
+        }
+
         // Euclidean distance, sqrt included. Four cheaper alternatives (squared Euclidean, Chebyshev,
         // Manhattan, and one sqrt of the summed distance) were each measured against the real-genome
         // corpus and all reverted: they either compress the near-duplicate-vs-unrelated spacing the
@@ -380,6 +480,12 @@ namespace SequenceAnalyses
             // than scalar code, because that gather plus a per-batch horizontal reduce cost more than
             // the batched sqrt saved. Splitting the axes into separate arrays is what removes the
             // gather; without that layout change, vectorizing here is a net loss.
+            //
+            // A second one: replacing Vector256.Sqrt with an rsqrt estimate + one Newton step (+ a
+            // zero mask, since rsqrt(0) is inf) measured 0.72-0.96x - slower on every shape, 0.725x
+            // over all 435 real-genome pairs (i7-10510U, Release) - despite negligible score drift.
+            // The sqrt runs on its own divider unit alongside the sub/mul/add work; the replacement
+            // puts ~7 extra ops on the FP ports that are already the bottleneck.
             var qx = query.xs;
             var qy = query.ys;
             var qz = query.zs;
@@ -493,6 +599,83 @@ namespace SequenceAnalyses
             var (shorter, longer) = x.xs.Length <= y.xs.Length ? (x, y) : (y, x);
             var (score, _) = BestAlignment(shorter, longer);
             return double.IsNaN(score) ? 0 : score;
+        }
+    }
+
+    /// <summary>
+    /// A fine <see cref="ZCurveWindowedProfile"/> plus coarser levels derived from it with
+    /// <see cref="ZCurveWindowedProfile.Downsample"/> (default 500 bp, 2 kbp, 8 kbp, 32 kbp), so one
+    /// stored profile can be compared cheaply against both a 5 kbp virus and a 5 Mbp bacterium.
+    ///
+    /// Ranking quality depends on how many windows the *shorter* sequence keeps, not on window size
+    /// itself (MultiResolutionBenchmark.WindowCountSweep): bacterial retrieval AUC showed no loss
+    /// down to about 4 windows, viral same-genus AUC lost about 0.005 at ~9 windows and 0.03 at ~2,
+    /// and zero windows is a hard failure - <see cref="ZCurveWindowedProfile.Compare"/> then returns
+    /// 0, indistinguishable from "unrelated". <see cref="Compare"/> therefore picks the coarsest level
+    /// that still leaves the shorter sequence <see cref="DefaultMinWindows"/> windows, and returns null
+    /// rather than 0 when the pair isn't comparable at any level.
+    /// </summary>
+    public sealed class ZCurveProfileLadder
+    {
+        public const int DefaultMinWindows = 8;
+
+        public static readonly IReadOnlyList<int> DefaultFactors = new[] { 1, 4, 16, 64 };
+
+        private readonly int[] factors;
+        private readonly ZCurveWindowedProfile[] levels;
+
+        public IReadOnlyList<int> Factors => factors;
+
+        public ZCurveWindowedProfile Fine => levels[0];
+
+        /// <param name="factors">Ascending downsample factors; the first must be 1 (the fine profile itself).</param>
+        public ZCurveProfileLadder(ZCurveWindowedProfile fine, IReadOnlyList<int>? factors = null)
+        {
+            if (fine is null) throw new ArgumentNullException(nameof(fine));
+            var chosen = (factors ?? DefaultFactors).ToArray();
+            if (chosen.Length == 0 || chosen[0] != 1)
+                throw new ArgumentException("The first factor must be 1.", nameof(factors));
+            for (int i = 1; i < chosen.Length; i++)
+                if (chosen[i] <= chosen[i - 1])
+                    throw new ArgumentException("Factors must be strictly ascending.", nameof(factors));
+
+            this.factors = chosen;
+            levels = chosen.Select(f => f == 1 ? fine : fine.Downsample(f)).ToArray();
+        }
+
+        public ZCurveWindowedProfile Level(int factor)
+        {
+            int index = Array.IndexOf(factors, factor);
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(factor), $"This ladder has no level with factor {factor}.");
+            return levels[index];
+        }
+
+        /// <summary>
+        /// The coarsest factor at which the shorter of the two sequences still has at least
+        /// <paramref name="minWindows"/> windows; the finest factor if no level reaches that but the
+        /// fine level has at least one window; null if even the fine level leaves it with none.
+        /// </summary>
+        public static int? SelectFactor(ZCurveProfileLadder x, ZCurveProfileLadder y, int minWindows = DefaultMinWindows)
+        {
+            if (minWindows < 1) throw new ArgumentOutOfRangeException(nameof(minWindows));
+            if (x.Fine.WindowSize != y.Fine.WindowSize || !x.factors.AsSpan().SequenceEqual(y.factors))
+                throw new ArgumentException("Ladders must share the same fine window size and factors.");
+
+            for (int i = x.factors.Length - 1; i >= 0; i--)
+                if (Math.Min(x.levels[i].WindowCount, y.levels[i].WindowCount) >= minWindows)
+                    return x.factors[i];
+
+            return Math.Min(x.Fine.WindowCount, y.Fine.WindowCount) >= 1 ? 1 : null;
+        }
+
+        /// <summary>
+        /// <see cref="ZCurveWindowedProfile.Compare"/> at the level <see cref="SelectFactor"/> picks,
+        /// or null when the pair isn't comparable at all (a sequence shorter than one fine window).
+        /// </summary>
+        public static double? Compare(ZCurveProfileLadder x, ZCurveProfileLadder y, int minWindows = DefaultMinWindows)
+        {
+            var factor = SelectFactor(x, y, minWindows);
+            return factor is int f ? ZCurveWindowedProfile.Compare(x.Level(f), y.Level(f)) : null;
         }
     }
 }

@@ -3,17 +3,17 @@ using SequenceAnalyses;
 namespace SequenceAnaliseTests
 {
     /// <summary>
-    /// Measures profile-construction time separately from comparison time - proving the two are
-    /// genuinely separable, cacheable operations, not just conceptually so - for both the old
-    /// single-point trilateration
-    /// (CATProfile) and the new windowed Z-curve trilateration (ZCurveWindowedProfile). Includes
-    /// the fragment-localization scenario that has no CAT equivalent - sliding-alignment
-    /// localization is itself the new capability.
+    /// Measures ZCurveWindowedProfile construction time separately from comparison time - proving
+    /// the two are genuinely separable, cacheable operations, not just conceptually so. Includes
+    /// the fragment-localization scenario (sliding-alignment of a short query against a long
+    /// reference).
     /// </summary>
     public class TrilaterationPerformanceBenchmarks
     {
         private const int repetitions = BenchmarkTiming.DefaultRepetitions;
         private const int localizationQueryLength = 5_000;
+        private const string buildTimeHeader = "Length, ZCurve Rep1 ms, ZCurve Rep2 ms, ZCurve Rep3 ms, ZCurve Rep4 ms, ZCurve Rep5 ms, ZCurve Avg ms, ZCurve Bases per sec";
+        private const string compareTimeHeader = "Length, WindowCount, ZCurve Rep1 ms, ZCurve Rep2 ms, ZCurve Rep3 ms, ZCurve Rep4 ms, ZCurve Rep5 ms, ZCurve Avg ms";
 
         public static IEnumerable<int> PerformanceLengthProvider()
         {
@@ -32,19 +32,15 @@ namespace SequenceAnaliseTests
         {
             var dna = Generator.GetRandomDNA(length, seed: BenchmarkTiming.Seed(length, "build"));
 
-            var catMs = BenchmarkTiming.Measure(repetitions, () => new CATProfile(dna));
             var zcMs = BenchmarkTiming.Measure(repetitions, () => new ZCurveWindowedProfile(dna));
-
-            var catAvg = catMs.Average();
             var zcAvg = zcMs.Average();
 
             TestContext.Out.WriteLine(
-                $"length={length,9}  CAT build avg={catAvg,10:F3} ms ({length / (catAvg / 1000d),14:N0} bases/s)  " +
-                $"ZCurve build avg={zcAvg,10:F3} ms ({length / (zcAvg / 1000d),14:N0} bases/s)  ratio(CAT/ZCurve)={catAvg / zcAvg,6:F1}x");
+                $"length={length,9}  ZCurve build avg={zcAvg,10:F3} ms ({length / (zcAvg / 1000d),14:N0} bases/s)");
 
             using var report = File.CreateText($"TrilaterationBuildTime_{length}.csv");
-            report.WriteLine("Length, CAT Rep1 ms, CAT Rep2 ms, CAT Rep3 ms, CAT Rep4 ms, CAT Rep5 ms, CAT Avg ms, CAT Bases per sec, ZCurve Rep1 ms, ZCurve Rep2 ms, ZCurve Rep3 ms, ZCurve Rep4 ms, ZCurve Rep5 ms, ZCurve Avg ms, ZCurve Bases per sec");
-            report.WriteLine($"{length}, {string.Join(", ", catMs)}, {catAvg}, {length / (catAvg / 1000d)}, {string.Join(", ", zcMs)}, {zcAvg}, {length / (zcAvg / 1000d)}");
+            report.WriteLine(buildTimeHeader);
+            report.WriteLine($"{length}, {string.Join(", ", zcMs)}, {zcAvg}, {length / (zcAvg / 1000d)}");
             report.Flush();
 
             Assert.Pass();
@@ -56,31 +52,25 @@ namespace SequenceAnaliseTests
             var dnaX = Generator.GetRandomDNA(length, seed: BenchmarkTiming.Seed(length, "compareX"));
             var dnaY = Generator.GetRandomDNA(length, seed: BenchmarkTiming.Seed(length, "compareY"));
 
-            var catX = new CATProfile(dnaX);
-            var catY = new CATProfile(dnaY);
             var zcX = new ZCurveWindowedProfile(dnaX);
             var zcY = new ZCurveWindowedProfile(dnaY);
 
-            var catMs = BenchmarkTiming.Measure(repetitions, () => CATProfile.Compare(catX, catY));
             var zcMs = BenchmarkTiming.Measure(repetitions, () => ZCurveWindowedProfile.Compare(zcX, zcY));
-
-            var catAvg = catMs.Average();
             var zcAvg = zcMs.Average();
 
             TestContext.Out.WriteLine(
-                $"length={length,9}  CAT compare avg={catAvg,10:F5} ms  ZCurve compare avg={zcAvg,10:F5} ms  windowCount={zcX.WindowCount}");
+                $"length={length,9}  ZCurve compare avg={zcAvg,10:F5} ms  windowCount={zcX.WindowCount}");
 
             using var report = File.CreateText($"TrilaterationCompareTime_WholeSequence_{length}.csv");
-            report.WriteLine("Length, WindowCount, CAT Rep1 ms, CAT Rep2 ms, CAT Rep3 ms, CAT Rep4 ms, CAT Rep5 ms, CAT Avg ms, ZCurve Rep1 ms, ZCurve Rep2 ms, ZCurve Rep3 ms, ZCurve Rep4 ms, ZCurve Rep5 ms, ZCurve Avg ms");
-            report.WriteLine($"{length}, {zcX.WindowCount}, {string.Join(", ", catMs)}, {catAvg}, {string.Join(", ", zcMs)}, {zcAvg}");
+            report.WriteLine(compareTimeHeader);
+            report.WriteLine($"{length}, {zcX.WindowCount}, {string.Join(", ", zcMs)}, {zcAvg}");
             report.Flush();
 
             Assert.Pass();
         }
 
-        // The scenario with no CAT equivalent: a short query trajectory searched against a much
-        // longer reference trajectory via sliding alignment. This IS "the new trilateration" -
-        // CAT's single point has nothing analogous to localize with, only whole-vs-whole distance.
+        // A short query trajectory searched against a much longer reference trajectory via sliding
+        // alignment - a single whole-sequence point has nothing analogous to localize with.
         [Test, TestCaseSource(nameof(PerformanceLengthProvider))]
         public void NewTrilaterationLocalizationTime(int referenceLength)
         {
@@ -117,8 +107,7 @@ namespace SequenceAnaliseTests
         // documented .NET string cap would even apply. That cap was independently confirmed here:
         // string construction succeeds through 1,070,000,000 chars but throws OutOfMemoryException
         // starting at 1,073,741,823 (2^30 - 1), matching CLAUDE.md's documented ~1.07 billion char
-        // ceiling almost exactly. ZCurve-only (no CATProfile - see class remarks) since CAT would
-        // add several minutes for data outside current scope with no bearing on this ceiling.
+        // ceiling almost exactly.
         [Test]
         public void GenomeScaleCeilingProbe()
         {
@@ -146,10 +135,8 @@ namespace SequenceAnaliseTests
         [Test]
         public void CombineTrilaterationPerformanceReports()
         {
-            CombineReports("TrilaterationBuildTime_*.csv", "ReportTrilaterationBuildTime.csv",
-                "Length, CAT Rep1 ms, CAT Rep2 ms, CAT Rep3 ms, CAT Rep4 ms, CAT Rep5 ms, CAT Avg ms, CAT Bases per sec, ZCurve Rep1 ms, ZCurve Rep2 ms, ZCurve Rep3 ms, ZCurve Rep4 ms, ZCurve Rep5 ms, ZCurve Avg ms, ZCurve Bases per sec");
-            CombineReports("TrilaterationCompareTime_WholeSequence_*.csv", "ReportTrilaterationCompareTime_WholeSequence.csv",
-                "Length, WindowCount, CAT Rep1 ms, CAT Rep2 ms, CAT Rep3 ms, CAT Rep4 ms, CAT Rep5 ms, CAT Avg ms, ZCurve Rep1 ms, ZCurve Rep2 ms, ZCurve Rep3 ms, ZCurve Rep4 ms, ZCurve Rep5 ms, ZCurve Avg ms");
+            CombineReports("TrilaterationBuildTime_*.csv", "ReportTrilaterationBuildTime.csv", buildTimeHeader);
+            CombineReports("TrilaterationCompareTime_WholeSequence_*.csv", "ReportTrilaterationCompareTime_WholeSequence.csv", compareTimeHeader);
             CombineReports("TrilaterationLocalizationTime_*.csv", "ReportTrilaterationLocalizationTime.csv",
                 "ReferenceLength, QueryLength, QueryWindowCount, ReferenceWindowCount, OffsetsSearched, Rep1 ms, Rep2 ms, Rep3 ms, Rep4 ms, Rep5 ms, Avg ms, WindowComparisonsPerSec, Offset");
 

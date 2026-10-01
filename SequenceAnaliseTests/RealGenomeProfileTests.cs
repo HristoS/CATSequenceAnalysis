@@ -3,7 +3,7 @@ using SequenceAnalyses;
 namespace SequenceAnaliseTests
 {
     /// <summary>
-    /// Checks CATProfile/ZCurveWindowedProfile similarity against genuine phylogenetic distance
+    /// Checks ZCurveWindowedProfile similarity against genuine phylogenetic distance
     /// using the real RefSeq genomes in data/genomes/, instead of only synthetic random sequences
     /// and independent per-base substitution mutants (the gap recorded in
     /// only synthetic data). Each genome's primary

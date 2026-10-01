@@ -1,0 +1,15 @@
+Corpus, WindowSize, Factor, PairCount, IncomparablePairs, ShorterWindowsMin, ShorterWindowsMedian, AucClose_AllPairs, AucRelated_AllPairs, AucClose_ComparableOnly, AucRelated_ComparableOnly, CompareMs
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 500, 1, 435, 0, 1160, 4998, 0.8351873536299765, 0.7891197691197691, 0.8351873536299765, 0.7891197691197691, 21606.9861
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 2000, 4, 435, 0, 290, 1249, 0.8401639344262295, 0.7866089466089466, 0.8401639344262295, 0.7866089466089466, 1281.0538
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 8000, 16, 435, 0, 72, 312, 0.8457259953161592, 0.7838961038961039, 0.8457259953161592, 0.7838961038961039, 81.1892
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 32000, 64, 435, 0, 18, 78, 0.8533372365339579, 0.7827994227994228, 0.8533372365339579, 0.7827994227994228, 6.7554
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 128000, 256, 435, 0, 4, 19, 0.8583138173302107, 0.7818470418470419, 0.8583138173302107, 0.7818470418470419, 0.8588
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 512000, 1024, 435, 0, 1, 4, 0.8512880562060889, 0.7769119769119769, 0.8512880562060889, 0.7769119769119769, 0.1686
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 1024000, 2048, 435, 84, 0, 2, 0.8043032786885246, 0.8437662337662337, 0.8824750830564784, 0.8004905014014326, 0.1005
+"Bacterial (close = same genus or closer, related = same phylum or closer)", 2048000, 4096, 435, 182, 0, 1, 0.7511709601873536, 0.7927417027417027, 0.8812415654520918, 0.8632009016624401, 0.0595
+"Viral (close = same genus, related = same family or closer)", 500, 1, 465, 0, 10, 18, 0.8810989010989011, 0.5938011000445964, 0.8810989010989011, 0.5938011000445964, 13.6102
+"Viral (close = same genus, related = same family or closer)", 1000, 2, 465, 0, 5, 9, 0.8758241758241758, 0.5981120856250929, 0.8758241758241758, 0.5981120856250929, 3.5278
+"Viral (close = same genus, related = same family or closer)", 2000, 4, 465, 0, 2, 4, 0.8626373626373627, 0.5979634309499033, 0.8626373626373627, 0.5979634309499033, 1.1702
+"Viral (close = same genus, related = same family or closer)", 4000, 8, 465, 0, 1, 2, 0.8496703296703296, 0.6004905604281254, 0.8496703296703296, 0.6004905604281254, 0.361
+"Viral (close = same genus, related = same family or closer)", 8000, 16, 465, 189, 0, 1, 0.7863736263736264, 0.6726624052326445, 0.8838619402985075, 0.6256573705179282, 0.1463
+"Viral (close = same genus, related = same family or closer)", 16000, 32, 465, 312, 0, 0, 0.7041758241758241, 0.7156979337000149, 0.8390022675736961, 0.6410533910533911, 0.0751

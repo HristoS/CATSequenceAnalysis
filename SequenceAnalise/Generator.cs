@@ -4,7 +4,7 @@ namespace SequenceAnalyses
 {
     public static class Generator
     {
-        // Index matches Base's declared order (A, T, C, G), so seeded output is stable.
+        // Order is fixed (A, T, C, G) - changing it would change every seeded sequence.
         private static readonly char[] bases = { 'A', 'T', 'C', 'G' };
 
         public static string GetRandomDNA(int length) => GetRandomDNA(length, Random.Shared);

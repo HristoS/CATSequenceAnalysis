@@ -3,29 +3,17 @@ using SequenceAnalyses;
 namespace SequenceAnaliseTests
 {
     /// <summary>
-    /// Small-scale accuracy evidence: compares CATProfile (old trilateration), ZCurveWindowedProfile
-    /// (new trilateration), and Needleman-Wunsch (an independent alignment-based ground truth)
-    /// against each other across a range of known mutation rates. NW is O(n*m), so this file first
-    /// calibrates NW's actual per-call cost on this machine (NWCalibrationTiming) and only commits
-    /// to a full 5-seed grid at lengths where the resulting (8 mutation rates + 1 unrelated) x
-    /// 5-seed = 45-call grid is affordable - see the Verdict column it writes.
+    /// Small-scale accuracy evidence: compares ZCurveWindowedProfile against Needleman-Wunsch (an
+    /// independent alignment-based ground truth) across a range of known mutation rates. NW is
+    /// O(n*m), so this file first calibrates NW's actual per-call cost on this machine
+    /// (NWCalibrationTiming) and only commits to a full 5-seed grid at lengths where the resulting
+    /// (8 mutation rates + 1 unrelated) x 5-seed = 45-call grid is affordable - see the Verdict
+    /// column it writes.
     ///
     /// NWGroundTruthLengthProvider/NWSpotCheckLengthProvider are populated from those verdicts
     /// after NWCalibrationTiming has actually been run once (a small manual edit - NUnit has no
     /// clean way for one test's runtime output to feed another test's TestCaseSource within a
     /// single run).
-    ///
-    /// CAT column note: this uses CATProfile.CompareTrilateration, not the default
-    /// CATProfile.Compare() (CompareDistances). An earlier revision of Benchmark.Match (since fixed
-    /// by commit 30a5f65, "fix the build") made CanContribute() evaluate False at every length
-    /// tested, which made CompareDistances' sqrt return NaN unconditionally; re-verified directly
-    /// against current HEAD (2026-08-25) that CanContribute() now returns True and CompareDistances
-    /// is numerically valid at every length tested (500-20,000), so that regression no longer
-    /// applies. CompareTrilateration is nonetheless kept here rather than switched back to
-    /// Compare()/CompareDistances, since it was already the metric this file's committed results
-    /// were measured with, and switching now would silently change what "the CAT column" means
-    /// between runs for no benefit - see the notes under docs/ for what the
-    /// resulting CAT figures show once valid.
     /// </summary>
     public class TrilaterationAccuracyBenchmarks
     {
@@ -94,18 +82,17 @@ namespace SequenceAnaliseTests
         private static void RunAccuracyGrid(int length, string tier, int seedCount)
         {
             var rawRows = new List<string>();
-            var byCondition = new Dictionary<string, (List<double> Cat, List<double> ZCurve, List<double> NW)>();
+            var byCondition = new Dictionary<string, (List<double> ZCurve, List<double> NW)>();
 
-            void Record(string condition, double? mutationRate, int seed, double cat, double zcurve, double nw)
+            void Record(string condition, double? mutationRate, int seed, double zcurve, double nw)
             {
-                rawRows.Add($"{length}, {tier}, {seed}, {(mutationRate.HasValue ? mutationRate.Value.ToString() : "")}, {condition}, {cat}, {zcurve}, {nw}");
+                rawRows.Add($"{length}, {tier}, {seed}, {(mutationRate.HasValue ? mutationRate.Value.ToString() : "")}, {condition}, {zcurve}, {nw}");
 
                 if (!byCondition.TryGetValue(condition, out var lists))
                 {
-                    lists = (new List<double>(), new List<double>(), new List<double>());
+                    lists = (new List<double>(), new List<double>());
                     byCondition[condition] = lists;
                 }
-                lists.Cat.Add(cat);
                 lists.ZCurve.Add(zcurve);
                 lists.NW.Add(nw);
             }
@@ -113,42 +100,36 @@ namespace SequenceAnaliseTests
             for (int seed = 0; seed < seedCount; seed++)
             {
                 var baseDna = Generator.GetRandomDNA(length, seed: BenchmarkTiming.Seed(length, "base", seed));
-                var baseCat = new CATProfile(baseDna);
                 var baseZc = new ZCurveWindowedProfile(baseDna);
 
                 foreach (var rate in AccuracyBenchmarkShared.MutationRates)
                 {
                     var mutated = AccuracyBenchmarkShared.Mutate(baseDna, rate, seed: BenchmarkTiming.Seed(length, "mut", seed, rate));
-                    // CompareTrilateration kept as the CAT baseline for continuity with this file's
-                    // committed results (see the class remarks) - CompareDistances is valid again as
-                    // of commit 30a5f65, this is no longer a NaN workaround.
-                    var cat = CATProfile.CompareTrilateration(baseCat, new CATProfile(mutated));
                     var zc = ZCurveWindowedProfile.Compare(baseZc, new ZCurveWindowedProfile(mutated));
                     var nw = NeedlemanWunsch.Calculate(baseDna, mutated);
-                    Record($"Mutation_{rate:F2}", rate, seed, cat, zc, nw);
+                    Record($"Mutation_{rate:F2}", rate, seed, zc, nw);
                 }
 
                 var unrelated = Generator.GetRandomDNA(length, seed: BenchmarkTiming.Seed(length, "unrelated", seed));
-                var catU = CATProfile.CompareTrilateration(baseCat, new CATProfile(unrelated));
                 var zcU = ZCurveWindowedProfile.Compare(baseZc, new ZCurveWindowedProfile(unrelated));
                 var nwU = NeedlemanWunsch.Calculate(baseDna, unrelated);
-                Record("Unrelated", null, seed, catU, zcU, nwU);
+                Record("Unrelated", null, seed, zcU, nwU);
             }
 
             using (var raw = File.CreateText($"AccuracyGrid_Raw_{tier}_{length}.csv"))
             {
-                raw.WriteLine("Length, Tier, Seed, MutationRate, Condition, CATTrilaterationCompare, ZCurveCompare, NWIdentity");
+                raw.WriteLine("Length, Tier, Seed, MutationRate, Condition, ZCurveCompare, NWIdentity");
                 foreach (var row in rawRows) raw.WriteLine(row);
                 raw.Flush();
             }
 
             using (var summary = File.CreateText($"AccuracyGrid_Summary_{tier}_{length}.csv"))
             {
-                summary.WriteLine("Length, Tier, Condition, SeedsUsed, CAT(Trilateration) Mean, CAT(Trilateration) StdDev, ZCurve Mean, ZCurve StdDev, NW Mean, NW StdDev");
+                summary.WriteLine("Length, Tier, Condition, SeedsUsed, ZCurve Mean, ZCurve StdDev, NW Mean, NW StdDev");
                 foreach (var kv in byCondition)
                 {
-                    var (cat, zc, nw) = kv.Value;
-                    summary.WriteLine($"{length}, {tier}, {kv.Key}, {cat.Count}, {Mean(cat)}, {StdDev(cat)}, {Mean(zc)}, {StdDev(zc)}, {Mean(nw)}, {StdDev(nw)}");
+                    var (zc, nw) = kv.Value;
+                    summary.WriteLine($"{length}, {tier}, {kv.Key}, {zc.Count}, {Mean(zc)}, {StdDev(zc)}, {Mean(nw)}, {StdDev(nw)}");
                 }
                 summary.Flush();
             }
@@ -172,9 +153,9 @@ namespace SequenceAnaliseTests
         public void CombineTrilaterationAccuracy()
         {
             CombineReports("AccuracyGrid_Raw_*.csv", "ReportTrilaterationAccuracy_Raw.csv",
-                "Length, Tier, Seed, MutationRate, Condition, CATTrilaterationCompare, ZCurveCompare, NWIdentity");
+                "Length, Tier, Seed, MutationRate, Condition, ZCurveCompare, NWIdentity");
             CombineReports("AccuracyGrid_Summary_*.csv", "ReportTrilaterationAccuracy_Summary.csv",
-                "Length, Tier, Condition, SeedsUsed, CAT(Trilateration) Mean, CAT(Trilateration) StdDev, ZCurve Mean, ZCurve StdDev, NW Mean, NW StdDev");
+                "Length, Tier, Condition, SeedsUsed, ZCurve Mean, ZCurve StdDev, NW Mean, NW StdDev");
             CombineReports("NWCalibration_*.csv", "ReportNWCalibration.csv",
                 "Length, Rep1 ms, Rep2 ms, Rep3 ms, Rep4 ms, Rep5 ms, AvgMs, ProjectedFullGridSeconds, Verdict");
 
