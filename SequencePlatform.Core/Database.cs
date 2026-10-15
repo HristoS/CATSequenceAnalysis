@@ -1,46 +1,22 @@
 using System.Reflection;
-using System.Text.Json;
 using Npgsql;
 
-namespace SequencePlatform.Ingest
+namespace SequencePlatform.Core
 {
     /// <summary>
-    /// Connection handling and schema migrations. The connection string comes from the
-    /// SEQUENCE_PLATFORM_DB environment variable, or else from a git-ignored appsettings.json
-    /// next to the executable - never from a committed file.
+    /// Connection handling and schema migrations, shared by every platform host. Where the
+    /// connection string comes from is the host's business (the Ingest: env var, then a
+    /// git-ignored appsettings.json; the API: ASP.NET configuration), so this takes it as given.
     /// </summary>
-    internal static class Database
+    public static class Database
     {
-        public const string ConnectionVariable = "SEQUENCE_PLATFORM_DB";
         private const string defaultDatabaseName = "sequence_platform";
-        private const string settingsFileName = "appsettings.json";
-        private const string connectionStringName = "SequencePlatform";
 
-        public static NpgsqlConnectionStringBuilder ConnectionSettings()
+        public static NpgsqlConnectionStringBuilder ConnectionSettings(string connectionString)
         {
-            var raw = Environment.GetEnvironmentVariable(ConnectionVariable);
-            if (string.IsNullOrWhiteSpace(raw)) raw = ConnectionStringFromSettingsFile();
-            if (string.IsNullOrWhiteSpace(raw))
-                throw new InvalidOperationException(
-                    $"Set {ConnectionVariable}, or ConnectionStrings:{connectionStringName} in {settingsFileName}, to a PostgreSQL " +
-                    "connection string, e.g. \"Host=localhost;Port=5432;Username=...;Password=...;Database=sequence_platform\".");
-
-            var settings = new NpgsqlConnectionStringBuilder(raw);
+            var settings = new NpgsqlConnectionStringBuilder(connectionString);
             if (string.IsNullOrEmpty(settings.Database)) settings.Database = defaultDatabaseName;
             return settings;
-        }
-
-        // Plain System.Text.Json instead of Microsoft.Extensions.Configuration: one value doesn't justify the packages.
-        private static string? ConnectionStringFromSettingsFile()
-        {
-            var path = Path.Combine(AppContext.BaseDirectory, settingsFileName);
-            if (!File.Exists(path)) return null;
-
-            using var document = JsonDocument.Parse(File.ReadAllText(path));
-            return document.RootElement.TryGetProperty("ConnectionStrings", out var connectionStrings)
-                && connectionStrings.TryGetProperty(connectionStringName, out var value)
-                ? value.GetString()
-                : null;
         }
 
         // Creates the platform database if it doesn't exist yet. Connects to the server's

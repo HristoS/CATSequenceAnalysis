@@ -1,4 +1,5 @@
 using Npgsql;
+using SequencePlatform.Core;
 using SequencePlatform.Ingest;
 
 // Small test app: populate the platform DB from BV-BRC. The connection string comes from the
@@ -22,7 +23,7 @@ string? Option(string name)
     return index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
 }
 
-var settings = Database.ConnectionSettings();
+var settings = Database.ConnectionSettings(ConnectionString.Resolve());
 await Database.EnsureDatabaseAsync(settings);
 await using var dataSource = NpgsqlDataSource.Create(settings.ConnectionString);
 await Database.MigrateAsync(dataSource);

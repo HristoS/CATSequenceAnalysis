@@ -2,14 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SequenceAnalise\SequenceAnalise.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Npgsql" Version="10.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\*.sql" />
+    <ProjectReference Include="..\SequencePlatform.Core\SequencePlatform.Core.csproj" />
   </ItemGroup>
 
   <!-- Local connection string, git-ignored. Optional: the SEQUENCE_PLATFORM_DB env var takes precedence. -->
