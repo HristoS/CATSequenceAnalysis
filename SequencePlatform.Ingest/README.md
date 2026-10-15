@@ -13,10 +13,15 @@ then deletes the download. **The DNA sequence is never stored.** What goes into 
 
 ## Usage
 
-The connection string comes only from an environment variable, so keep it out of the repo:
+The connection string comes from the `SEQUENCE_PLATFORM_DB` environment variable or, when that's unset, from
+`SequencePlatform.Ingest/appsettings.json`. That file is git-ignored (it holds a password) and copied to the build output:
+
+```json
+{ "ConnectionStrings": { "SequencePlatform": "Host=localhost;Port=5432;Username=...;Password=...;Database=sequence_platform" } }
+```
 
 ```powershell
-$env:SEQUENCE_PLATFORM_DB = "Host=localhost;Port=5432;Username=...;Password=...;Database=sequence_platform"
+$env:SEQUENCE_PLATFORM_DB = "Host=localhost;Port=5432;Username=...;Password=...;Database=sequence_platform"   # optional, overrides the file
 dotnet run --project SequencePlatform.Ingest -- migrate
 dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group viruses --limit 100
 dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group bacteria --limit 30 --offset 30

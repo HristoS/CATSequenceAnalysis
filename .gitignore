@@ -659,3 +659,6 @@ obj/
 # Ionide (cross platform F# VS Code tools) working folder
 
 # End of https://www.toptal.com/developers/gitignore/api/dotnetcore,csharp,visualstudio,aspnetcore
+# Local connection strings (hold passwords)
+appsettings.json
+appsettings.*.json

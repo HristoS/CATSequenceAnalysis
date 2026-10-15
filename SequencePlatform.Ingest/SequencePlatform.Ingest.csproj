@@ -12,6 +12,11 @@
     <EmbeddedResource Include="Migrations\*.sql" />
   </ItemGroup>
 
+  <!-- Local connection string, git-ignored. Optional: the SEQUENCE_PLATFORM_DB env var takes precedence. -->
+  <ItemGroup>
+    <None Include="appsettings.json" Condition="Exists('appsettings.json')" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>

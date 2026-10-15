@@ -2,7 +2,7 @@ using Npgsql;
 using SequencePlatform.Ingest;
 
 // Small test app: populate the platform DB from BV-BRC. The connection string comes from the
-// SEQUENCE_PLATFORM_DB environment variable (never committed).
+// SEQUENCE_PLATFORM_DB environment variable, or else the git-ignored appsettings.json (never committed).
 //
 //   migrate                                   create the database if missing, apply migrations
 //   ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact you@example.org]

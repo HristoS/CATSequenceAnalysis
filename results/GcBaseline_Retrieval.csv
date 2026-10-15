@@ -1,0 +1,5 @@
+Threshold, Method, PositiveCount, NegativeCount, AUC, AucMinusZCurve
+SameGenusOrCloser_vs_Rest, ZCurveWindowedProfile, 8, 427, 0.8351873536299765, 0
+SameGenusOrCloser_vs_Rest, AbsGcDifference, 8, 427, 0.8515807962529274, 0.016393442622950838
+SamePhylumOrCloser_vs_DifferentPhylum, ZCurveWindowedProfile, 105, 330, 0.7891197691197691, 0
+SamePhylumOrCloser_vs_DifferentPhylum, AbsGcDifference, 105, 330, 0.7689177489177489, -0.02020202020202022
