@@ -1,12 +1,13 @@
 using System.Text.Json;
 
-namespace SequencePlatform.Ingest
+namespace SequencePlatform.Core
 {
     /// <summary>
-    /// Where the Ingest finds its connection string: the SEQUENCE_PLATFORM_DB environment variable,
-    /// or else a git-ignored appsettings.json next to the executable - never a committed file.
+    /// Where the Ingest and the platform tests find their connection string: the SEQUENCE_PLATFORM_DB
+    /// environment variable, or else a git-ignored appsettings.json next to the executable - never a
+    /// committed file. The API (P4) uses ASP.NET configuration instead and doesn't need this.
     /// </summary>
-    internal static class ConnectionString
+    public static class ConnectionString
     {
         public const string ConnectionVariable = "SEQUENCE_PLATFORM_DB";
         private const string settingsFileName = "appsettings.json";

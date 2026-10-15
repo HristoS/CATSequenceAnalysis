@@ -5,8 +5,8 @@ namespace SequencePlatform.Core
 {
     /// <summary>
     /// Connection handling and schema migrations, shared by every platform host. Where the
-    /// connection string comes from is the host's business (the Ingest: env var, then a
-    /// git-ignored appsettings.json; the API: ASP.NET configuration), so this takes it as given.
+    /// connection string comes from is the host's business (the Ingest and tests:
+    /// <see cref="ConnectionString"/>; the API: ASP.NET configuration), so this takes it as given.
     /// </summary>
     public static class Database
     {
