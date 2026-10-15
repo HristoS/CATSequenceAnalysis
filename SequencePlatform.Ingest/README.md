@@ -26,10 +26,17 @@ dotnet run --project SequencePlatform.Ingest -- migrate
 dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group viruses --limit 100
 dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group bacteria --limit 30 --offset 30
 dotnet run --project SequencePlatform.Ingest -- stats
+dotnet run --project SequencePlatform.Ingest -- list --kind bacterium --rank phylum --taxon Pseudomonadota --limit 20
+dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name borrel --after 120
 ```
 
-- `migrate` creates the database if it's missing and applies `Migrations/*.sql` in order, recorded in `schema_migration`.
-  Every command runs this first.
+- `migrate` creates the database if it's missing and applies `SequencePlatform.Core/Migrations/*.sql` in order, recorded in
+  `schema_migration`. Every command runs this first.
+- `list` pages the catalogue by id: each page ends with the `--after` value for the next one. Filters: `--kind`,
+  `--rank` with `--taxon` (superkingdom, realm, kingdom, phylum, class, order, family, genus, species), `--min-length`,
+  `--max-length`, `--provider`, `--name` (case-insensitive substring). `--limit` is 1–1000, default 50.
+- Database access, migrations, profile-level storage and the catalogue query live in `SequencePlatform.Core`; this
+  project is the BV-BRC crawler and CLI on top of it. Platform tests: `dotnet test SequencePlatform.Tests`.
 - `--group bacteria` selects complete genomes marked Reference or Representative. `--group viruses` selects complete Reference genomes.
 - `--contact you@example.org` adds a contact address to the User-Agent. Recommended for large runs.
 
