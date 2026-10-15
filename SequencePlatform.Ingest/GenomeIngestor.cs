@@ -1,8 +1,8 @@
-using System.Security.Cryptography;
 using System.Text.Json;
 using Npgsql;
 using NpgsqlTypes;
 using SequenceAnalyses;
+using SequencePlatform.Core;
 
 namespace SequencePlatform.Ingest
 {
@@ -19,8 +19,6 @@ namespace SequencePlatform.Ingest
         private const string method = "zcurve-windowed";
         private const string methodVersion = "1";
         private const int fineWindowSize = ZCurveWindowedProfile.DefaultWindowSize;
-        private const int maxInlineBytes = 1 << 20; // levels above 1 MB belong in object storage (not implemented yet)
-        private const short formatVersion = 1;
 
         private static readonly string[] annotationFields =
         {
@@ -169,31 +167,8 @@ namespace SequencePlatform.Ingest
                 }
 
                 foreach (var (factor, level) in record.Levels)
-                {
-                    var payload = level.ToBinary();
-                    if (payload.Length > maxInlineBytes)
-                    {
-                        Console.WriteLine($"    skipped {level.WindowSize} bp level of {record.RecordId}: {payload.Length:N0} B needs object storage");
-                        continue;
-                    }
-
-                    await using var insertLevel = new NpgsqlCommand(
-                        "insert into profile_level (sequence_id, method, method_version, fine_window_size, factor, window_count, " +
-                        "format_version, payload, byte_size, sha256) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-                        connection, transaction);
-                    var p = insertLevel.Parameters;
-                    p.AddWithValue(sequenceId);
-                    p.AddWithValue(method);
-                    p.AddWithValue(methodVersion);
-                    p.AddWithValue(fineWindowSize);
-                    p.AddWithValue(factor);
-                    p.AddWithValue(level.WindowCount);
-                    p.AddWithValue(formatVersion);
-                    p.AddWithValue(payload);
-                    p.AddWithValue((long)payload.Length);
-                    p.AddWithValue(SHA256.HashData(payload));
-                    await insertLevel.ExecuteNonQueryAsync();
-                }
+                    if (!await ProfileLevels.InsertAsync(connection, transaction, sequenceId, method, methodVersion, factor, level))
+                        Console.WriteLine($"    skipped {level.WindowSize} bp level of {record.RecordId}: over {ProfileLevels.MaxInlineBytes:N0} B, needs object storage");
             }
 
             await transaction.CommitAsync();
