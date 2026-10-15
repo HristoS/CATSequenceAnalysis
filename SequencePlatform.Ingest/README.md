@@ -44,8 +44,13 @@ dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name
 
 - **Polite:** requests are sequential and at least 1 s apart, and HTTP 429/5xx are retried with exponential backoff
   that honours `Retry-After`. BV-BRC publishes no rate limit.
-- **Resumable:** genomes already stored are skipped without any request, so re-running a batch continues where it
-  stopped. One genome is one transaction, so a failure leaves nothing partial behind.
+- **Resumable:** every listed genome gets a `crawl_item` row (`pending`, then `done`, `duplicate`, `too_large` or
+  `failed`, with attempt count and last error). Items in a final state are skipped without any request, so re-running a
+  batch downloads nothing it already handled. One genome is one transaction, and its `done` mark commits in it, so a
+  failure leaves nothing partial behind. Failed items are skipped by normal runs and retried with
+  `ingest-bvbrc --retry-failed [--group G] [--limit N]`; `stats` shows the counts per group and status.
+- `too_large` means a record's 500 bp level is over 1 MB and wasn't stored (it needs object storage); the coarser levels
+  that fit are kept. It doesn't occur for viruses or bacteria.
 - **De-duplicating:** BV-BRC sometimes lists one assembly under two genome ids. A genome whose contig accessions are
   all stored already is skipped before downloading.
 - FASTA comes from the BV-BRC API (`Accept: application/dna+fasta`); its FTP host isn't reachable from every network.

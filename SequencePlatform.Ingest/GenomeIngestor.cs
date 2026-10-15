@@ -14,7 +14,7 @@ namespace SequencePlatform.Ingest
     /// </summary>
     internal sealed class GenomeIngestor
     {
-        private const string provider = "BV-BRC";
+        public const string Provider = "BV-BRC";
         private const string license = "BV-BRC public data; cite BV-BRC (Olson et al., NAR 2023) and the original submitters";
         private const string method = "zcurve-windowed";
         private const string methodVersion = "1";
@@ -37,14 +37,6 @@ namespace SequencePlatform.Ingest
             this.client = client;
         }
 
-        public async Task<bool> AlreadyIngestedAsync(string genomeId)
-        {
-            await using var command = dataSource.CreateCommand("select 1 from sequence_source where provider = $1 and accession = $2");
-            command.Parameters.AddWithValue(provider);
-            command.Parameters.AddWithValue(genomeId);
-            return await command.ExecuteScalarAsync() is not null;
-        }
-
         // BV-BRC sometimes lists the same assembly under two genome ids (seen: 1002689.3 / .4, both
         // GCA_025264625.1). A genome whose every contig accession is already stored is a duplicate.
         private async Task<bool> AllContigsAlreadyStoredAsync(IReadOnlyCollection<string> accessions)
@@ -53,27 +45,46 @@ namespace SequencePlatform.Ingest
             await using var command = dataSource.CreateCommand(
                 "select count(distinct r.record_id) from sequence_record r join sequence_source s on s.id = r.source_id " +
                 "where s.provider = $1 and r.record_id = any($2)");
-            command.Parameters.AddWithValue(provider);
+            command.Parameters.AddWithValue(Provider);
             command.Parameters.AddWithValue(accessions.ToArray());
             return (long)(await command.ExecuteScalarAsync())! == accessions.Count;
         }
 
-        /// <returns>null when the genome was skipped as a duplicate of one already stored.</returns>
-        public async Task<(int Records, int Levels, long Bases)?> IngestAsync(BvBrcGenome genome)
-        {
-            var contigs = (await client.ListContigsAsync(genome.GenomeId)).ToDictionary(c => c.Accession, StringComparer.Ordinal);
-            if (await AllContigsAlreadyStoredAsync(contigs.Keys)) return null;
+        public sealed record Outcome(string Status, int Records = 0, int Levels = 0, long Bases = 0, string? Error = null);
 
-            var file = await client.DownloadFastaAsync(genome.GenomeId);
+        /// <summary>
+        /// Ingests one registered crawl item and records the outcome in crawl_item. Never throws for a
+        /// per-genome problem: a failure is recorded with its message and returned, so the batch goes on.
+        /// </summary>
+        public async Task<Outcome> IngestAsync(BvBrcGenome genome)
+        {
             try
             {
-                var records = ProfileRecords(file.Path).ToList();
-                await StoreAsync(genome, file, records, contigs);
-                return (records.Count, records.Sum(r => r.Levels.Count), records.Sum(r => r.LengthBp));
+                var contigs = (await client.ListContigsAsync(genome.GenomeId)).ToDictionary(c => c.Accession, StringComparer.Ordinal);
+                if (await AllContigsAlreadyStoredAsync(contigs.Keys))
+                {
+                    await CrawlState.MarkAsync(dataSource, Provider, genome.GenomeId, CrawlState.Duplicate);
+                    return new Outcome(CrawlState.Duplicate);
+                }
+
+                var file = await client.DownloadFastaAsync(genome.GenomeId);
+                try
+                {
+                    var records = ProfileRecords(file.Path).ToList();
+                    var tooLarge = await StoreAsync(genome, file, records, contigs);
+                    return new Outcome(tooLarge ? CrawlState.TooLarge : CrawlState.Done,
+                        records.Count, records.Sum(r => r.Levels.Count), records.Sum(r => r.LengthBp));
+                }
+                finally
+                {
+                    File.Delete(file.Path); // the no-sequence rule: nothing downloaded outlives ingestion
+                }
             }
-            finally
+            catch (Exception e)
             {
-                File.Delete(file.Path); // the no-sequence rule: nothing downloaded outlives ingestion
+                // The store transaction rolled back, so nothing partial is left; the item stays retryable.
+                await CrawlState.MarkAsync(dataSource, Provider, genome.GenomeId, CrawlState.Failed, $"{e.GetType().Name}: {e.Message}");
+                return new Outcome(CrawlState.Failed, Error: e.Message);
             }
         }
 
@@ -120,8 +131,11 @@ namespace SequencePlatform.Ingest
             }
         }
 
-        private async Task StoreAsync(BvBrcGenome genome, DownloadedFile file, List<ProfiledRecord> records, Dictionary<string, BvBrcContig> contigs)
+        // Returns true when some record's 500 bp level didn't fit inline (crawl status too_large: that record
+        // can't be searched at full resolution until object storage exists). Coarser levels that fit are kept.
+        private async Task<bool> StoreAsync(BvBrcGenome genome, DownloadedFile file, List<ProfiledRecord> records, Dictionary<string, BvBrcContig> contigs)
         {
+            bool fineLevelSkipped = false;
             await using var connection = await dataSource.OpenConnectionAsync();
             await using var transaction = await connection.BeginTransactionAsync();
 
@@ -130,7 +144,7 @@ namespace SequencePlatform.Ingest
                 "insert into sequence_source (provider, url, accession, retrieved_at, raw_sha256, raw_byte_size, license) " +
                 "values ($1, $2, $3, now(), $4, $5, $6) returning id", connection, transaction))
             {
-                insertSource.Parameters.AddWithValue(provider);
+                insertSource.Parameters.AddWithValue(Provider);
                 insertSource.Parameters.AddWithValue(file.Url);
                 insertSource.Parameters.AddWithValue(genome.GenomeId);
                 insertSource.Parameters.AddWithValue(file.Sha256);
@@ -168,10 +182,15 @@ namespace SequencePlatform.Ingest
 
                 foreach (var (factor, level) in record.Levels)
                     if (!await ProfileLevels.InsertAsync(connection, transaction, sequenceId, method, methodVersion, factor, level))
+                    {
+                        fineLevelSkipped |= factor == 1;
                         Console.WriteLine($"    skipped {level.WindowSize} bp level of {record.RecordId}: over {ProfileLevels.MaxInlineBytes:N0} B, needs object storage");
+                    }
             }
 
+            await CrawlState.MarkStoredAsync(connection, transaction, Provider, genome.GenomeId, sourceId, fineLevelSkipped);
             await transaction.CommitAsync();
+            return fineLevelSkipped;
         }
 
         private static string Kind(string? superkingdom, string? sequenceType) => superkingdom switch

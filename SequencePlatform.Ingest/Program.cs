@@ -6,11 +6,11 @@ using SequencePlatform.Ingest;
 // SEQUENCE_PLATFORM_DB environment variable, or else the git-ignored appsettings.json (never committed).
 //
 //   migrate                                   create the database if missing, apply migrations
-//   ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact you@example.org]
-//   stats                                     what's in the DB
+//   ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed]
+//   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
 const string usage =
-    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact EMAIL] | stats\n" +
+    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]";
 
 if (args.Length == 0)
@@ -37,12 +37,14 @@ switch (args[0])
         return 0;
 
     case "ingest-bvbrc":
+        var retryFailed = args.Contains("--retry-failed");
         return await IngestBvBrcAsync(
             dataSource,
-            Option("--group") ?? "bacteria",
+            Option("--group") ?? (retryFailed ? null : "bacteria"),
             int.Parse(Option("--limit") ?? "10"),
             int.Parse(Option("--offset") ?? "0"),
-            Option("--contact"));
+            Option("--contact"),
+            retryFailed);
 
     case "stats":
         await PrintStatsAsync(dataSource);
@@ -62,48 +64,56 @@ switch (args[0])
         return 1;
 }
 
-static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string group, int limit, int offset, string? contact)
+// Normal run: list a page of the group, register new items, process everything not in a final state
+// except failed. --retry-failed: process failed items instead (of --group, or of every group if omitted).
+static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? group, int limit, int offset, string? contact, bool retryFailed)
 {
     using var client = new BvBrcClient(contact);
     var ingestor = new GenomeIngestor(dataSource, client);
+    var runStarted = DateTime.UtcNow;
 
-    var genomes = await client.ListGenomesAsync(group, limit, offset);
-    Console.WriteLine($"BV-BRC {group}: {genomes.Count} genomes listed (limit {limit}, offset {offset}).");
+    List<BvBrcGenome> genomes;
+    if (retryFailed)
+    {
+        var ids = await CrawlState.FailedAsync(dataSource, GenomeIngestor.Provider, group, limit);
+        genomes = ids.Count == 0 ? new() : await client.GetGenomesAsync(ids);
+        Console.WriteLine($"BV-BRC {group ?? "all groups"}: retrying {genomes.Count} of {ids.Count} failed items.");
+    }
+    else
+    {
+        genomes = await client.ListGenomesAsync(group!, limit, offset);
+        Console.WriteLine($"BV-BRC {group}: {genomes.Count} genomes listed (limit {limit}, offset {offset}).");
+    }
+    var statuses = await CrawlState.RegisterAsync(dataSource, GenomeIngestor.Provider, retryFailed ? null : group,
+        genomes.Select(g => g.GenomeId).ToList());
 
-    int ingested = 0, skipped = 0, duplicates = 0, failed = 0;
+    var counts = new Dictionary<string, int>();
+    int alreadyFinal = 0, failedSkipped = 0;
     foreach (var genome in genomes)
     {
-        if (await ingestor.AlreadyIngestedAsync(genome.GenomeId))
-        {
-            skipped++;
-            continue;
-        }
+        var status = statuses[genome.GenomeId];
+        if (CrawlState.IsFinal(status)) { alreadyFinal++; continue; }
+        if (status == CrawlState.Failed && !retryFailed) { failedSkipped++; continue; }
 
-        try
+        var started = DateTime.UtcNow;
+        var outcome = await ingestor.IngestAsync(genome);
+        counts[outcome.Status] = counts.GetValueOrDefault(outcome.Status) + 1;
+        var detail = outcome.Status switch
         {
-            var started = DateTime.UtcNow;
-            var result = await ingestor.IngestAsync(genome);
-            if (result is null)
-            {
-                duplicates++;
-                Console.WriteLine($"  {genome.GenomeId,-14} {genome.Name,-60} duplicate of an assembly already stored, skipped");
-                continue;
-            }
-
-            var (records, levels, bases) = result.Value;
-            ingested++;
-            Console.WriteLine($"  {genome.GenomeId,-14} {genome.Name,-60} {records,3} records {levels,3} levels {bases,12:N0} bp  {(DateTime.UtcNow - started).TotalSeconds,5:F1} s");
-        }
-        catch (Exception e)
-        {
-            // One bad genome shouldn't stop the batch; it stays un-ingested, so a re-run retries it.
-            failed++;
-            Console.WriteLine($"  {genome.GenomeId,-14} FAILED: {e.Message}");
-        }
+            CrawlState.Failed => $"FAILED: {outcome.Error}",
+            CrawlState.Duplicate => "duplicate of an assembly already stored, skipped",
+            _ => $"{outcome.Records,3} records {outcome.Levels,3} levels {outcome.Bases,12:N0} bp" +
+                 (outcome.Status == CrawlState.TooLarge ? "  (too large: a 500 bp level needs object storage)" : ""),
+        };
+        Console.WriteLine($"  {genome.GenomeId,-14} {genome.Name,-60} {detail}  {(DateTime.UtcNow - started).TotalSeconds,5:F1} s");
     }
 
-    Console.WriteLine($"Done: {ingested} ingested, {skipped} already present, {duplicates} duplicates skipped, {failed} failed.");
-    return failed == 0 ? 0 : 2;
+    int processed = counts.Values.Sum();
+    var elapsed = DateTime.UtcNow - runStarted;
+    Console.WriteLine($"Done: {string.Join(", ", counts.Select(c => $"{c.Value} {c.Key}"))}{(processed == 0 ? "nothing to do" : "")}; " +
+        $"{alreadyFinal} already handled, {failedSkipped} failed earlier (use --retry-failed). " +
+        $"{elapsed.TotalSeconds:F0} s{(processed > 0 ? $", {elapsed.TotalSeconds / processed:F2} s per processed genome" : "")}.");
+    return counts.ContainsKey(CrawlState.Failed) ? 2 : 0;
 }
 
 static async Task PrintListAsync(NpgsqlDataSource dataSource, CatalogueFilter filter, long after, int limit)
@@ -134,5 +144,15 @@ static async Task PrintStatsAsync(NpgsqlDataSource dataSource)
         Console.WriteLine($"{"level",-10} {"profiles",8} {"bytes",14} {"windows",12}");
         while (await reader.ReadAsync())
             Console.WriteLine($"{reader.GetInt32(0) + " bp",-10} {reader.GetInt64(1),8:N0} {reader.GetDecimal(2),14:N0} {reader.GetInt64(3),12:N0}");
+    }
+
+    await using (var command = dataSource.CreateCommand(
+        "select provider, coalesce(item_group, '-'), status, count(*), max(attempts) from crawl_item group by 1, 2, 3 order by 1, 2, 3"))
+    await using (var reader = await command.ExecuteReaderAsync())
+    {
+        Console.WriteLine();
+        Console.WriteLine($"{"crawl",-10} {"group",-10} {"status",-10} {"items",8} {"max attempts",13}");
+        while (await reader.ReadAsync())
+            Console.WriteLine($"{reader.GetString(0),-10} {reader.GetString(1),-10} {reader.GetString(2),-10} {reader.GetInt64(3),8:N0} {reader.GetInt32(4),13}");
     }
 }

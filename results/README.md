@@ -213,6 +213,7 @@ automatically.
 | `MultiResolution_GcAxisWeight.csv` | — | Retrieval AUC with the GC (z) axis weighted 0–16 in the distance |
 | `GcBaseline_Retrieval.csv` | — | Platform check C6 (2026-10-15): retrieval AUC of a GC-only score, −\|GC_a − GC_b\| over A/C/G/T of the primary record, vs. `ZCurveWindowedProfile` on the same 435 pairs and thresholds as `ReportRetrievalClassification.csv` (whose Z-curve AUCs it reproduces exactly). `GcBaselineAndTriangleInequalityBenchmark` |
 | `DistanceTriangleInequality.csv` | — | Platform check C7 (2026-10-15): triangle-inequality violations over all 4,060 triples of the 30-genome corpus, for d = 1 − `Compare` and for Mash distance; also the largest self-distance. Same benchmark class |
+| `C2_IngestTiming.csv` | — | Platform check C2 (2026-10-15): wall-clock of a 50-genome BV-BRC ingest batch per group (download, profile, store, delete) and the extrapolation to the D1 corpus, about 15.9 h. The extrapolation is labeled as one. `SequencePlatform.Ingest ingest-bvbrc` against a scratch clone of the platform DB |
 
 `ReportCATWithKMP.csv` and `GenomeScaleCeilingProbe.csv` (present in the build output folder but
 not here) are excluded: the former belongs to the removed CAT experiment suite; the latter is a superseded probe (string-constructor ceiling at 1,070,000,000 bp)

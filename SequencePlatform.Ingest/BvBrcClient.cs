@@ -64,6 +64,25 @@ namespace SequencePlatform.Ingest
         public async Task<List<BvBrcGenome>> ListGenomesAsync(string group, int limit, int offset)
         {
             var url = $"{apiBase}genome/?{GroupFilter(group)}&select({string.Join(",", genomeFields)})&sort(+genome_id)&limit({limit},{offset})";
+            return await QueryGenomesAsync(url);
+        }
+
+        // Metadata for known genome ids (retrying failed crawl items), in chunks that keep the URL short.
+        public async Task<List<BvBrcGenome>> GetGenomesAsync(IReadOnlyList<string> genomeIds)
+        {
+            const int chunkSize = 50;
+            var genomes = new List<BvBrcGenome>();
+            for (int i = 0; i < genomeIds.Count; i += chunkSize)
+            {
+                var chunk = genomeIds.Skip(i).Take(chunkSize).ToList();
+                var url = $"{apiBase}genome/?in(genome_id,({string.Join(",", chunk)}))&select({string.Join(",", genomeFields)})&sort(+genome_id)&limit({chunk.Count})";
+                genomes.AddRange(await QueryGenomesAsync(url));
+            }
+            return genomes;
+        }
+
+        private async Task<List<BvBrcGenome>> QueryGenomesAsync(string url)
+        {
             using var response = await SendAsync(url, "application/json");
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             return document.RootElement.EnumerateArray()
