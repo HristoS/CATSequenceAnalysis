@@ -8,8 +8,10 @@ using SequencePlatform.Ingest;
 //   migrate                                   create the database if missing, apply migrations
 //   ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact you@example.org]
 //   stats                                     what's in the DB
+//   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
 const string usage =
-    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact EMAIL] | stats";
+    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact EMAIL] | stats\n" +
+    "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]";
 
 if (args.Length == 0)
 {
@@ -44,6 +46,15 @@ switch (args[0])
 
     case "stats":
         await PrintStatsAsync(dataSource);
+        return 0;
+
+    case "list":
+        var filter = new CatalogueFilter(
+            Option("--kind"), Option("--rank"), Option("--taxon"),
+            Option("--min-length") is { } min ? long.Parse(min) : null,
+            Option("--max-length") is { } max ? long.Parse(max) : null,
+            Option("--provider"), Option("--name"));
+        await PrintListAsync(dataSource, filter, long.Parse(Option("--after") ?? "0"), int.Parse(Option("--limit") ?? "50"));
         return 0;
 
     default:
@@ -93,6 +104,15 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string grou
 
     Console.WriteLine($"Done: {ingested} ingested, {skipped} already present, {duplicates} duplicates skipped, {failed} failed.");
     return failed == 0 ? 0 : 2;
+}
+
+static async Task PrintListAsync(NpgsqlDataSource dataSource, CatalogueFilter filter, long after, int limit)
+{
+    var page = await Catalogue.ListAsync(dataSource, filter, after, limit);
+    Console.WriteLine($"{"id",6} {"kind",-10} {"length bp",12} {"GC",6} {"genus",-20} {"record",-14} name");
+    foreach (var r in page.Records)
+        Console.WriteLine($"{r.Id,6} {r.Kind,-10} {r.LengthBp,12:N0} {r.GcFraction,6:F3} {r.Lineage.Genus,-20} {r.RecordId,-14} {r.Name}");
+    Console.WriteLine(page.NextAfter is { } next ? $"{page.Records.Count} shown; next page: --after {next}" : $"{page.Records.Count} shown; last page");
 }
 
 static async Task PrintStatsAsync(NpgsqlDataSource dataSource)
