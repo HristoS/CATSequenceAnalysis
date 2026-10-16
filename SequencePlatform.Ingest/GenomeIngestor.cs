@@ -9,7 +9,8 @@ namespace SequencePlatform.Ingest
     /// <summary>
     /// Download -> profile -> store -> delete, one BV-BRC genome at a time. The DNA is streamed from
     /// the temp file into ZCurveWindowedProfile.FromStream record by record (never held as a whole
-    /// string), only the profile ladder, annotations and source are written, and the temp file is
+    /// string), only the profile ladder, the D8 per-record hash and dinucleotide counts (same pass),
+    /// annotations and source are written, and the temp file is
     /// deleted whether or not ingestion succeeded (docs/database-decision.md section 4.1).
     /// </summary>
     internal sealed class GenomeIngestor
@@ -89,14 +90,15 @@ namespace SequencePlatform.Ingest
         }
 
         private sealed record ProfiledRecord(string RecordId, string Description, long LengthBp, double? GcFraction,
-            List<(int Factor, ZCurveWindowedProfile Level)> Levels);
+            List<(int Factor, ZCurveWindowedProfile Level)> Levels, byte[] SequenceSha256, long[] DinucleotideCounts);
 
         private static IEnumerable<ProfiledRecord> ProfileRecords(string fastaPath)
         {
             foreach (var (headerId, description) in ReadHeaders(fastaPath))
             {
-                using var counting = new CountingReader(FastaReader.OpenSequenceReader(fastaPath, headerId));
-                var fine = ZCurveWindowedProfile.FromStream(counting, fineWindowSize);
+                using var features = new SequenceFeatureReader(FastaReader.OpenSequenceReader(fastaPath, headerId));
+                var fine = ZCurveWindowedProfile.FromStream(features, fineWindowSize);
+                var (sequenceSha256, dinucleotideCounts) = features.Finish();
 
                 var levels = new List<(int, ZCurveWindowedProfile)>();
                 double? gcFraction = null;
@@ -114,7 +116,8 @@ namespace SequencePlatform.Ingest
 
                 // BV-BRC headers look like ">accn|NC_003210   description"; store the bare accession.
                 var recordId = headerId.StartsWith("accn|", StringComparison.Ordinal) ? headerId[5..] : headerId;
-                yield return new ProfiledRecord(recordId, description, counting.CharactersRead, gcFraction, levels);
+                yield return new ProfiledRecord(recordId, description, features.CharactersRead, gcFraction, levels,
+                    sequenceSha256, dinucleotideCounts);
             }
         }
 
@@ -160,8 +163,9 @@ namespace SequencePlatform.Ingest
                 long sequenceId;
                 await using (var insertRecord = new NpgsqlCommand(
                     "insert into sequence_record (source_id, record_id, name, kind, data_class, length_bp, gc_fraction, ncbi_taxid, " +
-                    "tax_superkingdom, tax_realm, tax_kingdom, tax_phylum, tax_class, tax_order, tax_family, tax_genus, tax_species, annotations) " +
-                    "values ($1, $2, $3, $4, 'public_microbe', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) returning id",
+                    "tax_superkingdom, tax_realm, tax_kingdom, tax_phylum, tax_class, tax_order, tax_family, tax_genus, tax_species, annotations, " +
+                    "sequence_sha256, dinucleotide_counts) " +
+                    "values ($1, $2, $3, $4, 'public_microbe', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) returning id",
                     connection, transaction))
                 {
                     var p = insertRecord.Parameters;
@@ -177,6 +181,8 @@ namespace SequencePlatform.Ingest
                     foreach (var rank in new[] { "kingdom", "phylum", "class", "order", "family", "genus", "species" })
                         p.AddWithValue(OrNull(genome.Field(rank)));
                     p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Jsonb, Value = Annotations(genome, contig, record.Description) });
+                    p.AddWithValue(record.SequenceSha256);
+                    p.AddWithValue(record.DinucleotideCounts);
                     sequenceId = (long)(await insertRecord.ExecuteScalarAsync())!;
                 }
 
@@ -228,29 +234,6 @@ namespace SequencePlatform.Ingest
                 },
             };
             return JsonSerializer.Serialize(annotations);
-        }
-
-        // Counts bases handed to FromStream, so length_bp is exact without keeping the sequence.
-        private sealed class CountingReader : TextReader
-        {
-            private readonly TextReader inner;
-
-            public CountingReader(TextReader inner) => this.inner = inner;
-
-            public long CharactersRead { get; private set; }
-
-            public override int Read(char[] buffer, int index, int count)
-            {
-                int read = inner.Read(buffer, index, count);
-                CharactersRead += read;
-                return read;
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing) inner.Dispose();
-                base.Dispose(disposing);
-            }
         }
     }
 }

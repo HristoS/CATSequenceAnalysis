@@ -7,7 +7,9 @@ then deletes the download. **The DNA sequence is never stored.** What goes into 
 - `sequence_source`: provider, API URL, BV-BRC genome id, retrieval time, SHA-256 and size of the downloaded file, licence note.
 - `sequence_record` (one per FASTA record: chromosome, plasmid or viral segment): kind, length, GC fraction derived from the
   profile, NCBI taxid, lineage (superkingdom → species; realm for viruses), and BV-BRC annotations (host, disease,
-  isolation source, assembly/RefSeq accessions, CheckM, …) in `annotations` jsonb.
+  isolation source, assembly/RefSeq accessions, CheckM, …) in `annotations` jsonb. Also the two D8 opt-ins, computed in
+  the same streaming pass as the profile (`SequenceFeatureReader` in Core): `sequence_sha256` (SHA-256 of the record's
+  letters, uppercased, nothing else) and `dinucleotide_counts` (16 adjacent A/C/G/T pair counts, AA…TT).
 - `profile_level`: `ZCurveWindowedProfile` ladder levels 500 bp / 2 / 8 / 32 kbp in the ZCWP binary format
   (`ZCurveWindowedProfile.ToBinary`). Levels with zero windows aren't stored.
 

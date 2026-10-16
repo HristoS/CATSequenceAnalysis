@@ -18,6 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\SequenceAnalise\SequenceAnalise.csproj" />
     <ProjectReference Include="..\SequencePlatform.Core\SequencePlatform.Core.csproj" />
+    <!-- Only for the explicit end-to-end ingest test (IngestTests). -->
+    <ProjectReference Include="..\SequencePlatform.Ingest\SequencePlatform.Ingest.csproj" />
   </ItemGroup>
 
   <!-- Same git-ignored server connection as the Ingest; the tests only use it to create and drop their own database. -->
