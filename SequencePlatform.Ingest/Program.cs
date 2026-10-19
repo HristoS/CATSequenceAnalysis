@@ -101,8 +101,9 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
         var detail = outcome.Status switch
         {
             CrawlState.Failed => $"FAILED: {outcome.Error}",
-            CrawlState.Duplicate => "duplicate of an assembly already stored, skipped",
+            CrawlState.Duplicate => $"duplicate of source {outcome.DuplicateOf} ({outcome.DuplicateBy}), skipped",
             _ => $"{outcome.Records,3} records {outcome.Levels,3} levels {outcome.Bases,12:N0} bp" +
+                 (outcome.AlreadyStored > 0 ? $"  ({outcome.AlreadyStored} of {outcome.Records} records already stored)" : "") +
                  (outcome.Status == CrawlState.TooLarge ? "  (too large: a 500 bp level needs object storage)" : ""),
         };
         Console.WriteLine($"  {genome.GenomeId,-14} {genome.Name,-60} {detail}  {(DateTime.UtcNow - started).TotalSeconds,5:F1} s");

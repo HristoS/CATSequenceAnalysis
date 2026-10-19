@@ -17,7 +17,8 @@ namespace SequencePlatform.Ingest
                 : Array.Empty<string>();
     }
 
-    internal sealed record BvBrcContig(string Accession, string? SequenceType, string? Topology, string? Description, long? Length);
+    internal sealed record BvBrcContig(string Accession, string? SequenceType, string? Topology, string? Description, long? Length,
+        string? SequenceMd5);
 
     internal sealed record DownloadedFile(string Path, string Url, byte[] Sha256, long ByteSize);
 
@@ -92,7 +93,7 @@ namespace SequencePlatform.Ingest
 
         public async Task<List<BvBrcContig>> ListContigsAsync(string genomeId)
         {
-            var url = $"{apiBase}genome_sequence/?eq(genome_id,{genomeId})&select(accession,sequence_type,topology,description,length)&limit(10000)";
+            var url = $"{apiBase}genome_sequence/?eq(genome_id,{genomeId})&select(accession,sequence_type,topology,description,length,sequence_md5)&limit(10000)";
             using var response = await SendAsync(url, "application/json");
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             string? Text(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
@@ -102,7 +103,8 @@ namespace SequencePlatform.Ingest
                     Text(c, "sequence_type"),
                     Text(c, "topology"),
                     Text(c, "description"),
-                    c.TryGetProperty("length", out var l) && l.ValueKind == JsonValueKind.Number ? l.GetInt64() : null))
+                    c.TryGetProperty("length", out var l) && l.ValueKind == JsonValueKind.Number ? l.GetInt64() : null,
+                    Text(c, "sequence_md5")))
                 .ToList();
         }
 

@@ -9,7 +9,8 @@ then deletes the download. **The DNA sequence is never stored.** What goes into 
   profile, NCBI taxid, lineage (superkingdom → species; realm for viruses), and BV-BRC annotations (host, disease,
   isolation source, assembly/RefSeq accessions, CheckM, …) in `annotations` jsonb. Also the two D8 opt-ins, computed in
   the same streaming pass as the profile (`SequenceFeatureReader` in Core): `sequence_sha256` (SHA-256 of the record's
-  letters, uppercased, nothing else) and `dinucleotide_counts` (16 adjacent A/C/G/T pair counts, AA…TT).
+  letters, uppercased, nothing else) and `dinucleotide_counts` (16 adjacent A/C/G/T pair counts, AA…TT). Plus BV-BRC's
+  own `sequence_md5` as `provider_md5`, which is used for de-duplication.
 - `profile_level`: `ZCurveWindowedProfile` ladder levels 500 bp / 2 / 8 / 32 kbp in the ZCWP binary format
   (`ZCurveWindowedProfile.ToBinary`). Levels with zero windows aren't stored.
 
@@ -53,8 +54,13 @@ dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name
   `ingest-bvbrc --retry-failed [--group G] [--limit N]`; `stats` shows the counts per group and status.
 - `too_large` means a record's 500 bp level is over 1 MB and wasn't stored (it needs object storage); the coarser levels
   that fit are kept. It doesn't occur for viruses or bacteria.
-- **De-duplicating:** BV-BRC sometimes lists one assembly under two genome ids. A genome whose contig accessions are
-  all stored already is skipped before downloading.
+- **De-duplicating:** a genome is skipped as `duplicate` when every one of its sequences is already stored. The first copy
+  crawled wins, and `crawl_item.duplicate_of` points at it. BV-BRC lists one assembly under two genome ids (same contig
+  accessions) and a GenBank record next to its RefSeq copy (HM119410 / NC_055339, different accessions). Both are
+  recognised before downloading: either by accession, or by BV-BRC's per-contig `sequence_md5`, stored as
+  `sequence_record.provider_md5`. A contig without an MD5 is downloaded and profiled, then skipped if its `sequence_sha256`
+  is stored. A genome that is only partly stored is kept whole, and the run says how many of its records were already
+  stored. The assembly accession isn't used as a key, because the segments of one virus share it.
 - FASTA comes from the BV-BRC API (`Accept: application/dna+fasta`); its FTP host isn't reachable from every network.
 
 ## Known limitations

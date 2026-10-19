@@ -38,20 +38,49 @@ namespace SequencePlatform.Ingest
             this.client = client;
         }
 
-        // BV-BRC sometimes lists the same assembly under two genome ids (seen: 1002689.3 / .4, both
-        // GCA_025264625.1). A genome whose every contig accession is already stored is a duplicate.
-        private async Task<bool> AllContigsAlreadyStoredAsync(IReadOnlyCollection<string> accessions)
+        // A genome is a duplicate when every record is already stored under this provider. BV-BRC lists the same
+        // assembly under two genome ids (seen: 1002689.3 / .4, both GCA_025264625.1: same accessions) and a GenBank
+        // record next to its RefSeq copy (HM119410 / NC_055339: different accessions, same sequence_md5). Both are
+        // caught before download; a record without an MD5 is caught after profiling by its SHA-256. The assembly
+        // accession isn't a key: the segments of one virus share it.
+        internal static Task<StoredCopy> FindStoredCopyAsync(NpgsqlDataSource dataSource, string column, string[] keys) =>
+            FindStoredCopyAsync(dataSource, column, keys, keys.Distinct(StringComparer.Ordinal).Count());
+
+        internal static Task<StoredCopy> FindStoredCopyBySha256Async(NpgsqlDataSource dataSource, byte[][] hashes) =>
+            FindStoredCopyAsync(dataSource, "sequence_sha256", hashes, hashes.Select(Convert.ToHexString).Distinct().Count());
+
+        /// <param name="column">record_id, provider_md5 or sequence_sha256; spliced into the SQL, so never user input.</param>
+        private static async Task<StoredCopy> FindStoredCopyAsync(NpgsqlDataSource dataSource, string column, object keys, int distinctKeys)
         {
-            if (accessions.Count == 0) return false;
+            if (distinctKeys == 0) return new StoredCopy(0, 0, null);
             await using var command = dataSource.CreateCommand(
-                "select count(distinct r.record_id) from sequence_record r join sequence_source s on s.id = r.source_id " +
-                "where s.provider = $1 and r.record_id = any($2)");
+                $"select count(distinct r.{column}), min(s.id) from sequence_record r join sequence_source s on s.id = r.source_id " +
+                $"where s.provider = $1 and r.{column} = any($2)");
             command.Parameters.AddWithValue(Provider);
-            command.Parameters.AddWithValue(accessions.ToArray());
-            return (long)(await command.ExecuteScalarAsync())! == accessions.Count;
+            command.Parameters.AddWithValue(keys);
+            await using var reader = await command.ExecuteReaderAsync();
+            await reader.ReadAsync();
+            var stored = (int)reader.GetInt64(0);
+            return new StoredCopy(distinctKeys, stored, stored == distinctKeys ? reader.GetInt64(1) : null);
         }
 
-        public sealed record Outcome(string Status, int Records = 0, int Levels = 0, long Bases = 0, string? Error = null);
+        /// <param name="SourceId">The lowest stored source holding a match, set only when every key matched.</param>
+        internal sealed record StoredCopy(int Keys, int Stored, long? SourceId);
+
+        private async Task<(long SourceId, string By)?> FindStoredCopyBeforeDownloadAsync(IReadOnlyCollection<BvBrcContig> contigs)
+        {
+            if ((await FindStoredCopyAsync(dataSource, "record_id", contigs.Select(c => c.Accession).ToArray())).SourceId is { } byAccession)
+                return (byAccession, "accession");
+            if (contigs.Count == 0 || contigs.Any(c => c.SequenceMd5 is null)) return null;
+            if ((await FindStoredCopyAsync(dataSource, "provider_md5", contigs.Select(c => c.SequenceMd5!).ToArray())).SourceId is { } byMd5)
+                return (byMd5, "md5");
+            return null;
+        }
+
+        /// <param name="DuplicateBy">How a duplicate was recognised: accession, md5 or sha256.</param>
+        /// <param name="AlreadyStored">Records of a stored genome whose sequence was already stored (a partial duplicate).</param>
+        public sealed record Outcome(string Status, int Records = 0, int Levels = 0, long Bases = 0, string? Error = null,
+            long? DuplicateOf = null, string? DuplicateBy = null, int AlreadyStored = 0);
 
         /// <summary>
         /// Ingests one registered crawl item and records the outcome in crawl_item. Never throws for a
@@ -62,19 +91,20 @@ namespace SequencePlatform.Ingest
             try
             {
                 var contigs = (await client.ListContigsAsync(genome.GenomeId)).ToDictionary(c => c.Accession, StringComparer.Ordinal);
-                if (await AllContigsAlreadyStoredAsync(contigs.Keys))
-                {
-                    await CrawlState.MarkAsync(dataSource, Provider, genome.GenomeId, CrawlState.Duplicate);
-                    return new Outcome(CrawlState.Duplicate);
-                }
+                if (await FindStoredCopyBeforeDownloadAsync(contigs.Values) is { } before)
+                    return await MarkDuplicateAsync(genome, before.SourceId, before.By);
 
                 var file = await client.DownloadFastaAsync(genome.GenomeId);
                 try
                 {
                     var records = ProfileRecords(file.Path).ToList();
+                    var stored = await FindStoredCopyBySha256Async(dataSource, records.Select(r => r.SequenceSha256).ToArray());
+                    if (stored.SourceId is { } bySha256)
+                        return await MarkDuplicateAsync(genome, bySha256, "sha256");
+
                     var tooLarge = await StoreAsync(genome, file, records, contigs);
                     return new Outcome(tooLarge ? CrawlState.TooLarge : CrawlState.Done,
-                        records.Count, records.Sum(r => r.Levels.Count), records.Sum(r => r.LengthBp));
+                        records.Count, records.Sum(r => r.Levels.Count), records.Sum(r => r.LengthBp), AlreadyStored: stored.Stored);
                 }
                 finally
                 {
@@ -87,6 +117,12 @@ namespace SequencePlatform.Ingest
                 await CrawlState.MarkAsync(dataSource, Provider, genome.GenomeId, CrawlState.Failed, $"{e.GetType().Name}: {e.Message}");
                 return new Outcome(CrawlState.Failed, Error: e.Message);
             }
+        }
+
+        private async Task<Outcome> MarkDuplicateAsync(BvBrcGenome genome, long duplicateOf, string by)
+        {
+            await CrawlState.MarkAsync(dataSource, Provider, genome.GenomeId, CrawlState.Duplicate, duplicateOf: duplicateOf);
+            return new Outcome(CrawlState.Duplicate, DuplicateOf: duplicateOf, DuplicateBy: by);
         }
 
         private sealed record ProfiledRecord(string RecordId, string Description, long LengthBp, double? GcFraction,
@@ -164,8 +200,8 @@ namespace SequencePlatform.Ingest
                 await using (var insertRecord = new NpgsqlCommand(
                     "insert into sequence_record (source_id, record_id, name, kind, data_class, length_bp, gc_fraction, ncbi_taxid, " +
                     "tax_superkingdom, tax_realm, tax_kingdom, tax_phylum, tax_class, tax_order, tax_family, tax_genus, tax_species, annotations, " +
-                    "sequence_sha256, dinucleotide_counts) " +
-                    "values ($1, $2, $3, $4, 'public_microbe', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) returning id",
+                    "sequence_sha256, dinucleotide_counts, provider_md5) " +
+                    "values ($1, $2, $3, $4, 'public_microbe', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) returning id",
                     connection, transaction))
                 {
                     var p = insertRecord.Parameters;
@@ -183,6 +219,7 @@ namespace SequencePlatform.Ingest
                     p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Jsonb, Value = Annotations(genome, contig, record.Description) });
                     p.AddWithValue(record.SequenceSha256);
                     p.AddWithValue(record.DinucleotideCounts);
+                    p.AddWithValue(OrNull(contig?.SequenceMd5));
                     sequenceId = (long)(await insertRecord.ExecuteScalarAsync())!;
                 }
 

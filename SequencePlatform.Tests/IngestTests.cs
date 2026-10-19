@@ -52,6 +52,34 @@ namespace SequencePlatform.Tests
             Assert.That((long)(await sources.ExecuteScalarAsync())!, Is.Zero);
         }
 
+        // Echarate virus segment L listed twice by BV-BRC: GenBank HM119410 (1000646.3) and its RefSeq copy NC_055339 (1000646.8).
+        [Test, Explicit("Downloads one small genome from BV-BRC; run it by name.")]
+        public async Task RefSeqCopyOfAStoredGenBankRecordIsSkippedBeforeDownload()
+        {
+            var dataSource = ThrowawayDatabase.DataSource;
+            var before = DownloadedFiles();
+            using var client = new BvBrcClient(null);
+            var genomes = await client.GetGenomesAsync(new[] { "1000646.3", "1000646.8" });
+            Assert.That(genomes.Select(g => g.GenomeId), Is.EqualTo(new[] { "1000646.3", "1000646.8" }));
+            await CrawlState.RegisterAsync(dataSource, GenomeIngestor.Provider, "viruses", genomes.Select(g => g.GenomeId).ToList());
+            var ingestor = new GenomeIngestor(dataSource, client);
+
+            var stored = await ingestor.IngestAsync(genomes[0]);
+            Assert.That(stored.Status, Is.EqualTo(CrawlState.Done), stored.Error);
+            var copy = await ingestor.IngestAsync(genomes[1]);
+            Assert.That((copy.Status, copy.DuplicateBy), Is.EqualTo((CrawlState.Duplicate, "md5")), copy.Error);
+            Assert.That(DownloadedFiles(), Is.EquivalentTo(before));
+
+            await using var command = dataSource.CreateCommand(
+                "select c.duplicate_of = s.id, c.source_id is null, (select count(*) from sequence_source where accession = $2) " +
+                "from crawl_item c, sequence_source s where c.external_id = $2 and s.accession = $1");
+            command.Parameters.AddWithValue("1000646.3");
+            command.Parameters.AddWithValue("1000646.8");
+            await using var reader = await command.ExecuteReaderAsync();
+            Assert.That(await reader.ReadAsync(), Is.True);
+            Assert.That((reader.GetBoolean(0), reader.GetBoolean(1), reader.GetInt64(2)), Is.EqualTo((true, true, 0L)));
+        }
+
         private static string[] DownloadedFiles() => Directory.GetFiles(Path.GetTempPath(), "bvbrc_*");
 
         private static async Task Execute(string sql)

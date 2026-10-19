@@ -56,16 +56,19 @@ namespace SequencePlatform.Ingest
             return ids;
         }
 
-        // For outcomes that store nothing (duplicate, failed). Each counts as an attempt.
-        public static async Task MarkAsync(NpgsqlDataSource dataSource, string provider, string externalId, string status, string? error = null)
+        // For outcomes that store nothing (duplicate, failed). Each counts as an attempt. duplicateOf: for a
+        // duplicate, the stored source holding the same sequences.
+        public static async Task MarkAsync(NpgsqlDataSource dataSource, string provider, string externalId, string status, string? error = null,
+            long? duplicateOf = null)
         {
             await using var command = dataSource.CreateCommand(
-                "update crawl_item set status = $3, attempts = attempts + 1, last_error = $4, updated_at = now() " +
+                "update crawl_item set status = $3, attempts = attempts + 1, last_error = $4, duplicate_of = $5, updated_at = now() " +
                 "where provider = $1 and external_id = $2");
             command.Parameters.AddWithValue(provider);
             command.Parameters.AddWithValue(externalId);
             command.Parameters.AddWithValue(status);
             command.Parameters.AddWithValue(error is null ? DBNull.Value : error.Length <= maxErrorLength ? error : error[..maxErrorLength]);
+            command.Parameters.AddWithValue(duplicateOf is { } id ? id : DBNull.Value);
             await command.ExecuteNonQueryAsync();
         }
 
@@ -74,7 +77,7 @@ namespace SequencePlatform.Ingest
             string externalId, long sourceId, bool tooLarge)
         {
             await using var command = new NpgsqlCommand(
-                "update crawl_item set status = $3, attempts = attempts + 1, last_error = null, source_id = $4, updated_at = now() " +
+                "update crawl_item set status = $3, attempts = attempts + 1, last_error = null, source_id = $4, duplicate_of = null, updated_at = now() " +
                 "where provider = $1 and external_id = $2", connection, transaction);
             command.Parameters.AddWithValue(provider);
             command.Parameters.AddWithValue(externalId);
