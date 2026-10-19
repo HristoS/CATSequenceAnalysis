@@ -6,11 +6,11 @@ using SequencePlatform.Ingest;
 // SEQUENCE_PLATFORM_DB environment variable, or else the git-ignored appsettings.json (never committed).
 //
 //   migrate                                   create the database if missing, apply migrations
-//   ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed]
+//   ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed]
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
 const string usage =
-    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | stats\n" +
+    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]";
 
 if (args.Length == 0)

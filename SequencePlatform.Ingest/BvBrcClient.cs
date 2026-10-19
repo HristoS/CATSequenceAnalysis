@@ -58,8 +58,9 @@ namespace SequencePlatform.Ingest
         public static string GroupFilter(string group) => group switch
         {
             "bacteria" => "and(eq(superkingdom,Bacteria),in(reference_genome,(Reference,Representative)),eq(genome_status,Complete))",
+            "archaea" => "and(eq(superkingdom,Archaea),in(reference_genome,(Reference,Representative)),eq(genome_status,Complete))",
             "viruses" => "and(eq(superkingdom,Viruses),eq(reference_genome,Reference),eq(genome_status,Complete))",
-            _ => throw new ArgumentException($"Unknown group '{group}'. Use 'bacteria' or 'viruses'.", nameof(group)),
+            _ => throw new ArgumentException($"Unknown group '{group}'. Use 'bacteria', 'archaea' or 'viruses'.", nameof(group)),
         };
 
         public async Task<List<BvBrcGenome>> ListGenomesAsync(string group, int limit, int offset)

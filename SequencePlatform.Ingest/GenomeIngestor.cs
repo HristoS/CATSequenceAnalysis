@@ -1,25 +1,20 @@
 using System.Text.Json;
 using Npgsql;
-using NpgsqlTypes;
-using SequenceAnalyses;
 using SequencePlatform.Core;
 
 namespace SequencePlatform.Ingest
 {
     /// <summary>
-    /// Download -> profile -> store -> delete, one BV-BRC genome at a time. The DNA is streamed from
-    /// the temp file into ZCurveWindowedProfile.FromStream record by record (never held as a whole
-    /// string), only the profile ladder, the D8 per-record hash and dinucleotide counts (same pass),
-    /// annotations and source are written, and the temp file is
-    /// deleted whether or not ingestion succeeded (docs/database-decision.md section 4.1).
+    /// Download -> profile -> store -> delete, one BV-BRC genome at a time. Profiling and storing are
+    /// <see cref="RecordStore"/>'s (streamed record by record, never a whole string; only the profile
+    /// ladder, the D8 hash and dinucleotide counts, annotations and source are written). This class adds
+    /// the BV-BRC side: metadata and annotations, duplicate checks, crawl state, and deleting the temp
+    /// file whether or not ingestion succeeded (docs/database-decision.md section 4.1).
     /// </summary>
     internal sealed class GenomeIngestor
     {
         public const string Provider = "BV-BRC";
         private const string license = "BV-BRC public data; cite BV-BRC (Olson et al., NAR 2023) and the original submitters";
-        private const string method = "zcurve-windowed";
-        private const string methodVersion = "1";
-        private const int fineWindowSize = ZCurveWindowedProfile.DefaultWindowSize;
 
         private static readonly string[] annotationFields =
         {
@@ -97,7 +92,7 @@ namespace SequencePlatform.Ingest
                 var file = await client.DownloadFastaAsync(genome.GenomeId);
                 try
                 {
-                    var records = ProfileRecords(file.Path).ToList();
+                    var records = RecordStore.Profile(file.Path).ToList();
                     var stored = await FindStoredCopyBySha256Async(dataSource, records.Select(r => r.SequenceSha256).ToArray());
                     if (stored.SourceId is { } bySha256)
                         return await MarkDuplicateAsync(genome, bySha256, "sha256");
@@ -125,123 +120,46 @@ namespace SequencePlatform.Ingest
             return new Outcome(CrawlState.Duplicate, DuplicateOf: duplicateOf, DuplicateBy: by);
         }
 
-        private sealed record ProfiledRecord(string RecordId, string Description, long LengthBp, double? GcFraction,
-            List<(int Factor, ZCurveWindowedProfile Level)> Levels, byte[] SequenceSha256, long[] DinucleotideCounts);
-
-        private static IEnumerable<ProfiledRecord> ProfileRecords(string fastaPath)
-        {
-            foreach (var (headerId, description) in ReadHeaders(fastaPath))
-            {
-                using var features = new SequenceFeatureReader(FastaReader.OpenSequenceReader(fastaPath, headerId));
-                var fine = ZCurveWindowedProfile.FromStream(features, fineWindowSize);
-                var (sequenceSha256, dinucleotideCounts) = features.Finish();
-
-                var levels = new List<(int, ZCurveWindowedProfile)>();
-                double? gcFraction = null;
-                if (fine.WindowCount > 0)
-                {
-                    var ladder = new ZCurveProfileLadder(fine);
-                    foreach (var factor in ladder.Factors)
-                    {
-                        var level = ladder.Level(factor);
-                        if (level.WindowCount > 0) levels.Add((factor, level));
-                    }
-                    // z = +1 for G/C, -1 for A/T, so the mean z over all windows is 2*GC - 1.
-                    gcFraction = (fine.Windows.Average(w => w.Z) + 1) / 2;
-                }
-
-                // BV-BRC headers look like ">accn|NC_003210   description"; store the bare accession.
-                var recordId = headerId.StartsWith("accn|", StringComparison.Ordinal) ? headerId[5..] : headerId;
-                yield return new ProfiledRecord(recordId, description, features.CharactersRead, gcFraction, levels,
-                    sequenceSha256, dinucleotideCounts);
-            }
-        }
-
-        // Header ids exactly as FastaReader parses them (text after '>' up to the first space),
-        // so each can be handed back to FastaReader.OpenSequenceReader.
-        private static IEnumerable<(string Id, string Description)> ReadHeaders(string fastaPath)
-        {
-            foreach (var line in File.ReadLines(fastaPath))
-            {
-                if (line.Length == 0 || line[0] != '>') continue;
-                var header = line.Substring(1);
-                var space = header.IndexOf(' ');
-                yield return space < 0 ? (header, "") : (header.Substring(0, space), header.Substring(space + 1).Trim());
-            }
-        }
+        // BV-BRC headers look like ">accn|NC_003210   description"; the stored record id is the bare accession.
+        private static string RecordId(ProfiledRecord record) =>
+            record.HeaderId.StartsWith("accn|", StringComparison.Ordinal) ? record.HeaderId[5..] : record.HeaderId;
 
         // Returns true when some record's 500 bp level didn't fit inline (crawl status too_large: that record
         // can't be searched at full resolution until object storage exists). Coarser levels that fit are kept.
         private async Task<bool> StoreAsync(BvBrcGenome genome, DownloadedFile file, List<ProfiledRecord> records, Dictionary<string, BvBrcContig> contigs)
         {
-            bool fineLevelSkipped = false;
+            var superkingdom = genome.Field("superkingdom");
+            var lineage = new Lineage(superkingdom, Realm(superkingdom, genome.LineageNames), genome.Field("kingdom"), genome.Field("phylum"),
+                genome.Field("class"), genome.Field("order"), genome.Field("family"), genome.Field("genus"), genome.Field("species"));
+            var taxid = int.TryParse(genome.Field("taxon_id"), out var parsed) ? parsed : (int?)null;
+            var rows = records
+                .Select(record =>
+                {
+                    var recordId = RecordId(record);
+                    contigs.TryGetValue(recordId, out var contig);
+                    return (record, new RecordRow(recordId, genome.Name, Kind(superkingdom, contig?.SequenceType), taxid, lineage,
+                        Annotations(genome, contig, record.Description), contig?.SequenceMd5));
+                })
+                .ToList();
+
             await using var connection = await dataSource.OpenConnectionAsync();
             await using var transaction = await connection.BeginTransactionAsync();
+            var stored = await RecordStore.StoreAsync(connection, transaction,
+                new SourceRow(Provider, file.Url, genome.GenomeId, file.Sha256, file.ByteSize, license), rows);
+            foreach (var (recordId, windowSize) in stored.SkippedLevels)
+                Console.WriteLine($"    skipped {windowSize} bp level of {recordId}: over {ProfileLevels.MaxInlineBytes:N0} B, needs object storage");
 
-            long sourceId;
-            await using (var insertSource = new NpgsqlCommand(
-                "insert into sequence_source (provider, url, accession, retrieved_at, raw_sha256, raw_byte_size, license) " +
-                "values ($1, $2, $3, now(), $4, $5, $6) returning id", connection, transaction))
-            {
-                insertSource.Parameters.AddWithValue(Provider);
-                insertSource.Parameters.AddWithValue(file.Url);
-                insertSource.Parameters.AddWithValue(genome.GenomeId);
-                insertSource.Parameters.AddWithValue(file.Sha256);
-                insertSource.Parameters.AddWithValue(file.ByteSize);
-                insertSource.Parameters.AddWithValue(license);
-                sourceId = (long)(await insertSource.ExecuteScalarAsync())!;
-            }
-
-            var superkingdom = genome.Field("superkingdom");
-            foreach (var record in records)
-            {
-                contigs.TryGetValue(record.RecordId, out var contig);
-                long sequenceId;
-                await using (var insertRecord = new NpgsqlCommand(
-                    "insert into sequence_record (source_id, record_id, name, kind, data_class, length_bp, gc_fraction, ncbi_taxid, " +
-                    "tax_superkingdom, tax_realm, tax_kingdom, tax_phylum, tax_class, tax_order, tax_family, tax_genus, tax_species, annotations, " +
-                    "sequence_sha256, dinucleotide_counts, provider_md5) " +
-                    "values ($1, $2, $3, $4, 'public_microbe', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) returning id",
-                    connection, transaction))
-                {
-                    var p = insertRecord.Parameters;
-                    p.AddWithValue(sourceId);
-                    p.AddWithValue(record.RecordId);
-                    p.AddWithValue(genome.Name);
-                    p.AddWithValue(Kind(superkingdom, contig?.SequenceType));
-                    p.AddWithValue(record.LengthBp);
-                    p.AddWithValue(record.GcFraction.HasValue ? (object)(float)record.GcFraction.Value : DBNull.Value);
-                    p.AddWithValue(int.TryParse(genome.Field("taxon_id"), out var taxid) ? (object)taxid : DBNull.Value);
-                    p.AddWithValue(OrNull(superkingdom));
-                    p.AddWithValue(OrNull(Realm(superkingdom, genome.LineageNames)));
-                    foreach (var rank in new[] { "kingdom", "phylum", "class", "order", "family", "genus", "species" })
-                        p.AddWithValue(OrNull(genome.Field(rank)));
-                    p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Jsonb, Value = Annotations(genome, contig, record.Description) });
-                    p.AddWithValue(record.SequenceSha256);
-                    p.AddWithValue(record.DinucleotideCounts);
-                    p.AddWithValue(OrNull(contig?.SequenceMd5));
-                    sequenceId = (long)(await insertRecord.ExecuteScalarAsync())!;
-                }
-
-                foreach (var (factor, level) in record.Levels)
-                    if (!await ProfileLevels.InsertAsync(connection, transaction, sequenceId, method, methodVersion, factor, level))
-                    {
-                        fineLevelSkipped |= factor == 1;
-                        Console.WriteLine($"    skipped {level.WindowSize} bp level of {record.RecordId}: over {ProfileLevels.MaxInlineBytes:N0} B, needs object storage");
-                    }
-            }
-
-            await CrawlState.MarkStoredAsync(connection, transaction, Provider, genome.GenomeId, sourceId, fineLevelSkipped);
+            await CrawlState.MarkStoredAsync(connection, transaction, Provider, genome.GenomeId, stored.SourceId, stored.FineLevelSkipped);
             await transaction.CommitAsync();
-            return fineLevelSkipped;
+            return stored.FineLevelSkipped;
         }
 
         private static string Kind(string? superkingdom, string? sequenceType) => superkingdom switch
         {
             "Viruses" => "virus",
+            "Bacteria" or "Archaea" when string.Equals(sequenceType, "plasmid", StringComparison.OrdinalIgnoreCase) => "plasmid",
             "Archaea" => "archaeon",
             "Eukaryota" => "eukaryote",
-            "Bacteria" when string.Equals(sequenceType, "plasmid", StringComparison.OrdinalIgnoreCase) => "plasmid",
             "Bacteria" => "bacterium",
             _ => "other",
         };
@@ -249,8 +167,6 @@ namespace SequencePlatform.Ingest
         // BV-BRC has no realm field; for viruses it's the lineage entry right after "Viruses" (ICTV realms end in "-viria").
         private static string? Realm(string? superkingdom, IReadOnlyList<string> lineage) =>
             superkingdom == "Viruses" && lineage.Count > 1 && lineage[1].EndsWith("viria", StringComparison.Ordinal) ? lineage[1] : null;
-
-        private static object OrNull(string? value) => string.IsNullOrEmpty(value) ? DBNull.Value : value;
 
         private static string Annotations(BvBrcGenome genome, BvBrcContig? contig, string headerDescription)
         {

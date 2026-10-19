@@ -38,9 +38,10 @@ dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name
 - `list` pages the catalogue by id: each page ends with the `--after` value for the next one. Filters: `--kind`,
   `--rank` with `--taxon` (superkingdom, realm, kingdom, phylum, class, order, family, genus, species), `--min-length`,
   `--max-length`, `--provider`, `--name` (case-insensitive substring). `--limit` is 1–1000, default 50.
-- Database access, migrations, profile-level storage and the catalogue query live in `SequencePlatform.Core`; this
-  project is the BV-BRC crawler and CLI on top of it. Platform tests: `dotnet test SequencePlatform.Tests`.
-- `--group bacteria` selects complete genomes marked Reference or Representative. `--group viruses` selects complete Reference genomes.
+- Database access, migrations, profile-level storage, the catalogue query and the provider-independent profile-and-store
+  step (`RecordStore`) live in `SequencePlatform.Core`; this project is the BV-BRC crawler and CLI on top of it. Platform tests: `dotnet test SequencePlatform.Tests`.
+- `--group bacteria` and `--group archaea` select complete genomes marked Reference or Representative (6,036 and 374 on
+  2026-10-19). `--group viruses` selects complete Reference genomes (15,536).
 - `--contact you@example.org` adds a contact address to the User-Agent. Recommended for large runs.
 
 ## Behaviour

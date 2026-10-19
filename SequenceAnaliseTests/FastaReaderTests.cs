@@ -30,6 +30,14 @@ namespace SequenceAnaliseTests
         }
 
         [Test]
+        public void ReadHeaders_MatchesReadRecordsIdsAndDescriptions()
+        {
+            var expected = FastaReader.ReadRecords(KlebsiellaPath).Select(r => (r.Id, r.Description)).ToList();
+
+            Assert.That(FastaReader.ReadHeaders(KlebsiellaPath), Is.EqualTo(expected));
+        }
+
+        [Test]
         public void ReadRecords_SequenceContainsOnlyUppercaseLettersAndMatchesDeclaredLength()
         {
             foreach (var record in FastaReader.ReadRecords(KlebsiellaPath))

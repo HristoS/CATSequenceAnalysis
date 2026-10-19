@@ -106,6 +106,21 @@ namespace SequenceAnalyses
         }
 
         /// <summary>
+        /// Every record's header (id and description, as <see cref="ReadRecords"/> parses them) in file
+        /// order, without keeping any sequence: one pass that only looks at header lines. Each id can be
+        /// handed to <see cref="OpenSequenceReader"/> to stream that record.
+        /// </summary>
+        public static IEnumerable<(string Id, string Description)> ReadHeaders(string path)
+        {
+            using var stream = OpenRawStream(path);
+            using var reader = new StreamReader(stream);
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+                if (line.Length > 0 && line[0] == '>')
+                    yield return ParseHeader(line);
+        }
+
+        /// <summary>
         /// Opens a streaming <see cref="TextReader"/> over one record's bases only (header lines
         /// and every other record's body are skipped without being buffered), suitable for
         /// <see cref="ZCurveWindowedProfile.FromStream"/> - never materializes the sequence as a
