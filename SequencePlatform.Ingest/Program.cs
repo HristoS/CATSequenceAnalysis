@@ -72,6 +72,16 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
     var ingestor = new GenomeIngestor(dataSource, client);
     var runStarted = DateTime.UtcNow;
 
+    // A run killed mid-genome (Ctrl+C, reboot) skips the finally that deletes its download. The no-sequence rule says
+    // nothing downloaded outlives ingestion, so sweep what an earlier run left. Only files over an hour old, so a
+    // second run started alongside keeps its in-flight download.
+    foreach (var leftover in Directory.EnumerateFiles(Path.GetTempPath(), "bvbrc_*.fna"))
+        if (File.GetLastWriteTimeUtc(leftover) < runStarted.AddHours(-1))
+        {
+            File.Delete(leftover);
+            Console.WriteLine($"  deleted leftover download {Path.GetFileName(leftover)}");
+        }
+
     List<BvBrcGenome> genomes;
     if (retryFailed)
     {
@@ -87,6 +97,17 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
     var statuses = await CrawlState.RegisterAsync(dataSource, GenomeIngestor.Provider, retryFailed ? null : group,
         genomes.Select(g => g.GenomeId).ToList());
 
+    var pending = genomes.Where(g => !CrawlState.IsFinal(statuses[g.GenomeId]) && (retryFailed || statuses[g.GenomeId] != CrawlState.Failed)).ToList();
+    Dictionary<string, List<BvBrcContig>>? listedContigs = null;
+    try
+    {
+        listedContigs = await client.ListContigsAsync(pending.Select(g => g.GenomeId).ToList());
+    }
+    catch (Exception e) when (e is HttpRequestException or InvalidOperationException or TaskCanceledException)
+    {
+        Console.WriteLine($"  batched contig listing failed ({e.Message}); listing per genome instead");
+    }
+
     var counts = new Dictionary<string, int>();
     int alreadyFinal = 0, failedSkipped = 0;
     foreach (var genome in genomes)
@@ -96,7 +117,7 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
         if (status == CrawlState.Failed && !retryFailed) { failedSkipped++; continue; }
 
         var started = DateTime.UtcNow;
-        var outcome = await ingestor.IngestAsync(genome);
+        var outcome = await ingestor.IngestAsync(genome, listedContigs?[genome.GenomeId]);
         counts[outcome.Status] = counts.GetValueOrDefault(outcome.Status) + 1;
         var detail = outcome.Status switch
         {

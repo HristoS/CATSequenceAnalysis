@@ -81,11 +81,12 @@ namespace SequencePlatform.Ingest
         /// Ingests one registered crawl item and records the outcome in crawl_item. Never throws for a
         /// per-genome problem: a failure is recorded with its message and returned, so the batch goes on.
         /// </summary>
-        public async Task<Outcome> IngestAsync(BvBrcGenome genome)
+        /// <param name="listedContigs">The genome's contigs from a batched listing; fetched here when null.</param>
+        public async Task<Outcome> IngestAsync(BvBrcGenome genome, IReadOnlyList<BvBrcContig>? listedContigs = null)
         {
             try
             {
-                var contigs = (await client.ListContigsAsync(genome.GenomeId)).ToDictionary(c => c.Accession, StringComparer.Ordinal);
+                var contigs = (listedContigs ?? await client.ListContigsAsync(genome.GenomeId)).ToDictionary(c => c.Accession, StringComparer.Ordinal);
                 if (await FindStoredCopyBeforeDownloadAsync(contigs.Values) is { } before)
                     return await MarkDuplicateAsync(genome, before.SourceId, before.By);
 

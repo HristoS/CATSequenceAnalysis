@@ -1,0 +1,7 @@
+Group, ListedByBvBrc, Done, Duplicate, FailedFinal, RetriedOnce, ProcessedInRun, ActiveMinutes, SecondsPerGenome, Note
+archaea, 374, 372, 2, 0, 0, 354, 8.1, 1.36, 2026-10-19 15:16-15:24; the other 20 were the S2.3 test batch
+bacteria, 6036, 6014, 22, 0, 11, 5666, 193.7, 2.05, 2026-10-19 15:10-16:55 (3141) and 2026-10-20 08:13-09:42 (2525); 205 more trickled in while the PC slept (one burst per hour); 29 of the 6036 were loaded before crawl state existed
+viruses, 15536, 13578, 1958, 0, 0, 15086, 313.3, 1.25, 2026-10-20 09:42-14:55 incl. an 18 min gap at 10:59-11:17 (1.17 s without it); duplicates = 12.6% of listed viruses; 100 were loaded before crawl state existed
+total, 21946, 19964, 1982, 0, 11, 21106, 515.1, 1.46, active time only; wall clock 2026-10-19 15:09 to 2026-10-20 15:05 (about 24 h, about 14.5 h asleep). Extrapolated beforehand: 6.5 h
+records, , , , , , , , , 24365 records: 13560 virus + 7977 bacterium + 2310 plasmid + 518 archaeon; 40 records (all <= 434 bp) have no 500 bp window and so no profile level
+storage, , , , , , , , , profile payload 824 MB (500 bp 620 MB / 2 kbp 155 MB / 8 kbp 39 MB / 32 kbp 10 MB); database 496 MB on disk (bytea compressed); 10/10 random genomes match the BV-BRC API on name, taxid, genus, family, length and record count
