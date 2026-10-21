@@ -43,6 +43,12 @@ dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name
 - `--group bacteria` and `--group archaea` select complete genomes marked Reference or Representative (6,036 and 374 on
   2026-10-19). `--group viruses` selects complete Reference genomes (15,536).
 - `--contact you@example.org` adds a contact address to the User-Agent. Recommended for large runs.
+- `load-taxonomy [--refresh] [--skip-gtdb]` (S2.4, migration 0006) fills `taxon` with NCBI's current lineage for every taxid the
+  catalogue references (NCBI Datasets API, 200 per request; a merged taxid resolves to the taxon it was merged into) and
+  `gtdb_taxon` with GTDB's lineage for every referenced bacterial or archaeal assembly (latest release, matched on the
+  accession without its GCA_/GCF_ prefix). A plain run fetches only taxids not yet in `taxon`, so run it after each ingest;
+  `--refresh` re-fetches all. `sequence_record` keeps BV-BRC's lineage as ingested; the view `lineage_difference` lists, per
+  record and rank, where it and NCBI's differ (`differs`, `ncbi_only`, `provider_only`).
 
 ## Behaviour
 

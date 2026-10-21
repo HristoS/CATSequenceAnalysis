@@ -1,4 +1,3 @@
-using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -23,17 +22,16 @@ namespace SequencePlatform.Ingest
     internal sealed record DownloadedFile(string Path, string Url, byte[] Sha256, long ByteSize);
 
     /// <summary>
-    /// Minimal client for the BV-BRC data API (https://www.bv-brc.org/api/). Deliberately polite:
-    /// requests are sequential and at least <see cref="minRequestInterval"/> apart, and 429/5xx
-    /// responses are retried with exponential backoff that honours Retry-After. BV-BRC publishes
-    /// no rate limit, so this stays well under anything a public service would object to.
+    /// Minimal client for the BV-BRC data API (https://www.bv-brc.org/api/). Deliberately polite
+    /// (<see cref="PoliteHttpClient"/>): requests are sequential and at least <see cref="minRequestInterval"/>
+    /// apart, and 429/5xx responses are retried with backoff. BV-BRC publishes no rate limit, so this stays
+    /// well under anything a public service would object to.
     /// FASTA comes from the API (Accept: application/dna+fasta) because the FTP host isn't
     /// reachable from every network.
     /// </summary>
     internal sealed class BvBrcClient : IDisposable
     {
         private const string apiBase = "https://www.bv-brc.org/api/";
-        private const int maxAttempts = 5;
         private static readonly TimeSpan minRequestInterval = TimeSpan.FromSeconds(1);
 
         private static readonly string[] genomeFields =
@@ -45,14 +43,11 @@ namespace SequencePlatform.Ingest
             "assembly_accession", "refseq_accessions", "genbank_accessions", "bioproject_accession", "biosample_accession",
         };
 
-        private readonly HttpClient http;
-        private DateTime lastRequestUtc = DateTime.MinValue;
+        private readonly PoliteHttpClient http;
 
         public BvBrcClient(string? contactEmail)
         {
-            http = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-            var agent = "SequencePlatform.Ingest/0.1 (research test" + (contactEmail is null ? "" : $"; mailto:{contactEmail}") + ")";
-            http.DefaultRequestHeaders.UserAgent.ParseAdd(agent);
+            http = new PoliteHttpClient("BV-BRC", contactEmail, minRequestInterval);
         }
 
         public static string GroupFilter(string group) => group switch
@@ -150,39 +145,8 @@ namespace SequencePlatform.Ingest
             return new DownloadedFile(path, url, sha.GetHashAndReset(), size);
         }
 
-        private async Task<HttpResponseMessage> SendAsync(string url, string accept, HttpCompletionOption completion = HttpCompletionOption.ResponseContentRead)
-        {
-            for (int attempt = 1; ; attempt++)
-            {
-                var wait = lastRequestUtc + minRequestInterval - DateTime.UtcNow;
-                if (wait > TimeSpan.Zero) await Task.Delay(wait);
-                lastRequestUtc = DateTime.UtcNow;
-
-                using var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Accept.ParseAdd(accept);
-
-                HttpResponseMessage? response = null;
-                try
-                {
-                    response = await http.SendAsync(request, completion);
-                    if (response.IsSuccessStatusCode) return response;
-                    // Other 4xx won't succeed on retry; a distinct exception type keeps it out of the retry catch below.
-                    if (response.StatusCode != HttpStatusCode.TooManyRequests && (int)response.StatusCode < 500)
-                        throw new InvalidOperationException($"BV-BRC returned {(int)response.StatusCode} for {url}");
-                }
-                catch (Exception e) when (e is HttpRequestException or TaskCanceledException && attempt < maxAttempts)
-                {
-                    Console.WriteLine($"  request failed ({e.Message}), retrying");
-                }
-
-                if (attempt >= maxAttempts)
-                    throw new HttpRequestException($"BV-BRC request failed after {maxAttempts} attempts: {url}");
-
-                var backoff = response?.Headers.RetryAfter?.Delta ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                response?.Dispose();
-                await Task.Delay(backoff);
-            }
-        }
+        private Task<HttpResponseMessage> SendAsync(string url, string accept, HttpCompletionOption completion = HttpCompletionOption.ResponseContentRead) =>
+            http.SendAsync(url, accept, completion);
 
         public void Dispose() => http.Dispose();
     }

@@ -7,10 +7,11 @@ using SequencePlatform.Ingest;
 //
 //   migrate                                   create the database if missing, apply migrations
 //   ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed]
+//   load-taxonomy [--refresh] [--skip-gtdb]   NCBI's current lineage per referenced taxid, GTDB's per assembly (S2.4)
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
 const string usage =
-    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | stats\n" +
+    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]";
 
 if (args.Length == 0)
@@ -45,6 +46,9 @@ switch (args[0])
             int.Parse(Option("--offset") ?? "0"),
             Option("--contact"),
             retryFailed);
+
+    case "load-taxonomy":
+        return await LoadTaxonomyAsync(dataSource, args.Contains("--refresh"), args.Contains("--skip-gtdb"), Option("--contact"));
 
     case "stats":
         await PrintStatsAsync(dataSource);
@@ -136,6 +140,35 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
         $"{alreadyFinal} already handled, {failedSkipped} failed earlier (use --retry-failed). " +
         $"{elapsed.TotalSeconds:F0} s{(processed > 0 ? $", {elapsed.TotalSeconds / processed:F2} s per processed genome" : "")}.");
     return counts.ContainsKey(CrawlState.Failed) ? 2 : 0;
+}
+
+static async Task<int> LoadTaxonomyAsync(NpgsqlDataSource dataSource, bool refresh, bool skipGtdb, string? contact)
+{
+    using var loader = new TaxonomyLoader(dataSource, contact);
+    var ncbi = await loader.LoadNcbiAsync(refresh);
+    var unanswered = ncbi.Asked - ncbi.Current - ncbi.Merged - ncbi.Unknown;
+    Console.WriteLine($"NCBI: {ncbi.Asked:N0} taxids asked: {ncbi.Current:N0} current, {ncbi.Merged:N0} merged into another, " +
+        $"{ncbi.Unknown:N0} unknown, {unanswered:N0} unanswered (a re-run asks again).");
+    // The S2.4 card's stop criterion: if the API can't resolve this many, the full dump with its merge tables is needed.
+    if (ncbi.Asked > 0 && (ncbi.Unknown + unanswered) > 0.05 * ncbi.Asked)
+        Console.WriteLine("  WARNING: over 5% of taxids unresolved; consider the full new_taxdump instead.");
+
+    if (!skipGtdb)
+    {
+        var gtdb = await loader.LoadGtdbAsync();
+        Console.WriteLine($"GTDB {gtdb.Release}: {gtdb.Matched:N0} of {gtdb.Referenced:N0} referenced bacterial and archaeal assemblies listed.");
+    }
+
+    await using var command = dataSource.CreateCommand(
+        "select rank, outcome, count(*) from lineage_difference group by 1, 2 order by min(case rank when 'superkingdom' then 0 " +
+        "when 'realm' then 1 when 'kingdom' then 2 when 'phylum' then 3 when 'class' then 4 when 'order' then 5 when 'family' then 6 " +
+        "when 'genus' then 7 else 8 end), 2");
+    await using var reader = await command.ExecuteReaderAsync();
+    Console.WriteLine();
+    Console.WriteLine($"{"rank",-13} {"outcome",-14} {"records",8}   (provider lineage vs NCBI's current one; view lineage_difference)");
+    while (await reader.ReadAsync())
+        Console.WriteLine($"{reader.GetString(0),-13} {reader.GetString(1),-14} {reader.GetInt64(2),8:N0}");
+    return 0;
 }
 
 static async Task PrintListAsync(NpgsqlDataSource dataSource, CatalogueFilter filter, long after, int limit)
