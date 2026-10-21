@@ -456,6 +456,161 @@ namespace SequenceAnaliseTests
             report.Flush();
         }
 
+        // S3.4 pre-check (platform P3): database-decision.md section 5.2 re-ranks a search's top K at
+        // 500 bp, but the pooled AUCs above rank bacteria better at 32 kbp than at 500 bp. Each query's
+        // ranked list (CompareForQuery) is ordered by its level score, then its top K is re-ordered by
+        // the 500 bp score. Read per query, as one search returns it: rank-based AUC, whether the top
+        // hit is positive, and the reciprocal rank of the first positive. K = 0 is no re-rank.
+        [Test]
+        public void RerankTopKAtFineLevel()
+        {
+            using var report = File.CreateText("MultiResolution_Rerank.csv");
+            report.WriteLine("Corpus, Relationship, K, Queries, MeanQueryAuc, TopHitPositive, MeanReciprocalRank");
+
+            var bacterial = Corpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
+            var viral = ViralCorpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
+            RerankCorpus("Bacterial", bacterial, (a, b) =>
+            {
+                var level = GenomeTaxonomy.Classify(Corpus[a].Meta, Corpus[b].Meta);
+                return (level is RelationshipLevel.SameSpecies or RelationshipLevel.SameGenus, level is not RelationshipLevel.DifferentPhylum);
+            }, report);
+            RerankCorpus("Viral", viral, (a, b) =>
+            {
+                var level = ViralTaxonomy.Classify(ViralCorpus[a].Meta, ViralCorpus[b].Meta);
+                return (level is ViralRelationshipLevel.SameGenus, level is not ViralRelationshipLevel.DifferentFamily);
+            }, report);
+
+            Assert.Pass();
+        }
+
+        // S3.4 revised (platform P3): find-similar compares the query only with candidates of comparable
+        // length (ratio >= r, on fine window counts) at ZCurveProfileLadder.SelectBandFactor's level, because
+        // across very different lengths the score measures containment (results/S34_LengthGate.csv).
+        // The band changes which pairs count, so the C4 per-query rule is also scored on the same kept
+        // pairs: the difference between those two rows is the level change alone. Ratio 0 is C4 itself.
+        [Test]
+        public void LengthBandAgainstPerQueryLevel()
+        {
+            using var report = File.CreateText("MultiResolution_LengthBand.csv");
+            report.WriteLine("Corpus, Ratio, Method, KeptPairs, QueriesClose, MeanQueryAucClose, QueriesRelated, MeanQueryAucRelated");
+
+            var bacterial = Corpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
+            var viral = ViralCorpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
+            BandCorpus("Bacterial", bacterial, (a, b) =>
+            {
+                var level = GenomeTaxonomy.Classify(Corpus[a].Meta, Corpus[b].Meta);
+                return (level is RelationshipLevel.SameSpecies or RelationshipLevel.SameGenus, level is not RelationshipLevel.DifferentPhylum);
+            }, report);
+            BandCorpus("Viral", viral, (a, b) =>
+            {
+                var level = ViralTaxonomy.Classify(ViralCorpus[a].Meta, ViralCorpus[b].Meta);
+                return (level is ViralRelationshipLevel.SameGenus, level is not ViralRelationshipLevel.DifferentFamily);
+            }, report);
+
+            Assert.Pass();
+        }
+
+        private static readonly double[] bandRatios = { 0, 0.25, 0.5, 0.75 };
+
+        private static void BandCorpus(
+            string corpusName,
+            List<ZCurveProfileLadder> ladders,
+            Func<int, int, (bool Close, bool Related)> label,
+            StreamWriter report)
+        {
+            foreach (var ratio in bandRatios)
+            {
+                var band = new List<(int Query, bool Close, bool Related, double Score)>();
+                var perQuery = new List<(int Query, bool Close, bool Related, double Score)>();
+                for (int q = 0; q < ladders.Count; q++)
+                {
+                    int? bandFactor = ratio > 0 ? ZCurveProfileLadder.SelectBandFactor(ladders[q], ratio) : null;
+                    for (int c = 0; c < ladders.Count; c++)
+                    {
+                        if (c == q) continue;
+                        double qWindows = ladders[q].Fine.WindowCount, cWindows = ladders[c].Fine.WindowCount;
+                        if (Math.Min(qWindows, cWindows) < ratio * Math.Max(qWindows, cWindows)) continue;
+
+                        var (close, related) = label(q, c);
+                        var c4 = ZCurveProfileLadder.CompareForQuery(ladders[q], ladders[c]);
+                        if (c4.List == SearchList.Ranked) perQuery.Add((q, close, related, c4.Score!.Value));
+                        if (bandFactor is int f)
+                            band.Add((q, close, related, ZCurveWindowedProfile.Compare(ladders[q].Level(f), ladders[c].Level(f))));
+                    }
+                }
+
+                void Write(string method, List<(int Query, bool Close, bool Related, double Score)> rows)
+                {
+                    (int Queries, double Mean) Mean(Func<(int Query, bool Close, bool Related, double Score), bool> isPositive)
+                    {
+                        var aucs = rows.GroupBy(r => r.Query).Select(g =>
+                        {
+                            var positives = g.Where(isPositive).Select(r => r.Score).ToList();
+                            var negatives = g.Where(r => !isPositive(r)).Select(r => r.Score).ToList();
+                            return positives.Count == 0 || negatives.Count == 0 ? double.NaN : RetrievalClassificationBenchmark.ComputeAuc(positives, negatives);
+                        }).Where(a => !double.IsNaN(a)).ToList();
+                        return (aucs.Count, aucs.Count == 0 ? double.NaN : aucs.Average());
+                    }
+
+                    var close = Mean(r => r.Close);
+                    var related = Mean(r => r.Related);
+                    report.WriteLine($"{corpusName}, {ratio}, {method}, {rows.Count}, {close.Queries}, {close.Mean}, {related.Queries}, {related.Mean}");
+                    TestContext.Out.WriteLine($"{corpusName,-9} r={ratio,-4} {method,-16} pairs={rows.Count,4}  " +
+                        $"close={close.Mean:F4} (n={close.Queries})  related={related.Mean:F4} (n={related.Queries})");
+                }
+
+                Write("PerQueryLevel", perQuery);
+                if (ratio > 0) Write("BandLevel", band);
+            }
+            report.Flush();
+        }
+
+        private static readonly int[] rerankDepths = { 0, 3, 5, 10 };
+
+        private static void RerankCorpus(
+            string corpusName,
+            List<ZCurveProfileLadder> ladders,
+            Func<int, int, (bool Close, bool Related)> label,
+            StreamWriter report)
+        {
+            foreach (var relationship in new[] { "Close", "Related" })
+                foreach (var k in rerankDepths)
+                {
+                    var perQuery = new List<(double Auc, bool TopHit, double ReciprocalRank)>();
+                    for (int q = 0; q < ladders.Count; q++)
+                    {
+                        var ranked = Enumerable.Range(0, ladders.Count)
+                            .Where(c => c != q)
+                            .Select(c => (Candidate: c, Match: ZCurveProfileLadder.CompareForQuery(ladders[q], ladders[c])))
+                            .Where(x => x.Match.List == SearchList.Ranked)
+                            .OrderByDescending(x => x.Match.Score!.Value)
+                            .Select(x => x.Candidate)
+                            .ToList();
+                        var head = ranked.Take(k)
+                            .OrderByDescending(c => ZCurveWindowedProfile.Compare(ladders[q].Fine, ladders[c].Fine))
+                            .ToList();
+                        var order = head.Concat(ranked.Skip(k)).ToList();
+
+                        var positive = order.Select(c => relationship == "Close" ? label(q, c).Close : label(q, c).Related).ToList();
+                        int positives = positive.Count(p => p);
+                        if (positives == 0 || positives == positive.Count) continue;
+
+                        // Higher score = earlier in the list, so rank n - i stands in for the score.
+                        var auc = RetrievalClassificationBenchmark.ComputeAuc(
+                            Enumerable.Range(0, order.Count).Where(i => positive[i]).Select(i => (double)(order.Count - i)).ToList(),
+                            Enumerable.Range(0, order.Count).Where(i => !positive[i]).Select(i => (double)(order.Count - i)).ToList());
+                        perQuery.Add((auc, positive[0], 1.0 / (positive.IndexOf(true) + 1)));
+                    }
+
+                    var row = (Auc: perQuery.Average(p => p.Auc), TopHit: perQuery.Count(p => p.TopHit) / (double)perQuery.Count,
+                        Mrr: perQuery.Average(p => p.ReciprocalRank));
+                    report.WriteLine($"{corpusName}, {relationship}, {k}, {perQuery.Count}, {row.Auc}, {row.TopHit}, {row.Mrr}");
+                    TestContext.Out.WriteLine($"{corpusName,-9} {relationship,-7} K={k,2}  queries={perQuery.Count,2}  " +
+                        $"AUC={row.Auc:F4}  top hit={row.TopHit:F3}  MRR={row.Mrr:F3}");
+                }
+            report.Flush();
+        }
+
         [Test]
         public void GcAxisWeightSweep()
         {

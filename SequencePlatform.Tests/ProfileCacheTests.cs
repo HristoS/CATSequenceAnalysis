@@ -80,6 +80,19 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task LengthRangeHoldsOnlyRecordsInIt()
+        {
+            await StoreAsync("range", "short", 10_000, seed: 1);
+            var (inRange, _) = await StoreAsync("range", "middle", 40_000, seed: 2);
+            await StoreAsync("range", "long", 300_000, seed: 3);
+            var cache = new ProfileCache(ThrowawayDatabase.DataSource, 500, method, "range", new LengthRange(20_000, 300_000));
+
+            Assert.That(await cache.RefreshAsync(), Is.EqualTo((1, false)), "the upper end is exclusive");
+            Assert.That(cache.Profiles.Keys, Is.EqualTo(new[] { inRange }));
+            Assert.That(await cache.RefreshAsync(), Is.EqualTo((0, false)), "records outside the range don't look like deletions");
+        }
+
+        [Test]
         public async Task SnapshotTakenBeforeARefreshDoesNotChange()
         {
             await StoreAsync("snapshot", "a", 40_000, seed: 1);

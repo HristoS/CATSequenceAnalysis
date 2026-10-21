@@ -1,4 +1,6 @@
+using System.Globalization;
 using Npgsql;
+using SequenceAnalyses;
 using SequencePlatform.Core;
 using SequencePlatform.Ingest;
 
@@ -10,9 +12,12 @@ using SequencePlatform.Ingest;
 //   load-taxonomy [--refresh] [--skip-gtdb]   NCBI's current lineage per referenced taxid, GTDB's per assembly (S2.4)
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
+//   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
+//   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
-    "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]";
+    "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
+    "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]";
 
 if (args.Length == 0)
 {
@@ -25,6 +30,16 @@ string? Option(string name)
     var index = Array.IndexOf(args, name);
     return index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
 }
+
+// Profiling a query needs no database, so it runs before the connection is opened.
+if (args[0] == "profile")
+    return WriteQueryProfiles(Option("--fasta"), Option("--out"));
+
+CatalogueFilter Filter() => new(
+    Option("--kind"), Option("--rank"), Option("--taxon"),
+    Option("--min-length") is { } min ? long.Parse(min) : null,
+    Option("--max-length") is { } max ? long.Parse(max) : null,
+    Option("--provider"), Option("--name"));
 
 var settings = Database.ConnectionSettings(ConnectionString.Resolve());
 await Database.EnsureDatabaseAsync(settings);
@@ -55,13 +70,13 @@ switch (args[0])
         return 0;
 
     case "list":
-        var filter = new CatalogueFilter(
-            Option("--kind"), Option("--rank"), Option("--taxon"),
-            Option("--min-length") is { } min ? long.Parse(min) : null,
-            Option("--max-length") is { } max ? long.Parse(max) : null,
-            Option("--provider"), Option("--name"));
-        await PrintListAsync(dataSource, filter, long.Parse(Option("--after") ?? "0"), int.Parse(Option("--limit") ?? "50"));
+        await PrintListAsync(dataSource, Filter(), long.Parse(Option("--after") ?? "0"), int.Parse(Option("--limit") ?? "50"));
         return 0;
+
+    case "search-similar":
+        return await SearchSimilarAsync(dataSource, Option("--fasta"), Option("--profile"), Filter(),
+            double.Parse(Option("--ratio") ?? SimilaritySearch.DefaultLengthRatio.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture),
+            int.Parse(Option("--top") ?? "20"));
 
     default:
         Console.WriteLine(usage);
@@ -170,6 +185,93 @@ static async Task<int> LoadTaxonomyAsync(NpgsqlDataSource dataSource, bool refre
         Console.WriteLine($"{reader.GetString(0),-13} {reader.GetString(1),-14} {reader.GetInt64(2),8:N0}");
     return 0;
 }
+
+// One output pair per FASTA record: <out> and its .rc twin when the file has one record, <out minus .zcwp>.<record id>.zcwp
+// otherwise. The reverse strand is profiled from the reverse-complement DNA (exact), so a profile-only search keeps both strands.
+static int WriteQueryProfiles(string? fasta, string? output)
+{
+    if (fasta is null || output is null)
+    {
+        Console.WriteLine("usage: profile --fasta X --out X.zcwp");
+        return 1;
+    }
+
+    var headers = FastaReader.ReadHeaders(fasta).ToList();
+    foreach (var (recordId, _) in headers)
+    {
+        using var reader = FastaReader.OpenSequenceReader(fasta, recordId);
+        var query = QueryProfile.FromSequence(reader.ReadToEnd());
+        var path = headers.Count == 1 ? output : $"{Path.ChangeExtension(output, null)}.{recordId}.zcwp";
+        File.WriteAllBytes(path, query.Forward.Fine.ToBinary());
+        File.WriteAllBytes(ReverseStrandPath(path), query.Reverse!.Fine.ToBinary());
+        Console.WriteLine($"{recordId}: {query.Forward.Fine.WindowCount:N0} windows -> {path} and {ReverseStrandPath(path)}");
+    }
+    return 0;
+}
+
+static string ReverseStrandPath(string path) => Path.ChangeExtension(path, null) + ".rc.zcwp";
+
+static async Task<int> SearchSimilarAsync(NpgsqlDataSource dataSource, string? fasta, string? profile, CatalogueFilter filter, double ratio, int top)
+{
+    var queries = new List<(string Name, QueryProfile Query)>();
+    if (fasta is not null)
+        foreach (var (recordId, _) in FastaReader.ReadHeaders(fasta))
+        {
+            using var reader = FastaReader.OpenSequenceReader(fasta, recordId);
+            queries.Add((recordId, QueryProfile.FromSequence(reader.ReadToEnd())));
+        }
+    else if (profile is not null)
+    {
+        var reversePath = ReverseStrandPath(profile);
+        var reverse = File.Exists(reversePath) ? ZCurveWindowedProfile.FromBinary(File.ReadAllBytes(reversePath)) : null;
+        if (reverse is null) Console.WriteLine($"No {reversePath}: searching the forward strand only.");
+        queries.Add((Path.GetFileName(profile), QueryProfile.FromProfiles(ZCurveWindowedProfile.FromBinary(File.ReadAllBytes(profile)), reverse)));
+    }
+    else
+    {
+        Console.WriteLine("usage: search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]");
+        return 1;
+    }
+
+    // One process, one or a few queries: reading each band from the database beats loading a cache.
+    var search = new SimilaritySearch(dataSource, useCache: false);
+    foreach (var (name, query) in queries)
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var result = await search.SearchAsync(query, filter, ratio, top);
+        var elapsed = watch.Elapsed;
+        var records = await Catalogue.ByIdsAsync(dataSource,
+            result.Ranked.Select(h => h.SequenceId).Concat(result.Identical.Select(i => i.SequenceId)).ToHashSet());
+
+        Console.WriteLine();
+        Console.WriteLine($"Query {name}: {query.LengthBp:N0} bp, {(query.Reverse is null ? "forward strand only" : "both strands")}; " +
+            (result.QueryWindowSize is { } w ? $"compared at {w:N0} bp" : "shorter than one window, comparable with nothing") +
+            $" with records of {result.Lengths.Min:N0} to {result.Lengths.MaxOrUnbounded - 1:N0} bp (length ratio {ratio}). {elapsed.TotalMilliseconds:F0} ms.");
+        foreach (var (id, strand) in result.Identical)
+            Console.WriteLine($"  identical sequence ({strand} strand, by SHA-256): {Describe(records, id)}");
+
+        PrintHits($"Ranked: top {result.Ranked.Count} of {result.RankedTotal:N0}", result.Ranked, records);
+        if (result.NotComparable.Count > 0)
+            Console.WriteLine($"Not comparable (no stored level at {result.QueryWindowSize:N0} bp): {result.NotComparable.Count:N0} records.");
+    }
+    return 0;
+}
+
+static void PrintHits(string title, IReadOnlyList<SimilarityHit> hits, IReadOnlyDictionary<long, CatalogueRecord> records)
+{
+    Console.WriteLine(title);
+    if (hits.Count == 0) return;
+    Console.WriteLine($"  {"#",3} {"score",7} {"strand",-7} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
+    for (int i = 0; i < hits.Count; i++)
+    {
+        var h = hits[i];
+        var r = records.GetValueOrDefault(h.SequenceId);
+        Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {h.Strand,-7} {h.SequenceId,7} {r?.Kind,-10} {r?.LengthBp,12:N0} {r?.Lineage.Genus,-20} {r?.Name}");
+    }
+}
+
+static string Describe(IReadOnlyDictionary<long, CatalogueRecord> records, long id) =>
+    records.TryGetValue(id, out var r) ? $"{id} {r.RecordId} {r.Name}" : id.ToString();
 
 static async Task PrintListAsync(NpgsqlDataSource dataSource, CatalogueFilter filter, long after, int limit)
 {

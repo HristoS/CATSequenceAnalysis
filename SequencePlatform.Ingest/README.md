@@ -31,6 +31,9 @@ dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group bacteria --
 dotnet run --project SequencePlatform.Ingest -- stats
 dotnet run --project SequencePlatform.Ingest -- list --kind bacterium --rank phylum --taxon Pseudomonadota --limit 20
 dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name borrel --after 120
+dotnet run -c Release --project SequencePlatform.Ingest -- search-similar --fasta query.fna.gz --top 20
+dotnet run --project SequencePlatform.Ingest -- profile --fasta query.fna.gz --out query.zcwp
+dotnet run -c Release --project SequencePlatform.Ingest -- search-similar --profile query.zcwp --kind virus
 ```
 
 - `migrate` creates the database if it's missing and applies `SequencePlatform.Core/Migrations/*.sql` in order, recorded in
@@ -43,6 +46,15 @@ dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name
 - `--group bacteria` and `--group archaea` select complete genomes marked Reference or Representative (6,036 and 374 on
   2026-10-19). `--group viruses` selects complete Reference genomes (15,536).
 - `--contact you@example.org` adds a contact address to the User-Agent. Recommended for large runs.
+- `search-similar --fasta X | --profile X.zcwp` (P3 S3.4) ranks the records of comparable length, [r × L, L / r] for a query
+  of length L, by `ZCurveWindowedProfile` similarity at one ladder level, the better of the query's two strands. `--ratio` is
+  0.25–1, default 0.5; `list`'s filters narrow the candidates further; `--top` defaults to 20. Records with the same
+  `sequence_sha256` on either strand are listed first as identical sequences. Each FASTA record is its own query. Very different
+  lengths aren't compared, because there the score measures whether the shorter sequence is contained in the longer
+  (`results/S34_LengthGate.csv`). The query file is read and kept in memory only; nothing of it is stored.
+- `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
+  `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
+  forward strand only. A file with several records writes `X.<record id>.zcwp` per record.
 - `load-taxonomy [--refresh] [--skip-gtdb]` (S2.4, migration 0006) fills `taxon` with NCBI's current lineage for every taxid the
   catalogue references (NCBI Datasets API, 200 per request; a merged taxid resolves to the taxon it was merged into) and
   `gtdb_taxon` with GTDB's lineage for every referenced bacterial or archaeal assembly (latest release, matched on the

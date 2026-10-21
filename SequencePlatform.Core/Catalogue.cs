@@ -46,19 +46,60 @@ namespace SequencePlatform.Core
 
         public static IReadOnlyCollection<string> Ranks => rankColumns.Keys;
 
+        private const string recordColumns =
+            "select r.id, s.provider, s.accession, r.record_id, r.name, r.kind, r.length_bp, r.gc_fraction, r.ncbi_taxid, " +
+            "r.tax_superkingdom, r.tax_realm, r.tax_kingdom, r.tax_phylum, r.tax_class, r.tax_order, r.tax_family, r.tax_genus, r.tax_species " +
+            "from sequence_record r join sequence_source s on s.id = r.source_id";
+
         public static async Task<CataloguePage> ListAsync(NpgsqlDataSource dataSource, CatalogueFilter filter, long after = 0, int limit = 50)
         {
             if (limit < 1 || limit > MaxPageSize)
                 throw new ArgumentOutOfRangeException(nameof(limit), $"Page size must be 1 to {MaxPageSize}.");
-            if ((filter.Rank is null) != (filter.Taxon is null))
-                throw new ArgumentException("Rank and taxon filter go together.", nameof(filter));
 
             await using var command = dataSource.CreateCommand();
-            var sql = new StringBuilder(
-                "select r.id, s.provider, s.accession, r.record_id, r.name, r.kind, r.length_bp, r.gc_fraction, r.ncbi_taxid, " +
-                "r.tax_superkingdom, r.tax_realm, r.tax_kingdom, r.tax_phylum, r.tax_class, r.tax_order, r.tax_family, r.tax_genus, r.tax_species " +
-                "from sequence_record r join sequence_source s on s.id = r.source_id where r.id > $1");
+            var sql = new StringBuilder(recordColumns).Append(" where r.id > $1");
             command.Parameters.AddWithValue(after);
+            AppendFilter(command, sql, filter);
+
+            // One row past the page tells whether another page exists without a count query.
+            sql.Append(" order by r.id limit ").Append(limit + 1);
+            command.CommandText = sql.ToString();
+
+            var records = await ReadRecordsAsync(command, limit + 1);
+            if (records.Count <= limit) return new CataloguePage(records, null);
+            records.RemoveAt(limit);
+            return new CataloguePage(records, records[^1].Id);
+        }
+
+        /// <summary>Every record id the filter matches, unpaged: a search's candidate set (P3 S3.4).</summary>
+        public static async Task<HashSet<long>> IdsAsync(NpgsqlDataSource dataSource, CatalogueFilter filter, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand();
+            var sql = new StringBuilder("select r.id from sequence_record r join sequence_source s on s.id = r.source_id where true");
+            AppendFilter(command, sql, filter);
+            command.CommandText = sql.ToString();
+
+            var ids = new HashSet<long>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                ids.Add(reader.GetInt64(0));
+            return ids;
+        }
+
+        /// <summary>The records with these ids, keyed by id; ids that don't exist are left out.</summary>
+        public static async Task<IReadOnlyDictionary<long, CatalogueRecord>> ByIdsAsync(NpgsqlDataSource dataSource, IReadOnlyCollection<long> ids,
+            CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(recordColumns + " where r.id = any($1)");
+            command.Parameters.AddWithValue(ids.ToArray());
+            var records = await ReadRecordsAsync(command, ids.Count, cancellationToken);
+            return records.ToDictionary(r => r.Id);
+        }
+
+        private static void AppendFilter(NpgsqlCommand command, StringBuilder sql, CatalogueFilter filter)
+        {
+            if ((filter.Rank is null) != (filter.Taxon is null))
+                throw new ArgumentException("Rank and taxon filter go together.", nameof(filter));
 
             void Where(string condition, object value)
             {
@@ -77,26 +118,23 @@ namespace SequencePlatform.Core
             if (filter.MaxLengthBp is not null) Where("r.length_bp <= @", filter.MaxLengthBp.Value);
             if (filter.Provider is not null) Where("s.provider = @", filter.Provider);
             if (filter.NameContains is not null) Where(@"r.name ilike '%' || @ || '%' escape '\'", EscapeLike(filter.NameContains));
+        }
 
-            // One row past the page tells whether another page exists without a count query.
-            sql.Append(" order by r.id limit ").Append(limit + 1);
-            command.CommandText = sql.ToString();
-
-            var records = new List<CatalogueRecord>(limit + 1);
-            await using (var reader = await command.ExecuteReaderAsync())
-                while (await reader.ReadAsync())
-                {
-                    string? Text(int i) => reader.IsDBNull(i) ? null : reader.GetString(i);
-                    records.Add(new CatalogueRecord(
-                        reader.GetInt64(0), reader.GetString(1), Text(2), reader.GetString(3), Text(4), reader.GetString(5), reader.GetInt64(6),
-                        reader.IsDBNull(7) ? null : reader.GetFloat(7),
-                        reader.IsDBNull(8) ? null : reader.GetInt32(8),
-                        new Lineage(Text(9), Text(10), Text(11), Text(12), Text(13), Text(14), Text(15), Text(16), Text(17))));
-                }
-
-            if (records.Count <= limit) return new CataloguePage(records, null);
-            records.RemoveAt(limit);
-            return new CataloguePage(records, records[^1].Id);
+        // Columns in recordColumns order.
+        private static async Task<List<CatalogueRecord>> ReadRecordsAsync(NpgsqlCommand command, int capacity, CancellationToken cancellationToken = default)
+        {
+            var records = new List<CatalogueRecord>(capacity);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                string? Text(int i) => reader.IsDBNull(i) ? null : reader.GetString(i);
+                records.Add(new CatalogueRecord(
+                    reader.GetInt64(0), reader.GetString(1), Text(2), reader.GetString(3), Text(4), reader.GetString(5), reader.GetInt64(6),
+                    reader.IsDBNull(7) ? null : reader.GetFloat(7),
+                    reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                    new Lineage(Text(9), Text(10), Text(11), Text(12), Text(13), Text(14), Text(15), Text(16), Text(17))));
+            }
+            return records;
         }
 
         private static string EscapeLike(string text) =>

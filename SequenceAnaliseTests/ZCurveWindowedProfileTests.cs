@@ -227,6 +227,25 @@ namespace SequenceAnaliseTests
             Assert.That(ZCurveProfileLadder.SelectQueryFactor(LadderOf(length, seed: 1)), Is.EqualTo(expectedFactor));
         }
 
+        [TestCase(600_000, 0.5, 64)]   // 18 windows at 32 kbp: 9 >= 8
+        [TestCase(500_000, 0.5, 16)]   // 15 windows at 32 kbp: 7.5 < 8
+        [TestCase(500_000, 1.0, 64)]   // ratio 1 is SelectQueryFactor
+        [TestCase(40_000, 0.5, 4)]     // 20 windows at 2 kbp: 10 >= 8
+        [TestCase(10_000, 0.5, 1)]     // 20 fine windows: 10 >= 8
+        [TestCase(6_000, 0.5, 1)]      // 12 fine windows: 6 < 8 anywhere, falls back to the fine level
+        [TestCase(499, 0.5, null)]
+        public void BandFactorLeavesTheShortestAllowedCandidateEnoughWindows(int length, double ratio, int? expectedFactor)
+        {
+            var query = LadderOf(length, seed: 1);
+            Assert.That(ZCurveProfileLadder.SelectBandFactor(query, ratio), Is.EqualTo(expectedFactor));
+
+            if (expectedFactor is int f && f > 1)
+            {
+                var shortest = LadderOf((int)Math.Ceiling(ratio * length), seed: 2);
+                Assert.That(shortest.Level(f).WindowCount, Is.GreaterThanOrEqualTo(ZCurveProfileLadder.DefaultMinWindows));
+            }
+        }
+
         [Test]
         public void SearchScoresEveryRankedCandidateAtTheQueryLevel()
         {

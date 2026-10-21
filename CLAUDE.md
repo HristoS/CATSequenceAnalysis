@@ -77,10 +77,11 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   as embedded `Migrations/*.sql` (append-only once applied; versions are the file names), `ProfileLevels` (ladder levels as
   ZCWP bytes inline up to 1 MB: insert in the caller's transaction, read one, stream one level of all sequences),
   `Catalogue` (keyset-paged record listing with kind/rank/length/provider/name filters), `ConnectionString`, `ProfileCache`
-  (one level of every record in memory for the search scan, refreshed incrementally; 500 bp ≈ 0.62 GB on the local catalogue).
+  (one level, optionally one length range, in memory, refreshed incrementally), `SimilaritySearch` (find-similar: only records
+  of length [rL, L/r], default r = 0.5, at one level, both query strands; unbanded scores measure containment, not similarity).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
-  string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `stats`, `list`;
-  see its README.
+  string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `load-taxonomy`, `stats`, `list`,
+  `profile`, `search-similar`; see its README.
 - `SequencePlatform.Tests/` (NUnit 4): each run creates `sequence_platform_test_<random>`, migrates it, and drops it.
 - Connection string from the `SEQUENCE_PLATFORM_DB` env var, else the git-ignored `SequencePlatform.Ingest/appsettings.json`
   (`ConnectionStrings:SequencePlatform`; the test project links the same file); never commit it. Local development DB:

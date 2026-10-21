@@ -4,7 +4,7 @@ using SequenceAnalyses;
 namespace SequencePlatform.Core
 {
     /// <summary>
-    /// One ladder level (method, version, window size) of every stored record, held in memory for the
+    /// One ladder level (method, version, window size) of every stored record in a length range, held in memory for the
     /// search scan (docs/database-decision.md section 5.2, P3 step S3.3). Each profile already keeps its
     /// windows as three per-axis float arrays, the layout <see cref="ZCurveWindowedProfile.BestAlignment"/>
     /// vectorizes over, so the cache is a map from sequence id to profile and adds no copy.
@@ -24,6 +24,9 @@ namespace SequencePlatform.Core
 
         public int WindowSize { get; }
 
+        /// <summary>Record lengths this level is held for. A record's length never changes, so the range can't hide a deletion.</summary>
+        public LengthRange Lengths { get; }
+
         public IReadOnlyDictionary<long, ZCurveWindowedProfile> Profiles => current.Profiles;
 
         public long WindowCount => current.WindowCount;
@@ -32,12 +35,13 @@ namespace SequencePlatform.Core
         public long WindowBytes => current.WindowCount * 12;
 
         public ProfileCache(NpgsqlDataSource dataSource, int windowSize,
-            string method = RecordStore.Method, string methodVersion = RecordStore.MethodVersion)
+            string method = RecordStore.Method, string methodVersion = RecordStore.MethodVersion, LengthRange lengths = default)
         {
             this.dataSource = dataSource;
             this.method = method;
             this.methodVersion = methodVersion;
             WindowSize = windowSize;
+            Lengths = lengths;
         }
 
         /// <returns>How many levels were added or replaced, and whether the whole level was reloaded.</returns>
@@ -46,7 +50,7 @@ namespace SequencePlatform.Core
             var snapshot = current;
             var (profiles, windowCount, lastLevelId, loaded) = await LoadAfterAsync(snapshot, cancellationToken);
 
-            var stored = await ProfileLevels.CountUpToAsync(dataSource, method, methodVersion, WindowSize, lastLevelId, cancellationToken);
+            var stored = await ProfileLevels.CountUpToAsync(dataSource, method, methodVersion, WindowSize, lastLevelId, Lengths, cancellationToken);
             if (stored == profiles.Count)
             {
                 current = new Snapshot(profiles, windowCount, lastLevelId);
@@ -67,7 +71,7 @@ namespace SequencePlatform.Core
             int loaded = 0;
 
             await foreach (var (levelId, sequenceId, level) in ProfileLevels.StreamAfterAsync(
-                dataSource, method, methodVersion, WindowSize, from.LastLevelId, cancellationToken))
+                dataSource, method, methodVersion, WindowSize, from.LastLevelId, Lengths, cancellationToken))
             {
                 if (level.WindowSize != WindowSize)
                     throw new InvalidDataException($"Level {levelId} has window size {level.WindowSize}, expected {WindowSize}.");

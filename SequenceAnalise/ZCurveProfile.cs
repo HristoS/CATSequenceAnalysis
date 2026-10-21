@@ -700,6 +700,27 @@ namespace SequenceAnalyses
         }
 
         /// <summary>
+        /// The level for a search that only compares the query with candidates at least
+        /// <paramref name="lengthRatio"/> times its length: the coarsest factor at which
+        /// lengthRatio × the query's window count still reaches <paramref name="minWindows"/>, so every such
+        /// candidate keeps that many windows there too (it has at least floor(lengthRatio × query windows)).
+        /// The finest factor if no level reaches that but the query has a fine window; null otherwise.
+        /// Comparing whole sequences of very different lengths measures containment, not similarity: the
+        /// shorter one slides along the longer and keeps its best stretch (results/S34_LengthGate.csv).
+        /// </summary>
+        public static int? SelectBandFactor(ZCurveProfileLadder query, double lengthRatio, int minWindows = DefaultMinWindows)
+        {
+            if (lengthRatio <= 0 || lengthRatio > 1) throw new ArgumentOutOfRangeException(nameof(lengthRatio));
+            if (minWindows < 1) throw new ArgumentOutOfRangeException(nameof(minWindows));
+
+            for (int i = query.factors.Length - 1; i >= 0; i--)
+                if (lengthRatio * query.levels[i].WindowCount >= minWindows)
+                    return query.factors[i];
+
+            return query.Fine.WindowCount >= 1 ? 1 : null;
+        }
+
+        /// <summary>
         /// Scores <paramref name="candidate"/> for a search by <paramref name="query"/>. Candidates
         /// that keep at least <paramref name="minWindows"/> windows at <see cref="SelectQueryFactor"/>'s
         /// level (or, when the query itself falls back below that, at least as many as the query) are

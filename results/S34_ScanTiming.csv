@@ -1,0 +1,7 @@
+Query, LengthBp, QueryWindowSize, Filter, RankedCandidates, ShortListCandidates, RankedMs, ShortListMs, Rerank50At500bpMs, Threads
+E. coli K-12, 4641652, 32000, all, 7541, 16784, 38, 1619, 268, 8
+E. coli K-12, 4641652, 32000, same kind, 6605, 1372, 20, 87, 521, 8
+SARS-CoV-2, 29903, 2000, all, 14749, 9576, 374, 12, 21, 8
+SARS-CoV-2, 29903, 2000, same kind, 4736, 8784, 5, 7, 1, 8
+HPV16, 7906, 500, all, 19495, 4830, 1602, 3, 24, 8
+HPV16, 7906, 500, same kind, 8891, 4629, 33, 2, 1, 8

@@ -1,0 +1,5 @@
+Query, LengthBp, LengthRatio, WindowSize, RankedCandidates, CachedFirstMs, CachedWarmMs, StreamedMs, SameGenusFirstRanks
+E. coli K-12 NC_000913.3, 4641652, 0.5, 32000, 4804, 1296, 76, 359, "Escherichia 1; 12; 29; 58; 126; 220 (Shigella 2, 6)"
+SARS-CoV-2 NC_045512.2, 29903, 0.5, 500, 4240, 587, 41, 138, "Betacoronavirus 1; 2; 3; 4; 5 (identical by SHA-256: Wuhan-Hu-1)"
+HPV16 NC_001526.4, 7906, 0.5, 500, 4759, 21, 19, 84, "Alphapapillomavirus 375; 420; 627 (any papillomavirus from 256)"
+HPV16 NC_001526.4, 7906, 0.75, 500, 2639, , , , "Alphapapillomavirus 80; 100; 186 (any papillomavirus from 47)"

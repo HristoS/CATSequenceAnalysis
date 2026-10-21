@@ -11,6 +11,14 @@ namespace SequencePlatform.Core
     /// ZCWP bytes of <see cref="ZCurveWindowedProfile.ToBinary"/> inline up to 1 MB. Larger levels belong
     /// in object storage, which doesn't exist yet, so they're refused on write and on read.
     /// </summary>
+    /// <summary>Record lengths in [Min, Max); a null Max is unbounded. The default is every length.</summary>
+    public readonly record struct LengthRange(long Min, long? Max)
+    {
+        public long MaxOrUnbounded => Max ?? long.MaxValue;
+
+        public bool Contains(long lengthBp) => lengthBp >= Min && lengthBp < MaxOrUnbounded;
+    }
+
     public static class ProfileLevels
     {
         public const int MaxInlineBytes = 1 << 20;
@@ -86,19 +94,25 @@ namespace SequencePlatform.Core
 
         /// <summary>
         /// The levels of one method, version and window size whose profile_level.id is above
-        /// <paramref name="afterLevelId"/>, in id order: what <see cref="ProfileCache"/> adds on a refresh.
+        /// <paramref name="afterLevelId"/> and whose record length is in <paramref name="lengths"/>, in id order:
+        /// what <see cref="ProfileCache"/> adds on a refresh, and a search's length band when it reads the
+        /// database instead of a cache.
         /// </summary>
         public static async IAsyncEnumerable<(long LevelId, long SequenceId, ZCurveWindowedProfile Level)> StreamAfterAsync(
             NpgsqlDataSource dataSource, string method, string methodVersion, int windowSize, long afterLevelId,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            LengthRange lengths = default, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await using var command = dataSource.CreateCommand(
-                "select sequence_id, payload, object_key, sha256, id from profile_level " +
-                "where method = $1 and method_version = $2 and window_size = $3 and id > $4 order by id");
+                "select p.sequence_id, p.payload, p.object_key, p.sha256, p.id from profile_level p " +
+                "join sequence_record r on r.id = p.sequence_id " +
+                "where p.method = $1 and p.method_version = $2 and p.window_size = $3 and p.id > $4 " +
+                "and r.length_bp >= $5 and r.length_bp < $6 order by p.id");
             command.Parameters.AddWithValue(method);
             command.Parameters.AddWithValue(methodVersion);
             command.Parameters.AddWithValue(windowSize);
             command.Parameters.AddWithValue(afterLevelId);
+            command.Parameters.AddWithValue(lengths.Min);
+            command.Parameters.AddWithValue(lengths.MaxOrUnbounded);
 
             await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
@@ -108,16 +122,23 @@ namespace SequencePlatform.Core
             }
         }
 
-        /// <summary>How many levels of one method, version and window size have an id up to <paramref name="maxLevelId"/>.</summary>
+        /// <summary>
+        /// How many levels of one method, version and window size, with a record length in <paramref name="lengths"/>,
+        /// have an id up to <paramref name="maxLevelId"/>.
+        /// </summary>
         public static async Task<long> CountUpToAsync(NpgsqlDataSource dataSource, string method, string methodVersion, int windowSize,
-            long maxLevelId, CancellationToken cancellationToken = default)
+            long maxLevelId, LengthRange lengths = default, CancellationToken cancellationToken = default)
         {
             await using var command = dataSource.CreateCommand(
-                "select count(*) from profile_level where method = $1 and method_version = $2 and window_size = $3 and id <= $4");
+                "select count(*) from profile_level p join sequence_record r on r.id = p.sequence_id " +
+                "where p.method = $1 and p.method_version = $2 and p.window_size = $3 and p.id <= $4 " +
+                "and r.length_bp >= $5 and r.length_bp < $6");
             command.Parameters.AddWithValue(method);
             command.Parameters.AddWithValue(methodVersion);
             command.Parameters.AddWithValue(windowSize);
             command.Parameters.AddWithValue(maxLevelId);
+            command.Parameters.AddWithValue(lengths.Min);
+            command.Parameters.AddWithValue(lengths.MaxOrUnbounded);
             return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
         }
 
