@@ -9,7 +9,7 @@ namespace SequenceAnaliseTests
     /// (ZCurveWindowedProfileTests.DownsampleMatchesProfileBuiltAtTheCoarserWindowSize) - which is
     /// the point being tested: a platform could store only the fine profile and derive the rest.
     ///
-    /// Five questions, one test each, on the 30-genome bacterial corpus of
+    /// Six questions, one test each, on the 30-genome bacterial corpus of
     /// RealGenomeDistanceMatrixBenchmark/RetrievalClassificationBenchmark and
     /// the 31-genome viral corpus of ViralTaxonomy (WindowCountSweep and LadderRuleAgainstFineOnly):
     ///  - ResolutionSweep: how far can window size grow before relationship ranking (retrieval AUC)
@@ -22,6 +22,8 @@ namespace SequenceAnaliseTests
     ///    (bucketing mixed pairs by window count would confound it with which pairs land where).
     ///  - LadderRuleAgainstFineOnly: does ZCurveProfileLadder.Compare (coarsest level keeping the
     ///    shorter sequence at >= 8 windows) keep the fine-only AUC on both corpora, and how much faster?
+    ///  - PerQueryLevelAgainstPerPair: does one level per query (what a search must use, so a ranking
+    ///    never mixes levels) rank as well as LadderRuleAgainstFineOnly's one level per pair?
     ///  - GcAxisWeightSweep: does weighting the GC (z) axis differently from the other two - the
     ///    only thing a cylindrical frame around z could change about the metric - help ranking?
     ///
@@ -360,6 +362,97 @@ namespace SequenceAnaliseTests
 
             Write("Fine", fineScores, fineWatch.Elapsed.TotalMilliseconds, countLevels: false);
             Write("Ladder", ladderScores, ladderWatch.Elapsed.TotalMilliseconds, countLevels: true);
+            report.Flush();
+        }
+
+        // C4 (platform P3): a search scores every candidate at one level chosen by the query alone
+        // (ZCurveProfileLadder.CompareForQuery) and moves candidates too short for it to a separate
+        // short list. Pairs become ordered (query, candidate). Ranked scores can't differ from the
+        // per-pair ladder: a candidate with >= 8 windows at the query's level gets that level per pair
+        // too, since the query has < 8 at every coarser one (ScoreChangedPairs checks it). What changes
+        // is that short-listed pairs leave the ranking, so both rules are also compared on the same
+        // ranked subset, pooled and as the mean of each query's own AUC (what one search returns).
+        [Test]
+        public void PerQueryLevelAgainstPerPair()
+        {
+            using var report = File.CreateText("MultiResolution_PerQueryLevel.csv");
+            report.WriteLine("Corpus, Method, Subset, OrderedPairs, RankedPairs, ShortListPairs, NotComparablePairs, ScoreChangedPairs, " +
+                "AucClose, AucRelated, QueriesClose, MeanQueryAucClose, QueriesRelated, MeanQueryAucRelated");
+
+            PerQueryVersusPerPair("Bacterial", Corpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList(), (a, b) =>
+            {
+                var level = GenomeTaxonomy.Classify(Corpus[a].Meta, Corpus[b].Meta);
+                return (level is RelationshipLevel.SameSpecies or RelationshipLevel.SameGenus, level is not RelationshipLevel.DifferentPhylum);
+            }, report);
+            PerQueryVersusPerPair("Viral", ViralCorpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList(), (a, b) =>
+            {
+                var level = ViralTaxonomy.Classify(ViralCorpus[a].Meta, ViralCorpus[b].Meta);
+                return (level is ViralRelationshipLevel.SameGenus, level is not ViralRelationshipLevel.DifferentFamily);
+            }, report);
+
+            Assert.Pass();
+        }
+
+        private static void PerQueryVersusPerPair(
+            string corpusName,
+            List<ZCurveProfileLadder> ladders,
+            Func<int, int, (bool Close, bool Related)> label,
+            StreamWriter report)
+        {
+            var pairs = new List<(int Query, int Candidate, bool Close, bool Related, double? PerPair, SearchMatch PerQuery)>();
+            for (int q = 0; q < ladders.Count; q++)
+                for (int c = 0; c < ladders.Count; c++)
+                {
+                    if (q == c) continue;
+                    var (close, related) = label(q, c);
+                    pairs.Add((q, c, close, related,
+                        ZCurveProfileLadder.Compare(ladders[q], ladders[c]),
+                        ZCurveProfileLadder.CompareForQuery(ladders[q], ladders[c])));
+                }
+
+            var ranked = pairs.Where(p => p.PerQuery.List == SearchList.Ranked).ToList();
+            int shortList = pairs.Count(p => p.PerQuery.List == SearchList.ShortList);
+            int notComparable = pairs.Count(p => p.PerQuery.List == SearchList.NotComparable);
+            int changed = ranked.Count(p => p.PerQuery.Score != p.PerPair);
+
+            static double Auc(IEnumerable<(bool Positive, double Score)> rows)
+            {
+                var list = rows.ToList();
+                var positives = list.Where(r => r.Positive).Select(r => r.Score).ToList();
+                var negatives = list.Where(r => !r.Positive).Select(r => r.Score).ToList();
+                return positives.Count == 0 || negatives.Count == 0
+                    ? double.NaN
+                    : RetrievalClassificationBenchmark.ComputeAuc(positives, negatives);
+            }
+
+            void Write(string method, string subset, List<(int Query, bool Close, bool Related, double Score)> rows)
+            {
+                (int Queries, double Mean) PerQuery(Func<(int Query, bool Close, bool Related, double Score), bool> isPositive)
+                {
+                    var aucs = rows.GroupBy(r => r.Query)
+                        .Select(g => Auc(g.Select(r => (isPositive(r), r.Score))))
+                        .Where(a => !double.IsNaN(a))
+                        .ToList();
+                    return (aucs.Count, aucs.Count == 0 ? double.NaN : aucs.Average());
+                }
+
+                var aucClose = Auc(rows.Select(r => (r.Close, r.Score)));
+                var aucRelated = Auc(rows.Select(r => (r.Related, r.Score)));
+                var queryClose = PerQuery(r => r.Close);
+                var queryRelated = PerQuery(r => r.Related);
+
+                report.WriteLine($"{corpusName}, {method}, {subset}, {pairs.Count}, {ranked.Count}, {shortList}, {notComparable}, {changed}, " +
+                    $"{aucClose}, {aucRelated}, {queryClose.Queries}, {queryClose.Mean}, {queryRelated.Queries}, {queryRelated.Mean}");
+                TestContext.Out.WriteLine($"{corpusName,-9} {method,-8} {subset,-10} pooled AUC close={aucClose:F4} related={aucRelated:F4}  " +
+                    $"per-query close={queryClose.Mean:F4} (n={queryClose.Queries}) related={queryRelated.Mean:F4} (n={queryRelated.Queries})");
+            }
+
+            Write("PerPair", "All", pairs.Where(p => p.PerPair.HasValue)
+                .Select(p => (p.Query, p.Close, p.Related, p.PerPair!.Value)).ToList());
+            Write("PerPair", "RankedOnly", ranked.Select(p => (p.Query, p.Close, p.Related, p.PerPair!.Value)).ToList());
+            Write("PerQuery", "RankedOnly", ranked.Select(p => (p.Query, p.Close, p.Related, p.PerQuery.Score!.Value)).ToList());
+            TestContext.Out.WriteLine($"{corpusName,-9} ordered pairs={pairs.Count} ranked={ranked.Count} short={shortList} " +
+                $"not comparable={notComparable} score changed={changed}");
             report.Flush();
         }
 

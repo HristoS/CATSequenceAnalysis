@@ -11,6 +11,28 @@ minutes to nearly an hour at the largest length tested). The "Section" column be
 manuscript currently in preparation and not yet public; it is included here for the authors' own
 cross-referencing and can be disregarded by anyone without that document.
 
+**2026-10-21, one level per query (`MultiResolution_PerQueryLevel.csv`, platform C4).** `ZCurveProfileLadder.CompareForQuery`
+scores every candidate of one search at the level the query alone picks (coarsest with ≥ 8 query windows). Candidates with fewer than 8
+windows there go to a separate short list, scored at the per-pair level. Pairs are ordered (query, candidate).
+- **Ranked scores are identical to the per-pair ladder's, by construction** (0 of 615 viral and 0 of 870 bacterial ranked pairs changed).
+  A candidate with ≥ 8 windows at the query's level f gets f from the per-pair rule too, since the query has < 8 windows at every coarser level.
+  The rule only changes which pairs are in the ranking.
+- Bacteria: every pair is ranked at 32 kbp. AUC 0.853 / 0.783, the same as `MultiResolution_LadderRule.csv`.
+- Viruses: 615 ranked, 315 short-listed (34%), 0 not comparable. Ranked-only pooled AUC is 0.899 / 0.650, against 0.895 / 0.643 over all pairs.
+  The mean of each query's own AUC is 0.899 (17 queries) / 0.701 (27), against 0.903 / 0.673 over all candidates. So nothing is lost
+  beyond the stop criterion's 0.02, but a third of viral candidates show up only in the short list.
+
+**2026-10-21, strand and rotation (`C3_StrandRotation.csv`, platform C3).** Nothing in the library or the Ingest handles reverse
+complement or circular origin. E. coli K-12 reverse-complemented, rotated by half, or both scores 0.815 / 0.814 / 0.819 against itself at
+500 bp, the same as K-12 against O157:H7 (0.819, the corpus's only same-species pair). Through the ladder (32 kbp) it scores 0.935 / 0.932 / 0.943,
+against 0.951 for O157:H7. An identical genome deposited on the other strand or with another origin therefore looks like a related strain,
+not like itself. It still ranks above the same-genus mean (0.791 / 0.895), so genus-level search survives, but profile identity,
+localization on the other strand, and P5 distances don't.
+- `C3_CorpusOrientation.csv`: every pair of the 30 bacteria scored as stored and with the second genome reverse-complemented. **No pair
+  gains more than 0.02** (max +0.0065 at 500 bp, +0.012 at 32 kbp, both between different phyla), and about half of each level gains by noise.
+  K-12 vs O157:H7 *loses* 0.008 / 0.015 when reversed. So orientation moves a diverged pair's score by ≤ 0.016, against 0.185 for an
+  identical one: it matters for near-identical comparisons, and a flipped deposit among diverged genomes can't be detected this way.
+
 **2026-09-26, window count, viral corpus, and `ZCurveProfileLadder`.** A 31-genome viral corpus (5.4–236 kbp,
 `data/genomes/viral/README.md`) was added, because 64 kbp windows leave most viruses with **zero** windows. In that case
 `ZCurveWindowedProfile.Compare` returns 0, which is indistinguishable from "unrelated".
@@ -210,9 +232,14 @@ automatically.
 | `MultiResolution_CoarseToFine.csv` | — | Per-trial fragment localization: full 500 bp search vs. coarse (k = 4/8/16) + refine; same-offset flag, scores, timings |
 | `MultiResolution_WindowCount.csv` | — | Bacterial (500 bp–2 Mbp) and viral (500 bp–16 kbp) level sweeps: shorter-sequence window counts, incomparable pairs, AUC at two relationship thresholds |
 | `MultiResolution_LadderRule.csv` | — | `ZCurveProfileLadder.Compare` vs. fine-only `Compare` on both corpora: level chosen per pair, AUC, compare time |
+| `MultiResolution_PerQueryLevel.csv` | — | Platform C4: `ZCurveProfileLadder.CompareForQuery` (one level per query, short list) vs. the per-pair ladder on ordered pairs of both corpora: list sizes, changed scores, pooled and mean per-query AUC |
 | `MultiResolution_GcAxisWeight.csv` | — | Retrieval AUC with the GC (z) axis weighted 0–16 in the distance |
 | `GcBaseline_Retrieval.csv` | — | Platform check C6 (2026-10-15): retrieval AUC of a GC-only score, −\|GC_a − GC_b\| over A/C/G/T of the primary record, vs. `ZCurveWindowedProfile` on the same 435 pairs and thresholds as `ReportRetrievalClassification.csv` (whose Z-curve AUCs it reproduces exactly). `GcBaselineAndTriangleInequalityBenchmark` |
 | `DistanceTriangleInequality.csv` | — | Platform check C7 (2026-10-15): triangle-inequality violations over all 4,060 triples of the 30-genome corpus, for d = 1 − `Compare` and for Mash distance; also the largest self-distance. Same benchmark class |
+| `C3_StrandRotation.csv` | — | Platform check C3 (2026-10-21): E. coli K-12 compared with itself reverse-complemented, rotated by half, and both, at 500 bp and through the ladder (32 kbp), with O157:H7 and B. subtilis for scale. The identical genome scores like a different strain: 0.815 / 0.814 / 0.819 at 500 bp (O157:H7 0.819), 0.935 / 0.932 / 0.943 at 32 kbp (O157:H7 0.951). `StrandAndRotationBenchmark` |
+| `C3_CorpusOrientation.csv` | — | Same check, corpus side: all 435 bacterial pairs scored forward and with genome B reverse-complemented, at 500 bp and through the ladder, with the gain and relationship level. No pair gains > 0.02; K-12 vs O157:H7 loses 0.008 / 0.015. `StrandAndRotationBenchmark.OrientationInTheBundledCorpus` |
+| `C3_ProfileFlip.csv` | — | Same class (2026-10-21): the reverse-complement profile derived from the stored one (windows reversed, x and y negated) against the profile built from the reverse-complement DNA, on the 30 bacteria. Exact (1.000 on all 30) once the genome is trimmed to a multiple of 500 bp; on real lengths 0.859–0.976 at 500 bp (median 0.928, lower as length mod 500 nears 250–480), 0.9967–0.9996 at 32 kbp. Best-of-both-strands AUC from `C3_CorpusOrientation.csv`: 0.8364 / 0.7883 at 500 bp and 0.8522 / 0.7831 at 32 kbp, within 0.0012 of forward-only. `ProfileFlipAgainstReverseComplementDna` |
+| `S33_ProfileCache.csv` | — | Platform step S3.3 (2026-10-21): `ProfileCache` loading one level of the local catalogue (19,964 genomes, 24,365 records), one level per process, two runs each, Release. 500 bp: 51.7M windows, 620 MB of floats, 624.5 MB heap delta, 825 MB working set, 7.7–8.8 s. 32 kbp: 9.6 MB, 12.2 MB heap, 1.1–1.2 s. A no-op refresh (nothing new) takes 13–24 ms. All four levels about 837 MB of heap. A one-off script in the session scratchpad against the local DB, not in the repo |
 | `C2_IngestTiming.csv` | — | Platform check C2 (2026-10-15): wall-clock of a 50-genome BV-BRC ingest batch per group (download, profile, store, delete) and the extrapolation to the D1 corpus, about 15.9 h. Archaea row added 2026-10-19 (20 genomes, 2.38 s each, after S2.3); the total is now about 15.7 h. The `*-batched` rows (2026-10-19) were measured after contig listings were batched 50 genomes per request: viruses 0.85 s and bacteria 1.56 s per genome, total about 6.5 h (extrapolated). The extrapolation is labeled as one. `SequencePlatform.Ingest ingest-bvbrc` against a scratch clone of the platform DB |
 | `DuplicateDetection.csv` | — | Platform duplicate check (2026-10-19): BV-BRC `sequence_md5` vs our `sequence_sha256` on 212 virus records (identical grouping, 163 = 163), the 49 GenBank/RefSeq pairs collapsed, and a 170-genome live run after migration 0005 (33 duplicates skipped by md5 at 0.99 s vs 2.49 s per stored genome). The hours-saved row is an extrapolation. `SequencePlatform.Ingest ingest-bvbrc` plus psql |
 | `S25_BulkLoad.csv` | — | Platform step S2.5 (2026-10-19/20): the D1 bulk load from BV-BRC. All 21,946 genomes were handled: 19,964 stored and 1,982 skipped as duplicates (12.6% of viruses), 0 failed and 11 retried once. 24,365 records; 40 under 500 bp have no profile level. Active time 8.6 h (1.46 s/genome; the 6.5 h extrapolation was optimistic), wall clock about 24 h because the PC slept overnight. 824 MB of profiles, a 496 MB database, 10/10 spot-checked genomes match BV-BRC. Source: `crawl_item.updated_at`, `stats`, a spot-check script against the BV-BRC API |

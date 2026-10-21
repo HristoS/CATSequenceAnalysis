@@ -84,6 +84,43 @@ namespace SequencePlatform.Core
                 yield return await ReadLevelAsync(reader, cancellationToken);
         }
 
+        /// <summary>
+        /// The levels of one method, version and window size whose profile_level.id is above
+        /// <paramref name="afterLevelId"/>, in id order: what <see cref="ProfileCache"/> adds on a refresh.
+        /// </summary>
+        public static async IAsyncEnumerable<(long LevelId, long SequenceId, ZCurveWindowedProfile Level)> StreamAfterAsync(
+            NpgsqlDataSource dataSource, string method, string methodVersion, int windowSize, long afterLevelId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(
+                "select sequence_id, payload, object_key, sha256, id from profile_level " +
+                "where method = $1 and method_version = $2 and window_size = $3 and id > $4 order by id");
+            command.Parameters.AddWithValue(method);
+            command.Parameters.AddWithValue(methodVersion);
+            command.Parameters.AddWithValue(windowSize);
+            command.Parameters.AddWithValue(afterLevelId);
+
+            await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var (sequenceId, level) = await ReadLevelAsync(reader, cancellationToken);
+                yield return (reader.GetInt64(4), sequenceId, level);
+            }
+        }
+
+        /// <summary>How many levels of one method, version and window size have an id up to <paramref name="maxLevelId"/>.</summary>
+        public static async Task<long> CountUpToAsync(NpgsqlDataSource dataSource, string method, string methodVersion, int windowSize,
+            long maxLevelId, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(
+                "select count(*) from profile_level where method = $1 and method_version = $2 and window_size = $3 and id <= $4");
+            command.Parameters.AddWithValue(method);
+            command.Parameters.AddWithValue(methodVersion);
+            command.Parameters.AddWithValue(windowSize);
+            command.Parameters.AddWithValue(maxLevelId);
+            return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
+        }
+
         // Columns in select order (SequentialAccess): sequence_id, payload, object_key, sha256.
         private static async Task<(long SequenceId, ZCurveWindowedProfile Level)> ReadLevelAsync(
             NpgsqlDataReader reader, CancellationToken cancellationToken = default)

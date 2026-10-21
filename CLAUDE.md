@@ -57,7 +57,8 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
     what `MultiResolutionBenchmark` uses. What matters is the *shorter* sequence's window count, not the window size:
     AUC holds while it keeps about 4–8+ windows, and at 0 windows `Compare` returns 0 (looks "unrelated").
     `ZCurveProfileLadder` (same file) stores 500 bp / 2 / 8 / 32 kbp levels and compares at the coarsest level keeping ≥ 8
-    windows, returning null when not comparable. Scores from different levels aren't on a common scale. The viral test corpus is
+    windows, returning null when not comparable. Scores from different levels aren't on a common scale, so a search uses
+    `CompareForQuery` (one level chosen by the query; too-short candidates go to a separate short list). The viral test corpus is
     `data/genomes/viral/` (taxonomy: `SequenceAnaliseTests/ViralTaxonomy.cs`). int16-sum storage was
     prototyped and was *slower* (0.94x), so don't retry it without a new idea.
 - `WindowedProfile.cs` — same windowed/sliding-alignment structure, but each window is a sparse k-mer frequency
@@ -75,7 +76,8 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
 - `SequencePlatform.Core/` (library, Npgsql): `Database` (connection settings, create-if-missing, migrations), the schema
   as embedded `Migrations/*.sql` (append-only once applied; versions are the file names), `ProfileLevels` (ladder levels as
   ZCWP bytes inline up to 1 MB: insert in the caller's transaction, read one, stream one level of all sequences),
-  `Catalogue` (keyset-paged record listing with kind/rank/length/provider/name filters), `ConnectionString`.
+  `Catalogue` (keyset-paged record listing with kind/rank/length/provider/name filters), `ConnectionString`, `ProfileCache`
+  (one level of every record in memory for the search scan, refreshed incrementally; 500 bp ≈ 0.62 GB on the local catalogue).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `stats`, `list`;
   see its README.

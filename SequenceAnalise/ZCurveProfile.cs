@@ -658,14 +658,19 @@ namespace SequenceAnalyses
         public static int? SelectFactor(ZCurveProfileLadder x, ZCurveProfileLadder y, int minWindows = DefaultMinWindows)
         {
             if (minWindows < 1) throw new ArgumentOutOfRangeException(nameof(minWindows));
-            if (x.Fine.WindowSize != y.Fine.WindowSize || !x.factors.AsSpan().SequenceEqual(y.factors))
-                throw new ArgumentException("Ladders must share the same fine window size and factors.");
+            RequireCompatible(x, y);
 
             for (int i = x.factors.Length - 1; i >= 0; i--)
                 if (Math.Min(x.levels[i].WindowCount, y.levels[i].WindowCount) >= minWindows)
                     return x.factors[i];
 
             return Math.Min(x.Fine.WindowCount, y.Fine.WindowCount) >= 1 ? 1 : null;
+        }
+
+        private static void RequireCompatible(ZCurveProfileLadder x, ZCurveProfileLadder y)
+        {
+            if (x.Fine.WindowSize != y.Fine.WindowSize || !x.factors.AsSpan().SequenceEqual(y.factors))
+                throw new ArgumentException("Ladders must share the same fine window size and factors.");
         }
 
         /// <summary>
@@ -677,5 +682,53 @@ namespace SequenceAnalyses
             var factor = SelectFactor(x, y, minWindows);
             return factor is int f ? ZCurveWindowedProfile.Compare(x.Level(f), y.Level(f)) : null;
         }
+
+        /// <summary>
+        /// The one level a search scores every candidate at: the coarsest factor at which the query
+        /// alone keeps at least <paramref name="minWindows"/> windows; the finest factor if no level
+        /// reaches that but the fine level has a window; null if the query has no fine window.
+        /// </summary>
+        public static int? SelectQueryFactor(ZCurveProfileLadder query, int minWindows = DefaultMinWindows)
+        {
+            if (minWindows < 1) throw new ArgumentOutOfRangeException(nameof(minWindows));
+
+            for (int i = query.factors.Length - 1; i >= 0; i--)
+                if (query.levels[i].WindowCount >= minWindows)
+                    return query.factors[i];
+
+            return query.Fine.WindowCount >= 1 ? 1 : null;
+        }
+
+        /// <summary>
+        /// Scores <paramref name="candidate"/> for a search by <paramref name="query"/>. Candidates
+        /// that keep at least <paramref name="minWindows"/> windows at <see cref="SelectQueryFactor"/>'s
+        /// level (or, when the query itself falls back below that, at least as many as the query) are
+        /// <see cref="SearchList.Ranked"/> at that level, so one query's ranking never mixes levels.
+        /// Shorter candidates go to <see cref="SearchList.ShortList"/>, scored at the per-pair level
+        /// <see cref="SelectFactor"/> picks; those scores can come from different levels, so the short
+        /// list is reported separately and isn't a ranking on one scale.
+        /// </summary>
+        public static SearchMatch CompareForQuery(ZCurveProfileLadder query, ZCurveProfileLadder candidate, int minWindows = DefaultMinWindows)
+        {
+            RequireCompatible(query, candidate);
+            if (SelectQueryFactor(query, minWindows) is not int queryFactor)
+                return new SearchMatch(SearchList.NotComparable, null, null);
+
+            var queryLevel = query.Level(queryFactor);
+            var candidateLevel = candidate.Level(queryFactor);
+            if (candidateLevel.WindowCount >= Math.Min(minWindows, queryLevel.WindowCount))
+                return new SearchMatch(SearchList.Ranked, queryFactor, ZCurveWindowedProfile.Compare(queryLevel, candidateLevel));
+
+            if (SelectFactor(query, candidate, minWindows) is not int pairFactor)
+                return new SearchMatch(SearchList.NotComparable, null, null);
+
+            return new SearchMatch(SearchList.ShortList, pairFactor,
+                ZCurveWindowedProfile.Compare(query.Level(pairFactor), candidate.Level(pairFactor)));
+        }
     }
+
+    public enum SearchList { Ranked, ShortList, NotComparable }
+
+    /// <summary>Factor and Score are null exactly when List is <see cref="SearchList.NotComparable"/>.</summary>
+    public readonly record struct SearchMatch(SearchList List, int? Factor, double? Score);
 }

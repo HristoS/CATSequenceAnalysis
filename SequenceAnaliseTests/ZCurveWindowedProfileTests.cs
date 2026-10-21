@@ -217,6 +217,65 @@ namespace SequenceAnaliseTests
             Assert.That(ZCurveProfileLadder.Compare(tooShort, genome), Is.Null);
         }
 
+        [TestCase(10_000, 1)]       // 5 windows at 2 kbp
+        [TestCase(40_000, 4)]       // 20 at 2 kbp, 5 at 8 kbp
+        [TestCase(600_000, 64)]     // 18 at 32 kbp
+        [TestCase(2_000, 1)]        // 4 windows: falls back to the fine level
+        [TestCase(499, null)]       // no fine window
+        public void QueryFactorDependsOnTheQueryAlone(int length, int? expectedFactor)
+        {
+            Assert.That(ZCurveProfileLadder.SelectQueryFactor(LadderOf(length, seed: 1)), Is.EqualTo(expectedFactor));
+        }
+
+        [Test]
+        public void SearchScoresEveryRankedCandidateAtTheQueryLevel()
+        {
+            var query = LadderOf(600_000, seed: 1);
+            var longer = LadderOf(900_000, seed: 2);
+            var shorterButEnough = LadderOf(300_000, seed: 3);   // 9 windows at 32 kbp
+
+            var a = ZCurveProfileLadder.CompareForQuery(query, longer);
+            var b = ZCurveProfileLadder.CompareForQuery(query, shorterButEnough);
+
+            Assert.That((a.List, a.Factor), Is.EqualTo((SearchList.Ranked, 64)));
+            Assert.That((b.List, b.Factor), Is.EqualTo((SearchList.Ranked, 64)));
+            Assert.That(b.Score, Is.EqualTo(ZCurveWindowedProfile.Compare(query.Level(64), shorterButEnough.Level(64))));
+        }
+
+        [Test]
+        public void SearchSendsCandidatesTooShortForTheQueryLevelToTheShortList()
+        {
+            var query = LadderOf(600_000, seed: 1);
+            var virusSized = LadderOf(10_000, seed: 2);
+
+            var match = ZCurveProfileLadder.CompareForQuery(query, virusSized);
+
+            Assert.That((match.List, match.Factor), Is.EqualTo((SearchList.ShortList, 1)));
+            Assert.That(match.Score, Is.EqualTo(ZCurveProfileLadder.Compare(query, virusSized)),
+                "the short list is scored at the per-pair level");
+        }
+
+        [Test]
+        public void SearchByAShortQueryRanksCandidatesWithAtLeastTheQuerysWindows()
+        {
+            var query = LadderOf(2_000, seed: 1);                    // 4 fine windows
+            var genome = LadderOf(50_000, seed: 2);
+            var shorterThanQuery = LadderOf(1_000, seed: 3);         // 2 fine windows
+
+            Assert.That(ZCurveProfileLadder.CompareForQuery(query, genome).List, Is.EqualTo(SearchList.Ranked));
+            Assert.That(ZCurveProfileLadder.CompareForQuery(query, shorterThanQuery).List, Is.EqualTo(SearchList.ShortList));
+        }
+
+        [Test]
+        public void SearchReturnsNotComparableWithoutAFineWindowOnEitherSide()
+        {
+            var genome = LadderOf(50_000, seed: 1);
+            var tooShort = LadderOf(499, seed: 2);
+
+            Assert.That(ZCurveProfileLadder.CompareForQuery(tooShort, genome), Is.EqualTo(new SearchMatch(SearchList.NotComparable, null, null)));
+            Assert.That(ZCurveProfileLadder.CompareForQuery(genome, tooShort), Is.EqualTo(new SearchMatch(SearchList.NotComparable, null, null)));
+        }
+
         [Test]
         public void LadderRejectsMismatchedOrInvalidFactors()
         {
@@ -225,6 +284,8 @@ namespace SequenceAnaliseTests
             Assert.That(() => new ZCurveProfileLadder(fine, new[] { 4, 16 }), Throws.ArgumentException);
             Assert.That(() => new ZCurveProfileLadder(fine, new[] { 1, 16, 4 }), Throws.ArgumentException);
             Assert.That(() => ZCurveProfileLadder.SelectFactor(new ZCurveProfileLadder(fine), new ZCurveProfileLadder(fine, new[] { 1, 2 })),
+                Throws.ArgumentException);
+            Assert.That(() => ZCurveProfileLadder.CompareForQuery(new ZCurveProfileLadder(fine), new ZCurveProfileLadder(fine, new[] { 1, 2 })),
                 Throws.ArgumentException);
         }
 
