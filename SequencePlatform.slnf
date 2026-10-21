@@ -1,0 +1,11 @@
+{
+  "solution": {
+    "path": "SequenceAnalise.sln",
+    "projects": [
+      "SequenceAnalise\\SequenceAnalise.csproj",
+      "SequencePlatform.Core\\SequencePlatform.Core.csproj",
+      "SequencePlatform.Ingest\\SequencePlatform.Ingest.csproj",
+      "SequencePlatform.Tests\\SequencePlatform.Tests.csproj"
+    ]
+  }
+}
