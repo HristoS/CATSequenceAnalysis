@@ -61,6 +61,12 @@ dotnet run -c Release --project SequencePlatform.Ingest -- search-similar --prof
   different families) from the stored profiles, as find-similar and localization would score them, and replaces the
   `score_null` rows. Defaults take about 2 minutes on the 2026-10 catalogue; rerun it after large ingests. `--csv` also
   writes every cell's scores to a file.
+- `build-neighbours [--ratio R]` (P3 S3.4b, migration 0008) runs find-similar for every stored record against the other
+  assemblies and keeps each record's top 20 in `neighbour_list` (about 4 minutes on the 2026-10 catalogue). Once that graph
+  exists for a search's ratio, `search-similar` re-orders its top 100 by `shared`: how many of the query's top 20 are also
+  in the hit's own top 20. That raised same-genus precision@10 from 0.131 to 0.195 for bacteria. A composition
+  look-alike can rise too (a plasmid with coronavirus-like GC and skew comes fourth for SARS-CoV-2); its E-value shows it
+  isn't significant. Rebuild the graph after large ingests; hits missing from it are searched live.
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.

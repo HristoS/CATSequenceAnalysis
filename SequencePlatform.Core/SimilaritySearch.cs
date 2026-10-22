@@ -7,7 +7,9 @@ namespace SequencePlatform.Core
 
     /// <param name="P">The chance an unrelated record of this shape scores as high (score_null, S3.6), and how it was obtained; null without a null.</param>
     /// <param name="Log10E">log10 of the expected number of unrelated records scoring as high among this search's candidates: p × candidates.</param>
-    public sealed record SimilarityHit(long SequenceId, double Score, Strand Strand, PValue? P = null, double? Log10E = null);
+    /// <param name="SharedNeighbours">For the top hits of a neighbour-ranked search: how many of the query's top 20 are also among this hit's own top 20.</param>
+    public sealed record SimilarityHit(long SequenceId, double Score, Strand Strand, PValue? P = null, double? Log10E = null,
+        int? SharedNeighbours = null);
 
     /// <param name="QueryWindowSize">The one level every hit is scored at; null when the query has no full fine window.</param>
     /// <param name="Lengths">The candidate length band, [ratio × query length, query length / ratio].</param>
@@ -18,13 +20,16 @@ namespace SequencePlatform.Core
     /// The ranking then reflects composition more than order: HPV16 (15 windows) ranks GC-matched strangers above its own
     /// family (results/S36_CatalogueRanking.csv).
     /// </param>
+    /// <param name="NeighbourRanked">The top hits are ordered by shared neighbours, then score (S3.4b); false when no neighbour
+    /// graph exists for this length ratio, and the order is by score.</param>
     public sealed record SimilarityResult(
         int? QueryWindowSize,
         LengthRange Lengths,
         IReadOnlyList<SimilarityHit> Ranked, int RankedTotal,
         IReadOnlyList<(long SequenceId, Strand Strand)> Identical,
         IReadOnlyList<long> NotComparable,
-        bool FewWindows);
+        bool FewWindows,
+        bool NeighbourRanked = false);
 
     /// <summary>
     /// A query as the search sees it: its ladder on both strands, its length and, when it came from DNA, the
@@ -41,6 +46,15 @@ namespace SequencePlatform.Core
             var (reverse, reverseSha256, _) = Profile(ReverseComplement(sequence));
             return new QueryProfile(forward, reverse, lengthBp, sha256, reverseSha256);
         }
+
+        /// <summary>
+        /// A stored record as a query (search by record, the neighbour graph). The DNA is gone, so the other strand is a
+        /// profile-level flip, exact only when the length is a multiple of 500 bp (results/C3_ProfileFlip.csv); its length
+        /// is the stored length_bp.
+        /// </summary>
+        public static QueryProfile FromStoredRecord(ZCurveWindowedProfile fine, long lengthBp) =>
+            new(new ZCurveProfileLadder(fine), new ZCurveProfileLadder(ZCurveWindowedProfile.FromPrecomputedWindows(fine.WindowSize,
+                fine.Windows.Reverse().Select(w => (-w.X, -w.Y, w.Z)).ToList())), lengthBp, null, null);
 
         /// <summary>A profile-only query (a ZCWP upload): no hash, and the reverse strand only if the uploader supplied it.</summary>
         public static QueryProfile FromProfiles(ZCurveWindowedProfile forward, ZCurveWindowedProfile? reverse) =>
@@ -95,10 +109,22 @@ namespace SequencePlatform.Core
     /// band of queries uses, so each cached level holds one length range (<see cref="CachedLengths"/>): 19 MB
     /// at r = 0.5 on the local catalogue instead of 837 MB for every level (results/S34_BandLimitedCache.csv).
     /// Without a cache, a search streams just its band's rows of its one level from the database.
+    ///
+    /// Once neighbour_list holds a graph for the search's length ratio (S3.4b), the top 100 hits are re-ordered by how
+    /// many of the query's top 20 each hit has among its own top 20, then by score. A GC look-alike turns up in many lists
+    /// without its neighbours agreeing; real relatives share theirs. Over 300 random catalogue queries this raised
+    /// same-genus precision@10 from 0.161 to 0.225 for bacteria and from 0.450 to 0.475 for viruses
+    /// (results/Check_MutualNeighboursSample.csv; through this code 0.131 to 0.195 and 0.462 to 0.491,
+    /// results/S34b_NeighbourRanking.csv). A hit with no stored list (ingested after the graph was built) is searched live.
+    /// Shared neighbours can also lift a composition look-alike whose own neighbours are the query's: for SARS-CoV-2 a
+    /// Vibrio fischeri plasmid with the coronavirus GC and keto skew comes fourth, with E about 32
+    /// (results/S34b_PlasmidComposition.csv). Its E-value is what marks it.
     /// </summary>
     public sealed class SimilaritySearch
     {
         public const double DefaultLengthRatio = 0.5;
+        public const int NeighbourCount = 20;
+        public const int NeighbourRankDepth = 100;
 
         private readonly NpgsqlDataSource dataSource;
         private readonly string method;
@@ -108,6 +134,7 @@ namespace SequencePlatform.Core
         private readonly bool[] loaded;
         private ScoreNull? scoreNull;
         private bool nullLoaded;
+        private readonly Dictionary<double, IReadOnlyDictionary<long, long[]>> graphs = new();
 
         /// <summary>The smallest length ratio a search may ask for; the cached length ranges are sized for it.</summary>
         public double MinLengthRatio { get; }
@@ -168,13 +195,49 @@ namespace SequencePlatform.Core
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
             nullLoaded = false;
+            graphs.Clear();
             if (caches is null) return;
             for (int i = 0; i < caches.Length; i++)
                 if (loaded[i]) await caches[i].RefreshAsync(cancellationToken);
         }
 
-        public async Task<SimilarityResult> SearchAsync(QueryProfile query, CatalogueFilter? filter = null,
-            double lengthRatio = DefaultLengthRatio, int top = 50, CancellationToken cancellationToken = default)
+        /// <summary>Loads every cached level and the null now, so that searches running in parallel afterwards only read them.</summary>
+        public async Task LoadAllAsync(CancellationToken cancellationToken = default)
+        {
+            for (int i = 0; i < factors.Length; i++)
+                await LevelAsync(i, CachedLengths(i), cancellationToken);
+            await SignificanceAsync(cancellationToken);
+        }
+
+        public Task<SimilarityResult> SearchAsync(QueryProfile query, CatalogueFilter? filter = null,
+            double lengthRatio = DefaultLengthRatio, int top = 50, CancellationToken cancellationToken = default) =>
+            SearchCoreAsync(query, null, filter, lengthRatio, top, useNeighbours: true, cancellationToken);
+
+        /// <summary>
+        /// Find similar to a stored record, from its stored profile (<see cref="QueryProfile.FromStoredRecord"/>), leaving out
+        /// the records of its own source: its other chromosomes and plasmids aren't relatives, and it would find itself.
+        /// </summary>
+        public async Task<SimilarityResult> SearchRecordAsync(long sequenceId, CatalogueFilter? filter = null,
+            double lengthRatio = DefaultLengthRatio, int top = 50, bool useNeighbours = true, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand("select source_id, length_bp from sequence_record where id = $1");
+            command.Parameters.AddWithValue(sequenceId);
+            long sourceId, lengthBp;
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+            {
+                if (!await reader.ReadAsync(cancellationToken))
+                    throw new ArgumentException($"No record {sequenceId}.", nameof(sequenceId));
+                (sourceId, lengthBp) = (reader.GetInt64(0), reader.GetInt64(1));
+            }
+
+            var fine = await ProfileLevels.ReadAsync(dataSource, sequenceId, method, methodVersion, RecordStore.FineWindowSize)
+                ?? throw new ArgumentException($"Record {sequenceId} has no stored {RecordStore.FineWindowSize} bp level.", nameof(sequenceId));
+            return await SearchCoreAsync(QueryProfile.FromStoredRecord(fine, lengthBp), sourceId, filter, lengthRatio, top, useNeighbours,
+                cancellationToken);
+        }
+
+        private async Task<SimilarityResult> SearchCoreAsync(QueryProfile query, long? excludedSourceId, CatalogueFilter? filter,
+            double lengthRatio, int top, bool useNeighbours, CancellationToken cancellationToken)
         {
             if (top < 1) throw new ArgumentOutOfRangeException(nameof(top));
             if (lengthRatio < MinLengthRatio || lengthRatio > 1)
@@ -188,18 +251,15 @@ namespace SequencePlatform.Core
                 MaxLengthBp = Math.Min(filter.MaxLengthBp ?? long.MaxValue, lengths.MaxOrUnbounded - 1),
             };
             var candidates = await Catalogue.IdsAsync(dataSource, banded, cancellationToken);
+            if (excludedSourceId is long excluded)
+                candidates.ExceptWith(await SourceRecordsAsync(excluded, cancellationToken));
             var identical = await IdenticalAsync(query, candidates, cancellationToken);
             if (ZCurveProfileLadder.SelectBandFactor(query.Forward, lengthRatio) is not int queryFactor)
                 return new SimilarityResult(null, lengths, [], 0, identical, [], FewWindows: true);
 
             int level = Array.IndexOf(factors, queryFactor);
             var profiles = await LevelAsync(level, lengths, cancellationToken);
-            if (!nullLoaded)
-            {
-                scoreNull = await ScoreNullStore.LoadAsync(dataSource, method, methodVersion, ScoreNullStore.Genome, cancellationToken);
-                nullLoaded = true;
-            }
-            var significance = scoreNull;
+            var significance = await SignificanceAsync(cancellationToken);
             var forward = query.Forward.Level(queryFactor);
             var reverse = query.Reverse?.Level(queryFactor);
 
@@ -221,9 +281,63 @@ namespace SequencePlatform.Core
                 hits[i] = new SimilarityHit(comparable[i], score, strand, p, p?.Log10 + Math.Log10(comparable.Length));
             });
 
-            var ranked = hits.OrderByDescending(h => h.Score).ThenBy(h => h.SequenceId).Take(top).ToList();
+            var byScore = hits.OrderByDescending(h => h.Score).ThenBy(h => h.SequenceId).ToList();
+            var graph = useNeighbours ? await GraphAsync(lengthRatio, cancellationToken) : null;
+            bool neighbourRanked = graph is { Count: > 0 };
+            if (neighbourRanked)
+                byScore = await ByNeighboursAsync(byScore, graph!, lengthRatio, cancellationToken);
+
             bool fewWindows = lengthRatio * query.Forward.Fine.WindowCount < ZCurveProfileLadder.DefaultMinWindows;
-            return new SimilarityResult(WindowSizeAt(level), lengths, ranked, hits.Length, identical, notComparable, fewWindows);
+            return new SimilarityResult(WindowSizeAt(level), lengths, byScore.Take(top).ToList(), hits.Length, identical, notComparable,
+                fewWindows, neighbourRanked);
+        }
+
+        // The top hits by shared neighbours, then score; the rest stay in score order below them. A hit missing from the
+        // graph is searched live the way the graph was built: unfiltered, by its stored record.
+        private async Task<List<SimilarityHit>> ByNeighboursAsync(List<SimilarityHit> byScore, IReadOnlyDictionary<long, long[]> graph,
+            double lengthRatio, CancellationToken cancellationToken)
+        {
+            var queryNeighbours = byScore.Take(NeighbourCount).Select(h => h.SequenceId).ToHashSet();
+            var head = new List<SimilarityHit>();
+            foreach (var hit in byScore.Take(NeighbourRankDepth))
+            {
+                var own = graph.TryGetValue(hit.SequenceId, out var stored)
+                    ? stored
+                    : (await SearchRecordAsync(hit.SequenceId, null, lengthRatio, NeighbourCount, useNeighbours: false, cancellationToken))
+                        .Ranked.Select(h => h.SequenceId).ToArray();
+                head.Add(hit with { SharedNeighbours = own.Count(queryNeighbours.Contains) });
+            }
+
+            return head.OrderByDescending(h => h.SharedNeighbours).ThenByDescending(h => h.Score).ThenBy(h => h.SequenceId)
+                .Concat(byScore.Skip(NeighbourRankDepth))
+                .ToList();
+        }
+
+        private async Task<ScoreNull?> SignificanceAsync(CancellationToken cancellationToken)
+        {
+            if (!nullLoaded)
+            {
+                scoreNull = await ScoreNullStore.LoadAsync(dataSource, method, methodVersion, ScoreNullStore.Genome, cancellationToken);
+                nullLoaded = true;
+            }
+            return scoreNull;
+        }
+
+        private async Task<IReadOnlyDictionary<long, long[]>> GraphAsync(double lengthRatio, CancellationToken cancellationToken)
+        {
+            if (!graphs.TryGetValue(lengthRatio, out var graph))
+                graphs[lengthRatio] = graph = await NeighbourGraph.LoadAsync(dataSource, lengthRatio, method, methodVersion, cancellationToken);
+            return graph;
+        }
+
+        private async Task<HashSet<long>> SourceRecordsAsync(long sourceId, CancellationToken cancellationToken)
+        {
+            await using var command = dataSource.CreateCommand("select id from sequence_record where source_id = $1");
+            command.Parameters.AddWithValue(sourceId);
+            var ids = new HashSet<long>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken)) ids.Add(reader.GetInt64(0));
+            return ids;
         }
 
         private async Task<IReadOnlyDictionary<long, ZCurveWindowedProfile>> LevelAsync(int level, LengthRange lengths,

@@ -1,0 +1,8 @@
+Group, Records, MeanX, MeanY, MeanZ, SdX, SdY
+Coronaviridae, 58, -0.026, -0.106, -0.211, 0.023, 0.042
+SARS-CoV-2 NC_045512.2, 1, -0.011, -0.036, -0.241, , 
+Vibrio fischeri ES114 plasmid (record 7787; best-matching strand), 1, -0.032, -0.072, -0.232, , 
+Vibrio fischeri ES114 plasmid (record 7787; stored strand), 1, 0.032, 0.072, -0.232, , 
+other plasmids, 102, 0.004, 0.009, -0.208, 0.040, 0.028
+other bacteria, 87, 0.010, -0.002, -0.206, 0.042, 0.030
+other viruses, 461, 0.066, 0.015, -0.215, 0.066, 0.035

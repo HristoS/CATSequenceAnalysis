@@ -13,12 +13,13 @@ using SequencePlatform.Ingest;
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
 //   build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]   score_null from stored profiles (P3 S3.6)
+//   build-neighbours [--ratio R]             every record's own top 20 (other assemblies), for re-ranking by shared neighbours (P3 S3.4b)
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
-    "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]\n" +
+    "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R]\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]";
 
 if (args.Length == 0)
@@ -85,6 +86,15 @@ switch (args[0])
             FragmentPool = int.Parse(Option("--pool") ?? defaults.FragmentPool.ToString()),
             Seed = int.Parse(Option("--seed") ?? defaults.Seed.ToString()),
         }, Option("--csv"));
+
+    case "build-neighbours":
+        var neighbourRatio = double.Parse(Option("--ratio") ?? SimilaritySearch.DefaultLengthRatio.ToString(CultureInfo.InvariantCulture),
+            CultureInfo.InvariantCulture);
+        var neighbourWatch = System.Diagnostics.Stopwatch.StartNew();
+        var listed = await NeighbourGraph.BuildAsync(dataSource, neighbourRatio, SimilaritySearch.NeighbourCount,
+            message => Console.WriteLine($"  {neighbourWatch.Elapsed.TotalSeconds,6:F0} s  {message}"));
+        Console.WriteLine($"{listed:N0} records listed at length ratio {neighbourRatio} in {neighbourWatch.Elapsed.TotalSeconds:F0} s.");
+        return 0;
 
     case "search-similar":
         return await SearchSimilarAsync(dataSource, Option("--fasta"), Option("--profile"), Filter(),
@@ -288,7 +298,9 @@ static async Task<int> SearchSimilarAsync(NpgsqlDataSource dataSource, string? f
         if (result.Ranked.Count > 0 && result.Ranked[0].P is null)
             Console.WriteLine("  no score_null yet (build-null): p and E aren't shown.");
 
-        PrintHits($"Ranked: top {result.Ranked.Count} of {result.RankedTotal:N0}", result.Ranked, records);
+        PrintHits($"Ranked: top {result.Ranked.Count} of {result.RankedTotal:N0}" + (result.NeighbourRanked
+            ? $", the first {SimilaritySearch.NeighbourRankDepth} by shared neighbours, then score"
+            : " by score (no neighbour graph for this ratio: build-neighbours)"), result.Ranked, records);
         if (result.NotComparable.Count > 0)
             Console.WriteLine($"Not comparable (no stored level at {result.QueryWindowSize:N0} bp): {result.NotComparable.Count:N0} records.");
     }
@@ -299,13 +311,13 @@ static void PrintHits(string title, IReadOnlyList<SimilarityHit> hits, IReadOnly
 {
     Console.WriteLine(title);
     if (hits.Count == 0) return;
-    Console.WriteLine($"  {"#",3} {"score",7} {"log10 E",9} {"strand",-7} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
+    Console.WriteLine($"  {"#",3} {"score",7} {"log10 E",9} {"shared",6} {"strand",-7} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
     Console.WriteLine("      (log10 E: expected unrelated records scoring as high; '<=' only an upper bound: the null sample has too few scores that high)");
     for (int i = 0; i < hits.Count; i++)
     {
         var h = hits[i];
         var r = records.GetValueOrDefault(h.SequenceId);
-        Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {Evalue(h),9} {h.Strand,-7} {h.SequenceId,7} {r?.Kind,-10} {r?.LengthBp,12:N0} {r?.Lineage.Genus,-20} {r?.Name}");
+        Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {Evalue(h),9} {h.SharedNeighbours,6} {h.Strand,-7} {h.SequenceId,7} {r?.Kind,-10} {r?.LengthBp,12:N0} {r?.Lineage.Genus,-20} {r?.Name}");
     }
 }
 
