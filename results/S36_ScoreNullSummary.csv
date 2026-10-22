@@ -1,0 +1,11 @@
+Source, WindowSize, Cells, Scores, FullCells, SmallestCell, MedianOfCellMedians, HighestNullScore
+fragment, 500, 456, 839961, 5, 22, 0.752, 1.0000
+genome, 500, 135, 705626, 45, 40, 0.776, 0.9943
+genome, 2000, 100, 390832, 21, 20, 0.735, 0.9488
+genome, 8000, 95, 223292, 7, 20, 0.696, 0.9619
+genome, 32000, 155, 799462, 47, 27, 0.710, 0.9711
+permuted, 500, 133, 377608, 12, 31, 0.777, 0.9954
+permuted, 2000, 88, 152546, 4, 20, 0.745, 0.9481
+permuted, 8000, 86, 66099, 0, 22, 0.727, 0.9634
+permuted, 32000, 150, 311441, 1, 21, 0.759, 0.9756
+(9 rows)

@@ -1,0 +1,11 @@
+Query, Target, Ranking, FirstRanks, Top50MedianLengthBp
+E. coli K-12 NC_000913.3, Escherichia, score, "1; 11; 29; 58; 126; 221", 
+E. coli K-12 NC_000913.3, Escherichia, p-value, "1; 9; 11; 49; 101; 176", 4639675
+E. coli K-12 NC_000913.3, Escherichia, z, "1; 5; 19; 42; 64; 147", 4704928
+SARS-CoV-2 NC_045512.2, Betacoronavirus, score, "1; 2; 3; 4; 5; 7", 
+SARS-CoV-2 NC_045512.2, Betacoronavirus, p-value, "31; 44; 62; 65; 76; 77 (identical Wuhan-Hu-1, score 1.0000, at 416)", 26227
+SARS-CoV-2 NC_045512.2, Betacoronavirus, z, "1; 2; 3; 4; 5; 7", 29114
+HPV16 NC_001526.4, any papillomavirus, score, "255; 258; 346; 351; 368; 369", 4741
+HPV16 NC_001526.4, any papillomavirus, p-value, "102; 103; 129; 140; 142; 144", 4745
+HPV16 NC_001526.4, any papillomavirus, z, "74; 75; 119; 123; 126; 127", 4801
+HPV16 NC_001526.4, GC check, -, "HPV16 GC 0.365; its top 50 by p 0.365 +- 0.019; the 328 papillomaviruses in its band 0.434 +- 0.049, none within 0.01 of HPV16", 

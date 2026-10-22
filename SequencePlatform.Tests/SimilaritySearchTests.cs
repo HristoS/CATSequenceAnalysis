@@ -48,6 +48,7 @@ namespace SequencePlatform.Tests
             var streamed = await NewSearch(useCache: false).SearchAsync(query, new CatalogueFilter(Provider: provider));
 
             Assert.That(cached.QueryWindowSize, Is.EqualTo(8_000), "15 windows at 32 kbp leave a half-length candidate only 7");
+            Assert.That(cached.FewWindows, Is.False);
             Assert.That(cached.Lengths, Is.EqualTo(new LengthRange(250_000, 1_000_001)));
             Assert.That(cached.Ranked.Select(h => stored[h.SequenceId].Length), Is.EquivalentTo(new[] { 900_000, 600_000, 300_000 }));
             foreach (var hit in cached.Ranked)
@@ -106,6 +107,18 @@ namespace SequencePlatform.Tests
 
             Assert.That(result.QueryWindowSize, Is.Null);
             Assert.That(result.Ranked, Is.Empty);
+            Assert.That(result.FewWindows, Is.True);
+        }
+
+        [TestCase(7_906, 0.5, true)]     // HPV16's length: 15 windows, a half-length candidate keeps 7
+        [TestCase(8_000, 0.5, false)]
+        [TestCase(8_000, 0.25, true)]
+        public async Task ShortQueriesAreFlaggedAsMostlyComposition(int length, double ratio, bool expected)
+        {
+            var result = await NewSearch().SearchAsync(QueryProfile.FromSequence(Generator.GetRandomDNA(length, seed: 1)),
+                new CatalogueFilter(Provider: "search-nothing"), lengthRatio: ratio);
+
+            Assert.That(result.FewWindows, Is.EqualTo(expected));
         }
 
         // The cache holds each level only for the record lengths CachedLengths gives; a candidate outside it

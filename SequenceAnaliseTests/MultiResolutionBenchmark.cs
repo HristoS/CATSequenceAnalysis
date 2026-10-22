@@ -565,6 +565,121 @@ namespace SequenceAnaliseTests
             report.Flush();
         }
 
+        // S3.6 (platform P3): the length-band ranking (r = 0.5, SelectBandFactor's level, the better strand) ordered by
+        // raw score, by the p-value of the genome null built on the local catalogue (results/S36_ScoreNull.csv), and by
+        // z = (score - cell mean) / cell SD of that null. The reverse strand is a profile-level flip, as in the null.
+        // A negative result, kept for reproduction: the search ranks by score and only reports p (S3.6, option A). The
+        // null CSV isn't committed (4 MB); on the 2026-10-22 catalogue, the Ingest command
+        // build-null --per-cell 1000 --genome-draws 400000 --fragment-draws 200000 --csv results/S36_ScoreNull.csv
+        // rebuilds it (seed 20261022). The committed MultiResolution_ScoreNullRanking.csv was measured while p past the
+        // sample still came from a Gumbel tail, since removed (S36_TailCalibration.csv); a rerun's PValue rows can differ.
+        [Test]
+        public void RankByScoreNull()
+        {
+            var path = Path.Combine(RepositoryRoot(), "results", "S36_ScoreNull.csv");
+            Assume.That(File.Exists(path), "results/S36_ScoreNull.csv isn't committed; build-null --csv writes it");
+            var nullCells = ReadScoreNull(path, "genome");
+            var scoreNull = new ScoreNull(nullCells);
+            var moments = nullCells.ToDictionary(c => (c.WindowSize, c.WindowsBucket, c.OffsetsBucket), c =>
+            {
+                double mean = c.SortedScores.Average(s => (double)s);
+                return (Mean: mean, Sd: Math.Sqrt(c.SortedScores.Sum(s => (s - mean) * (s - mean)) / c.SortedScores.Length));
+            });
+
+            using var report = File.CreateText("MultiResolution_ScoreNullRanking.csv");
+            report.WriteLine("Corpus, Ranking, KeptPairs, QueriesClose, MeanQueryAucClose, QueriesRelated, MeanQueryAucRelated");
+
+            var bacterial = Corpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
+            var viral = ViralCorpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
+            NullRankCorpus("Bacterial", bacterial, (a, b) =>
+            {
+                var level = GenomeTaxonomy.Classify(Corpus[a].Meta, Corpus[b].Meta);
+                return (level is RelationshipLevel.SameSpecies or RelationshipLevel.SameGenus, level is not RelationshipLevel.DifferentPhylum);
+            }, scoreNull, moments, report);
+            NullRankCorpus("Viral", viral, (a, b) =>
+            {
+                var level = ViralTaxonomy.Classify(ViralCorpus[a].Meta, ViralCorpus[b].Meta);
+                return (level is ViralRelationshipLevel.SameGenus, level is not ViralRelationshipLevel.DifferentFamily);
+            }, scoreNull, moments, report);
+
+            Assert.Pass();
+        }
+
+        private static void NullRankCorpus(
+            string corpusName,
+            List<ZCurveProfileLadder> ladders,
+            Func<int, int, (bool Close, bool Related)> label,
+            ScoreNull scoreNull,
+            Dictionary<(int, int, int), (double Mean, double Sd)> moments,
+            StreamWriter report)
+        {
+            const double ratio = 0.5;
+            var rows = new List<(int Query, bool Close, bool Related, double Score, double Log10P, double Z)>();
+            for (int q = 0; q < ladders.Count; q++)
+            {
+                if (ZCurveProfileLadder.SelectBandFactor(ladders[q], ratio) is not int f) continue;
+                var query = ladders[q].Level(f);
+                var flipped = ZCurveWindowedProfile.FromPrecomputedWindows(query.WindowSize,
+                    query.Windows.Reverse().Select(w => (-w.X, -w.Y, w.Z)).ToList());
+                for (int c = 0; c < ladders.Count; c++)
+                {
+                    if (c == q) continue;
+                    double qWindows = ladders[q].Fine.WindowCount, cWindows = ladders[c].Fine.WindowCount;
+                    if (Math.Min(qWindows, cWindows) < ratio * Math.Max(qWindows, cWindows)) continue;
+
+                    var candidate = ladders[c].Level(f);
+                    double score = Math.Max(ZCurveWindowedProfile.Compare(query, candidate), ZCurveWindowedProfile.Compare(flipped, candidate));
+                    var (shorter, offsets) = ScoreNull.Shape(query.WindowCount, candidate.WindowCount);
+                    var key = (query.WindowSize, ScoreNull.Bucket(shorter), ScoreNull.Bucket(offsets));
+                    double z = moments.TryGetValue(key, out var m) ? (score - m.Mean) / m.Sd : double.NaN;
+                    var (close, related) = label(q, c);
+                    rows.Add((q, close, related, score, scoreNull.PValue(query.WindowSize, shorter, offsets, score)?.Log10 ?? double.NaN, z));
+                }
+            }
+
+            void Write(string ranking, Func<(int Query, bool Close, bool Related, double Score, double Log10P, double Z), double> key)
+            {
+                // Rank-based per-query AUC; ties in the key are broken by score, as the search does.
+                (int Queries, double Mean) Mean(Func<(int Query, bool Close, bool Related, double Score, double Log10P, double Z), bool> isPositive)
+                {
+                    var aucs = rows.Where(r => !double.IsNaN(key(r))).GroupBy(r => r.Query).Select(g =>
+                    {
+                        var order = g.OrderByDescending(key).ThenByDescending(r => r.Score).ToList();
+                        var positives = Enumerable.Range(0, order.Count).Where(i => isPositive(order[i])).Select(i => (double)(order.Count - i)).ToList();
+                        var negatives = Enumerable.Range(0, order.Count).Where(i => !isPositive(order[i])).Select(i => (double)(order.Count - i)).ToList();
+                        return positives.Count == 0 || negatives.Count == 0 ? double.NaN : RetrievalClassificationBenchmark.ComputeAuc(positives, negatives);
+                    }).Where(a => !double.IsNaN(a)).ToList();
+                    return (aucs.Count, aucs.Count == 0 ? double.NaN : aucs.Average());
+                }
+
+                var close = Mean(r => r.Close);
+                var related = Mean(r => r.Related);
+                report.WriteLine($"{corpusName}, {ranking}, {rows.Count(r => !double.IsNaN(key(r)))}, {close.Queries}, {close.Mean}, {related.Queries}, {related.Mean}");
+                TestContext.Out.WriteLine($"{corpusName,-9} {ranking,-8} close={close.Mean:F4} (n={close.Queries})  related={related.Mean:F4} (n={related.Queries})");
+            }
+
+            Write("Score", r => r.Score);
+            Write("PValue", r => -r.Log10P);
+            Write("Z", r => r.Z);
+            report.Flush();
+        }
+
+        private static List<ScoreNullCell> ReadScoreNull(string path, string source) =>
+            File.ReadLines(path).Skip(1)
+                .Select(line => line.Split(", "))
+                .Where(f => f[0] == source)
+                .Select(f => new ScoreNullCell(int.Parse(f[1]), int.Parse(f[2]), int.Parse(f[3]),
+                    f[5].Split(' ').Select(s => float.Parse(s, System.Globalization.CultureInfo.InvariantCulture)).ToArray()))
+                .ToList();
+
+        private static string RepositoryRoot()
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+            while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "SequenceAnalise.sln")))
+                directory = directory.Parent;
+            return directory?.FullName ?? throw new DirectoryNotFoundException("No SequenceAnalise.sln above the test output.");
+        }
+
         private static readonly int[] rerankDepths = { 0, 3, 5, 10 };
 
         private static void RerankCorpus(

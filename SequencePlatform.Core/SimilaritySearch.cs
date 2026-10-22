@@ -5,18 +5,26 @@ namespace SequencePlatform.Core
 {
     public enum Strand { Forward, Reverse }
 
-    public sealed record SimilarityHit(long SequenceId, double Score, Strand Strand);
+    /// <param name="P">The chance an unrelated record of this shape scores as high (score_null, S3.6), and how it was obtained; null without a null.</param>
+    /// <param name="Log10E">log10 of the expected number of unrelated records scoring as high among this search's candidates: p × candidates.</param>
+    public sealed record SimilarityHit(long SequenceId, double Score, Strand Strand, PValue? P = null, double? Log10E = null);
 
     /// <param name="QueryWindowSize">The one level every hit is scored at; null when the query has no full fine window.</param>
     /// <param name="Lengths">The candidate length band, [ratio × query length, query length / ratio].</param>
     /// <param name="Identical">Records whose sequence_sha256 equals the query's on either strand: sequence identity, not a score.</param>
     /// <param name="NotComparable">Candidates in the band with no stored level at the query's window size.</param>
+    /// <param name="FewWindows">
+    /// The query is too short for its shortest candidates to keep 8 windows even at 500 bp (under about 8 kbp at ratio 0.5).
+    /// The ranking then reflects composition more than order: HPV16 (15 windows) ranks GC-matched strangers above its own
+    /// family (results/S36_CatalogueRanking.csv).
+    /// </param>
     public sealed record SimilarityResult(
         int? QueryWindowSize,
         LengthRange Lengths,
         IReadOnlyList<SimilarityHit> Ranked, int RankedTotal,
         IReadOnlyList<(long SequenceId, Strand Strand)> Identical,
-        IReadOnlyList<long> NotComparable);
+        IReadOnlyList<long> NotComparable,
+        bool FewWindows);
 
     /// <summary>
     /// A query as the search sees it: its ladder on both strands, its length and, when it came from DNA, the
@@ -78,6 +86,11 @@ namespace SequencePlatform.Core
     /// 8 windows: one list on one scale, the better of the two query strands. There is no 500 bp re-rank: on the
     /// bundled corpora it made bacterial close-relative top hits worse (results/MultiResolution_Rerank.csv).
     ///
+    /// Once score_null's genome null exists (S3.6), each hit also carries a p-value from the cell of its own shape and
+    /// an E-value over this search's candidates. The ranking stays by score: ranking by p-value lost 0.008-0.043 bacterial
+    /// AUC (as p or as z) and put an identical sequence at 416, because p is bounded by each cell's sample size
+    /// (results/S36_CatalogueRanking.csv, MultiResolution_ScoreNullRanking.csv).
+    ///
     /// The band also bounds what has to be read. A record of length X is only ever scored at the levels its
     /// band of queries uses, so each cached level holds one length range (<see cref="CachedLengths"/>): 19 MB
     /// at r = 0.5 on the local catalogue instead of 837 MB for every level (results/S34_BandLimitedCache.csv).
@@ -93,6 +106,8 @@ namespace SequencePlatform.Core
         private readonly int[] factors = ZCurveProfileLadder.DefaultFactors.ToArray();
         private readonly ProfileCache[]? caches;
         private readonly bool[] loaded;
+        private ScoreNull? scoreNull;
+        private bool nullLoaded;
 
         /// <summary>The smallest length ratio a search may ask for; the cached length ranges are sized for it.</summary>
         public double MinLengthRatio { get; }
@@ -116,23 +131,43 @@ namespace SequencePlatform.Core
                     .ToArray();
         }
 
-        private int WindowSizeAt(int level) => RecordStore.FineWindowSize * factors[level];
+        private static int WindowSizeAt(int level) => RecordStore.FineWindowSize * ZCurveProfileLadder.DefaultFactors[level];
 
-        // Which record lengths level i can be asked for by any query with ratio r >= MinLengthRatio. A query of
+        public LengthRange CachedLengths(int level) => CachedLengths(level, MinLengthRatio);
+
+        // Which record lengths level i can be asked for by any query with ratio r >= minLengthRatio. A query of
         // length L ranks at window w when r * floor(L / w) >= 8 and not at the next window w' (r * floor(L / w') < 8),
         // so L >= 8w / r and L < w' * (8 / r + 1). Its candidates X are in [rL, L / r]: X >= 8w, X < w' * (8 / r^2 + 1 / r).
         // The finest level is also every query's fallback, so it starts at 0; the coarsest has no upper end.
-        public LengthRange CachedLengths(int level)
+        public static LengthRange CachedLengths(int level, double minLengthRatio)
         {
             long min = level == 0 ? 0 : 8L * WindowSizeAt(level);
-            if (level == factors.Length - 1) return new LengthRange(min, null);
-            double r = MinLengthRatio;
+            if (level == ZCurveProfileLadder.DefaultFactors.Count - 1) return new LengthRange(min, null);
+            double r = minLengthRatio;
             return new LengthRange(min, (long)Math.Ceiling(WindowSizeAt(level + 1) * (8 / (r * r) + 1 / r)));
         }
+
+        /// <summary>
+        /// The level index a query of this length ranks at for this ratio: <see cref="ZCurveProfileLadder.SelectBandFactor"/>
+        /// from the window counts the length implies, for callers that have lengths but no query profile (the null builder).
+        /// </summary>
+        public static int BandLevel(long lengthBp, double lengthRatio)
+        {
+            long fineWindows = lengthBp / RecordStore.FineWindowSize;
+            for (int i = ZCurveProfileLadder.DefaultFactors.Count - 1; i > 0; i--)
+                if (lengthRatio * (fineWindows / ZCurveProfileLadder.DefaultFactors[i]) >= ZCurveProfileLadder.DefaultMinWindows)
+                    return i;
+            return 0;
+        }
+
+        /// <summary>The candidate lengths a query of this length meets: [ratio × L, L / ratio].</summary>
+        public static LengthRange Band(long lengthBp, double lengthRatio) =>
+            new((long)Math.Ceiling(lengthRatio * lengthBp), (long)Math.Floor(lengthBp / lengthRatio) + 1);
 
         /// <summary>Brings every level loaded so far up to date with the database. A level is first loaded when a search needs it.</summary>
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
+            nullLoaded = false;
             if (caches is null) return;
             for (int i = 0; i < caches.Length; i++)
                 if (loaded[i]) await caches[i].RefreshAsync(cancellationToken);
@@ -145,7 +180,7 @@ namespace SequencePlatform.Core
             if (lengthRatio < MinLengthRatio || lengthRatio > 1)
                 throw new ArgumentOutOfRangeException(nameof(lengthRatio), $"The length ratio must be {MinLengthRatio} to 1.");
 
-            var lengths = new LengthRange((long)Math.Ceiling(lengthRatio * query.LengthBp), (long)Math.Floor(query.LengthBp / lengthRatio) + 1);
+            var lengths = Band(query.LengthBp, lengthRatio);
             filter ??= new CatalogueFilter();
             var banded = filter with
             {
@@ -155,10 +190,16 @@ namespace SequencePlatform.Core
             var candidates = await Catalogue.IdsAsync(dataSource, banded, cancellationToken);
             var identical = await IdenticalAsync(query, candidates, cancellationToken);
             if (ZCurveProfileLadder.SelectBandFactor(query.Forward, lengthRatio) is not int queryFactor)
-                return new SimilarityResult(null, lengths, [], 0, identical, []);
+                return new SimilarityResult(null, lengths, [], 0, identical, [], FewWindows: true);
 
             int level = Array.IndexOf(factors, queryFactor);
             var profiles = await LevelAsync(level, lengths, cancellationToken);
+            if (!nullLoaded)
+            {
+                scoreNull = await ScoreNullStore.LoadAsync(dataSource, method, methodVersion, ScoreNullStore.Genome, cancellationToken);
+                nullLoaded = true;
+            }
+            var significance = scoreNull;
             var forward = query.Forward.Level(queryFactor);
             var reverse = query.Reverse?.Level(queryFactor);
 
@@ -175,11 +216,14 @@ namespace SequencePlatform.Core
                     var reversed = ZCurveWindowedProfile.Compare(reverse, candidate);
                     if (reversed > score) (score, strand) = (reversed, Strand.Reverse);
                 }
-                hits[i] = new SimilarityHit(comparable[i], score, strand);
+                var (shorter, offsets) = ScoreNull.Shape(forward.WindowCount, candidate.WindowCount);
+                var p = significance?.PValue(forward.WindowSize, shorter, offsets, score);
+                hits[i] = new SimilarityHit(comparable[i], score, strand, p, p?.Log10 + Math.Log10(comparable.Length));
             });
 
             var ranked = hits.OrderByDescending(h => h.Score).ThenBy(h => h.SequenceId).Take(top).ToList();
-            return new SimilarityResult(WindowSizeAt(level), lengths, ranked, hits.Length, identical, notComparable);
+            bool fewWindows = lengthRatio * query.Forward.Fine.WindowCount < ZCurveProfileLadder.DefaultMinWindows;
+            return new SimilarityResult(WindowSizeAt(level), lengths, ranked, hits.Length, identical, notComparable, fewWindows);
         }
 
         private async Task<IReadOnlyDictionary<long, ZCurveWindowedProfile>> LevelAsync(int level, LengthRange lengths,

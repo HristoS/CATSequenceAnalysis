@@ -12,11 +12,13 @@ using SequencePlatform.Ingest;
 //   load-taxonomy [--refresh] [--skip-gtdb]   NCBI's current lineage per referenced taxid, GTDB's per assembly (S2.4)
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
+//   build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]   score_null from stored profiles (P3 S3.6)
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
+    "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]";
 
 if (args.Length == 0)
@@ -72,6 +74,17 @@ switch (args[0])
     case "list":
         await PrintListAsync(dataSource, Filter(), long.Parse(Option("--after") ?? "0"), int.Parse(Option("--limit") ?? "50"));
         return 0;
+
+    case "build-null":
+        var defaults = new ScoreNullOptions();
+        return await BuildNullAsync(dataSource, defaults with
+        {
+            SamplesPerCell = int.Parse(Option("--per-cell") ?? defaults.SamplesPerCell.ToString()),
+            GenomeDraws = int.Parse(Option("--genome-draws") ?? defaults.GenomeDraws.ToString()),
+            FragmentDraws = int.Parse(Option("--fragment-draws") ?? defaults.FragmentDraws.ToString()),
+            FragmentPool = int.Parse(Option("--pool") ?? defaults.FragmentPool.ToString()),
+            Seed = int.Parse(Option("--seed") ?? defaults.Seed.ToString()),
+        }, Option("--csv"));
 
     case "search-similar":
         return await SearchSimilarAsync(dataSource, Option("--fasta"), Option("--profile"), Filter(),
@@ -209,6 +222,26 @@ static int WriteQueryProfiles(string? fasta, string? output)
     return 0;
 }
 
+static async Task<int> BuildNullAsync(NpgsqlDataSource dataSource, ScoreNullOptions options, string? csvPath)
+{
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    var built = await ScoreNullBuilder.BuildAsync(dataSource, options, message => Console.WriteLine($"  {watch.Elapsed.TotalSeconds,6:F1} s  {message}"));
+    foreach (var (source, cells) in built)
+    {
+        await ScoreNullStore.SaveAsync(dataSource, RecordStore.Method, RecordStore.MethodVersion, source, cells.ToList());
+        Console.WriteLine($"{source,-9} {cells.Count,4} cells, {cells.Sum(c => c.SortedScores.Length),8:N0} scores, " +
+            $"{cells.Count(c => c.SortedScores.Length >= options.SamplesPerCell)} full");
+    }
+    if (csvPath is not null)
+    {
+        using var writer = File.CreateText(csvPath);
+        ScoreNullStore.WriteCsv(writer, built.SelectMany(b => b.Value.Select(c => (b.Key, c))));
+        Console.WriteLine($"Written to {csvPath}.");
+    }
+    Console.WriteLine($"Done in {watch.Elapsed.TotalSeconds:F0} s.");
+    return 0;
+}
+
 static string ReverseStrandPath(string path) => Path.ChangeExtension(path, null) + ".rc.zcwp";
 
 static async Task<int> SearchSimilarAsync(NpgsqlDataSource dataSource, string? fasta, string? profile, CatalogueFilter filter, double ratio, int top)
@@ -247,8 +280,13 @@ static async Task<int> SearchSimilarAsync(NpgsqlDataSource dataSource, string? f
         Console.WriteLine($"Query {name}: {query.LengthBp:N0} bp, {(query.Reverse is null ? "forward strand only" : "both strands")}; " +
             (result.QueryWindowSize is { } w ? $"compared at {w:N0} bp" : "shorter than one window, comparable with nothing") +
             $" with records of {result.Lengths.Min:N0} to {result.Lengths.MaxOrUnbounded - 1:N0} bp (length ratio {ratio}). {elapsed.TotalMilliseconds:F0} ms.");
+        if (result.FewWindows)
+            Console.WriteLine($"  WARNING: under {ZCurveProfileLadder.DefaultMinWindows} windows for the shortest candidates; " +
+                "this ranking mostly reflects base composition (GC), not relatedness.");
         foreach (var (id, strand) in result.Identical)
             Console.WriteLine($"  identical sequence ({strand} strand, by SHA-256): {Describe(records, id)}");
+        if (result.Ranked.Count > 0 && result.Ranked[0].P is null)
+            Console.WriteLine("  no score_null yet (build-null): p and E aren't shown.");
 
         PrintHits($"Ranked: top {result.Ranked.Count} of {result.RankedTotal:N0}", result.Ranked, records);
         if (result.NotComparable.Count > 0)
@@ -261,14 +299,17 @@ static void PrintHits(string title, IReadOnlyList<SimilarityHit> hits, IReadOnly
 {
     Console.WriteLine(title);
     if (hits.Count == 0) return;
-    Console.WriteLine($"  {"#",3} {"score",7} {"strand",-7} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
+    Console.WriteLine($"  {"#",3} {"score",7} {"log10 E",9} {"strand",-7} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
+    Console.WriteLine("      (log10 E: expected unrelated records scoring as high; '<=' only an upper bound: the null sample has too few scores that high)");
     for (int i = 0; i < hits.Count; i++)
     {
         var h = hits[i];
         var r = records.GetValueOrDefault(h.SequenceId);
-        Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {h.Strand,-7} {h.SequenceId,7} {r?.Kind,-10} {r?.LengthBp,12:N0} {r?.Lineage.Genus,-20} {r?.Name}");
+        Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {Evalue(h),9} {h.Strand,-7} {h.SequenceId,7} {r?.Kind,-10} {r?.LengthBp,12:N0} {r?.Lineage.Genus,-20} {r?.Name}");
     }
 }
+
+static string Evalue(SimilarityHit hit) => hit.P is not { } p ? "" : p.Kind == PValueKind.Bound ? $"<={hit.Log10E:F1}" : $"{hit.Log10E:F1}";
 
 static string Describe(IReadOnlyDictionary<long, CatalogueRecord> records, long id) =>
     records.TryGetValue(id, out var r) ? $"{id} {r.RecordId} {r.Name}" : id.ToString();

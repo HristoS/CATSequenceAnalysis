@@ -52,6 +52,15 @@ dotnet run -c Release --project SequencePlatform.Ingest -- search-similar --prof
   `sequence_sha256` on either strand are listed first as identical sequences. Each FASTA record is its own query. Very different
   lengths aren't compared, because there the score measures whether the shorter sequence is contained in the longer
   (`results/S34_LengthGate.csv`). The query file is read and kept in memory only; nothing of it is stored.
+- Each hit shows `log10 E`: how many unrelated records of the same shape would be expected to score as high among this
+  search's candidates, from the `score_null` table. `<=` marks an upper bound (the null sample has fewer than 10 scores
+  that high); without a built null the column is empty. The ranking is by score, not by E. A query whose shortest
+  candidates keep fewer than 8 windows (under about 8 kbp at ratio 0.5) gets a warning: its ranking mostly reflects GC.
+- `build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]` (P3 S3.6,
+  migration 0007) samples best-alignment scores between unrelated records (different superkingdom or phylum; viruses of
+  different families) from the stored profiles, as find-similar and localization would score them, and replaces the
+  `score_null` rows. Defaults take about 2 minutes on the 2026-10 catalogue; rerun it after large ingests. `--csv` also
+  writes every cell's scores to a file.
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.
