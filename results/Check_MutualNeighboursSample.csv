@@ -1,0 +1,7 @@
+Kind, Ranking, Queries, MeanPrecisionAt10, MeanReciprocalRank
+bacterium, score, 150, 0.161, 0.322
+bacterium, mutual rank, 150, 0.220, 0.398
+bacterium, shared top-20, 150, 0.225, 0.432
+virus, score, 150, 0.450, 0.798
+virus, mutual rank, 150, 0.475, 0.819
+virus, shared top-20, 150, 0.475, 0.821

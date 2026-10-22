@@ -492,7 +492,7 @@ namespace SequenceAnaliseTests
         public void LengthBandAgainstPerQueryLevel()
         {
             using var report = File.CreateText("MultiResolution_LengthBand.csv");
-            report.WriteLine("Corpus, Ratio, Method, KeptPairs, QueriesClose, MeanQueryAucClose, QueriesRelated, MeanQueryAucRelated");
+            report.WriteLine("Corpus, Ratio, Method, KeptPairs, ClosePairsKept, RelatedPairsKept, QueriesClose, MeanQueryAucClose, QueriesRelated, MeanQueryAucRelated");
 
             var bacterial = Corpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
             var viral = ViralCorpus.Select(c => new ZCurveProfileLadder(c.Profile)).ToList();
@@ -510,7 +510,7 @@ namespace SequenceAnaliseTests
             Assert.Pass();
         }
 
-        private static readonly double[] bandRatios = { 0, 0.25, 0.5, 0.75 };
+        private static readonly double[] bandRatios = { 0, 0.25, 0.5, 0.75, 0.8 };
 
         private static void BandCorpus(
             string corpusName,
@@ -554,7 +554,8 @@ namespace SequenceAnaliseTests
 
                     var close = Mean(r => r.Close);
                     var related = Mean(r => r.Related);
-                    report.WriteLine($"{corpusName}, {ratio}, {method}, {rows.Count}, {close.Queries}, {close.Mean}, {related.Queries}, {related.Mean}");
+                    report.WriteLine($"{corpusName}, {ratio}, {method}, {rows.Count}, {rows.Count(r => r.Close)}, {rows.Count(r => r.Related)}, " +
+                        $"{close.Queries}, {close.Mean}, {related.Queries}, {related.Mean}");
                     TestContext.Out.WriteLine($"{corpusName,-9} r={ratio,-4} {method,-16} pairs={rows.Count,4}  " +
                         $"close={close.Mean:F4} (n={close.Queries})  related={related.Mean:F4} (n={related.Queries})");
                 }

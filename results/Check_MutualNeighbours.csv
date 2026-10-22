@@ -1,0 +1,10 @@
+Query, Target, Ranking, FirstRanksWithinTop300, TargetsInTop300
+E. coli K-12 NC_000913.3, Escherichia or Shigella, score, "1; 2; 6; 12; 29; 52; 58; 109", 10
+E. coli K-12 NC_000913.3, Escherichia or Shigella, mutual rank, "1; 2; 3; 8; 20; 41; 50; 94", 10
+E. coli K-12 NC_000913.3, Escherichia or Shigella, shared top-20, "1; 2; 3; 5; 9; 16; 22; 30", 10
+SARS-CoV-2 NC_045512.2, Betacoronavirus, score, "1; 2; 3; 4; 5; 7; 11; 12", 15
+SARS-CoV-2 NC_045512.2, Betacoronavirus, mutual rank, "1; 2; 3; 4; 5; 9; 10; 11", 15
+SARS-CoV-2 NC_045512.2, Betacoronavirus, shared top-20, "1; 2; 3; 4; 6; 8; 10; 11", 15
+HPV16 NC_001526.4, any papillomavirus, score, "256; 258", 2
+HPV16 NC_001526.4, any papillomavirus, mutual rank, "201; 222", 2
+HPV16 NC_001526.4, any papillomavirus, shared top-20, "268; 270", 2
