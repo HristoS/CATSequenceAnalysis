@@ -20,7 +20,8 @@ namespace SequencePlatform.Core
     /// Unrelated means: different superkingdom (or virus against cellular); for two cellular records, different
     /// phyla; for two viruses, different families. NCBI's current lineage (taxon) where known, else the record's own.
     /// Plasmids are left out (they carry their host's taxonomy and can cross phyla), and so are records with no
-    /// name at the deciding rank.
+    /// name at the deciding rank. Where <see cref="OriginRotation.BuildAsync"/> has stored a record's rotated levels, the genome null
+    /// scores both versions of either side and keeps the best, as find-similar does.
     /// </summary>
     public static class ScoreNullBuilder
     {
@@ -33,19 +34,24 @@ namespace SequencePlatform.Core
             log($"{records.Length:N0} records (no plasmids) with a 500 bp level");
 
             var levels = new IReadOnlyDictionary<long, ZCurveWindowedProfile>[ZCurveProfileLadder.DefaultFactors.Count];
+            var rotated = new IReadOnlyDictionary<long, ZCurveWindowedProfile>[levels.Length];
             for (int i = 0; i < levels.Length; i++)
             {
-                var cache = new ProfileCache(dataSource, RecordStore.FineWindowSize * ZCurveProfileLadder.DefaultFactors[i],
-                    method, methodVersion, SimilaritySearch.CachedLengths(i, 0.25));
+                int windowSize = RecordStore.FineWindowSize * ZCurveProfileLadder.DefaultFactors[i];
+                var cache = new ProfileCache(dataSource, windowSize, method, methodVersion, SimilaritySearch.CachedLengths(i, 0.25));
                 await cache.RefreshAsync();
                 levels[i] = cache.Profiles;
+                var rotatedCache = new ProfileCache(dataSource, windowSize, method, OriginRotation.RotatedVersion(methodVersion),
+                    SimilaritySearch.CachedLengths(i, 0.25));
+                await rotatedCache.RefreshAsync();
+                rotated[i] = rotatedCache.Profiles;
             }
 
             var rng = new Random(options.Seed);
             var result = new Dictionary<string, IReadOnlyList<ScoreNullCell>>
             {
-                [ScoreNullStore.Genome] = Genome(records, levels, options, rng, permuted: false, options.GenomeDraws, log),
-                [ScoreNullStore.Permuted] = Genome(records, levels, options, rng, permuted: true, options.GenomeDraws / 4, log),
+                [ScoreNullStore.Genome] = Genome(records, levels, rotated, options, rng, permuted: false, options.GenomeDraws, log),
+                [ScoreNullStore.Permuted] = Genome(records, levels, rotated, options, rng, permuted: true, options.GenomeDraws / 4, log),
                 [ScoreNullStore.Fragment] = await FragmentAsync(dataSource, records, options, rng, method, methodVersion, log),
             };
             return result;
@@ -102,10 +108,11 @@ namespace SequencePlatform.Core
         // Genome null: a random query, a random ratio in [0.25, 1], the level a search would rank at, and a random
         // unrelated candidate in the band. Permuted control: any other record in the band, its windows shuffled.
         private static IReadOnlyList<ScoreNullCell> Genome(Candidate[] records, IReadOnlyDictionary<long, ZCurveWindowedProfile>[] levels,
-            ScoreNullOptions options, Random rng, bool permuted, int draws, Action<string> log)
+            IReadOnlyDictionary<long, ZCurveWindowedProfile>[] rotated, ScoreNullOptions options, Random rng, bool permuted, int draws,
+            Action<string> log)
         {
             var planned = new Dictionary<(int, int, int), int>();
-            var work = new List<((int, int, int) Cell, ZCurveWindowedProfile Query, ZCurveWindowedProfile Candidate)>();
+            var work = new List<Pair>();
             int noPartner = 0;
             for (int draw = 0; draw < draws; draw++)
             {
@@ -130,7 +137,9 @@ namespace SequencePlatform.Core
                 var cell = (q.WindowSize, ScoreNull.Bucket(shorter), ScoreNull.Bucket(offsets));
                 if (planned.GetValueOrDefault(cell) >= options.SamplesPerCell) continue;
                 planned[cell] = planned.GetValueOrDefault(cell) + 1;
-                work.Add((cell, q, permuted ? Permute(c, rng) : c));
+                work.Add(permuted
+                    ? new Pair(cell, q, Permute(c, rng))
+                    : new Pair(cell, q, c, rotated[level].GetValueOrDefault(query.Id), rotated[level].GetValueOrDefault(partner.Id)));
             }
 
             var cells = Score(work, options);
@@ -157,7 +166,7 @@ namespace SequencePlatform.Core
             pool = pool.Where(r => profiles.ContainsKey(r.Id)).ToArray();
 
             var planned = new Dictionary<(int, int, int), int>();
-            var work = new List<((int, int, int) Cell, ZCurveWindowedProfile Query, ZCurveWindowedProfile Candidate)>();
+            var work = new List<Pair>();
             for (int draw = 0; draw < options.FragmentDraws; draw++)
             {
                 int length = (int)Math.Round(Math.Pow(2, rng.NextDouble() * Math.Log2(400)));
@@ -174,7 +183,7 @@ namespace SequencePlatform.Core
                 int start = rng.Next(sourceWindows - length + 1);
                 var fragment = ZCurveWindowedProfile.FromPrecomputedWindows(RecordStore.FineWindowSize,
                     windows[source.Id].Skip(start).Take(length).ToList());
-                work.Add((cell, fragment, profiles[reference.Id]));
+                work.Add(new Pair(cell, fragment, profiles[reference.Id]));
             }
 
             var cells = Score(work, options);
@@ -182,15 +191,23 @@ namespace SequencePlatform.Core
             return cells;
         }
 
-        private static IReadOnlyList<ScoreNullCell> Score(
-            List<((int WindowSize, int WindowsBucket, int OffsetsBucket) Cell, ZCurveWindowedProfile Query, ZCurveWindowedProfile Candidate)> work,
-            ScoreNullOptions options)
+        // One sampled pair; the rotated versions are set only where both a genome-null side and its stored rotation exist.
+        private sealed record Pair((int WindowSize, int WindowsBucket, int OffsetsBucket) Cell, ZCurveWindowedProfile Query,
+            ZCurveWindowedProfile Candidate, ZCurveWindowedProfile? RotatedQuery = null, ZCurveWindowedProfile? RotatedCandidate = null);
+
+        private static IReadOnlyList<ScoreNullCell> Score(List<Pair> work, ScoreNullOptions options)
         {
             var scores = new double[work.Count];
             Parallel.For(0, work.Count, i =>
             {
-                var (_, query, candidate) = work[i];
-                scores[i] = Math.Max(ZCurveWindowedProfile.Compare(query, candidate), ZCurveWindowedProfile.Compare(Flip(query), candidate));
+                var pair = work[i];
+                double best = double.NegativeInfinity;
+                foreach (var query in new[] { pair.Query, pair.RotatedQuery })
+                    foreach (var candidate in new[] { pair.Candidate, pair.RotatedCandidate })
+                        if (query is not null && candidate is not null)
+                            best = Math.Max(best, Math.Max(ZCurveWindowedProfile.Compare(query, candidate),
+                                ZCurveWindowedProfile.Compare(Flip(query), candidate)));
+                scores[i] = best;
             });
 
             return Enumerable.Range(0, work.Count)

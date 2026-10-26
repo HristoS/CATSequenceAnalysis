@@ -1,0 +1,4 @@
+Query, LengthBp, WindowSize, Ranked, CachedFirstMs, CachedWarmMs, StreamedMs, S34WarmMs, S34StreamedMs
+E. coli K-12, 4641652, 32000, 4804, 4559, 382, 767, 76, 359
+SARS-CoV-2, 29903, 500, 4240, 960, 54, 253, 41, 138
+HPV16, 7906, 500, 4759, 50, 46, 146, 19, 84

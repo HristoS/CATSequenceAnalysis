@@ -295,6 +295,63 @@ namespace SequenceAnaliseTests
             Assert.That(ZCurveProfileLadder.CompareForQuery(genome, tooShort), Is.EqualTo(new SearchMatch(SearchList.NotComparable, null, null)));
         }
 
+        // Random DNA with a replication-like GC skew: G-rich from 0 to the middle (the leading strand from an origin at 0),
+        // C-rich after it, so the origin is at 0 and the terminus in the middle.
+        private static string Skewed(int length, int seed)
+        {
+            var chars = Generator.GetRandomDNA(length, seed).ToCharArray();
+            var rng = new Random(seed + 1);
+            for (int i = 0; i < chars.Length; i++)
+                if (rng.NextDouble() < 0.1)
+                    chars[i] = i < length / 2 ? (chars[i] == 'C' ? 'G' : chars[i]) : (chars[i] == 'G' ? 'C' : chars[i]);
+            return new string(chars);
+        }
+
+        private static int CircularDistance(int a, int b, int count) => Math.Min(Math.Abs(a - b), count - Math.Abs(a - b));
+
+        [Test]
+        public void GcSkewExtremesFindTheOriginAndTerminusWhereverTheRingWasCut()
+        {
+            var dna = Skewed(200_000, seed: 1);
+            var cut = new ZCurveWindowedProfile(dna[30_000..] + dna[..30_000]);   // 400 windows; the origin now sits at window 340
+            var reverse = new ZCurveWindowedProfile(ReverseComplement(dna[30_000..] + dna[..30_000]));
+
+            var skew = cut.GcSkewExtremes();
+            var reverseSkew = reverse.GcSkewExtremes();
+
+            Assert.That(CircularDistance(skew.OriginWindow, 340, 400), Is.LessThanOrEqualTo(2));
+            Assert.That(CircularDistance(skew.TerminusWindow, 140, 400), Is.LessThanOrEqualTo(2));
+            Assert.That(skew.AmplitudeBp, Is.GreaterThan(1_000));
+            Assert.That(CircularDistance(reverseSkew.OriginWindow, 400 - 340, 400), Is.LessThanOrEqualTo(2), "the other strand finds the same origin");
+        }
+
+        [Test]
+        public void RotatingToTheOriginLaysOutCopiesCutElsewhereAlike()
+        {
+            var dna = Skewed(200_000, seed: 2);
+            var original = new ZCurveWindowedProfile(dna);
+            var copy = new ZCurveWindowedProfile(dna[100_000..] + dna[..100_000]);
+
+            var rotated = ZCurveWindowedProfile.Compare(original.RotateTo(original.GcSkewExtremes().OriginWindow),
+                copy.RotateTo(copy.GcSkewExtremes().OriginWindow));
+
+            Assert.That(rotated, Is.GreaterThan(0.999));
+            Assert.That(rotated, Is.GreaterThan(ZCurveWindowedProfile.Compare(original, copy)));
+        }
+
+        [Test]
+        public void RotateToWrapsTheWindowsRound()
+        {
+            var profile = ZCurveWindowedProfile.FromPrecomputedWindows(500, new[] { (0.1, 0.0, 0.0), (0.2, 0.0, 0.0), (0.3, 0.0, 0.0), (0.4, 0.0, 0.0) });
+
+            Assert.That(profile.RotateTo(1).Windows.Select(w => Math.Round(w.X, 3)), Is.EqualTo(new[] { 0.2, 0.3, 0.4, 0.1 }));
+            Assert.That(profile.RotateTo(0).Windows, Is.EqualTo(profile.Windows));
+            Assert.That(() => profile.RotateTo(4), Throws.InstanceOf<ArgumentOutOfRangeException>());
+        }
+
+        private static string ReverseComplement(string dna) =>
+            new(dna.Reverse().Select(c => c switch { 'A' => 'T', 'T' => 'A', 'C' => 'G', 'G' => 'C', var o => o }).ToArray());
+
         // Localization: the coarsest level leaving the fragment 4 windows, i.e. 500 bp below 8 kbp, 2 kbp below 32 kbp, ...
         [TestCase(7_999, 1)]
         [TestCase(8_000, 4)]

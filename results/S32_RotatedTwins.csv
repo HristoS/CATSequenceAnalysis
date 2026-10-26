@@ -1,0 +1,7 @@
+IdA, IdB, Kind, TopologyA, TopologyB, LengthBp, SameSource, DinucleotideL1, OtherStrand, Stored500bp, Stored32kbp, Rotated500bp, Rotated32kbp
+861, 8051, bacterium, circular, circular, 2646970, False, 8, True, 0.8419, 0.9352, 0.9199, 0.9983
+1732, 2497, plasmid, circular, circular, 204886, False, 2, True, 0.8554, 0.9669, 0.8632, 0.9701
+3448, 3475, plasmid, linear, linear, 27809, False, 4, False, 0.9999, 0.0000, 0.9999, 0.0000
+3454, 3474, bacterium, linear, linear, 904387, False, 16, False, 1.0000, 1.0000, 1.0000, 1.0000
+3456, 3468, plasmid, linear, linear, 45035, False, 4, False, 0.9999, 0.9998, 0.9999, 0.9998
+3630, 8775, plasmid, circular, circular, 305114, False, 2, True, 0.8191, 0.9280, 0.8323, 0.9336

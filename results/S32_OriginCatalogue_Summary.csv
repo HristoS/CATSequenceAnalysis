@@ -1,0 +1,7 @@
+Topology, Records, MinSkewPerKbp, ClearSkew, OriginWithin1PctOfStart, Within5Pct, Beyond5Pct, Beyond25Pct
+circular, 5944, 0, 5085, 2303, 2795, 2290, 1247
+circular, 5944, 3, 4956, 2272, 2747, 2209, 1196
+circular, 5944, 7, 3967, 1935, 2288, 1679, 919
+linear, 455, 0, 324, 107, 145, 179, 123
+linear, 455, 3, 308, 107, 143, 165, 117
+linear, 455, 7, 202, 75, 92, 110, 87

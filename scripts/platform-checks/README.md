@@ -23,6 +23,9 @@ dotnet run -c Release scripts/platform-checks/bandsearch.cs
 | `composition.cs` | `S34b_PlasmidComposition.csv` | Mean Z-curve axes of the Vibrio fischeri plasmid, coronaviruses and others of their length and GC |
 | `localize_check.cs` | `S35_LocalizeCheck*.csv` | Coarse-to-fine localization of bundled-genome fragments over the whole catalogue (needs the bundled FASTA files in `data/genomes/`); pass the output CSV path, the summary goes to the console |
 | `localize_eval.cs` | `S35_LocalizeEval*.csv` | The same fragments through `Localization.LocalizeAsync` (cached, and a few streamed), for comparison with the check and timing |
+| `origin_catalogue.cs` | `S32_OriginCatalogue*.csv` | Replication origin of every stored bacterial chromosome from its profile's cumulative GC skew, against where the record starts |
+| `rotated_twins.cs` | `S32_RotatedTwins.csv` | Records that are the same molecule from another start or strand (same length, dinucleotide counts within 2) |
+| `rotation_eval.cs` | `S32_RotationRanking*.csv` | S3.4b's 150 bacterial queries by score, as stored and with circular chromosomes rotated to their origin at profile level |
 | `tail_calibration.py` | `S36_TailCalibration.csv` | Hold-out calibration of three tail models on the full `score_null` cells; reads `psql -A -t -c "select source, window_size, scores from score_null where cardinality(scores) >= 10000"` on stdin |
 | `column_audit.py` | — | Lists migration columns no platform code references (the 2026-10-22 audit: only timestamps and the unused `search_run` / `search_hit`); pass the repository root |
 

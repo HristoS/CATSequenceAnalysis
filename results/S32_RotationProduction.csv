@@ -1,0 +1,5 @@
+Kind, Ranking, Queries, MeanPrecisionAt10, MeanReciprocalRank, QueriesBetter, QueriesWorse, BeforeRotationPrecisionAt10, BeforeRotationMrr
+bacterium, score, 150, 0.169, 0.343, , , 0.131, 0.260
+bacterium, shared top-20 (production), 150, 0.231, 0.451, 54, 20, 0.195, 0.404
+virus, score, 150, 0.462, 0.782, , , 0.462, 0.782
+virus, shared top-20 (production), 150, 0.491, 0.793, 39, 23, 0.491, 0.793

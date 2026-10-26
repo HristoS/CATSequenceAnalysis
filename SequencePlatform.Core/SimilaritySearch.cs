@@ -8,8 +8,9 @@ namespace SequencePlatform.Core
     /// <param name="P">The chance an unrelated record of this shape scores as high (score_null, S3.6), and how it was obtained; null without a null.</param>
     /// <param name="Log10E">log10 of the expected number of unrelated records scoring as high among this search's candidates: p × candidates.</param>
     /// <param name="SharedNeighbours">For the top hits of a neighbour-ranked search: how many of the query's top 20 are also among this hit's own top 20.</param>
+    /// <param name="Rotated">The best score came from the query or the record laid out from its replication origin (<see cref="OriginRotation"/>).</param>
     public sealed record SimilarityHit(long SequenceId, double Score, Strand Strand, PValue? P = null, double? Log10E = null,
-        int? SharedNeighbours = null);
+        int? SharedNeighbours = null, bool Rotated = false);
 
     /// <param name="QueryWindowSize">The one level every hit is scored at; null when the query has no full fine window.</param>
     /// <param name="Lengths">The candidate length band, [ratio × query length, query length / ratio].</param>
@@ -36,30 +37,57 @@ namespace SequencePlatform.Core
     /// SHA-256 of both strands normalized as <see cref="SequenceFeatureReader"/> does for stored records. The
     /// reverse strand is profiled from the reverse-complement DNA, which is exact; a stored profile is never
     /// flipped (P3 S3.2, results/C3_ProfileFlip.csv). The DNA itself isn't kept.
+    ///
+    /// A query long enough and with a clear GC skew also carries both strands laid out from its replication origin
+    /// (<see cref="OriginRotation.ToOrigin"/>). Whether a FASTA query is circular isn't known, so it is searched both ways and
+    /// keeps the better score, which costs nothing where the rotation is wrong (results/S32_RotationRanking_Summary.csv).
     /// </summary>
     /// <param name="LengthBp">As length_bp is for stored records; for a profile-only query, windows × window size (a lower bound).</param>
-    public sealed record QueryProfile(ZCurveProfileLadder Forward, ZCurveProfileLadder? Reverse, long LengthBp, byte[]? Sha256, byte[]? ReverseSha256)
+    /// <param name="Rotated">The forward strand rotated to its origin; null when the query isn't rotated.</param>
+    /// <param name="RotatedReverse">The reverse strand rotated to the same origin, when there is a reverse strand.</param>
+    public sealed record QueryProfile(ZCurveProfileLadder Forward, ZCurveProfileLadder? Reverse, long LengthBp, byte[]? Sha256, byte[]? ReverseSha256,
+        ZCurveProfileLadder? Rotated = null, ZCurveProfileLadder? RotatedReverse = null)
     {
         public static QueryProfile FromSequence(string sequence)
         {
             var (forward, sha256, lengthBp) = Profile(sequence);
             var (reverse, reverseSha256, _) = Profile(ReverseComplement(sequence));
-            return new QueryProfile(forward, reverse, lengthBp, sha256, reverseSha256);
+            return new QueryProfile(forward, reverse, lengthBp, sha256, reverseSha256).WithOrigin();
         }
 
         /// <summary>
         /// A stored record as a query (search by record, the neighbour graph). The DNA is gone, so the other strand is a
         /// profile-level flip, exact only when the length is a multiple of 500 bp (results/C3_ProfileFlip.csv); its length
-        /// is the stored length_bp.
+        /// is the stored length_bp. It is rotated only if it is a circular chromosome, as <see cref="OriginRotation.BuildAsync"/> rotates the stored records.
         /// </summary>
-        public static QueryProfile FromStoredRecord(ZCurveWindowedProfile fine, long lengthBp) =>
-            new(new ZCurveProfileLadder(fine), new ZCurveProfileLadder(ZCurveWindowedProfile.FromPrecomputedWindows(fine.WindowSize,
-                fine.Windows.Reverse().Select(w => (-w.X, -w.Y, w.Z)).ToList())), lengthBp, null, null);
+        public static QueryProfile FromStoredRecord(ZCurveWindowedProfile fine, long lengthBp, bool circularChromosome = false)
+        {
+            var query = new QueryProfile(new ZCurveProfileLadder(fine), new ZCurveProfileLadder(Flip(fine)), lengthBp, null, null);
+            return circularChromosome && OriginRotation.ToOrigin(fine, lengthBp) is { } turned
+                ? query with { Rotated = new ZCurveProfileLadder(turned), RotatedReverse = new ZCurveProfileLadder(Flip(turned)) }
+                : query;
+        }
 
         /// <summary>A profile-only query (a ZCWP upload): no hash, and the reverse strand only if the uploader supplied it.</summary>
         public static QueryProfile FromProfiles(ZCurveWindowedProfile forward, ZCurveWindowedProfile? reverse) =>
-            new(new ZCurveProfileLadder(forward), reverse is null ? null : new ZCurveProfileLadder(reverse),
-                (long)forward.WindowCount * forward.WindowSize, null, null);
+            new QueryProfile(new ZCurveProfileLadder(forward), reverse is null ? null : new ZCurveProfileLadder(reverse),
+                (long)forward.WindowCount * forward.WindowSize, null, null).WithOrigin();
+
+        // Rotates both strands to the origin when the forward strand places one. The reverse strand's own skew minimum is the same
+        // point of the ring.
+        private QueryProfile WithOrigin()
+        {
+            if (OriginRotation.ToOrigin(Forward.Fine, LengthBp) is not { } turned) return this;
+            var reverse = Reverse?.Fine;
+            return this with
+            {
+                Rotated = new ZCurveProfileLadder(turned),
+                RotatedReverse = reverse is null ? null : new ZCurveProfileLadder(reverse.RotateTo(reverse.GcSkewExtremes().OriginWindow)),
+            };
+        }
+
+        private static ZCurveWindowedProfile Flip(ZCurveWindowedProfile fine) =>
+            ZCurveWindowedProfile.FromPrecomputedWindows(fine.WindowSize, fine.Windows.Reverse().Select(w => (-w.X, -w.Y, w.Z)).ToList());
 
         private static (ZCurveProfileLadder Ladder, byte[] Sha256, long LengthBp) Profile(string sequence)
         {
@@ -119,6 +147,10 @@ namespace SequencePlatform.Core
     /// Shared neighbours can also lift a composition look-alike whose own neighbours are the query's: for SARS-CoV-2 a
     /// Vibrio fischeri plasmid with the coronavirus GC and keto skew comes fourth, with E about 32
     /// (results/S34b_PlasmidComposition.csv). Its E-value is what marks it.
+    ///
+    /// Once <see cref="OriginRotation.BuildAsync"/> has stored circular chromosomes laid out from their replication origin, each such
+    /// record is scored both as stored and rotated, and so is a query that has a rotated form; the best score counts. Rotating only
+    /// one side would cost the queries that can't be rotated (results/S32_RotationRanking_Summary.csv).
     /// </summary>
     public sealed class SimilaritySearch
     {
@@ -131,6 +163,7 @@ namespace SequencePlatform.Core
         private readonly string methodVersion;
         private readonly int[] factors = ZCurveProfileLadder.DefaultFactors.ToArray();
         private readonly ProfileCache[]? caches;
+        private readonly ProfileCache[]? rotatedCaches;
         private readonly bool[] loaded;
         private ScoreNull? scoreNull;
         private bool nullLoaded;
@@ -140,7 +173,7 @@ namespace SequencePlatform.Core
         public double MinLengthRatio { get; }
 
         /// <summary>Bytes of window data held over every loaded level; 0 without a cache.</summary>
-        public long WindowBytes => caches is null ? 0 : caches.Where((_, i) => loaded[i]).Sum(c => c.WindowBytes);
+        public long WindowBytes => caches is null ? 0 : caches.Concat(rotatedCaches!).Where((_, i) => loaded[i % loaded.Length]).Sum(c => c.WindowBytes);
 
         /// <param name="useCache">false: every search reads its band from the database (one query per process, as the CLI does).</param>
         public SimilaritySearch(NpgsqlDataSource dataSource, bool useCache = true, double minLengthRatio = 0.25,
@@ -153,9 +186,14 @@ namespace SequencePlatform.Core
             MinLengthRatio = minLengthRatio;
             loaded = new bool[factors.Length];
             if (useCache)
+            {
                 caches = Enumerable.Range(0, factors.Length)
                     .Select(i => new ProfileCache(dataSource, WindowSizeAt(i), method, methodVersion, CachedLengths(i)))
                     .ToArray();
+                rotatedCaches = Enumerable.Range(0, factors.Length)
+                    .Select(i => new ProfileCache(dataSource, WindowSizeAt(i), method, OriginRotation.RotatedVersion(methodVersion), CachedLengths(i)))
+                    .ToArray();
+            }
         }
 
         private static int WindowSizeAt(int level) => RecordStore.FineWindowSize * ZCurveProfileLadder.DefaultFactors[level];
@@ -198,7 +236,11 @@ namespace SequencePlatform.Core
             graphs.Clear();
             if (caches is null) return;
             for (int i = 0; i < caches.Length; i++)
-                if (loaded[i]) await caches[i].RefreshAsync(cancellationToken);
+                if (loaded[i])
+                {
+                    await caches[i].RefreshAsync(cancellationToken);
+                    await rotatedCaches![i].RefreshAsync(cancellationToken);
+                }
         }
 
         /// <summary>Loads every cached level and the null now, so that searches running in parallel afterwards only read them.</summary>
@@ -220,20 +262,23 @@ namespace SequencePlatform.Core
         public async Task<SimilarityResult> SearchRecordAsync(long sequenceId, CatalogueFilter? filter = null,
             double lengthRatio = DefaultLengthRatio, int top = 50, bool useNeighbours = true, CancellationToken cancellationToken = default)
         {
-            await using var command = dataSource.CreateCommand("select source_id, length_bp from sequence_record where id = $1");
+            await using var command = dataSource.CreateCommand(
+                "select source_id, length_bp, kind = 'bacterium' and coalesce(annotations->'contig'->>'topology' = 'circular', false) " +
+                "from sequence_record where id = $1");
             command.Parameters.AddWithValue(sequenceId);
             long sourceId, lengthBp;
+            bool circularChromosome;
             await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
             {
                 if (!await reader.ReadAsync(cancellationToken))
                     throw new ArgumentException($"No record {sequenceId}.", nameof(sequenceId));
-                (sourceId, lengthBp) = (reader.GetInt64(0), reader.GetInt64(1));
+                (sourceId, lengthBp, circularChromosome) = (reader.GetInt64(0), reader.GetInt64(1), reader.GetBoolean(2));
             }
 
             var fine = await ProfileLevels.ReadAsync(dataSource, sequenceId, method, methodVersion, RecordStore.FineWindowSize)
                 ?? throw new ArgumentException($"Record {sequenceId} has no stored {RecordStore.FineWindowSize} bp level.", nameof(sequenceId));
-            return await SearchCoreAsync(QueryProfile.FromStoredRecord(fine, lengthBp), sourceId, filter, lengthRatio, top, useNeighbours,
-                cancellationToken);
+            return await SearchCoreAsync(QueryProfile.FromStoredRecord(fine, lengthBp, circularChromosome), sourceId, filter, lengthRatio, top,
+                useNeighbours, cancellationToken);
         }
 
         private async Task<SimilarityResult> SearchCoreAsync(QueryProfile query, long? excludedSourceId, CatalogueFilter? filter,
@@ -258,10 +303,10 @@ namespace SequencePlatform.Core
                 return new SimilarityResult(null, lengths, [], 0, identical, [], FewWindows: true);
 
             int level = Array.IndexOf(factors, queryFactor);
-            var profiles = await LevelAsync(level, lengths, cancellationToken);
+            var (profiles, rotatedProfiles) = await LevelAsync(level, lengths, cancellationToken);
             var significance = await SignificanceAsync(cancellationToken);
             var forward = query.Forward.Level(queryFactor);
-            var reverse = query.Reverse?.Level(queryFactor);
+            var queryLevels = QueryLevels(query, queryFactor);
 
             var comparable = candidates.Where(profiles.ContainsKey).ToArray();
             var notComparable = candidates.Where(id => !profiles.ContainsKey(id)).Order().ToList();
@@ -269,16 +314,12 @@ namespace SequencePlatform.Core
             Parallel.For(0, comparable.Length, new ParallelOptions { CancellationToken = cancellationToken }, i =>
             {
                 var candidate = profiles[comparable[i]];
-                var score = ZCurveWindowedProfile.Compare(forward, candidate);
-                var strand = Strand.Forward;
-                if (reverse is not null)
-                {
-                    var reversed = ZCurveWindowedProfile.Compare(reverse, candidate);
-                    if (reversed > score) (score, strand) = (reversed, Strand.Reverse);
-                }
+                var (score, strand, rotated) = Best(queryLevels, candidate, false, (double.NegativeInfinity, Strand.Forward, false));
+                if (rotatedProfiles.TryGetValue(comparable[i], out var turned))
+                    (score, strand, rotated) = Best(queryLevels, turned, true, (score, strand, rotated));
                 var (shorter, offsets) = ScoreNull.Shape(forward.WindowCount, candidate.WindowCount);
                 var p = significance?.PValue(forward.WindowSize, shorter, offsets, score);
-                hits[i] = new SimilarityHit(comparable[i], score, strand, p, p?.Log10 + Math.Log10(comparable.Length));
+                hits[i] = new SimilarityHit(comparable[i], score, strand, p, p?.Log10 + Math.Log10(comparable.Length), Rotated: rotated);
             });
 
             var byScore = hits.OrderByDescending(h => h.Score).ThenBy(h => h.SequenceId).ToList();
@@ -290,6 +331,28 @@ namespace SequencePlatform.Core
             bool fewWindows = lengthRatio * query.Forward.Fine.WindowCount < ZCurveProfileLadder.DefaultMinWindows;
             return new SimilarityResult(WindowSizeAt(level), lengths, byScore.Take(top).ToList(), hits.Length, identical, notComparable,
                 fewWindows, neighbourRanked);
+        }
+
+        // The query's forms at one level, in the order ties are broken: forward, reverse, then the rotated pair.
+        private static (ZCurveWindowedProfile Level, Strand Strand, bool Rotated)[] QueryLevels(QueryProfile query, int factor)
+        {
+            var levels = new List<(ZCurveWindowedProfile, Strand, bool)> { (query.Forward.Level(factor), Strand.Forward, false) };
+            if (query.Reverse is not null) levels.Add((query.Reverse.Level(factor), Strand.Reverse, false));
+            if (query.Rotated is not null) levels.Add((query.Rotated.Level(factor), Strand.Forward, true));
+            if (query.RotatedReverse is not null) levels.Add((query.RotatedReverse.Level(factor), Strand.Reverse, true));
+            return levels.ToArray();
+        }
+
+        // The best of the query's forms against one form of a candidate, kept only where it beats the score so far.
+        private static (double Score, Strand Strand, bool Rotated) Best((ZCurveWindowedProfile Level, Strand Strand, bool Rotated)[] queryLevels,
+            ZCurveWindowedProfile candidate, bool candidateRotated, (double Score, Strand Strand, bool Rotated) best)
+        {
+            foreach (var (level, strand, rotated) in queryLevels)
+            {
+                var score = ZCurveWindowedProfile.Compare(level, candidate);
+                if (score > best.Score) best = (score, strand, rotated || candidateRotated);
+            }
+            return best;
         }
 
         // The top hits by shared neighbours, then score; the rest stay in score order below them. A hit missing from the
@@ -340,24 +403,30 @@ namespace SequencePlatform.Core
             return ids;
         }
 
-        private async Task<IReadOnlyDictionary<long, ZCurveWindowedProfile>> LevelAsync(int level, LengthRange lengths,
-            CancellationToken cancellationToken)
+        // One level of the band as stored, and the rotated versions of the records that have one (empty before build-origins).
+        private async Task<(IReadOnlyDictionary<long, ZCurveWindowedProfile> Stored, IReadOnlyDictionary<long, ZCurveWindowedProfile> Rotated)>
+            LevelAsync(int level, LengthRange lengths, CancellationToken cancellationToken)
         {
             if (caches is not null)
             {
                 if (!loaded[level])
                 {
                     await caches[level].RefreshAsync(cancellationToken);
+                    await rotatedCaches![level].RefreshAsync(cancellationToken);
                     loaded[level] = true;
                 }
-                return caches[level].Profiles;
+                return (caches[level].Profiles, rotatedCaches![level].Profiles);
             }
 
-            var profiles = new Dictionary<long, ZCurveWindowedProfile>();
-            await foreach (var (_, sequenceId, profile) in ProfileLevels.StreamAfterAsync(
-                dataSource, method, methodVersion, WindowSizeAt(level), 0, lengths, cancellationToken))
-                profiles[sequenceId] = profile;
-            return profiles;
+            async Task<Dictionary<long, ZCurveWindowedProfile>> Stream(string version)
+            {
+                var profiles = new Dictionary<long, ZCurveWindowedProfile>();
+                await foreach (var (_, sequenceId, profile) in ProfileLevels.StreamAfterAsync(
+                    dataSource, method, version, WindowSizeAt(level), 0, lengths, cancellationToken))
+                    profiles[sequenceId] = profile;
+                return profiles;
+            }
+            return (await Stream(methodVersion), await Stream(OriginRotation.RotatedVersion(methodVersion)));
         }
 
         private async Task<IReadOnlyList<(long SequenceId, Strand Strand)>> IdenticalAsync(QueryProfile query, HashSet<long> candidates,

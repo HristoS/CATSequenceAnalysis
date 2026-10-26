@@ -441,6 +441,35 @@ namespace SequenceAnalyses
             return new ZCurveWindowedProfile(phase == 0 ? DnaString : null, WindowSize * factor, coarseXs, coarseYs, coarseZs);
         }
 
+        /// <summary>
+        /// The extremes of the cumulative GC skew over the windows, a circular chromosome's replication origin (minimum) and
+        /// terminus (maximum): x - y = 2(G - C) per base, and the leading strand is G-rich from the origin to the terminus,
+        /// whichever strand was deposited. Each is the window just after the extreme, so a profile rotated to start at
+        /// OriginWindow starts at the origin. AmplitudeBp is the G - C excess between them. Window-level only: the origin is
+        /// placed to a window or a few, and a genome with almost no skew gets an arbitrary one (results/C3_OriginFromSkew.csv).
+        /// </summary>
+        public ReplicationSkew GcSkewExtremes()
+        {
+            double sum = 0, min = 0, max = 0;
+            int origin = 0, terminus = 0;
+            for (int i = 0; i < xs.Length; i++)
+            {
+                sum += (double)xs[i] - ys[i];
+                if (sum < min) (min, origin) = (sum, i + 1);
+                if (sum > max) (max, terminus) = (sum, i + 1);
+            }
+            int count = Math.Max(1, xs.Length);
+            return new ReplicationSkew(origin % count, terminus % count, (max - min) * WindowSize / 2);
+        }
+
+        /// <summary>The same windows starting at <paramref name="startWindow"/> and wrapping round: a circular sequence cut elsewhere, on the window grid.</summary>
+        public ZCurveWindowedProfile RotateTo(int startWindow)
+        {
+            if (startWindow < 0 || startWindow > 0 && startWindow >= xs.Length) throw new ArgumentOutOfRangeException(nameof(startWindow));
+            static float[] Turn(float[] values, int start) => [.. values[start..], .. values[..start]];
+            return new ZCurveWindowedProfile(startWindow == 0 ? DnaString : null, WindowSize, Turn(xs, startWindow), Turn(ys, startWindow), Turn(zs, startWindow));
+        }
+
         // Euclidean distance, sqrt included. Four cheaper alternatives (squared Euclidean, Chebyshev,
         // Manhattan, and one sqrt of the summed distance) were each measured against the real-genome
         // corpus and all reverted: they either compress the near-duplicate-vs-unrelated spacing the
@@ -782,4 +811,7 @@ namespace SequenceAnalyses
 
     /// <summary>Factor and Score are null exactly when List is <see cref="SearchList.NotComparable"/>.</summary>
     public readonly record struct SearchMatch(SearchList List, int? Factor, double? Score);
+
+    /// <summary>See <see cref="ZCurveWindowedProfile.GcSkewExtremes"/>.</summary>
+    public readonly record struct ReplicationSkew(int OriginWindow, int TerminusWindow, double AmplitudeBp);
 }

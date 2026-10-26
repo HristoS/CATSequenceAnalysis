@@ -14,13 +14,14 @@ using SequencePlatform.Ingest;
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
 //   build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]   score_null from stored profiles (P3 S3.6)
 //   build-neighbours [--ratio R]             every record's own top 20 (other assemblies), for re-ranking by shared neighbours (P3 S3.4b)
+//   build-origins                             circular bacterial chromosomes' levels laid out from their replication origin, for find-similar
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
-    "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R]\n" +
+    "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
     "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]";
 
@@ -96,6 +97,14 @@ switch (args[0])
         var listed = await NeighbourGraph.BuildAsync(dataSource, neighbourRatio, SimilaritySearch.NeighbourCount,
             message => Console.WriteLine($"  {neighbourWatch.Elapsed.TotalSeconds,6:F0} s  {message}"));
         Console.WriteLine($"{listed:N0} records listed at length ratio {neighbourRatio} in {neighbourWatch.Elapsed.TotalSeconds:F0} s.");
+        return 0;
+
+    case "build-origins":
+        var originWatch = System.Diagnostics.Stopwatch.StartNew();
+        var (rotatedCount, examined) = await OriginRotation.BuildAsync(dataSource,
+            message => Console.WriteLine($"  {originWatch.Elapsed.TotalSeconds,6:F0} s  {message}"));
+        Console.WriteLine($"{rotatedCount:N0} of {examined:N0} circular chromosomes stored rotated to their origin in {originWatch.Elapsed.TotalSeconds:F0} s. " +
+            "Rebuild the null (build-null) and the neighbour graph (build-neighbours): both score the way searches do.");
         return 0;
 
     case "search-similar":
@@ -379,13 +388,14 @@ static void PrintHits(string title, IReadOnlyList<SimilarityHit> hits, IReadOnly
 {
     Console.WriteLine(title);
     if (hits.Count == 0) return;
-    Console.WriteLine($"  {"#",3} {"score",7} {"log10 E",9} {"shared",6} {"strand",-7} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
-    Console.WriteLine("      (log10 E: expected unrelated records scoring as high; '<=' only an upper bound: the null sample has too few scores that high)");
+    Console.WriteLine($"  {"#",3} {"score",7} {"log10 E",9} {"shared",6} {"strand",-8} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
+    Console.WriteLine("      (log10 E: expected unrelated records scoring as high; '<=' only an upper bound: the null sample has too few scores that high." +
+        " strand*: best laid out from the replication origin)");
     for (int i = 0; i < hits.Count; i++)
     {
         var h = hits[i];
         var r = records.GetValueOrDefault(h.SequenceId);
-        Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {Evalue(h),9} {h.SharedNeighbours,6} {h.Strand,-7} {h.SequenceId,7} {r?.Kind,-10} {r?.LengthBp,12:N0} {r?.Lineage.Genus,-20} {r?.Name}");
+        Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {Evalue(h),9} {h.SharedNeighbours,6} {h.Strand + (h.Rotated ? "*" : ""),-8} {h.SequenceId,7} {r?.Kind,-10} {r?.LengthBp,12:N0} {r?.Lineage.Genus,-20} {r?.Name}");
     }
 }
 

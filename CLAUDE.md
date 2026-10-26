@@ -81,10 +81,13 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   of length [rL, L/r], default r = 0.5, at one level, both query strands; unbanded scores measure containment, not
   similarity; each hit carries an empirical p and E from `score_null`, built by `ScoreNullBuilder` / `build-null`; the top
   100 are re-ranked by shared top-20 neighbours from `neighbour_list` (`NeighbourGraph` / `build-neighbours`), else by score), `Localization` (localize a fragment ≥ 4 kbp over all records at least as long: coarsest level leaving it 4 windows,
-  every query phase, both strands, top 100 refined at 500 bp; shorter fragments only inside a named record).
+  every query phase, both strands, top 100 refined at 500 bp; shorter fragments only inside a named record), `OriginRotation`
+  (circular bacterial chromosomes ≥ 500 kbp laid out from their replication origin, found from the stored profile's cumulative GC
+  skew; their 2/8/32 kbp levels stored under method version `1-origin` by `build-origins`; find-similar and the genome null score
+  both versions of a record and of the query and keep the best; localization stays unrotated).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `load-taxonomy`, `stats`, `list`,
-  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`; see its README. Measurement scripts for the platform's
+  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`; see its README. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).
 - `SequencePlatform.Tests/` (NUnit 4): each run creates `sequence_platform_test_<random>`, migrates it, and drops it.
 - Connection string from the `SEQUENCE_PLATFORM_DB` env var, else the git-ignored `SequencePlatform.Ingest/appsettings.json`

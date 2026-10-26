@@ -75,6 +75,12 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   in the hit's own top 20. That raised same-genus precision@10 from 0.131 to 0.195 for bacteria. A composition
   look-alike can rise too (a plasmid with coronavirus-like GC and skew comes fourth for SARS-CoV-2); its E-value shows it
   isn't significant. Rebuild the graph after large ingests; hits missing from it are searched live.
+- `build-origins` (S3.2's rotation) lays every circular bacterial chromosome of at least 500 kbp with a clear GC skew out from
+  its replication origin, found from its stored 500 bp profile (the cumulative skew's minimum; no download), and stores its
+  2, 8 and 32 kbp levels under method version `1-origin` (4,951 of 5,944 chromosomes, 34 s on the 2026-10 catalogue).
+  `search-similar` then scores those records, and a query with a clear skew, both as stored and rotated, and keeps the
+  better score; `strand*` marks a hit whose best score came from a rotated form. Rerun `build-null` and `build-neighbours`
+  afterwards. Localization ignores the rotated levels, so its offsets stay in the deposit's coordinates.
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.
