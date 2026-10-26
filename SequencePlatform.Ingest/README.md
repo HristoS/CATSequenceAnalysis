@@ -34,6 +34,8 @@ dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name
 dotnet run -c Release --project SequencePlatform.Ingest -- search-similar --fasta query.fna.gz --top 20
 dotnet run --project SequencePlatform.Ingest -- profile --fasta query.fna.gz --out query.zcwp
 dotnet run -c Release --project SequencePlatform.Ingest -- search-similar --profile query.zcwp --kind virus
+dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta fragment.fna --kind bacterium
+dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read.fna --record 1234
 ```
 
 - `migrate` creates the database if it's missing and applies `SequencePlatform.Core/Migrations/*.sql` in order, recorded in
@@ -56,6 +58,12 @@ dotnet run -c Release --project SequencePlatform.Ingest -- search-similar --prof
   search's candidates, from the `score_null` table. `<=` marks an upper bound (the null sample has fewer than 10 scores
   that high); without a built null the column is empty. The ranking is by score, not by E. A query whose shortest
   candidates keep fewer than 8 windows (under about 8 kbp at ratio 0.5) gets a warning: its ranking mostly reflects GC.
+- `localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]` (P3 S3.5) says where each fragment comes from:
+  record, offset on its stored strand (to about 500 bp), strand, score and `log10 E` from the fragment null. Candidates are all
+  records at least as long as the fragment, scanned at the coarsest level that leaves the fragment 4 windows, then the best 100
+  refined at 500 bp. Over the catalogue the fragment must be at least 4 kbp; under 8 kbp it gets a weak-signal warning. A shorter
+  fragment can be placed inside one record with `--record ID`. When the top hit isn't the source it was mostly a close relative
+  (another strain; `results/S35_LocalizeCheckMin4_Summary.csv`). Not found: a fragment across the origin of a circular record.
 - `build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]` (P3 S3.6,
   migration 0007) samples best-alignment scores between unrelated records (different superkingdom or phylum; viruses of
   different families) from the stored profiles, as find-similar and localization would score them, and replaces the

@@ -600,6 +600,30 @@ namespace SequenceAnalyses
             var (score, _) = BestAlignment(shorter, longer);
             return double.IsNaN(score) ? 0 : score;
         }
+
+        /// <summary>
+        /// <see cref="BestAlignment"/> over only the reference windows within <paramref name="radius"/> of
+        /// <paramref name="estimatedOffset"/>: the fine step of a coarse-to-fine localization, once a coarser level
+        /// has placed the query near that offset (MultiResolutionBenchmark.CoarseToFineLocalization). The offset
+        /// returned is in the whole reference; (NaN, -1) when the neighbourhood, clipped to the reference, is
+        /// shorter than the query.
+        /// </summary>
+        public static (double Score, int Offset) RefineAlignment(ZCurveWindowedProfile query, ZCurveWindowedProfile reference,
+            int estimatedOffset, int radius)
+        {
+            if (radius < 0) throw new ArgumentOutOfRangeException(nameof(radius));
+            if (query.WindowSize != reference.WindowSize)
+                throw new ArgumentException("Profiles must share the same window size.");
+
+            int from = Math.Clamp(estimatedOffset - radius, 0, reference.xs.Length);
+            int to = Math.Clamp(estimatedOffset + radius + query.xs.Length, 0, reference.xs.Length);
+            if (query.xs.Length == 0 || to - from < query.xs.Length) return (double.NaN, -1);
+
+            var neighbourhood = new ZCurveWindowedProfile(null, reference.WindowSize,
+                reference.xs[from..to], reference.ys[from..to], reference.zs[from..to]);
+            var (score, offset) = BestAlignment(query, neighbourhood);
+            return (score, from + offset);
+        }
     }
 
     /// <summary>
@@ -618,6 +642,12 @@ namespace SequenceAnalyses
     public sealed class ZCurveProfileLadder
     {
         public const int DefaultMinWindows = 8;
+
+        // Localizing a fragment needs fewer coarse windows than ranking does: the coarse level only has to place it,
+        // and the 500 bp refine scores it. Over the local catalogue, a fragment left 2 coarse windows fell out of the
+        // top 100 in about half the trials, one with 3 or more in none (results/S35_LocalizeCheck*_Summary.csv).
+        // Use it as SelectQueryFactor's minWindows.
+        public const int DefaultMinFragmentWindows = 4;
 
         public static readonly IReadOnlyList<int> DefaultFactors = new[] { 1, 4, 16, 64 };
 

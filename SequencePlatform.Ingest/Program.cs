@@ -16,11 +16,13 @@ using SequencePlatform.Ingest;
 //   build-neighbours [--ratio R]             every record's own top 20 (other assemblies), for re-ranking by shared neighbours (P3 S3.4b)
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
+//   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R]\n" +
-    "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]";
+    "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
+    "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]";
 
 if (args.Length == 0)
 {
@@ -100,6 +102,10 @@ switch (args[0])
         return await SearchSimilarAsync(dataSource, Option("--fasta"), Option("--profile"), Filter(),
             double.Parse(Option("--ratio") ?? SimilaritySearch.DefaultLengthRatio.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture),
             int.Parse(Option("--top") ?? "20"));
+
+    case "localize":
+        return await LocalizeAsync(dataSource, Option("--fasta"), Option("--profile"), Option("--record") is { } record ? long.Parse(record) : null,
+            Filter(), int.Parse(Option("--top") ?? "20"));
 
     default:
         Console.WriteLine(usage);
@@ -256,21 +262,7 @@ static string ReverseStrandPath(string path) => Path.ChangeExtension(path, null)
 
 static async Task<int> SearchSimilarAsync(NpgsqlDataSource dataSource, string? fasta, string? profile, CatalogueFilter filter, double ratio, int top)
 {
-    var queries = new List<(string Name, QueryProfile Query)>();
-    if (fasta is not null)
-        foreach (var (recordId, _) in FastaReader.ReadHeaders(fasta))
-        {
-            using var reader = FastaReader.OpenSequenceReader(fasta, recordId);
-            queries.Add((recordId, QueryProfile.FromSequence(reader.ReadToEnd())));
-        }
-    else if (profile is not null)
-    {
-        var reversePath = ReverseStrandPath(profile);
-        var reverse = File.Exists(reversePath) ? ZCurveWindowedProfile.FromBinary(File.ReadAllBytes(reversePath)) : null;
-        if (reverse is null) Console.WriteLine($"No {reversePath}: searching the forward strand only.");
-        queries.Add((Path.GetFileName(profile), QueryProfile.FromProfiles(ZCurveWindowedProfile.FromBinary(File.ReadAllBytes(profile)), reverse)));
-    }
-    else
+    if (ReadQueries(fasta, profile) is not { } queries)
     {
         Console.WriteLine("usage: search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]");
         return 1;
@@ -303,6 +295,82 @@ static async Task<int> SearchSimilarAsync(NpgsqlDataSource dataSource, string? f
             : " by score (no neighbour graph for this ratio: build-neighbours)"), result.Ranked, records);
         if (result.NotComparable.Count > 0)
             Console.WriteLine($"Not comparable (no stored level at {result.QueryWindowSize:N0} bp): {result.NotComparable.Count:N0} records.");
+    }
+    return 0;
+}
+
+// Each FASTA record, or one profile (with its X.rc.zcwp reverse strand if present); null when neither was given.
+static List<(string Name, QueryProfile Query)>? ReadQueries(string? fasta, string? profile)
+{
+    var queries = new List<(string Name, QueryProfile Query)>();
+    if (fasta is not null)
+        foreach (var (recordId, _) in FastaReader.ReadHeaders(fasta))
+        {
+            using var reader = FastaReader.OpenSequenceReader(fasta, recordId);
+            queries.Add((recordId, QueryProfile.FromSequence(reader.ReadToEnd())));
+        }
+    else if (profile is not null)
+    {
+        var reversePath = ReverseStrandPath(profile);
+        var reverse = File.Exists(reversePath) ? ZCurveWindowedProfile.FromBinary(File.ReadAllBytes(reversePath)) : null;
+        if (reverse is null) Console.WriteLine($"No {reversePath}: searching the forward strand only.");
+        queries.Add((Path.GetFileName(profile), QueryProfile.FromProfiles(ZCurveWindowedProfile.FromBinary(File.ReadAllBytes(profile)), reverse)));
+    }
+    else return null;
+    return queries;
+}
+
+static async Task<int> LocalizeAsync(NpgsqlDataSource dataSource, string? fasta, string? profile, long? record, CatalogueFilter filter, int top)
+{
+    if (ReadQueries(fasta, profile) is not { } queries)
+    {
+        Console.WriteLine("usage: localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]");
+        return 1;
+    }
+
+    var localization = new Localization(dataSource, useCache: false);
+    foreach (var (name, query) in queries)
+    {
+        Console.WriteLine();
+        if (record is null && query.LengthBp < Localization.MinCatalogueLengthBp)
+        {
+            Console.WriteLine($"Fragment {name}: {query.LengthBp:N0} bp is under {Localization.MinCatalogueLengthBp:N0} bp, too short to localize " +
+                "over the catalogue; name a record with --record ID.");
+            continue;
+        }
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var result = record is long id
+            ? await localization.LocalizeInRecordAsync(query, id)
+            : await localization.LocalizeAsync(query, filter, top);
+        var elapsed = watch.Elapsed;
+        var records = await Catalogue.ByIdsAsync(dataSource, result.Hits.Select(h => h.SequenceId).ToHashSet());
+
+        Console.WriteLine($"Fragment {name}: {query.LengthBp:N0} bp, {(query.Reverse is null ? "forward strand only" : "both strands")}; " +
+            (record is long r
+                ? $"placed inside record {r} at 500 bp"
+                : $"scanned at {result.CoarseWindowSize:N0} bp over {result.Candidates:N0} records at least as long, the best {Localization.RefineDepth} refined at 500 bp") +
+            $". {elapsed.TotalMilliseconds:F0} ms.");
+        if (result.WeakSignal)
+            Console.WriteLine($"  WARNING: under {Localization.WeakSignalLengthBp:N0} bp the placement is weak; check it against an aligner.");
+        if (result.Hits.Count > 0 && result.Hits[0].P is null)
+            Console.WriteLine("  no score_null yet (build-null): p and E aren't shown.");
+        if (result.Hits.Count == 0)
+            Console.WriteLine("  no placement: the fragment has no full 500 bp window or is longer than the record.");
+        else
+        {
+            Console.WriteLine($"  {"#",3} {"score",7} {"log10 E",9} {"strand",-7} {"offset bp",12} {"id",7} {"kind",-10} {"length bp",12} {"genus",-20} name");
+            Console.WriteLine("      (offset: where the fragment starts on the record's stored strand, to about 500 bp; Reverse: its reverse complement matches)");
+            for (int i = 0; i < result.Hits.Count; i++)
+            {
+                var h = result.Hits[i];
+                var c = records.GetValueOrDefault(h.SequenceId);
+                var e = h.P is not { } p ? "" : p.Kind == PValueKind.Bound ? $"<={h.Log10E:F1}" : $"{h.Log10E:F1}";
+                Console.WriteLine($"  {i + 1,3} {h.Score,7:F4} {e,9} {h.Strand,-7} {h.OffsetBp,12:N0} {h.SequenceId,7} {c?.Kind,-10} {c?.LengthBp,12:N0} {c?.Lineage.Genus,-20} {c?.Name}");
+            }
+        }
+        if (result.NotComparable.Count > 0)
+            Console.WriteLine($"Not comparable (no stored level at {result.CoarseWindowSize:N0} bp): {result.NotComparable.Count:N0} records.");
     }
     return 0;
 }

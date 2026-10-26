@@ -295,6 +295,45 @@ namespace SequenceAnaliseTests
             Assert.That(ZCurveProfileLadder.CompareForQuery(genome, tooShort), Is.EqualTo(new SearchMatch(SearchList.NotComparable, null, null)));
         }
 
+        // Localization: the coarsest level leaving the fragment 4 windows, i.e. 500 bp below 8 kbp, 2 kbp below 32 kbp, ...
+        [TestCase(7_999, 1)]
+        [TestCase(8_000, 4)]
+        [TestCase(31_999, 4)]
+        [TestCase(32_000, 16)]
+        [TestCase(127_999, 16)]
+        [TestCase(128_000, 64)]
+        public void FragmentFactorKeepsFourCoarseWindows(int length, int expectedFactor)
+        {
+            var fragment = LadderOf(length, seed: 1);
+            Assert.That(ZCurveProfileLadder.SelectQueryFactor(fragment, ZCurveProfileLadder.DefaultMinFragmentWindows), Is.EqualTo(expectedFactor));
+        }
+
+        [Test]
+        public void RefineAlignmentMatchesTheFullSearchNearItsOffset()
+        {
+            var dna = Generator.GetRandomDNA(200_000, seed: 1);
+            var reference = new ZCurveWindowedProfile(dna);
+            var fragment = new ZCurveWindowedProfile(dna.Substring(50_250, 20_000));   // off the window grid
+            var (score, offset) = ZCurveWindowedProfile.BestAlignment(fragment, reference);
+
+            Assert.That(ZCurveWindowedProfile.RefineAlignment(fragment, reference, offset + 3, radius: 4), Is.EqualTo((score, offset)));
+            Assert.That(ZCurveWindowedProfile.RefineAlignment(fragment, reference, offset - 4, radius: 4), Is.EqualTo((score, offset)));
+        }
+
+        [Test]
+        public void RefineAlignmentClipsItsNeighbourhoodToTheReference()
+        {
+            var dna = Generator.GetRandomDNA(100_000, seed: 2);
+            var reference = new ZCurveWindowedProfile(dna);
+            var start = new ZCurveWindowedProfile(dna.Substring(0, 10_000));
+            var end = new ZCurveWindowedProfile(dna.Substring(90_000));
+
+            Assert.That(ZCurveWindowedProfile.RefineAlignment(start, reference, -3, radius: 4), Is.EqualTo((1.0, 0)));
+            Assert.That(ZCurveWindowedProfile.RefineAlignment(end, reference, 182, radius: 4), Is.EqualTo((1.0, 180)));
+            Assert.That(ZCurveWindowedProfile.RefineAlignment(start, reference, 300, radius: 4), Is.EqualTo((double.NaN, -1)));
+            Assert.That(() => ZCurveWindowedProfile.RefineAlignment(start, reference, 0, radius: -1), Throws.InstanceOf<ArgumentOutOfRangeException>());
+        }
+
         [Test]
         public void LadderRejectsMismatchedOrInvalidFactors()
         {

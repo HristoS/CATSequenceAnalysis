@@ -21,6 +21,8 @@ dotnet run -c Release scripts/platform-checks/bandsearch.cs
 | `mutual_sample.cs` | `Check_MutualNeighboursSample.csv` | The same over 300 random catalogue queries, re-ranking computed in the script |
 | `neighbour_eval.cs` | `S34b_NeighbourRanking.csv` | The same evaluation through `SearchRecordAsync`, with and without the stored graph (`build-neighbours` first) |
 | `composition.cs` | `S34b_PlasmidComposition.csv` | Mean Z-curve axes of the Vibrio fischeri plasmid, coronaviruses and others of their length and GC |
+| `localize_check.cs` | `S35_LocalizeCheck*.csv` | Coarse-to-fine localization of bundled-genome fragments over the whole catalogue (needs the bundled FASTA files in `data/genomes/`); pass the output CSV path, the summary goes to the console |
+| `localize_eval.cs` | `S35_LocalizeEval*.csv` | The same fragments through `Localization.LocalizeAsync` (cached, and a few streamed), for comparison with the check and timing |
 | `tail_calibration.py` | `S36_TailCalibration.csv` | Hold-out calibration of three tail models on the full `score_null` cells; reads `psql -A -t -c "select source, window_size, scores from score_null where cardinality(scores) >= 10000"` on stdin |
 | `column_audit.py` | — | Lists migration columns no platform code references (the 2026-10-22 audit: only timestamps and the unused `search_run` / `search_hit`); pass the repository root |
 

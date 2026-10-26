@@ -72,6 +72,28 @@ namespace SequencePlatform.Core
             return await reader.ReadAsync() ? (await ReadLevelAsync(reader)).Level : null;
         }
 
+        /// <summary>One level of several sequences in one query (a localization's refine); sequences without that level are absent.</summary>
+        public static async Task<Dictionary<long, ZCurveWindowedProfile>> ReadManyAsync(NpgsqlDataSource dataSource,
+            IReadOnlyCollection<long> sequenceIds, string method, string methodVersion, int windowSize, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(
+                "select sequence_id, payload, object_key, sha256 from profile_level " +
+                "where sequence_id = any($1) and method = $2 and method_version = $3 and window_size = $4");
+            command.Parameters.AddWithValue(sequenceIds.ToArray());
+            command.Parameters.AddWithValue(method);
+            command.Parameters.AddWithValue(methodVersion);
+            command.Parameters.AddWithValue(windowSize);
+
+            var levels = new Dictionary<long, ZCurveWindowedProfile>();
+            await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var (sequenceId, level) = await ReadLevelAsync(reader, cancellationToken);
+                levels[sequenceId] = level;
+            }
+            return levels;
+        }
+
         /// <summary>
         /// Every level of one method, version and window size, in sequence id order: the worker's cache
         /// load (profile_level_load_idx). Rows are read one at a time, never buffered as a whole.
