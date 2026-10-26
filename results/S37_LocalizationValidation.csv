@@ -1,0 +1,61 @@
+FragmentLength, Trial, Genome, Start, Strand, Mode, CommittedFineOffset, TopIsSource, TopStrand, OffsetWindows, Score, AtCommittedFineOffset, AtTrueStart
+2000, 0, streptococcus_pneumoniae_tigr4_GCF_000273445.1.fna.gz, 845699, +, named record, 2119, True, Forward, 2119, 0.9466, True, False
+2000, 0, streptococcus_pneumoniae_tigr4_GCF_000273445.1.fna.gz, 845699, -, named record, 2119, True, Reverse, 2119, 0.9466, True, False
+2000, 1, deinococcus_radiodurans_r1_GCF_020546685.1.fna.gz, 676422, +, named record, 1353, True, Forward, 1353, 0.9760, True, True
+2000, 1, deinococcus_radiodurans_r1_GCF_020546685.1.fna.gz, 676422, -, named record, 1353, True, Reverse, 1353, 0.9760, True, True
+2000, 2, bsubtilis_168_GCF_000009045.1.fna.gz, 508425, +, named record, 1017, True, Forward, 1017, 0.9556, True, True
+2000, 2, bsubtilis_168_GCF_000009045.1.fna.gz, 508425, -, named record, 1017, True, Reverse, 1017, 0.9556, True, True
+2000, 3, mycobacterium_tuberculosis_h37rv_GCF_000195955.2.fna.gz, 762027, +, named record, 1524, True, Forward, 1524, 0.9784, True, True
+2000, 3, mycobacterium_tuberculosis_h37rv_GCF_000195955.2.fna.gz, 762027, -, named record, 1524, True, Reverse, 1524, 0.9784, True, True
+2000, 4, bacillus_anthracis_ames_GCF_000007845.1.fna.gz, 1740690, +, named record, 2750, True, Forward, 2750, 0.9335, True, False
+2000, 4, bacillus_anthracis_ames_GCF_000007845.1.fna.gz, 1740690, -, named record, 2750, True, Reverse, 2750, 0.9335, True, False
+2000, 5, mycobacterium_smegmatis_mc2155_GCF_000767605.1.fna.gz, 1382000, +, named record, 2764, True, Forward, 2764, 1.0000, True, True
+2000, 5, mycobacterium_smegmatis_mc2155_GCF_000767605.1.fna.gz, 1382000, -, named record, 2764, True, Reverse, 2764, 1.0000, True, True
+2000, 6, mycobacterium_tuberculosis_h37rv_GCF_000195955.2.fna.gz, 2092081, +, named record, 4184, True, Forward, 4184, 0.9614, True, True
+2000, 6, mycobacterium_tuberculosis_h37rv_GCF_000195955.2.fna.gz, 2092081, -, named record, 4184, True, Reverse, 4184, 0.9614, True, True
+2000, 7, yersinia_pestis_co92_GCF_000009065.1.fna.gz, 2449581, +, named record, 4899, True, Reverse, 6282, 0.9688, False, False
+2000, 7, yersinia_pestis_co92_GCF_000009065.1.fna.gz, 2449581, -, named record, 4899, True, Forward, 6282, 0.9688, False, False
+2000, 8, bsubtilis_168_GCF_000009045.1.fna.gz, 403072, +, named record, 806, True, Forward, 806, 0.9556, True, True
+2000, 8, bsubtilis_168_GCF_000009045.1.fna.gz, 403072, -, named record, 806, True, Reverse, 806, 0.9556, True, True
+2000, 9, mycobacterium_tuberculosis_h37rv_GCF_000195955.2.fna.gz, 4234688, +, named record, 8469, True, Forward, 8469, 0.9390, True, True
+2000, 9, mycobacterium_tuberculosis_h37rv_GCF_000195955.2.fna.gz, 4234688, -, named record, 8469, True, Reverse, 8469, 0.9390, True, True
+10000, 0, campylobacter_jejuni_nctc11168_GCF_000009085.1.fna.gz, 1274409, +, catalogue, 2549, True, Forward, 2549, 0.9444, True, True
+10000, 0, campylobacter_jejuni_nctc11168_GCF_000009085.1.fna.gz, 1274409, -, catalogue, 2549, True, Reverse, 2549, 0.9444, True, True
+10000, 1, staphylococcus_epidermidis_atcc12228_GCF_000007645.1.fna.gz, 2281294, +, catalogue, 4563, True, Forward, 4563, 0.9109, True, True
+10000, 1, staphylococcus_epidermidis_atcc12228_GCF_000007645.1.fna.gz, 2281294, -, catalogue, 4563, True, Reverse, 4563, 0.9109, True, True
+10000, 2, mycoplasma_genitalium_g37_GCF_000027325.1.fna.gz, 397899, +, catalogue, 796, True, Forward, 796, 0.9355, True, True
+10000, 2, mycoplasma_genitalium_g37_GCF_000027325.1.fna.gz, 397899, -, catalogue, 796, True, Reverse, 796, 0.9355, True, True
+10000, 3, vibrio_cholerae_n16961_GCF_900205735.1.fna.gz, 1905949, +, catalogue, 3812, True, Forward, 3812, 0.9651, True, True
+10000, 3, vibrio_cholerae_n16961_GCF_900205735.1.fna.gz, 1905949, -, catalogue, 3812, True, Reverse, 3812, 0.9651, True, True
+10000, 4, vibrio_cholerae_n16961_GCF_900205735.1.fna.gz, 398171, +, catalogue, 641, True, Forward, 796, 0.9256, False, True
+10000, 4, vibrio_cholerae_n16961_GCF_900205735.1.fna.gz, 398171, -, catalogue, 641, True, Reverse, 796, 0.9256, False, True
+10000, 5, haemophilus_influenzae_rd_kw20_GCF_000027305.1.fna.gz, 1562207, +, catalogue, 3124, True, Forward, 3124, 0.9091, True, True
+10000, 5, haemophilus_influenzae_rd_kw20_GCF_000027305.1.fna.gz, 1562207, -, catalogue, 3124, True, Reverse, 3124, 0.9091, True, True
+10000, 6, klebsiella_pneumoniae_mgh78578_GCF_000016305.1.fna.gz, 274587, +, catalogue, 549, True, Forward, 549, 0.9542, True, True
+10000, 6, klebsiella_pneumoniae_mgh78578_GCF_000016305.1.fna.gz, 274587, -, catalogue, 549, True, Reverse, 549, 0.9542, True, True
+10000, 7, clostridioides_difficile_630_GCF_000009205.2.fna.gz, 4278574, +, catalogue, 8557, True, Forward, 8557, 0.9665, True, True
+10000, 7, clostridioides_difficile_630_GCF_000009205.2.fna.gz, 4278574, -, catalogue, 8557, True, Reverse, 8557, 0.9665, True, True
+10000, 8, clostridioides_difficile_630_GCF_000009205.2.fna.gz, 2078112, +, catalogue, 4156, True, Forward, 4156, 0.9367, True, True
+10000, 8, clostridioides_difficile_630_GCF_000009205.2.fna.gz, 2078112, -, catalogue, 4156, True, Reverse, 4156, 0.9367, True, True
+10000, 9, vibrio_cholerae_n16961_GCF_900205735.1.fna.gz, 1832160, +, catalogue, 3664, True, Forward, 3664, 0.9529, True, True
+10000, 9, vibrio_cholerae_n16961_GCF_900205735.1.fna.gz, 1832160, -, catalogue, 3664, True, Reverse, 3664, 0.9529, True, True
+50000, 0, listeria_monocytogenes_egde_GCF_000196035.1.fna.gz, 2428326, +, catalogue, 4857, True, Forward, 4857, 0.9258, True, True
+50000, 0, listeria_monocytogenes_egde_GCF_000196035.1.fna.gz, 2428326, -, catalogue, 4857, True, Reverse, 4857, 0.9258, True, True
+50000, 1, salmonella_typhimurium_lt2_GCF_000006945.2.fna.gz, 4683647, +, catalogue, 9367, True, Forward, 9367, 0.9406, True, True
+50000, 1, salmonella_typhimurium_lt2_GCF_000006945.2.fna.gz, 4683647, -, catalogue, 9367, True, Reverse, 9367, 0.9406, True, True
+50000, 2, borrelia_burgdorferi_b31_GCF_000008685.2.fna.gz, 144357, +, catalogue, 289, True, Forward, 289, 0.9286, True, True
+50000, 2, borrelia_burgdorferi_b31_GCF_000008685.2.fna.gz, 144357, -, catalogue, 289, True, Reverse, 289, 0.9286, True, True
+50000, 3, borrelia_burgdorferi_b31_GCF_000008685.2.fna.gz, 605627, +, catalogue, 1211, True, Forward, 1211, 0.9342, True, True
+50000, 3, borrelia_burgdorferi_b31_GCF_000008685.2.fna.gz, 605627, -, catalogue, 1211, True, Reverse, 1211, 0.9342, True, True
+50000, 4, mycoplasma_pneumoniae_m129_GCF_910574535.1.fna.gz, 687667, +, catalogue, 1375, True, Forward, 1375, 0.9356, True, True
+50000, 4, mycoplasma_pneumoniae_m129_GCF_910574535.1.fna.gz, 687667, -, catalogue, 1375, True, Reverse, 1375, 0.9356, True, True
+50000, 5, acinetobacter_baumannii_atcc17978_GCF_013372085.1.fna.gz, 128172, +, catalogue, 256, True, Forward, 256, 0.9300, True, True
+50000, 5, acinetobacter_baumannii_atcc17978_GCF_013372085.1.fna.gz, 128172, -, catalogue, 256, True, Reverse, 256, 0.9300, True, True
+50000, 6, listeria_monocytogenes_egde_GCF_000196035.1.fna.gz, 2355953, +, catalogue, 4712, True, Forward, 4712, 0.9657, True, True
+50000, 6, listeria_monocytogenes_egde_GCF_000196035.1.fna.gz, 2355953, -, catalogue, 4712, True, Reverse, 4712, 0.9657, True, True
+50000, 7, klebsiella_pneumoniae_mgh78578_GCF_000016305.1.fna.gz, 4010878, +, catalogue, 8022, True, Forward, 8022, 0.9439, True, True
+50000, 7, klebsiella_pneumoniae_mgh78578_GCF_000016305.1.fna.gz, 4010878, -, catalogue, 8022, True, Reverse, 8022, 0.9439, True, True
+50000, 8, acinetobacter_baumannii_atcc17978_GCF_013372085.1.fna.gz, 2148983, +, catalogue, 4298, True, Forward, 4298, 0.9824, True, True
+50000, 8, acinetobacter_baumannii_atcc17978_GCF_013372085.1.fna.gz, 2148983, -, catalogue, 4298, True, Reverse, 4298, 0.9824, True, True
+50000, 9, borrelia_burgdorferi_b31_GCF_000008685.2.fna.gz, 584106, +, catalogue, 1168, True, Forward, 1168, 0.9434, True, True
+50000, 9, borrelia_burgdorferi_b31_GCF_000008685.2.fna.gz, 584106, -, catalogue, 1168, True, Reverse, 1168, 0.9434, True, True

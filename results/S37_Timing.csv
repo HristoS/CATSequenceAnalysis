@@ -1,0 +1,7 @@
+Kind, Query, LengthBp, ProfileMs, CachedFirstMs, CachedWarmMs, StreamedMs, TopHit, Threads
+find-similar (FASTA), "E. coli K-12 MG1655", 4641652, 521, 1750, 154, 861, "9354 (0.9946)", 8
+find-similar (FASTA), "SARS-CoV-2 Wuhan-Hu-1", 29903, 3, 859, 29, 470, "19634 (1.0000)", 8
+find-similar (stored record), "E. coli O157:H7 Sakai, record 8455", 5498578, 0, 625, 62, 542, "10226 (0.9419)", 8
+localize (catalogue), "O157:H7 fragment at 2,000,123", 10000, 1, 2155, 280, 2218, "10032 at 2,264,500 Forward (0.9726)", 8
+localize (catalogue), "O157:H7 fragment at 3,000,321", 100000, 9, 1442, 1023, 1662, "8455 at 3,000,500 Forward (0.9334)", 8
+localize (named record), "O157:H7 fragment at 1,234,567 in record 8455", 2000, 0, 95, 3, 97, "8455 at 3,169,500 Reverse (0.9464)", 8
