@@ -21,7 +21,7 @@ assertions.
 dotnet build SequenceAnalise.sln          # build every project
 dotnet test SequenceAnaliseTests --filter "FullyQualifiedName~ZCurveWindowedProfileTests"   # one class
 dotnet test SequenceAnaliseTests -- 'NUnit.Where=test =~ /BuildTime\(20000\)/'             # one parameterized case
-dotnet build SequencePlatform.slnf        # platform projects only (library, Core, Ingest, Tests)
+dotnet build SequencePlatform.slnf        # platform projects only (library, Core, Api, Ingest, Tests)
 dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachable PostgreSQL (see below)
 ```
 
@@ -84,10 +84,18 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   every query phase, both strands, top 100 refined at 500 bp; shorter fragments only inside a named record), `OriginRotation`
   (circular bacterial chromosomes ≥ 500 kbp laid out from their replication origin, found from the stored profile's cumulative GC
   skew; their 2/8/32 kbp levels stored under method version `1-origin` by `build-origins`; find-similar and the genome null score
-  both versions of a record and of the query and keep the best; localization stays unrotated).
+  both versions of a record and of the query and keep the best; localization stays unrotated), `SearchLog` (a search as an asynchronous job, migration 0009: keeps both strands' fine query profile and
+  SHA-256, never DNA; result lists ranked / identical / not_comparable; D7 expiry after 30 days or on DELETE keeps only hashes,
+  length and summary).
+- `SequencePlatform.Api/`: ASP.NET Core minimal API on localhost:5080 (P4; see its README). Per-user API keys (`Users` in Core,
+  only the SHA-256 stored); `CatalogueFilter.ViewerId` makes an upload visible to its owner only, and no viewer means public records
+  only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw
+  FASTA or ZCWP body, never multipart (`IFormFile` buffers to a temp file); FASTA streams through `FastaReader.ReadRecordStreams`.
+  Searches (`/api/searches/similar`, `/localize`) are `SearchLog` jobs: 202 + `Location`, then GET pages the hit lists; the
+  worker that runs them is P4 S4.3. Tests run it in process (`ApiTests`, `UploadTests`, `SearchApiTests`).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `load-taxonomy`, `stats`, `list`,
-  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`; see its README. Measurement scripts for the platform's
+  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `add-user`, `disable-user`; see its README. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).
 - `SequencePlatform.Tests/` (NUnit 4): each run creates `sequence_platform_test_<random>`, migrates it, and drops it.
 - Connection string from the `SEQUENCE_PLATFORM_DB` env var, else the git-ignored `SequencePlatform.Ingest/appsettings.json`

@@ -17,7 +17,9 @@ namespace SequencePlatform.Core
         {
             var ids = new List<long>();
             await using (var command = dataSource.CreateCommand(
-                "select r.id from sequence_record r where exists (select 1 from profile_level p where p.sequence_id = r.id " +
+                // Public records only (D3): a private upload neither gets a list nor, through the search's own filter, joins one.
+                "select r.id from sequence_record r join sequence_source s on s.id = r.source_id " +
+                "where s.owner_id is null and exists (select 1 from profile_level p where p.sequence_id = r.id " +
                 "and p.method = $1 and p.method_version = $2 and p.window_size = $3) order by r.id"))
             {
                 command.Parameters.AddWithValue(method);

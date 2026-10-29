@@ -96,5 +96,57 @@ namespace SequenceAnaliseTests
 
             Assert.That(streamed.Length, Is.EqualTo(5_315_120));
         }
+
+        [Test]
+        public void ReadRecordStreams_MatchesReadRecordsInOnePass()
+        {
+            var expected = FastaReader.ReadRecords(KlebsiellaPath).Select(r => (r.Id, r.Description, r.Sequence)).ToList();
+
+            using var file = new System.IO.Compression.GZipStream(File.OpenRead(KlebsiellaPath), System.IO.Compression.CompressionMode.Decompress);
+            using var text = new StreamReader(file);
+            var streamed = FastaReader.ReadRecordStreams(text).Select(r => (r.Id, r.Description, r.Sequence.ReadToEnd())).ToList();
+
+            Assert.That(streamed, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void ReadRecordStreams_DropsLineBreaksOfEveryKindAndUppercases()
+        {
+            var oneLine = new string('a', 100_000) + "cgt";
+            var fasta = "\r\n>first some description\r\nacGT\r\nNNry\r\n\r\n>second\nGGGG\n" + $">third\n{oneLine}";
+
+            var records = FastaReader.ReadRecordStreams(new StringReader(fasta)).Select(r => (r.Id, r.Description, r.Sequence.ReadToEnd())).ToList();
+
+            Assert.That(records, Is.EqualTo(new[]
+            {
+                ("first", "some description", "ACGTNNRY"),
+                ("second", "", "GGGG"),
+                ("third", "", oneLine.ToUpperInvariant()),
+            }));
+        }
+
+        [Test]
+        public void ReadRecordStreams_SkipsAnUnreadBodyAndItsOldReaderReadsNothing()
+        {
+            var fasta = ">a\nAAAA\nCCCC\n>b\nGGGG\n>c\nTTTT\n";
+            var readers = new List<TextReader>();
+            var sequences = new List<string>();
+
+            foreach (var (id, _, sequence) in FastaReader.ReadRecordStreams(new StringReader(fasta)))
+            {
+                readers.Add(sequence);
+                if (id != "a") sequences.Add(sequence.ReadToEnd());
+            }
+
+            Assert.That(sequences, Is.EqualTo(new[] { "GGGG", "TTTT" }), "record a was never read, and b didn't start inside it");
+            Assert.That(readers[0].ReadToEnd(), Is.Empty);
+        }
+
+        [Test]
+        public void ReadRecordStreams_RejectsSequenceBeforeTheFirstHeader()
+        {
+            Assert.That(() => FastaReader.ReadRecordStreams(new StringReader("ACGT\n>a\nACGT\n")).ToList(), Throws.InstanceOf<FormatException>());
+            Assert.That(FastaReader.ReadRecordStreams(new StringReader("")), Is.Empty);
+        }
     }
 }

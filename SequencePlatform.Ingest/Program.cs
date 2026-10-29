@@ -18,12 +18,14 @@ using SequencePlatform.Ingest;
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
+//   add-user NAME                             an API user (D3); prints their key once, only its hash is stored
+//   disable-user NAME                         revokes that user's key; their uploads stay
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
-    "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]";
+    "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | disable-user NAME";
 
 if (args.Length == 0)
 {
@@ -115,6 +117,16 @@ switch (args[0])
     case "localize":
         return await LocalizeAsync(dataSource, Option("--fasta"), Option("--profile"), Option("--record") is { } record ? long.Parse(record) : null,
             Filter(), int.Parse(Option("--top") ?? "20"));
+
+    case "add-user" when args.Length > 1:
+        var (user, apiKey) = await Users.CreateAsync(dataSource, args[1]);
+        Console.WriteLine($"User {user.Name} (id {user.Id}). API key, shown only now: {apiKey}");
+        return 0;
+
+    case "disable-user" when args.Length > 1:
+        if (await Users.DisableAsync(dataSource, args[1])) return 0;
+        Console.WriteLine($"No enabled user named {args[1]}.");
+        return 1;
 
     default:
         Console.WriteLine(usage);

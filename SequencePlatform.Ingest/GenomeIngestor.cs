@@ -94,7 +94,7 @@ namespace SequencePlatform.Ingest
                 try
                 {
                     var records = RecordStore.Profile(file.Path).ToList();
-                    var stored = await FindStoredCopyBySha256Async(dataSource, records.Select(r => r.SequenceSha256).ToArray());
+                    var stored = await FindStoredCopyBySha256Async(dataSource, records.Select(r => r.SequenceSha256!).ToArray());
                     if (stored.SourceId is { } bySha256)
                         return await MarkDuplicateAsync(genome, bySha256, "sha256");
 

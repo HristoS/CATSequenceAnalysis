@@ -136,6 +136,124 @@ namespace SequenceAnalyses
             return new FastaSequenceReader(OpenRawStream(path), recordId);
         }
 
+        /// <summary>
+        /// Every record of FASTA text that can be read only once (an upload's request body), in order, each as a streaming
+        /// reader over its bases - uppercased, line breaks dropped, exactly what <see cref="OpenSequenceReader"/> gives for a
+        /// file. Nothing is buffered beyond a fixed-size block, not even a line, so a single-line record of any length streams
+        /// too. Read each record's reader before moving on: advancing skips whatever is left of it, and the old reader then
+        /// reads nothing.
+        /// </summary>
+        public static IEnumerable<(string Id, string Description, TextReader Sequence)> ReadRecordStreams(TextReader reader)
+        {
+            if (reader is null) throw new ArgumentNullException(nameof(reader));
+            var walker = new FastaRecordWalker(reader);
+            while (walker.NextHeader() is { } header)
+            {
+                var (id, description) = ParseHeader(header);
+                yield return (id, description, new RecordBodyReader(walker, walker.Record));
+            }
+        }
+
+        // One pass over FASTA text, character by character through a fixed buffer. A '>' at the start of a line opens a
+        // record; everything else up to the next one is that record's body.
+        private sealed class FastaRecordWalker
+        {
+            private const int maxHeaderLength = 65536;
+
+            private readonly TextReader inner;
+            private readonly char[] buffer = new char[65536];
+            private int position;
+            private int length;
+            private bool atLineStart = true;
+
+            public FastaRecordWalker(TextReader inner) => this.inner = inner;
+
+            /// <summary>Counts the headers read; a body reader reads only while its record is the current one.</summary>
+            public int Record { get; private set; }
+
+            /// <returns>The next header line, '>' included; null at the end. Skips what is left of the current body.</returns>
+            public string? NextHeader()
+            {
+                while (Fill())
+                {
+                    char c = buffer[position++];
+                    if (atLineStart && c == '>')
+                    {
+                        Record++;
+                        return ReadHeaderRest();
+                    }
+                    if (Record == 0 && !char.IsWhiteSpace(c))
+                        throw new FormatException("FASTA text has sequence data before its first '>' header line.");
+                    atLineStart = c == '\n';
+                }
+                return null;
+            }
+
+            private string ReadHeaderRest()
+            {
+                var header = new StringBuilder(">");
+                while (Fill())
+                {
+                    char c = buffer[position++];
+                    if (c == '\n') break;
+                    if (c == '\r') continue;
+                    if (header.Length == maxHeaderLength) throw new FormatException($"A FASTA header line is longer than {maxHeaderLength} characters.");
+                    header.Append(c);
+                }
+                atLineStart = true;
+                return header.ToString();
+            }
+
+            /// <returns>Body characters of the current record copied into <paramref name="destination"/>; 0 at its end.</returns>
+            public int ReadBody(Span<char> destination)
+            {
+                int written = 0;
+                while (written < destination.Length && Fill())
+                {
+                    char c = buffer[position];
+                    if (atLineStart && c == '>') break; // the next record's header: left for NextHeader
+                    position++;
+                    if (c == '\n') atLineStart = true;
+                    else if (c != '\r')
+                    {
+                        atLineStart = false;
+                        destination[written++] = char.ToUpperInvariant(c);
+                    }
+                }
+                return written;
+            }
+
+            private bool Fill()
+            {
+                if (position < length) return true;
+                length = inner.Read(buffer, 0, buffer.Length);
+                position = 0;
+                return length > 0;
+            }
+        }
+
+        private sealed class RecordBodyReader : TextReader
+        {
+            private readonly FastaRecordWalker walker;
+            private readonly int record;
+
+            public RecordBodyReader(FastaRecordWalker walker, int record)
+            {
+                this.walker = walker;
+                this.record = record;
+            }
+
+            public override int Read(char[] buffer, int index, int count) => Read(buffer.AsSpan(index, count));
+
+            public override int Read(Span<char> buffer) => walker.Record == record ? walker.ReadBody(buffer) : 0;
+
+            public override int Read()
+            {
+                Span<char> one = stackalloc char[1];
+                return Read(one) == 1 ? one[0] : -1;
+            }
+        }
+
         private sealed class FastaSequenceReader : TextReader
         {
             private readonly StreamReader inner;

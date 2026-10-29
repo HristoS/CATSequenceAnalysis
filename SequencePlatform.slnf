@@ -3,6 +3,7 @@
     "path": "SequenceAnalise.sln",
     "projects": [
       "SequenceAnalise\\SequenceAnalise.csproj",
+      "SequencePlatform.Api\\SequencePlatform.Api.csproj",
       "SequencePlatform.Core\\SequencePlatform.Core.csproj",
       "SequencePlatform.Ingest\\SequencePlatform.Ingest.csproj",
       "SequencePlatform.Tests\\SequencePlatform.Tests.csproj"

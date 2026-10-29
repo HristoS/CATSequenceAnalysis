@@ -59,11 +59,12 @@ namespace SequencePlatform.Core
 
         private static async Task<Candidate[]> RecordsAsync(NpgsqlDataSource dataSource, string method, string methodVersion)
         {
+            // Public records only (D3): no one's private upload shapes the p-values everyone gets.
             await using var command = dataSource.CreateCommand(
                 "select r.id, r.kind, r.length_bp, coalesce(t.tax_superkingdom, r.tax_superkingdom), " +
                 "coalesce(t.tax_phylum, r.tax_phylum), coalesce(t.tax_family, r.tax_family) " +
-                "from sequence_record r left join taxon t on t.taxid = r.ncbi_taxid " +
-                "where r.kind <> 'plasmid' and exists (select 1 from profile_level p where p.sequence_id = r.id " +
+                "from sequence_record r join sequence_source s on s.id = r.source_id left join taxon t on t.taxid = r.ncbi_taxid " +
+                "where s.owner_id is null and r.kind <> 'plasmid' and exists (select 1 from profile_level p where p.sequence_id = r.id " +
                 "and p.method = $1 and p.method_version = $2 and p.window_size = $3) order by r.length_bp, r.id");
             command.Parameters.AddWithValue(method);
             command.Parameters.AddWithValue(methodVersion);

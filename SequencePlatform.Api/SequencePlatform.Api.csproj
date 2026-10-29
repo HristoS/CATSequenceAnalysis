@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- XML comments on the response types flow into the OpenAPI document. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Only the non-obvious fields of a response carry a param tag. -->
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+    <UserSecretsId>sequence-platform-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SequencePlatform.Core\SequencePlatform.Core.csproj" />
+  </ItemGroup>
+
+</Project>

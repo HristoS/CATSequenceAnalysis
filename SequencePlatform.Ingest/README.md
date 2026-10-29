@@ -90,6 +90,8 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   accession without its GCA_/GCF_ prefix). A plain run fetches only taxids not yet in `taxon`, so run it after each ingest;
   `--refresh` re-fetches all. `sequence_record` keeps BV-BRC's lineage as ingested; the view `lineage_difference` lists, per
   record and rank, where it and NCBI's differ (`differs`, `ncbi_only`, `provider_only`).
+- `add-user NAME` (P4, D3) creates an API user and prints their key once (`sp_...`); only its SHA-256 is stored. `disable-user NAME`
+  revokes it; the user's uploads stay. See `SequencePlatform.Api/README.md`.
 
 ## Behaviour
 

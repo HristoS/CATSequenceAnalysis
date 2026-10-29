@@ -1,0 +1,63 @@
+# Searches (S4.2c): queued as jobs, polled by id. A queued search runs once the worker exists (S4.3).
+# Set apiKey to the key the Ingest's add-user printed; don't commit a key.
+@baseUrl = http://localhost:5080
+@apiKey = sp_paste-your-key-here
+
+### Find similar: one FASTA record; viruses of comparable length (ratio 0.5: half to twice the query's length)
+# @name similar
+POST {{baseUrl}}/api/searches/similar?kind=virus&ratio=0.5&top=20
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./query.fna
+
+### Poll it: status, and once Done the first page of ranked hits
+GET {{baseUrl}}{{similar.response.headers.Location}}
+Authorization: Bearer {{apiKey}}
+
+### Identical records (same sequence by SHA-256, either strand)
+GET {{baseUrl}}{{similar.response.headers.Location}}?list=Identical
+Authorization: Bearer {{apiKey}}
+
+### Next page of ranked hits: after = the previous page's nextAfter
+GET {{baseUrl}}{{similar.response.headers.Location}}?after=50&limit=50
+Authorization: Bearer {{apiKey}}
+
+### Find similar from a profile: the forward strand's 500 bp ZCWP, then the reverse strand's, back to back
+# (the Ingest's profile command writes X.zcwp and X.rc.zcwp: cat X.zcwp X.rc.zcwp > X.both.zcwp)
+POST {{baseUrl}}/api/searches/similar?lengthBp=29903
+Authorization: Bearer {{apiKey}}
+Content-Type: application/x-zcwp
+
+< ./query.both.zcwp
+
+### Localize a fragment (at least 4 kbp) over the catalogue's bacteria
+# @name localize
+POST {{baseUrl}}/api/searches/localize?kind=bacterium&top=10
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./fragment.fna
+
+### Poll it
+GET {{baseUrl}}{{localize.response.headers.Location}}
+Authorization: Bearer {{apiKey}}
+
+### Localize a short fragment inside one record (yours or public)
+POST {{baseUrl}}/api/searches/localize?record=1
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./gene.fna
+
+### Drop a search's query profile and results now (D7); it stays listed as Expired
+DELETE {{baseUrl}}{{similar.response.headers.Location}}
+Authorization: Bearer {{apiKey}}
+
+### Error: a fragment under 4 kbp over the whole catalogue (400)
+POST {{baseUrl}}/api/searches/localize
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+>short
+ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT

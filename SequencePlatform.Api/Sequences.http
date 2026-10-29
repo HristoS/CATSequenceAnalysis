@@ -1,0 +1,57 @@
+# The catalogue (S4.2a). Set apiKey to the key the Ingest's add-user printed, e.g. in http-client.env.json (git-ignored by
+# you, not by the repo: don't commit a key).
+@baseUrl = http://localhost:5080
+@apiKey = sp_paste-your-key-here
+
+### First page of the catalogue (50 records)
+GET {{baseUrl}}/api/sequences
+Authorization: Bearer {{apiKey}}
+
+### Next page: pass the previous page's nextAfter
+GET {{baseUrl}}/api/sequences?after=50&limit=50
+Authorization: Bearer {{apiKey}}
+
+### Filters: coronaviruses of 25-35 kbp whose name mentions SARS
+GET {{baseUrl}}/api/sequences?kind=virus&rank=family&taxon=Coronaviridae&minLength=25000&maxLength=35000&name=SARS
+Authorization: Bearer {{apiKey}}
+
+### One record: lineages, annotations, stored levels, provenance
+GET {{baseUrl}}/api/sequences/1
+Authorization: Bearer {{apiKey}}
+
+### Its 2 kbp level as ZCWP bytes
+GET {{baseUrl}}/api/sequences/1/profile?windowSize=2000
+Authorization: Bearer {{apiKey}}
+
+### Error: a rank without a taxon (400, ProblemDetails)
+GET {{baseUrl}}/api/sequences?rank=family
+Authorization: Bearer {{apiKey}}
+
+### Error: a record that doesn't exist, or someone else's upload (404)
+GET {{baseUrl}}/api/sequences/999999999
+Authorization: Bearer {{apiKey}}
+
+### Error: no key (401)
+GET {{baseUrl}}/api/sequences
+
+### Upload FASTA (S4.2b): your own private records, profile only. The body is the file; metadata goes in the query string.
+POST {{baseUrl}}/api/sequences?kind=virus&taxid=2697049&name=my%20isolate
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./my-isolate.fna
+
+### Upload a profile instead: the 500 bp level as ZCWP (the Ingest's profile command writes one), with the sequence's length
+POST {{baseUrl}}/api/sequences?kind=virus&lengthBp=29903&recordId=my-isolate
+Authorization: Bearer {{apiKey}}
+Content-Type: application/x-zcwp
+
+< ./my-isolate.zcwp
+
+### Error: no kind (400)
+POST {{baseUrl}}/api/sequences
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+>a
+ACGT

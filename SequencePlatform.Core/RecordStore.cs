@@ -6,18 +6,22 @@ using SequenceAnalyses;
 namespace SequencePlatform.Core
 {
     /// <param name="HeaderId">The FASTA header id as <see cref="FastaReader"/> parses it; a provider may store a cleaned-up form.</param>
+    /// <param name="SequenceSha256">Null, like <paramref name="DinucleotideCounts"/>, only for a profile upload: there was no DNA.</param>
     public sealed record ProfiledRecord(string HeaderId, string Description, long LengthBp, double? GcFraction,
-        IReadOnlyList<(int Factor, ZCurveWindowedProfile Level)> Levels, byte[] SequenceSha256, long[] DinucleotideCounts);
+        IReadOnlyList<(int Factor, ZCurveWindowedProfile Level)> Levels, byte[]? SequenceSha256, long[]? DinucleotideCounts);
 
     /// <param name="RawSha256">Of the file as downloaded or uploaded; the file itself is discarded.</param>
-    public sealed record SourceRow(string Provider, string? Url, string? Accession, byte[] RawSha256, long RawByteSize, string? License);
+    /// <param name="OwnerId">The uploading user (D3); null for every downloaded source.</param>
+    public sealed record SourceRow(string Provider, string? Url, string? Accession, byte[] RawSha256, long RawByteSize, string? License,
+        long? OwnerId = null);
 
     /// <param name="AnnotationsJson">Serialized jsonb; free-form, per provider.</param>
     public sealed record RecordRow(string RecordId, string? Name, string Kind, int? NcbiTaxid, Lineage Lineage,
         string AnnotationsJson, string? ProviderMd5 = null, string DataClass = "public_microbe");
 
+    /// <param name="SequenceIds">The new records' ids, in the order given.</param>
     /// <param name="SkippedLevels">Levels over <see cref="ProfileLevels.MaxInlineBytes"/>, not stored (they need object storage).</param>
-    public sealed record StoredSource(long SourceId, IReadOnlyList<(string RecordId, int WindowSize)> SkippedLevels)
+    public sealed record StoredSource(long SourceId, IReadOnlyList<long> SequenceIds, IReadOnlyList<(string RecordId, int WindowSize)> SkippedLevels)
     {
         public bool FineLevelSkipped => SkippedLevels.Any(l => l.WindowSize == RecordStore.FineWindowSize);
     }
@@ -26,8 +30,8 @@ namespace SequencePlatform.Core
     /// The provider-independent half of ingestion (docs/database-decision.md section 4.1). It profiles every
     /// record of a FASTA file, streaming each one through <see cref="SequenceFeatureReader"/> into
     /// <see cref="ZCurveWindowedProfile.FromStream"/>, so no record is ever held as a whole string. It then stores
-    /// the source, its records and their ladder levels in the caller's transaction. The BV-BRC Ingest and the
-    /// bundled-corpus loader use it, and the P4 FASTA upload is meant to. Deleting the file stays the caller's job.
+    /// the source, its records and their ladder levels in the caller's transaction. The BV-BRC Ingest, the
+    /// bundled-corpus loader and the P4 upload use it. Deleting the file stays the caller's job.
     /// </summary>
     public static class RecordStore
     {
@@ -38,28 +42,53 @@ namespace SequencePlatform.Core
         public static IEnumerable<ProfiledRecord> Profile(string fastaPath)
         {
             foreach (var (headerId, description) in FastaReader.ReadHeaders(fastaPath))
+                yield return Profile(headerId, description, FastaReader.OpenSequenceReader(fastaPath, headerId));
+        }
+
+        /// <summary>The same for FASTA text that can be read only once, such as an upload (P4 S4.2b): one pass, nothing materialized.</summary>
+        public static IEnumerable<ProfiledRecord> Profile(TextReader fasta)
+        {
+            foreach (var (headerId, description, sequence) in FastaReader.ReadRecordStreams(fasta))
+                yield return Profile(headerId, description, sequence);
+        }
+
+        private static ProfiledRecord Profile(string headerId, string description, TextReader sequence)
+        {
+            using var features = new SequenceFeatureReader(sequence);
+            var fine = ZCurveWindowedProfile.FromStream(features, FineWindowSize);
+            var (sequenceSha256, dinucleotideCounts) = features.Finish();
+            var (levels, gcFraction) = Levels(fine);
+            return new ProfiledRecord(headerId, description.Trim(), features.CharactersRead, gcFraction, levels,
+                sequenceSha256, dinucleotideCounts);
+        }
+
+        /// <summary>
+        /// A profile upload (D2): its fine level as given, the coarser levels derived from it as for DNA. The length is what the
+        /// uploader declares; it must agree with the window count, since FromStream drops only a trailing partial window.
+        /// </summary>
+        public static ProfiledRecord FromFineProfile(string recordId, ZCurveWindowedProfile fine, long lengthBp)
+        {
+            if (fine.WindowSize != FineWindowSize)
+                throw new ArgumentException($"A profile upload is the {FineWindowSize} bp level; this one has {fine.WindowSize} bp windows.", nameof(fine));
+            if (lengthBp < 1 || lengthBp / FineWindowSize != fine.WindowCount)
+                throw new ArgumentException($"A length of {lengthBp} bp gives {Math.Max(lengthBp, 0) / FineWindowSize} windows of {FineWindowSize} bp, " +
+                    $"but the profile has {fine.WindowCount}.", nameof(lengthBp));
+            var (levels, gcFraction) = Levels(fine);
+            return new ProfiledRecord(recordId, string.Empty, lengthBp, gcFraction, levels, null, null);
+        }
+
+        private static (List<(int, ZCurveWindowedProfile)> Levels, double? GcFraction) Levels(ZCurveWindowedProfile fine)
+        {
+            var levels = new List<(int, ZCurveWindowedProfile)>();
+            if (fine.WindowCount == 0) return (levels, null);
+            var ladder = new ZCurveProfileLadder(fine);
+            foreach (var factor in ladder.Factors)
             {
-                using var features = new SequenceFeatureReader(FastaReader.OpenSequenceReader(fastaPath, headerId));
-                var fine = ZCurveWindowedProfile.FromStream(features, FineWindowSize);
-                var (sequenceSha256, dinucleotideCounts) = features.Finish();
-
-                var levels = new List<(int, ZCurveWindowedProfile)>();
-                double? gcFraction = null;
-                if (fine.WindowCount > 0)
-                {
-                    var ladder = new ZCurveProfileLadder(fine);
-                    foreach (var factor in ladder.Factors)
-                    {
-                        var level = ladder.Level(factor);
-                        if (level.WindowCount > 0) levels.Add((factor, level));
-                    }
-                    // z = +1 for G/C, -1 for A/T, so the mean z over all windows is 2*GC - 1.
-                    gcFraction = (fine.Windows.Average(w => w.Z) + 1) / 2;
-                }
-
-                yield return new ProfiledRecord(headerId, description.Trim(), features.CharactersRead, gcFraction, levels,
-                    sequenceSha256, dinucleotideCounts);
+                var level = ladder.Level(factor);
+                if (level.WindowCount > 0) levels.Add((factor, level));
             }
+            // z = +1 for G/C, -1 for A/T, so the mean z over all windows is 2*GC - 1.
+            return (levels, (fine.Windows.Average(w => w.Z) + 1) / 2);
         }
 
         public static (byte[] Sha256, long ByteSize) HashFile(string path)
@@ -77,8 +106,8 @@ namespace SequencePlatform.Core
         {
             long sourceId;
             await using (var insertSource = new NpgsqlCommand(
-                "insert into sequence_source (provider, url, accession, retrieved_at, raw_sha256, raw_byte_size, license) " +
-                "values ($1, $2, $3, now(), $4, $5, $6) returning id", connection, transaction))
+                "insert into sequence_source (provider, url, accession, retrieved_at, raw_sha256, raw_byte_size, license, owner_id) " +
+                "values ($1, $2, $3, now(), $4, $5, $6, $7) returning id", connection, transaction))
             {
                 var p = insertSource.Parameters;
                 p.AddWithValue(source.Provider);
@@ -87,9 +116,11 @@ namespace SequencePlatform.Core
                 p.AddWithValue(source.RawSha256);
                 p.AddWithValue(source.RawByteSize);
                 p.AddWithValue(OrNull(source.License));
+                p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bigint, Value = (object?)source.OwnerId ?? DBNull.Value });
                 sourceId = (long)(await insertSource.ExecuteScalarAsync())!;
             }
 
+            var sequenceIds = new List<long>();
             var skipped = new List<(string, int)>();
             foreach (var (profile, row) in records)
             {
@@ -115,18 +146,19 @@ namespace SequencePlatform.Core
                                  lineage.Order, lineage.Family, lineage.Genus, lineage.Species })
                         p.AddWithValue(OrNull(rank));
                     p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Jsonb, Value = row.AnnotationsJson });
-                    p.AddWithValue(profile.SequenceSha256);
-                    p.AddWithValue(profile.DinucleotideCounts);
+                    p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bytea, Value = (object?)profile.SequenceSha256 ?? DBNull.Value });
+                    p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Bigint, Value = (object?)profile.DinucleotideCounts ?? DBNull.Value });
                     p.AddWithValue(OrNull(row.ProviderMd5));
                     sequenceId = (long)(await insertRecord.ExecuteScalarAsync())!;
                 }
+                sequenceIds.Add(sequenceId);
 
                 foreach (var (factor, level) in profile.Levels)
                     if (!await ProfileLevels.InsertAsync(connection, transaction, sequenceId, Method, MethodVersion, factor, level))
                         skipped.Add((row.RecordId, level.WindowSize));
             }
 
-            return new StoredSource(sourceId, skipped);
+            return new StoredSource(sourceId, sequenceIds, skipped);
         }
 
         private static object OrNull(string? value) => string.IsNullOrEmpty(value) ? DBNull.Value : value;

@@ -52,5 +52,20 @@ namespace SequencePlatform.Tests
             command.Parameters.AddWithValue(lengthBp);
             return (long)(await command.ExecuteScalarAsync())!;
         }
+
+        // A user's private upload (D3): provider 'user upload', no URL or accession, an owner.
+        public static async Task<long> InsertUploadAsync(long ownerId, string recordId, long lengthBp, string kind = "virus")
+        {
+            await using var command = DataSource.CreateCommand(
+                "with s as (insert into sequence_source (provider, retrieved_at, raw_sha256, raw_byte_size, owner_id) " +
+                "values ('user upload', now(), '\\x00', 0, $1) returning id) " +
+                "insert into sequence_record (source_id, record_id, name, kind, data_class, length_bp) " +
+                "select id, $2, 'upload ' || $2, $3, 'restricted', $4 from s returning id");
+            command.Parameters.AddWithValue(ownerId);
+            command.Parameters.AddWithValue(recordId);
+            command.Parameters.AddWithValue(kind);
+            command.Parameters.AddWithValue(lengthBp);
+            return (long)(await command.ExecuteScalarAsync())!;
+        }
     }
 }

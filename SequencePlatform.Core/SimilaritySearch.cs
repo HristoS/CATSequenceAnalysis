@@ -70,8 +70,16 @@ namespace SequencePlatform.Core
 
         /// <summary>A profile-only query (a ZCWP upload): no hash, and the reverse strand only if the uploader supplied it.</summary>
         public static QueryProfile FromProfiles(ZCurveWindowedProfile forward, ZCurveWindowedProfile? reverse) =>
+            FromFineProfiles(forward, reverse, (long)forward.WindowCount * forward.WindowSize, null, null);
+
+        /// <summary>
+        /// A query from its fine profiles, length and hashes, as <see cref="SearchLog"/> keeps a job: everything else is derived
+        /// from the fine level, so this equals the query <see cref="FromSequence"/> built from the DNA.
+        /// </summary>
+        public static QueryProfile FromFineProfiles(ZCurveWindowedProfile forward, ZCurveWindowedProfile? reverse, long lengthBp,
+            byte[]? sha256, byte[]? reverseSha256) =>
             new QueryProfile(new ZCurveProfileLadder(forward), reverse is null ? null : new ZCurveProfileLadder(reverse),
-                (long)forward.WindowCount * forward.WindowSize, null, null).WithOrigin();
+                lengthBp, sha256, reverseSha256).WithOrigin();
 
         // Rotates both strands to the origin when the forward strand places one. The reverse strand's own skew minimum is the same
         // point of the ring.
@@ -155,6 +163,8 @@ namespace SequencePlatform.Core
     public sealed class SimilaritySearch
     {
         public const double DefaultLengthRatio = 0.5;
+        /// <summary>The smallest length ratio a search may use (S3.4: 0.25-1 allowed), and what the cache holds by default.</summary>
+        public const double SmallestLengthRatio = 0.25;
         public const int NeighbourCount = 20;
         public const int NeighbourRankDepth = 100;
 
@@ -176,7 +186,7 @@ namespace SequencePlatform.Core
         public long WindowBytes => caches is null ? 0 : caches.Concat(rotatedCaches!).Where((_, i) => loaded[i % loaded.Length]).Sum(c => c.WindowBytes);
 
         /// <param name="useCache">false: every search reads its band from the database (one query per process, as the CLI does).</param>
-        public SimilaritySearch(NpgsqlDataSource dataSource, bool useCache = true, double minLengthRatio = 0.25,
+        public SimilaritySearch(NpgsqlDataSource dataSource, bool useCache = true, double minLengthRatio = SmallestLengthRatio,
             string method = RecordStore.Method, string methodVersion = RecordStore.MethodVersion)
         {
             if (minLengthRatio <= 0 || minLengthRatio > 1) throw new ArgumentOutOfRangeException(nameof(minLengthRatio));

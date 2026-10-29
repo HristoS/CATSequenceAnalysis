@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
     <PackageReference Include="NUnit" Version="4.6.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
@@ -18,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SequenceAnalise\SequenceAnalise.csproj" />
     <ProjectReference Include="..\SequencePlatform.Core\SequencePlatform.Core.csproj" />
+    <ProjectReference Include="..\SequencePlatform.Api\SequencePlatform.Api.csproj" />
     <!-- Only for the explicit end-to-end ingest test (IngestTests). -->
     <ProjectReference Include="..\SequencePlatform.Ingest\SequencePlatform.Ingest.csproj" />
   </ItemGroup>
