@@ -46,7 +46,35 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/searches/{id}` | Status (Queued, Running, Done, Failed, Expired), parameters, summary, and once done one page of one hit list: `list` = Ranked / Identical / NotComparable, `after`, `limit` |
 | DELETE | `/api/searches/{id}` | Drop the query profile and results now (D7); 204. The search stays as Expired with its summary |
 
-Requests for each are in [Sequences.http](Sequences.http) and [Searches.http](Searches.http).
+Requests for each are in [Sequences.http](Sequences.http) and [Searches.http](Searches.http), and a whole walk-through in
+[Scenario.http](Scenario.http).
+
+## End-to-end scenario
+
+[Scenario.http](Scenario.http) goes from an empty database to answers, using only the bundled genomes in `data/genomes/`:
+upload, list, find similar, poll, read both lists, localize a planted gene, delete. From the repository root:
+
+1. Make the bodies (plain FASTA into `SequencePlatform.Api/scenario/`, git-ignored):
+   `python -I scripts/platform-checks/e2e_scenario.py prepare`. They are the 29 viral genomes as one file, SARS-CoV-2 alone,
+   its S gene (3,822 bp), and E. coli K-12 MG1655 with that S gene inserted at 2,000,000.
+2. Point `SEQUENCE_PLATFORM_DB` at a database that doesn't exist yet, run the Ingest's `migrate` (it creates it) and `add-user`,
+   and start the API on it ("Run it" above).
+3. Send the requests in order, polling steps 6 and 9 until `Done`. Or let the script send them and check every answer:
+   `python -I scripts/platform-checks/e2e_scenario.py run http://localhost:5080 KEY_FILE`, with the key in `KEY_FILE`.
+
+What comes back (2026-10-29, Release, `results/S45_EndToEnd.csv`):
+
+| Step | Answer |
+|---|---|
+| Upload the viruses, then the planted K-12 | 201: 29 records; 1 record of 4,645,474 bp, 9,290 windows, levels 500 bp to 32 kbp |
+| List your uploads | the 30 records, owned and `restricted` |
+| Find similar to SARS-CoV-2 | Done 0.28 s after POST. Band 14,952–59,806 bp, 8 ranked: SARS-CoV-2 1.000, MERS 0.879, HCoV-229E 0.877, HCoV-OC43 0.851, then human adenovirus A 0.769 |
+| The identical list | the uploaded SARS-CoV-2, by SHA-256 |
+| Localize the S gene in the planted record | Done 0.11 s after POST: offset 2,000,000, forward strand, score 1.000 |
+| Delete the search | 204; it reads back as Expired with its summary and no hits |
+
+A fresh database has no score null or neighbour graph (the Ingest's `build-null` and `build-neighbours` make them from public
+records), so the hits carry no p or E and are ordered by score alone.
 
 ## Uploads
 

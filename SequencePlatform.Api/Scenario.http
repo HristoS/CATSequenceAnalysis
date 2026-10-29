@@ -1,0 +1,66 @@
+# End-to-end scenario (P4 S4.5): upload, list, find similar, poll, read the results, localize a planted gene, delete.
+# Run it top to bottom against a fresh database; README.md, "End-to-end scenario", has the setup and the expected answers.
+# The bodies are made by: python -I scripts/platform-checks/e2e_scenario.py prepare  (from the repository root)
+# Set apiKey to the key the Ingest's add-user printed; don't commit a key.
+@baseUrl = http://localhost:5080
+@apiKey = sp_paste-your-key-here
+
+### 1. Upload the 29 bundled viral genomes as one FASTA: 201, one record each, private to you
+# @name viruses
+POST {{baseUrl}}/api/sequences?kind=virus
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./scenario/viruses.fna
+
+### 2. Upload E. coli K-12 MG1655 with the SARS-CoV-2 S gene (3,822 bp) planted at 2,000,000: 201, 4,645,474 bp
+# @name planted
+POST {{baseUrl}}/api/sequences?kind=bacterium&name=E.%20coli%20K-12%20with%20a%20planted%20S%20gene
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./scenario/k12_planted.fna
+
+### 3. List your uploads: the 30 records
+GET {{baseUrl}}/api/sequences?provider=user%20upload&limit=100
+Authorization: Bearer {{apiKey}}
+
+### 4. One record: owned, restricted, its stored levels (500 bp to 32 kbp)
+GET {{baseUrl}}/api/sequences/{{planted.response.body.$.records[0].id}}
+Authorization: Bearer {{apiKey}}
+
+### 5. Find viruses similar to SARS-CoV-2: 202 and the search's address
+# @name similar
+POST {{baseUrl}}/api/searches/similar?kind=virus&top=10
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./scenario/sars_cov_2.fna
+
+### 6. Poll until Done (well under a second here), then read the ranked list: SARS-CoV-2 itself, then MERS, 229E and OC43
+GET {{baseUrl}}{{similar.response.headers.Location}}
+Authorization: Bearer {{apiKey}}
+
+### 7. The identical list: the uploaded SARS-CoV-2, matched by SHA-256
+GET {{baseUrl}}{{similar.response.headers.Location}}?list=Identical
+Authorization: Bearer {{apiKey}}
+
+### 8. Localize the S gene inside the planted record (under 4 kbp, so it needs a record)
+# @name localize
+POST {{baseUrl}}/api/searches/localize?record={{planted.response.body.$.records[0].id}}
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./scenario/spike.fna
+
+### 9. Poll it: offset 2000000 on the Forward strand, score 1.0
+GET {{baseUrl}}{{localize.response.headers.Location}}
+Authorization: Bearer {{apiKey}}
+
+### 10. Delete the find-similar search: 204; polling it again shows Expired, the summary without hits
+DELETE {{baseUrl}}{{similar.response.headers.Location}}
+Authorization: Bearer {{apiKey}}
+
+### 11. Check it
+GET {{baseUrl}}{{similar.response.headers.Location}}
+Authorization: Bearer {{apiKey}}

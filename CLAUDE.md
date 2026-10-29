@@ -95,7 +95,8 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   `SearchWorker` (a hosted service in the API) claims them with `for update skip locked`, wakes on `LISTEN search_queued`, runs
   one at a time, and requeues jobs left running at startup (single worker until P6). Tests run the API in process
   (`ApiTests`, `UploadTests`, `SearchApiTests` with the worker off; `WorkerTests` with it on). `NoDnaTests` runs it on Kestrel
-  and scans every column, log entry and temp file for a planted marker after upload and search (S4.4).
+  and scans every column, log entry and temp file for a planted marker after upload and search (S4.4). `Scenario.http` is the
+  end-to-end walk-through; `scripts/platform-checks/e2e_scenario.py` makes its bodies (`prepare`) and replays it with checks (`run`).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `load-taxonomy`, `stats`, `list`,
   `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `add-user`, `disable-user`; see its README. Measurement scripts for the platform's

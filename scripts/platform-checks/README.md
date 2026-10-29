@@ -28,6 +28,7 @@ dotnet run -c Release scripts/platform-checks/bandsearch.cs
 | `rotation_eval.cs` | `S32_RotationRanking*.csv` | S3.4b's 150 bacterial queries by score, as stored and with circular chromosomes rotated to their origin at profile level |
 | `timing.cs` | `S37_Timing.csv` | One query of each kind (find-similar by FASTA and by record, localize over the catalogue and inside a record): profiling, first, warm and streamed times |
 | `worker_smoke.py` | `S43_WorkerTiming.csv` | Searches through the running API and its worker (P4 S4.3): POST time and POST-to-Done time per query; the worker's own time is in the API log. Needs the API running and an API key file |
+| `e2e_scenario.py` | `S45_EndToEnd.csv` | The API's end-to-end scenario (P4 S4.5): `prepare` writes its FASTA bodies from `data/genomes/` into `SequencePlatform.Api/scenario/`; `run BASE_URL KEY_FILE` sends `Scenario.http`'s requests to an API on a fresh database and checks every answer. See the API README |
 | `tail_calibration.py` | `S36_TailCalibration.csv` | Hold-out calibration of three tail models on the full `score_null` cells; reads `psql -A -t -c "select source, window_size, scores from score_null where cardinality(scores) >= 10000"` on stdin |
 | `column_audit.py` | — | Lists migration columns no platform code references (the 2026-10-22 audit: only timestamps and the unused `search_run` / `search_hit`); pass the repository root |
 
