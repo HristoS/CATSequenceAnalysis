@@ -2,7 +2,10 @@
 
 The platform's HTTP API (P4): the catalogue, uploads, and find-similar and localize as asynchronous jobs, run by a worker in
 the same process.
-It stores no DNA: uploads and queries are profiled and discarded, as in the Ingest.
+It stores no DNA: uploads and queries are profiled and discarded, as in the Ingest. `NoDnaTests` checks this on Kestrel: a genome
+carrying a unique 1 kbp marker goes through upload, find-similar, localize and rejected bodies, and afterwards no column of any
+table (bytea included), no log entry at any level and no temp file holds any 24 bp piece of the marker or of its reverse
+complement; a body over 32 MiB gets 413 and stores nothing.
 
 ## Run it
 
