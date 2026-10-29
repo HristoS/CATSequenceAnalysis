@@ -91,8 +91,10 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   only the SHA-256 stored); `CatalogueFilter.ViewerId` makes an upload visible to its owner only, and no viewer means public records
   only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw
   FASTA or ZCWP body, never multipart (`IFormFile` buffers to a temp file); FASTA streams through `FastaReader.ReadRecordStreams`.
-  Searches (`/api/searches/similar`, `/localize`) are `SearchLog` jobs: 202 + `Location`, then GET pages the hit lists; the
-  worker that runs them is P4 S4.3. Tests run it in process (`ApiTests`, `UploadTests`, `SearchApiTests`).
+  Searches (`/api/searches/similar`, `/localize`) are `SearchLog` jobs: 202 + `Location`, then GET pages the hit lists.
+  `SearchWorker` (a hosted service in the API) claims them with `for update skip locked`, wakes on `LISTEN search_queued`, runs
+  one at a time, and requeues jobs left running at startup (single worker until P6). Tests run the API in process
+  (`ApiTests`, `UploadTests`, `SearchApiTests` with the worker off; `WorkerTests` with it on).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `load-taxonomy`, `stats`, `list`,
   `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `add-user`, `disable-user`; see its README. Measurement scripts for the platform's

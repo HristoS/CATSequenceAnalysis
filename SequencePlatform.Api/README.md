@@ -1,7 +1,7 @@
 # SequencePlatform.Api
 
-The platform's HTTP API (P4): the catalogue, uploads, and find-similar and localize as asynchronous jobs. Queued searches run once
-the worker exists (S4.3).
+The platform's HTTP API (P4): the catalogue, uploads, and find-similar and localize as asynchronous jobs, run by a worker in
+the same process.
 It stores no DNA: uploads and queries are profiled and discarded, as in the Ingest.
 
 ## Run it
@@ -60,3 +60,19 @@ visible to you), profiles the query, and answers 202 with the job's address. The
 job keeps the fine profile and SHA-256 of both strands. A ZCWP query has no hash, so it finds no Identical records, and without a
 reverse strand it is searched on the forward strand only. Searches are private: anyone else's id is a 404. Results are kept 30
 days (D7), then the search is Expired and keeps only its parameters, the query's length and hash, and the summary.
+
+## The worker
+
+`SearchWorker` runs queued searches one at a time in the API process: each search already uses every core. It wakes on a
+PostgreSQL notification (`search_queued`) and also polls every 30 s, so a lost listener only delays jobs. It assumes it is the
+only worker (one API process until P6): at startup a job still `Running` lost its worker and is requeued, and after three claims
+it is failed instead. Every 10 minutes it applies D7's expiry and reloads the score null and neighbour graphs, which the Ingest
+rebuilds; the cached profiles are refreshed before every search, so a record stored a moment ago is a candidate.
+
+Find-similar keeps its band levels in memory (24 MB at ratio 0.5). Localization streams from the database by default
+(`SearchWorker:CacheLocalization=false`): about 1-2.3 s per fragment instead of 0.2-1 s, without 823 MB in the process. Other
+settings in the `SearchWorker` section: `Enabled`, `PollInterval`, `StuckAfter`, `MaintenanceInterval`.
+
+On the local catalogue (`results/S43_WorkerTiming.csv`, Release): warm find-similar takes 150-650 ms from POST to Done (the
+upper end is profiling a 4.6 Mbp FASTA query in the POST), localization 0.9-2.3 s; the first search after a start takes about
+3 s while the caches, null and graph load. The process used 451 MB.

@@ -83,6 +83,12 @@ namespace SequencePlatform.Core
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
             nullLoaded = false;
+            await RefreshProfilesAsync(cancellationToken);
+        }
+
+        /// <summary>Only the cached levels, incrementally (<see cref="SimilaritySearch.RefreshProfilesAsync"/>); nothing without a cache.</summary>
+        public async Task RefreshProfilesAsync(CancellationToken cancellationToken = default)
+        {
             if (caches is null) return;
             for (int i = 0; i < caches.Length; i++)
                 if (loaded[i]) await caches[i].RefreshAsync(cancellationToken);

@@ -239,11 +239,23 @@ namespace SequencePlatform.Core
         public static LengthRange Band(long lengthBp, double lengthRatio) =>
             new((long)Math.Ceiling(lengthRatio * lengthBp), (long)Math.Floor(lengthBp / lengthRatio) + 1);
 
-        /// <summary>Brings every level loaded so far up to date with the database. A level is first loaded when a search needs it.</summary>
+        /// <summary>
+        /// Brings every level loaded so far up to date with the database, and reloads the null and the neighbour graphs when next
+        /// needed. A level is first loaded when a search needs it.
+        /// </summary>
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
             nullLoaded = false;
             graphs.Clear();
+            await RefreshProfilesAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Only the cached levels: incremental, so cheap enough before every search, and a record stored a moment ago is a candidate
+        /// with its profile rather than not comparable. The null and the graphs change only when rebuilt (<see cref="RefreshAsync"/>).
+        /// </summary>
+        public async Task RefreshProfilesAsync(CancellationToken cancellationToken = default)
+        {
             if (caches is null) return;
             for (int i = 0; i < caches.Length; i++)
                 if (loaded[i])

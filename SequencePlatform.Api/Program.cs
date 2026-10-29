@@ -25,6 +25,9 @@ builder.Services.AddAuthentication(ApiKeyAuthentication.SchemeName)
 builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
+builder.Services.Configure<SearchWorkerOptions>(builder.Configuration.GetSection("SearchWorker"));
+builder.Services.AddHostedService<SearchWorker>();
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecurityTransformer>());

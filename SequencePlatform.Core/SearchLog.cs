@@ -36,10 +36,18 @@ namespace SequencePlatform.Core
     /// <see cref="QueryProfile.FromFineProfiles"/> needs to rebuild the query, never the DNA; its result is the hit lists of a
     /// <see cref="SimilarityResult"/> or <see cref="LocalizationResult"/> plus their summary. D7: <see cref="ExpireDueAsync"/>
     /// drops profiles and hits after 30 days and keeps the hashes, length, parameters and summary; <see cref="ExpireAsync"/>
-    /// does the same early for one run. Claiming a queued job is the worker's (S4.3).
+    /// does the same early for one run.
+    ///
+    /// PostgreSQL is the queue (S4.3): <see cref="EnqueueAsync"/> notifies <see cref="Channel"/>, <see cref="ClaimAsync"/> takes the
+    /// oldest queued job with <c>for update skip locked</c>, so two workers never take the same one, and <see cref="RequeueStuckAsync"/>
+    /// returns jobs whose worker stopped mid-run.
     /// </summary>
     public static class SearchLog
     {
+        /// <summary>The LISTEN/NOTIFY channel a new job is announced on; the payload is its public id.</summary>
+        public const string Channel = "search_queued";
+        public const int MaxAttempts = 3;
+
         private static readonly JsonSerializerOptions filterJson = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
         public static async Task<Guid> EnqueueAsync(NpgsqlDataSource dataSource, SearchRequest request, QueryProfile query,
@@ -66,7 +74,47 @@ namespace SequencePlatform.Core
             p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Double, Value = (object?)request.LengthRatio ?? DBNull.Value });
             p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bigint, Value = (object?)request.WithinSequenceId ?? DBNull.Value });
             p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bigint, Value = (object?)request.Filter.ViewerId ?? DBNull.Value });
-            return (Guid)(await command.ExecuteScalarAsync(cancellationToken))!;
+            var id = (Guid)(await command.ExecuteScalarAsync(cancellationToken))!;
+
+            await using (var notify = dataSource.CreateCommand("select pg_notify($1, $2)"))
+            {
+                notify.Parameters.AddWithValue(Channel);
+                notify.Parameters.AddWithValue(id.ToString());
+                await notify.ExecuteNonQueryAsync(cancellationToken);
+            }
+            return id;
+        }
+
+        /// <summary>Marks the oldest queued job running and counts the attempt.</summary>
+        /// <returns>Its public id; null when nothing is queued.</returns>
+        public static async Task<Guid?> ClaimAsync(NpgsqlDataSource dataSource, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(
+                "update search_run set status = 'running', started_at = now(), attempts = attempts + 1 " +
+                "where id = (select id from search_run where status = 'queued' order by created_at, id limit 1 for update skip locked) " +
+                "returning public_id");
+            return await command.ExecuteScalarAsync(cancellationToken) as Guid?;
+        }
+
+        /// <summary>
+        /// Jobs running since before <paramref name="startedBefore"/>, whose worker stopped: back to queued, or failed once they have
+        /// been claimed <see cref="MaxAttempts"/> times.
+        /// </summary>
+        public static async Task<(int Requeued, int Failed)> RequeueStuckAsync(NpgsqlDataSource dataSource, DateTimeOffset startedBefore,
+            CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(
+                "with stuck as (select id, attempts from search_run where status = 'running' and started_at < $1 for update skip locked), " +
+                "failed as (update search_run r set status = 'failed', completed_at = now(), " +
+                "error = 'The search stopped its worker ' || s.attempts || ' times; it was not retried.' " +
+                "from stuck s where r.id = s.id and s.attempts >= $2 returning r.id), " +
+                "requeued as (update search_run r set status = 'queued', started_at = null from stuck s where r.id = s.id and s.attempts < $2 returning r.id) " +
+                "select (select count(*)::integer from requeued), (select count(*)::integer from failed)");
+            command.Parameters.AddWithValue(startedBefore);
+            command.Parameters.AddWithValue((short)MaxAttempts);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            await reader.ReadAsync(cancellationToken);
+            return (reader.GetInt32(0), reader.GetInt32(1));
         }
 
         /// <returns>null when no run has this id.</returns>

@@ -1,4 +1,4 @@
-# Searches (S4.2c): queued as jobs, polled by id. A queued search runs once the worker exists (S4.3).
+# Searches: queued as jobs, polled by id; the API's worker runs them, usually within a second or two.
 # Set apiKey to the key the Ingest's add-user printed; don't commit a key.
 @baseUrl = http://localhost:5080
 @apiKey = sp_paste-your-key-here
