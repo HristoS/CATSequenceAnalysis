@@ -42,6 +42,8 @@ dotnet run -c Release scripts/platform-checks/bandsearch.cs
 | `gtdb_tree_distance.cs` | `S54_GtdbTreeDistance.csv` | P5 measure B: Spearman of signature distances with GTDB reference-tree patristic distance by depth band; pass the folder holding GTDB's `bac120.tree.gz`, `ar53.tree.gz` and `*_taxonomy.tsv.gz`, then the output path |
 | `gap_decomposition.cs` | `S52e_GapDecomposition.csv` | P5: 10-nearest purity for Karlin ρ\* on ratio and log scales, log ρ\* in Z-curve coordinates (all 16 coefficients, and the 9 interactions only) and the second-order correlations, paired against Karlin; pass the output path |
 | `zcurve_rotation_check.cs` | — | P5: PCA of the complete second-order Z-curve (all 16 Z-curve coefficients of ρ\*) against PCA of Karlin ρ\* on the whole catalogue; prints the per-axis correlations (|r| = 1 expected) |
+| `signature_metric.cs` | `S55_SignatureMetric*.csv` | P5 S5.5: AUC and NJ / UPGMA clades on the S5.1 sample for ρ\* and log ρ\* with Euclidean and mean-absolute distances; pass the output path |
+| `signature_metric_neighbours.cs` | `S55_SignatureMetric_Neighbours.csv` | P5 S5.5: 10-nearest purity over the whole catalogue for the same four variants, paired against ρ\* Euclidean; pass the output path |
 | `tail_calibration.py` | `S36_TailCalibration.csv` | Hold-out calibration of three tail models on the full `score_null` cells; reads `psql -A -t -c "select source, window_size, scores from score_null where cardinality(scores) >= 10000"` on stdin |
 | `column_audit.py` | — | Lists migration columns no platform code references (the 2026-10-22 audit: only timestamps and the unused `search_run` / `search_hit`); pass the repository root |
 
