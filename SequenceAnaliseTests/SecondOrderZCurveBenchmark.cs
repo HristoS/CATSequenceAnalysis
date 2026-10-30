@@ -11,7 +11,8 @@ namespace SequenceAnaliseTests
     /// window order). Bacteria at 32 kbp and 8 kbp windows, laid out from the replication origin where OriginRotation's rule places
     /// one; viruses at 2 kbp, as read. Context: karlin (delta*), secondOrder (global), the first-order window summary, Mash for the
     /// bacteria. AUC per rank and NJ / UPGMA clades with a 1,000-permutation label null. The bundled bacteria have 8 same-genus pairs,
-    /// so this only points the way; the decision is the catalogue's. Writes S52c_SecondOrder_Bundled.csv. A few minutes.
+    /// so this only points the way; the decision is the catalogue's. Writes S52c_SecondOrder_Bundled.csv and
+    /// every tree as trees/S52c_{corpus}_{distance}_{method}.nwk. About 30 s.
     /// </summary>
     public class SecondOrderZCurveBenchmark
     {
@@ -68,10 +69,13 @@ namespace SequenceAnaliseTests
 
                 var labels = genomes.Select(g => g.Label).ToArray();
                 var ranks = new[] { ("genus", genomes.Select(g => g.Genus).ToArray()), (higher, genomes.Select(g => g.Higher).ToArray()) };
+                Directory.CreateDirectory("trees");
                 foreach (var (name, matrix) in distances)
                 {
                     var nj = Phylogeny.NeighbourJoining(matrix, labels);
                     var upgma = Phylogeny.Upgma(matrix, labels);
+                    foreach (var (method, tree) in new[] { ("NJ", nj), ("UPGMA", upgma) })
+                        File.WriteAllText(Path.Combine("trees", $"S52c_{corpus}_{name}_{method}.nwk"), tree.ToNewick() + Environment.NewLine);
                     foreach (var (rank, taxa) in ranks)
                     {
                         var positives = new List<double>();
