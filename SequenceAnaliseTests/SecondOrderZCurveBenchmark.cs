@@ -44,6 +44,11 @@ namespace SequenceAnaliseTests
                     ("karlin", Matrix(n, (a, b) => GenomeSignatures.KarlinDelta(GenomeSignatures.KarlinRho(counts[a]), GenomeSignatures.KarlinRho(counts[b])))),
                     ("secondOrder", ZCurveTreeBenchmark.Euclidean(counts.Select(c => GenomeSignatures.SecondOrder(c)).ToArray())),
                     ("summary", CompositionBaselineBenchmark.Std((corpus == "bacteria" ? fine.Select(f => f.Downsample(64)) : fine).Select(GenomeSignatures.WindowSummary))),
+                    // The complete second-order Z-curve: all 16 Z-curve coefficients of rho* (a rotation of Karlin's vector, so with
+                    // Euclidean distance it must give Karlin's trees) and of log rho* (the log-linear form).
+                    ("karlinEuclidean", ZCurveTreeBenchmark.Euclidean(counts.Select(GenomeSignatures.KarlinRho).ToArray())),
+                    ("zcurveFull", ZCurveTreeBenchmark.Euclidean(counts.Select(c => GenomeSignatures.ToZCurveBasis(GenomeSignatures.KarlinRho(c))).ToArray())),
+                    ("zcurveFullLog", ZCurveTreeBenchmark.Euclidean(counts.Select(c => GenomeSignatures.ToZCurveBasis(GenomeSignatures.KarlinLogRho(c))).ToArray())),
                 };
                 foreach (int size in windowSizes)
                 {
@@ -70,10 +75,12 @@ namespace SequenceAnaliseTests
                 var labels = genomes.Select(g => g.Label).ToArray();
                 var ranks = new[] { ("genus", genomes.Select(g => g.Genus).ToArray()), (higher, genomes.Select(g => g.Higher).ToArray()) };
                 Directory.CreateDirectory("trees");
+                var built = new Dictionary<string, (PhyloTree Nj, PhyloTree Upgma)>();
                 foreach (var (name, matrix) in distances)
                 {
                     var nj = Phylogeny.NeighbourJoining(matrix, labels);
                     var upgma = Phylogeny.Upgma(matrix, labels);
+                    built[name] = (nj, upgma);
                     foreach (var (method, tree) in new[] { ("NJ", nj), ("UPGMA", upgma) })
                         File.WriteAllText(Path.Combine("trees", $"S52c_{corpus}_{name}_{method}.nwk"), tree.ToNewick() + Environment.NewLine);
                     foreach (var (rank, taxa) in ranks)
@@ -93,8 +100,20 @@ namespace SequenceAnaliseTests
                         TestContext.Out.WriteLine(line);
                     }
                 }
+
+                // A rotation keeps Euclidean distances (up to the factor 1/4), so the trees must be the same.
+                foreach (var (other, method, a, b) in new[]
+                {
+                    ("karlinEuclidean", "NJ", built["zcurveFull"].Nj, built["karlinEuclidean"].Nj),
+                    ("karlinEuclidean", "UPGMA", built["zcurveFull"].Upgma, built["karlinEuclidean"].Upgma),
+                    ("karlin (delta*)", "NJ", built["zcurveFullLog"].Nj, built["karlin"].Nj),
+                    ("karlin (delta*)", "UPGMA", built["zcurveFullLog"].Upgma, built["karlin"].Upgma),
+                })
+                    TestContext.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                        $"{corpus}: {(other == "karlinEuclidean" ? "zcurveFull" : "zcurveFullLog")} vs {other}, {method}: normalized RF {a.NormalizedRobinsonFoulds(b):F3}"));
+                Assert.That(built["zcurveFull"].Nj.NormalizedRobinsonFoulds(built["karlinEuclidean"].Nj), Is.EqualTo(0));
+                Assert.That(built["zcurveFull"].Upgma.NormalizedRobinsonFoulds(built["karlinEuclidean"].Upgma), Is.EqualTo(0));
             }
-            Assert.Pass();
         }
 
         private static double[] MeanAndSd(double[][] windows)

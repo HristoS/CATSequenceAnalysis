@@ -41,6 +41,7 @@ dotnet run -c Release scripts/platform-checks/bandsearch.cs
 | `lineage_tightness.cs` | `S54_LineageTightness*.csv` | P5 measure A: per-lineage purity and spread for the second-order Z-curve and Karlin ρ\*, sign tests by domain, GC class, viral realm and host type; pass the summary path |
 | `gtdb_tree_distance.cs` | `S54_GtdbTreeDistance.csv` | P5 measure B: Spearman of signature distances with GTDB reference-tree patristic distance by depth band; pass the folder holding GTDB's `bac120.tree.gz`, `ar53.tree.gz` and `*_taxonomy.tsv.gz`, then the output path |
 | `gap_decomposition.cs` | `S52e_GapDecomposition.csv` | P5: 10-nearest purity for Karlin ρ\* on ratio and log scales, log ρ\* in Z-curve coordinates (all 16 coefficients, and the 9 interactions only) and the second-order correlations, paired against Karlin; pass the output path |
+| `zcurve_rotation_check.cs` | — | P5: PCA of the complete second-order Z-curve (all 16 Z-curve coefficients of ρ\*) against PCA of Karlin ρ\* on the whole catalogue; prints the per-axis correlations (|r| = 1 expected) |
 | `tail_calibration.py` | `S36_TailCalibration.csv` | Hold-out calibration of three tail models on the full `score_null` cells; reads `psql -A -t -c "select source, window_size, scores from score_null where cardinality(scores) >= 10000"` on stdin |
 | `column_audit.py` | — | Lists migration columns no platform code references (the 2026-10-22 audit: only timestamps and the unused `search_run` / `search_hit`); pass the repository root |
 
