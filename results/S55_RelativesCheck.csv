@@ -1,0 +1,10 @@
+Check, Value, Limit, Detail
+Index genomes, 19935, , 6375 cellular and 13560 viral; one record per genome (D9); plasmids left out
+Index load ms, 2879, , first request after start (now loaded in the background at startup)
+E. coli K-12 relatives Escherichia or Shigella, 9 of 10, >= 1 of 10, K-12 0.0002; Shigella sonnei 0.0067; Shigella dysenteriae 0.0110; Escherichia marmotae 0.0218; Escherichia albertii 0.0260 and 0.0287; E. coli O157:H7 Sakai 0.0350; Citrobacter cronae 0.0400; Shigella flexneri 2a 0.0406; Shigella sonnei 0.0420
+SARS-CoV-2 relatives coronaviruses, 10 of 10, , itself 0.0000; SARS-related BtKY72 0.1548; TGEV Purdue 0.1736; Bat alphacoronavirus 0.1904; SARS Tor2 0.2082; then alpha- and deltacoronaviruses
+Warm query median ms (cellular), 3.85, 100, worst 16.76 (an earlier run 5.46 / 10.71)
+Warm query median ms (viral), 8.96, 100, worst 22.08 (an earlier run 13.52 / 44.18)
+UPGMA 500 genomes ms, 428, 5000, 732 and 1200 in earlier runs
+NJ 500 genomes ms (dictionary matrix), 7004 to 11717, 5000, stop criterion triggered
+NJ 500 genomes ms (array matrix), 956, 5000, Newick identical to the dictionary version (bit for bit; UPGMA too)

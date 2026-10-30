@@ -100,6 +100,8 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw
   FASTA or ZCWP body, never multipart (`IFormFile` buffers to a temp file); FASTA streams through `FastaReader.ReadRecordStreams`.
   Searches (`/api/searches/similar`, `/localize`) are `SearchLog` jobs: 202 + `Location`, then GET pages the hit lists.
+  `SignatureIndex` (Core) serves `GET /api/sequences/{id}/relatives`, `/signature?view=zcurve|karlin` and `GET /api/trees`
+  synchronously from an in-memory table of dinucleotide signatures (log ρ\* = complete second-order Z-curve; P5 S5.5).
   `SearchWorker` (a hosted service in the API) claims them with `for update skip locked`, wakes on `LISTEN search_queued`, runs
   one at a time, and requeues jobs left running at startup (single worker until P6). Tests run the API in process
   (`ApiTests`, `UploadTests`, `SearchApiTests` with the worker off; `WorkerTests` with it on). `NoDnaTests` runs it on Kestrel

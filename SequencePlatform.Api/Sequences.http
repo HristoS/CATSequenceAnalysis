@@ -55,3 +55,19 @@ Content-Type: text/x-fasta
 
 >a
 ACGT
+
+### The 10 genomes nearest to a record by dinucleotide signature
+GET {{baseUrl}}/api/sequences/1/relatives?k=10
+Authorization: Bearer {{apiKey}}
+
+### Its signature as Z-curve coefficients (view=karlin gives the same vector per dinucleotide)
+GET {{baseUrl}}/api/sequences/1/signature?view=zcurve
+Authorization: Bearer {{apiKey}}
+
+### A tree of the genomes of one family, from their signatures
+GET {{baseUrl}}/api/trees?rank=family&taxon=Enterobacteriaceae&method=upgma
+Authorization: Bearer {{apiKey}}
+
+### A tree of chosen records (3-500, all bacteria and archaea or all viruses)
+GET {{baseUrl}}/api/trees?ids=1,2,3,4&method=nj
+Authorization: Bearer {{apiKey}}

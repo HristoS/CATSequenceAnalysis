@@ -45,9 +45,23 @@ built from public records only, so private uploads don't shape anyone else's ran
 | POST | `/api/searches/localize` | The same for a fragment: ≥ 4 kbp over the catalogue, or any length with `record`; `top` 1–100 (default 20) |
 | GET | `/api/searches/{id}` | Status (Queued, Running, Done, Failed, Expired), parameters, summary, and once done one page of one hit list: `list` = Ranked / Identical / NotComparable, `after`, `limit` |
 | DELETE | `/api/searches/{id}` | Drop the query profile and results now (D7); 204. The search stays as Expired with its summary |
+| GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
+| GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |
+| GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
 
 Requests for each are in [Sequences.http](Sequences.http) and [Searches.http](Searches.http), and a whole walk-through in
 [Scenario.http](Scenario.http).
+
+## Relatives, signatures and trees (P5 S5.5)
+
+These answer at once from `SignatureIndex`, an in-memory table of every genome's dinucleotide signature: log ρ\* over both strands from
+the stored dinucleotide counts, compared by Euclidean distance. It is Karlin's genomic signature and also the complete second-order
+Z-curve (its Z-curve coefficients are a rotation of it), so both views describe one vector. One record stands for each catalogue genome
+(the largest chromosome of a bacterium or archaeon; every virus record; every record of an upload); plasmids are left out. The index
+loads in the background when the API starts (about 3 s for the local catalogue) and reloads when records are added or deleted. On the
+local catalogue (2026-10-30, `results/S55_RelativesCheck.csv`): a relatives query takes 4–9 ms (median), E. coli K-12's 10 relatives
+are 9 Escherichia or Shigella and one Citrobacter, SARS-CoV-2's are 10 coronaviruses, and a 500-genome tree takes 0.4 s (UPGMA) or 1.0 s
+(neighbour-joining).
 
 ## End-to-end scenario
 

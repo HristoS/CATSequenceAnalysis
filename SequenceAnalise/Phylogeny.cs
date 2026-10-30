@@ -205,11 +205,15 @@ namespace SequenceAnalyses
             var adjacency = new List<List<(int Node, double Length)>>();
             for (int i = 0; i < n; i++) adjacency.Add(new List<(int, double)>());
 
-            var d = new Dictionary<(int, int), double>();
-            double D(int a, int b) => a == b ? 0 : d[a < b ? (a, b) : (b, a)];
+            // A plain matrix, read from the upper triangle with a zero diagonal. A joined pair's new node takes over the first one's
+            // row, so the matrix never grows; node[row] is the tree node a row stands for. Sums run over active rows in list order and
+            // the new node goes last, as a growing node list would put it, so ties break as they always have.
+            var d = new double[n, n];
             for (int a = 0; a < n; a++)
                 for (int b = a + 1; b < n; b++)
-                    d[(a, b)] = distances[a, b];
+                    d[a, b] = d[b, a] = distances[a, b];
+            var node = Enumerable.Range(0, n).ToArray();
+            var sums = new double[n];
 
             void Connect(int a, int b, double length)
             {
@@ -221,19 +225,24 @@ namespace SequenceAnalyses
             while (active.Count > 2)
             {
                 int r = active.Count;
-                var sums = active.ToDictionary(i => i, i => active.Sum(k => D(i, k)));
+                foreach (int i in active)
+                {
+                    double sum = 0;
+                    foreach (int k in active) sum += d[i, k];
+                    sums[i] = sum;
+                }
                 (int I, int J) best = (-1, -1);
                 double bestQ = double.PositiveInfinity;
                 for (int x = 0; x < r; x++)
                     for (int y = x + 1; y < r; y++)
                     {
                         int i = active[x], j = active[y];
-                        double q = (r - 2) * D(i, j) - sums[i] - sums[j];
+                        double q = (r - 2) * d[i, j] - sums[i] - sums[j];
                         if (q < bestQ) (bestQ, best) = (q, (i, j));
                     }
 
                 var (bi, bj) = best;
-                double dij = D(bi, bj);
+                double dij = d[bi, bj];
                 double li = dij / 2 + (sums[bi] - sums[bj]) / (2.0 * (r - 2));
                 if (li < 0) li = 0;
                 if (li > dij) li = dij;
@@ -241,15 +250,16 @@ namespace SequenceAnalyses
 
                 int u = adjacency.Count;
                 adjacency.Add(new List<(int, double)>());
-                Connect(u, bi, li);
-                Connect(u, bj, lj);
+                Connect(u, node[bi], li);
+                Connect(u, node[bj], lj);
                 foreach (int k in active)
-                    if (k != bi && k != bj) d[(k, u)] = (D(bi, k) + D(bj, k) - dij) / 2;
+                    if (k != bi && k != bj) d[bi, k] = d[k, bi] = (d[bi, k] + d[bj, k] - dij) / 2;
+                node[bi] = u;
                 active.Remove(bi);
                 active.Remove(bj);
-                active.Add(u);
+                active.Add(bi);
             }
-            Connect(active[0], active[1], Math.Max(0, D(active[0], active[1])));
+            Connect(node[active[0]], node[active[1]], Math.Max(0, d[active[0], active[1]]));
 
             return new PhyloTree(MidpointRoot(adjacency, n), labels);
         }

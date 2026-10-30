@@ -176,6 +176,23 @@ namespace SequencePlatform.Core
             return await command.ExecuteScalarAsync(cancellationToken) is not null;
         }
 
+        /// <summary>Those of these ids the viewer may see (<see cref="CatalogueFilter.ViewerId"/>); ids that don't exist are left out too.</summary>
+        public static async Task<HashSet<long>> VisibleAsync(NpgsqlDataSource dataSource, IReadOnlyCollection<long> ids, long? viewerId,
+            CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand();
+            var sql = new StringBuilder("select r.id").Append(recordFrom).Append(" where r.id = any($1)");
+            command.Parameters.AddWithValue(ids.ToArray());
+            AppendFilter(command, sql, new CatalogueFilter(ViewerId: viewerId));
+            command.CommandText = sql.ToString();
+
+            var visible = new HashSet<long>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                visible.Add(reader.GetInt64(0));
+            return visible;
+        }
+
         /// <summary>The checks every query applies, for a caller that stores a filter to run later (a queued search).</summary>
         public static void Validate(CatalogueFilter filter)
         {

@@ -44,6 +44,7 @@ dotnet run -c Release scripts/platform-checks/bandsearch.cs
 | `zcurve_rotation_check.cs` | — | P5: PCA of the complete second-order Z-curve (all 16 Z-curve coefficients of ρ\*) against PCA of Karlin ρ\* on the whole catalogue; prints the per-axis correlations (|r| = 1 expected) |
 | `signature_metric.cs` | `S55_SignatureMetric*.csv` | P5 S5.5: AUC and NJ / UPGMA clades on the S5.1 sample for ρ\* and log ρ\* with Euclidean and mean-absolute distances; pass the output path |
 | `signature_metric_neighbours.cs` | `S55_SignatureMetric_Neighbours.csv` | P5 S5.5: 10-nearest purity over the whole catalogue for the same four variants, paired against ρ\* Euclidean; pass the output path |
+| `relatives_check.cs` | `S55_RelativesCheck.csv` | P5 S5.5: `SignatureIndex` on the local catalogue: index load, E. coli K-12 and SARS-CoV-2 relatives, warm query times, 500-genome UPGMA and NJ tree times; pass a folder to also write those trees as Newick |
 | `tail_calibration.py` | `S36_TailCalibration.csv` | Hold-out calibration of three tail models on the full `score_null` cells; reads `psql -A -t -c "select source, window_size, scores from score_null where cardinality(scores) >= 10000"` on stdin |
 | `column_audit.py` | — | Lists migration columns no platform code references (the 2026-10-22 audit: only timestamps and the unused `search_run` / `search_hit`); pass the repository root |
 

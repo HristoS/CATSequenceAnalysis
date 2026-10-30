@@ -25,6 +25,7 @@ builder.Services.AddAuthentication(ApiKeyAuthentication.SchemeName)
 builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
+builder.Services.AddSingleton<SignatureIndex>();
 builder.Services.Configure<SearchWorkerOptions>(builder.Configuration.GetSection("SearchWorker"));
 builder.Services.AddHostedService<SearchWorker>();
 
@@ -40,6 +41,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
+_ = app.Services.GetRequiredService<SignatureIndex>().RefreshAsync();   // warm the relatives index without delaying startup
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
@@ -49,5 +51,6 @@ app.UseAuthorization();
 if (app.Environment.IsDevelopment()) app.MapOpenApi().AllowAnonymous();
 app.MapSequences();
 app.MapSearches();
+app.MapOrganisms();
 
 app.Run();
