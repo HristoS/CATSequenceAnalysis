@@ -1,0 +1,33 @@
+Domain, Band, Pairs, Distance, Spearman, MinusKarlin, MinusKarlinCiLow, MinusKarlinCiHigh
+Bacteria, all, 3123750, secondOrder, 0.2633, -0.0013, -0.0233, 0.0111
+Bacteria, all, 3123750, karlin, 0.2646, 0.0000, 0.0000, 0.0000
+Bacteria, all, 3123750, gc, 0.2131, -0.0514, -0.0737, -0.0263
+Bacteria, all, 3123750, gcLength, 0.2602, -0.0044, -0.0370, 0.0251
+Bacteria, same family, 45736, secondOrder, 0.5433, -0.0729, -0.1186, -0.0616
+Bacteria, same family, 45736, karlin, 0.6161, 0.0000, 0.0000, 0.0000
+Bacteria, same family, 45736, gc, 0.3440, -0.2721, -0.3165, -0.2029
+Bacteria, same family, 45736, gcLength, 0.5289, -0.0872, -0.1435, -0.0225
+Bacteria, same phylum, other family, 695674, secondOrder, 0.2545, -0.0608, -0.0802, -0.0464
+Bacteria, same phylum, other family, 695674, karlin, 0.3152, 0.0000, 0.0000, 0.0000
+Bacteria, same phylum, other family, 695674, gc, 0.0989, -0.2163, -0.2428, -0.1721
+Bacteria, same phylum, other family, 695674, gcLength, 0.1566, -0.1587, -0.2132, -0.1414
+Bacteria, other phyla, 2382340, secondOrder, 0.0894, 0.0082, -0.0294, 0.0287
+Bacteria, other phyla, 2382340, karlin, 0.0811, 0.0000, 0.0000, 0.0000
+Bacteria, other phyla, 2382340, gc, 0.0650, -0.0162, -0.0631, 0.0165
+Bacteria, other phyla, 2382340, gcLength, 0.1356, 0.0544, -0.0027, 0.0864
+Archaea, all, 44551, secondOrder, 0.4427, -0.0242, -0.0303, -0.0186
+Archaea, all, 44551, karlin, 0.4668, 0.0000, 0.0000, 0.0000
+Archaea, all, 44551, gc, 0.3693, -0.0975, -0.1205, -0.0804
+Archaea, all, 44551, gcLength, 0.4365, -0.0303, -0.0552, -0.0128
+Archaea, same family, 2558, secondOrder, 0.4858, -0.0518, -0.0728, -0.0378
+Archaea, same family, 2558, karlin, 0.5376, 0.0000, 0.0000, 0.0000
+Archaea, same family, 2558, gc, 0.2940, -0.2436, -0.2881, -0.2026
+Archaea, same family, 2558, gcLength, 0.4252, -0.1125, -0.1609, -0.0522
+Archaea, same phylum, other family, 12850, secondOrder, 0.6407, -0.0143, -0.0258, -0.0055
+Archaea, same phylum, other family, 12850, karlin, 0.6549, 0.0000, 0.0000, 0.0000
+Archaea, same phylum, other family, 12850, gc, 0.5737, -0.0813, -0.1017, -0.0563
+Archaea, same phylum, other family, 12850, gcLength, 0.5615, -0.0935, -0.1141, -0.0626
+Archaea, other phyla, 29143, secondOrder, 0.1444, 0.0197, 0.0077, 0.0356
+Archaea, other phyla, 29143, karlin, 0.1248, 0.0000, 0.0000, 0.0000
+Archaea, other phyla, 29143, gc, 0.0609, -0.0639, -0.1022, -0.0316
+Archaea, other phyla, 29143, gcLength, 0.1091, -0.0156, -0.0667, 0.0221
