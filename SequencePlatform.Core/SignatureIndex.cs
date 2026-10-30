@@ -52,7 +52,7 @@ namespace SequencePlatform.Core
             await refreshing.WaitAsync(cancellationToken);
             try
             {
-                var (count, maxId) = await StateAsync(cancellationToken);
+                var (count, maxId) = await StateAsync(dataSource, cancellationToken);
                 if (count == current.RecordCount && maxId == current.MaxRecordId) return false;
 
                 var entries = new Dictionary<long, SignatureEntry>();
@@ -79,7 +79,7 @@ namespace SequencePlatform.Core
             }
         }
 
-        private async Task<(long Count, long MaxId)> StateAsync(CancellationToken cancellationToken)
+        internal static async Task<(long Count, long MaxId)> StateAsync(NpgsqlDataSource dataSource, CancellationToken cancellationToken)
         {
             await using var command = dataSource.CreateCommand("select count(*), coalesce(max(id), 0) from sequence_record");
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);

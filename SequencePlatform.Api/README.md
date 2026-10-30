@@ -1,7 +1,7 @@
 # SequencePlatform.Api
 
-The platform's HTTP API (P4): the catalogue, uploads, and find-similar and localize as asynchronous jobs, run by a worker in
-the same process.
+The platform's HTTP API (P4) and web UI: the catalogue, uploads, find-similar and localize as asynchronous jobs, and the map and
+trees of organisms. A worker runs the jobs, in the same process by default and in its own under Aspire.
 It stores no DNA: uploads and queries are profiled and discarded, as in the Ingest. `NoDnaTests` checks this on Kestrel: a genome
 carrying a unique 1 kbp marker goes through upload, find-similar, localize and rejected bodies, and afterwards no column of any
 table (bytea included), no log entry at any level and no temp file holds any 24 bp piece of the marker or of its reverse
@@ -27,6 +27,34 @@ complement; a body over 32 MiB gets 413 and stores nothing.
 Every other request needs `Authorization: Bearer <key>`. **Localhost only** until S6.4: the key is a plain bearer token over HTTP.
 Revoke a key with `dotnet run --project SequencePlatform.Ingest -- disable-user alice`.
 
+## Run it with Aspire
+
+`dotnet run --project SequencePlatform.AppHost` runs the database migration, then the API and the worker as two processes of this
+project (`SearchWorker__Enabled=false` on the API), with logs, traces and metrics on the dashboard whose login URL it prints. It uses the
+database in the git-ignored `SequencePlatform.Ingest/appsettings.json`, and the API stays on http://localhost:5080. Aspire gives no
+cluster: it starts the services here and generates their deployment files. Keep one worker, because at startup it requeues every
+running job as its own.
+
+The same services as Docker Compose, on their own empty `postgres:17`, with the API on 127.0.0.1:5080 only:
+
+```
+dotnet run --project SequencePlatform.AppHost --no-launch-profile -- --operation publish --step deploy --output-path deploy/compose
+```
+
+`--step publish` writes the files without building or starting anything; leaving `--step` out runs the whole pipeline, teardown
+included. The output is git-ignored because its `.env` holds the database password. Stop it with
+`docker compose -p <project> down -v`, where `docker ps` shows the project name. Use `http://127.0.0.1:5080` with this stack: on Windows
+`localhost` tries IPv6 first and each request loses 2 s. Create a user by running the `migrate` image with `add-user NAME` and
+`SEQUENCE_PLATFORM_DB` on the stack's network.
+
+## The web UI
+
+http://localhost:5080 serves the UI from `wwwroot/`: sign in with an API key, kept in the tab's `sessionStorage`. It is React 18.3.1
+and htm with no build step and no Node: `vendor/` holds their pinned files, each page is an ES module in `app/`, and components use
+`htm` templates rather than JSX. Pin React to 18: version 19 has no UMD builds. The page's Content-Security-Policy is
+`default-src 'self'`, so it loads nothing from elsewhere. Static files are served before authentication because they hold no data;
+every `/api` call still needs the key. A FASTA file goes from the browser straight to the API, so the no-DNA guarantee below covers it.
+
 ## Visibility (D3)
 
 Downloaded records are public. An upload is visible only to its owner: someone else's upload is a 404 everywhere, the same as a
@@ -48,6 +76,8 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
 | GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |
 | GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
+| GET | `/api/landscape?group=` | The public catalogue on two axes, `cellular` (default) or `viral`, one genome per species: PCA of the signature as parallel arrays with lineages and each axis's heaviest dinucleotides |
+| GET | `/health`, `/alive` | Open without a key: whether the process is up |
 
 Requests for each are in [Sequences.http](Sequences.http) and [Searches.http](Searches.http), and a whole walk-through in
 [Scenario.http](Scenario.http).
@@ -62,6 +92,12 @@ loads in the background when the API starts (about 3 s for the local catalogue) 
 local catalogue (2026-10-30, `results/S55_RelativesCheck.csv`): a relatives query takes 4–9 ms (median), E. coli K-12's 10 relatives
 are 9 Escherichia or Shigella and one Citrobacter, SARS-CoV-2's are 10 coronaviruses, and a 500-genome tree takes 0.4 s (UPGMA) or 1.0 s
 (neighbour-joining).
+
+The map is built on first request from public records only, so nobody's upload moves it, and is kept until the catalogue changes.
+Cellular genomes need a GTDB assignment; viruses of at least 1 kbp carry NCBI's lineage. It uses log ρ\*, and the Z-curve and Karlin
+views are a rotation of one vector, so there is one map. Two axes keep phyla apart but not genera (`results/S53_Map_Metrics.csv`), so
+use relatives to find what a genome resembles. On the local catalogue (`results/P6_LocalStack.csv`, Debug): 5,480 cellular and 9,192 viral
+genomes, 1.4 s and 1.2 s cold, 70 ms warm, 0.5 and 0.8 MB.
 
 ## End-to-end scenario
 
@@ -108,9 +144,12 @@ days (D7), then the search is Expired and keeps only its parameters, the query's
 
 ## The worker
 
-`SearchWorker` runs queued searches one at a time in the API process: each search already uses every core. It wakes on a
+`SearchWorker` runs queued searches one at a time: each search already uses every core. It runs in the API process by default, and
+in a process of its own when the API sets `SearchWorker:Enabled=false` and a second instance keeps it on, as Aspire does. PostgreSQL
+is the queue, so nothing else changes: across containers a job waits 2–3 ms, and warm find-similar takes 34–40 ms from POST to Done
+(`results/P6_LocalStack.csv`). It wakes on a
 PostgreSQL notification (`search_queued`) and also polls every 30 s, so a lost listener only delays jobs. It assumes it is the
-only worker (one API process until P6): at startup a job still `Running` lost its worker and is requeued, and after three claims
+only worker: at startup a job still `Running` lost its worker and is requeued, and after three claims
 it is failed instead. Every 10 minutes it applies D7's expiry and reloads the score null and neighbour graphs, which the Ingest
 rebuilds; the cached profiles are refreshed before every search, so a record stored a moment ago is a candidate.
 

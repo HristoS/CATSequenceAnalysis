@@ -41,7 +41,19 @@ namespace SequencePlatform.Api
                 .WithDescription("Leaves are either ids (comma-separated record ids) or every genome of one taxon (rank and taxon, as the catalogue " +
                     "filter). 3 to 500 leaves, all bacteria and archaea or all viruses. method is upgma (default) or nj. Newick labels are record ids.")
                 .ProducesProblem(StatusCodes.Status400BadRequest);
+
+            app.MapGroup("/api/landscape").WithTags("Organisms").MapGet("/", LandscapeAsync)
+                .WithName("GetLandscape")
+                .WithSummary("The public catalogue on two axes, for a map")
+                .WithDescription("PCA of the dinucleotide signature. group is cellular (default) or viral, one genome per species, or all: every " +
+                    "public genome on one set of axes. Two axes keep phyla apart but not genera, so this is a picture; nearest relatives come from the " +
+                    "full signature. Private uploads are never on it.")
+                .ProducesProblem(StatusCodes.Status400BadRequest);
         }
+
+        private static async Task<Ok<LandscapeResponse>> LandscapeAsync(Landscape landscape, string group = SignatureIndex.Cellular,
+            CancellationToken cancellationToken = default) =>
+            TypedResults.Ok(LandscapeResponse.From(await landscape.GetAsync(group, cancellationToken)));
 
         private static async Task<Results<Ok<RelativesResponse>, ProblemHttpResult>> RelativesAsync(NpgsqlDataSource dataSource,
             SignatureIndex index, ClaimsPrincipal user, long id, int k = 10, CancellationToken cancellationToken = default)

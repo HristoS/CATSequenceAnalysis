@@ -665,3 +665,6 @@ appsettings.*.json
 
 # The API's end-to-end scenario files (scripts/platform-checks/e2e_scenario.py prepare): plain FASTA made from data/genomes/
 SequencePlatform.Api/scenario/
+
+# Generated Docker Compose output; its .env holds a database password
+deploy/

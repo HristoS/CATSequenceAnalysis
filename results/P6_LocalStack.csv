@@ -1,0 +1,24 @@
+Area, Measure, Value, Note
+landscape cellular, genomes, 5480, same ids as S53_Map_Coordinates_cellular.csv
+landscape cellular, cold seconds, 1.37, Debug build through the Aspire AppHost
+landscape cellular, warm seconds, 0.067,
+landscape cellular, payload MB, 0.51, uncompressed JSON
+landscape cellular, PC1 |r| with S53 KarlinPc1, 0.9822, log rho* against rho*
+landscape cellular, PC2 |r| with S53 KarlinPc2, 0.9622,
+landscape cellular, explained variance PC1 PC2, 0.5173 0.1926,
+landscape viral, genomes, 9192, same ids as S53_Map_Coordinates_viruses.csv
+landscape viral, cold seconds, 1.15, Debug build through the Aspire AppHost
+landscape viral, warm seconds, 0.070,
+landscape viral, payload MB, 0.78, uncompressed JSON
+landscape viral, PC1 |r| with S53 KarlinPc1, 0.9560,
+landscape viral, PC2 |r| with S53 KarlinPc2, 0.8678, signed -0.8678: PCA signs are arbitrary
+landscape viral, explained variance PC1 PC2, 0.5595 0.1448,
+compose, P4 end-to-end scenario, 10/10, generated compose on an empty postgres:17 database
+compose, searches run by the api container, 0,
+compose, searches run by the worker container, 2,
+compose, deploy seconds, 54, images built and stack started
+compose, POST to Done warm ms, 34-40, 6 find-similar runs against http://127.0.0.1:5080
+compose, queued before the worker claimed ms, 2-3, API and worker in separate containers
+compose, delay from http://localhost on Windows s, 2, per request: IPv6 is tried first and the port is bound to 127.0.0.1 only; a client effect
+compose, image files holding a password, 0, api worker migrate
+ui, browser checks passed, 21/21, headless Edge against the local catalogue; no console errors; no requests off localhost

@@ -58,10 +58,47 @@ namespace SequencePlatform.Ingest
             _ => throw new ArgumentException($"Unknown group '{group}'. Use 'bacteria', 'archaea' or 'viruses'.", nameof(group)),
         };
 
+        // Every complete genome of a group, reference or not: the pool --per-species picks from. Most are repeats of a few species
+        // (10.3 M viruses, 71,364 bacteria, 2026-10-30), so nothing lists it whole for viruses.
+        private static string CompleteFilter(string group) => group switch
+        {
+            "bacteria" => "and(eq(superkingdom,Bacteria),eq(genome_status,Complete))",
+            "archaea" => "and(eq(superkingdom,Archaea),eq(genome_status,Complete))",
+            "viruses" => "and(eq(superkingdom,Viruses),eq(genome_status,Complete))",
+            _ => throw new ArgumentException($"Unknown group '{group}'. Use 'bacteria', 'archaea' or 'viruses'.", nameof(group)),
+        };
+
         public async Task<List<BvBrcGenome>> ListGenomesAsync(string group, int limit, int offset)
         {
             var url = $"{apiBase}genome/?{GroupFilter(group)}&select({string.Join(",", genomeFields)})&sort(+genome_id)&limit({limit},{offset})";
             return await QueryGenomesAsync(url);
+        }
+
+        public async Task<List<BvBrcGenome>> ListCompleteGenomesAsync(string group, int limit, int offset)
+        {
+            var url = $"{apiBase}genome/?{CompleteFilter(group)}&select({string.Join(",", genomeFields)})&sort(+genome_id)&limit({limit},{offset})";
+            return await QueryGenomesAsync(url);
+        }
+
+        // One request, however many genomes: the facet counts them on the server.
+        public async Task<List<string>> ListSpeciesAsync(string group)
+        {
+            var url = $"{apiBase}genome/?{CompleteFilter(group)}&facet((field,species),(mincount,1),(limit,-1))&limit(1)&select(genome_id)";
+            using var response = await SendAsync(url, "application/solr+json");
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            return document.RootElement.GetProperty("facet_counts").GetProperty("facet_fields").GetProperty("species").EnumerateArray()
+                .Where(v => v.ValueKind == JsonValueKind.String)    // name, count, name, count, ...
+                .Select(v => v.GetString()!)
+                .Where(name => name.Length > 0)
+                .ToList();
+        }
+
+        public async Task<BvBrcGenome?> FirstGenomeOfSpeciesAsync(string group, string species)
+        {
+            var filter = CompleteFilter(group);
+            var withSpecies = $"{filter[..^1]},eq(species,{Uri.EscapeDataString($"\"{species}\"")}))";
+            var url = $"{apiBase}genome/?{withSpecies}&select({string.Join(",", genomeFields)})&sort(+genome_id)&limit(1)";
+            return (await QueryGenomesAsync(url)).FirstOrDefault();
         }
 
         // Metadata for known genome ids (retrying failed crawl items), in chunks that keep the URL short.

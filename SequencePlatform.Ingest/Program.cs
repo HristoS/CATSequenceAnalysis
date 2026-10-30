@@ -8,7 +8,7 @@ using SequencePlatform.Ingest;
 // SEQUENCE_PLATFORM_DB environment variable, or else the git-ignored appsettings.json (never committed).
 //
 //   migrate                                   create the database if missing, apply migrations
-//   ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed]
+//   ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed] [--per-species]
 //   load-taxonomy [--refresh] [--skip-gtdb]   NCBI's current lineage per referenced taxid, GTDB's per assembly (S2.4)
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
@@ -21,7 +21,7 @@ using SequencePlatform.Ingest;
 //   add-user NAME                             an API user (D3); prints their key once, only its hash is stored
 //   disable-user NAME                         revokes that user's key; their uploads stay
 const string usage =
-    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
+    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] [--per-species] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
@@ -68,7 +68,8 @@ switch (args[0])
             int.Parse(Option("--limit") ?? "10"),
             int.Parse(Option("--offset") ?? "0"),
             Option("--contact"),
-            retryFailed);
+            retryFailed,
+            args.Contains("--per-species"));
 
     case "load-taxonomy":
         return await LoadTaxonomyAsync(dataSource, args.Contains("--refresh"), args.Contains("--skip-gtdb"), Option("--contact"));
@@ -135,7 +136,9 @@ switch (args[0])
 
 // Normal run: list a page of the group, register new items, process everything not in a final state
 // except failed. --retry-failed: process failed items instead (of --group, or of every group if omitted).
-static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? group, int limit, int offset, string? contact, bool retryFailed)
+// --per-species: one genome for each species of the group's complete genomes not yet stored, up to --limit; failed items of such a run
+// are retried with --group <group>-species.
+static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? group, int limit, int offset, string? contact, bool retryFailed, bool perSpecies)
 {
     using var client = new BvBrcClient(contact);
     var ingestor = new GenomeIngestor(dataSource, client);
@@ -151,52 +154,91 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
             Console.WriteLine($"  deleted leftover download {Path.GetFileName(leftover)}");
         }
 
-    List<BvBrcGenome> genomes;
+    var counts = new Dictionary<string, int>();
+    int alreadyFinal = 0, failedSkipped = 0;
+
+    async Task ProcessAsync(List<BvBrcGenome> genomes, string? crawlGroup)
+    {
+        var statuses = await CrawlState.RegisterAsync(dataSource, GenomeIngestor.Provider, crawlGroup, genomes.Select(g => g.GenomeId).ToList());
+
+        var pending = genomes.Where(g => !CrawlState.IsFinal(statuses[g.GenomeId]) && (retryFailed || statuses[g.GenomeId] != CrawlState.Failed)).ToList();
+        Dictionary<string, List<BvBrcContig>>? listedContigs = null;
+        try
+        {
+            listedContigs = await client.ListContigsAsync(pending.Select(g => g.GenomeId).ToList());
+        }
+        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or TaskCanceledException)
+        {
+            Console.WriteLine($"  batched contig listing failed ({e.Message}); listing per genome instead");
+        }
+
+        foreach (var genome in genomes)
+        {
+            var status = statuses[genome.GenomeId];
+            if (CrawlState.IsFinal(status)) { alreadyFinal++; continue; }
+            if (status == CrawlState.Failed && !retryFailed) { failedSkipped++; continue; }
+
+            var started = DateTime.UtcNow;
+            var outcome = await ingestor.IngestAsync(genome, listedContigs?[genome.GenomeId]);
+            counts[outcome.Status] = counts.GetValueOrDefault(outcome.Status) + 1;
+            var detail = outcome.Status switch
+            {
+                CrawlState.Failed => $"FAILED: {outcome.Error}",
+                CrawlState.Duplicate => $"duplicate of source {outcome.DuplicateOf} ({outcome.DuplicateBy}), skipped",
+                _ => $"{outcome.Records,3} records {outcome.Levels,3} levels {outcome.Bases,12:N0} bp" +
+                     (outcome.AlreadyStored > 0 ? $"  ({outcome.AlreadyStored} of {outcome.Records} records already stored)" : "") +
+                     (outcome.Status == CrawlState.TooLarge ? "  (too large: a 500 bp level needs object storage)" : ""),
+            };
+            Console.WriteLine($"  {genome.GenomeId,-14} {genome.Name,-60} {detail}  {(DateTime.UtcNow - started).TotalSeconds,5:F1} s");
+        }
+    }
+
     if (retryFailed)
     {
         var ids = await CrawlState.FailedAsync(dataSource, GenomeIngestor.Provider, group, limit);
-        genomes = ids.Count == 0 ? new() : await client.GetGenomesAsync(ids);
+        var genomes = ids.Count == 0 ? new List<BvBrcGenome>() : await client.GetGenomesAsync(ids);
         Console.WriteLine($"BV-BRC {group ?? "all groups"}: retrying {genomes.Count} of {ids.Count} failed items.");
+        await ProcessAsync(genomes, null);
+    }
+    else if (perSpecies)
+    {
+        const int batchSize = 50;
+        var stored = await Catalogue.StoredSpeciesAsync(dataSource);
+        var crawlGroup = $"{group}-species";
+        if (group == "viruses")
+        {
+            // Millions of genomes can't be listed to pick from, so each missing species is one request, made as the run reaches it: an
+            // interrupted run loses one batch, and the next run sees those species as stored.
+            var missing = SpeciesSelection.Missing(await client.ListSpeciesAsync(group), stored, limit);
+            Console.WriteLine($"BV-BRC {group}: {missing.Count} new species to fetch (limit {limit}).");
+            foreach (var batch in missing.Chunk(batchSize))
+            {
+                var genomes = new List<BvBrcGenome>();
+                foreach (var species in batch)
+                    if (await client.FirstGenomeOfSpeciesAsync(group, species) is { } genome) genomes.Add(genome);
+                await ProcessAsync(genomes, crawlGroup);
+            }
+        }
+        else
+        {
+            const int pageSize = 25000;
+            var listed = new List<BvBrcGenome>();
+            for (int page = 0; ; page += pageSize)
+            {
+                var genomes = await client.ListCompleteGenomesAsync(group!, pageSize, page);
+                listed.AddRange(genomes);
+                if (genomes.Count < pageSize) break;
+            }
+            var picked = SpeciesSelection.PickNew(listed, stored, limit);
+            Console.WriteLine($"BV-BRC {group}: {listed.Count} complete genomes listed, {picked.Count} new species to fetch (limit {limit}).");
+            foreach (var batch in picked.Chunk(batchSize)) await ProcessAsync(batch.ToList(), crawlGroup);
+        }
     }
     else
     {
-        genomes = await client.ListGenomesAsync(group!, limit, offset);
+        var genomes = await client.ListGenomesAsync(group!, limit, offset);
         Console.WriteLine($"BV-BRC {group}: {genomes.Count} genomes listed (limit {limit}, offset {offset}).");
-    }
-    var statuses = await CrawlState.RegisterAsync(dataSource, GenomeIngestor.Provider, retryFailed ? null : group,
-        genomes.Select(g => g.GenomeId).ToList());
-
-    var pending = genomes.Where(g => !CrawlState.IsFinal(statuses[g.GenomeId]) && (retryFailed || statuses[g.GenomeId] != CrawlState.Failed)).ToList();
-    Dictionary<string, List<BvBrcContig>>? listedContigs = null;
-    try
-    {
-        listedContigs = await client.ListContigsAsync(pending.Select(g => g.GenomeId).ToList());
-    }
-    catch (Exception e) when (e is HttpRequestException or InvalidOperationException or TaskCanceledException)
-    {
-        Console.WriteLine($"  batched contig listing failed ({e.Message}); listing per genome instead");
-    }
-
-    var counts = new Dictionary<string, int>();
-    int alreadyFinal = 0, failedSkipped = 0;
-    foreach (var genome in genomes)
-    {
-        var status = statuses[genome.GenomeId];
-        if (CrawlState.IsFinal(status)) { alreadyFinal++; continue; }
-        if (status == CrawlState.Failed && !retryFailed) { failedSkipped++; continue; }
-
-        var started = DateTime.UtcNow;
-        var outcome = await ingestor.IngestAsync(genome, listedContigs?[genome.GenomeId]);
-        counts[outcome.Status] = counts.GetValueOrDefault(outcome.Status) + 1;
-        var detail = outcome.Status switch
-        {
-            CrawlState.Failed => $"FAILED: {outcome.Error}",
-            CrawlState.Duplicate => $"duplicate of source {outcome.DuplicateOf} ({outcome.DuplicateBy}), skipped",
-            _ => $"{outcome.Records,3} records {outcome.Levels,3} levels {outcome.Bases,12:N0} bp" +
-                 (outcome.AlreadyStored > 0 ? $"  ({outcome.AlreadyStored} of {outcome.Records} records already stored)" : "") +
-                 (outcome.Status == CrawlState.TooLarge ? "  (too large: a 500 bp level needs object storage)" : ""),
-        };
-        Console.WriteLine($"  {genome.GenomeId,-14} {genome.Name,-60} {detail}  {(DateTime.UtcNow - started).TotalSeconds,5:F1} s");
+        await ProcessAsync(genomes, group);
     }
 
     int processed = counts.Values.Sum();

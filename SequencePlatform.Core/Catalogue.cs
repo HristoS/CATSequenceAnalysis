@@ -89,6 +89,18 @@ namespace SequencePlatform.Core
             return new CataloguePage(records, records[^1].Id);
         }
 
+        /// <summary>Every species name the public catalogue holds, as its providers gave it.</summary>
+        public static async Task<HashSet<string>> StoredSpeciesAsync(NpgsqlDataSource dataSource, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(
+                "select distinct r.tax_species from sequence_record r join sequence_source s on s.id = r.source_id " +
+                "where s.owner_id is null and r.tax_species is not null");
+            var species = new HashSet<string>(StringComparer.Ordinal);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken)) species.Add(reader.GetString(0));
+            return species;
+        }
+
         /// <summary>Every record id the filter matches, unpaged: a search's candidate set (P3 S3.4).</summary>
         public static async Task<HashSet<long>> IdsAsync(NpgsqlDataSource dataSource, CatalogueFilter filter, CancellationToken cancellationToken = default)
         {

@@ -1,0 +1,23 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.4">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>sequence-platform-apphost</UserSecretsId>
+    <!-- The Aspire CLI bundle isn't used: the AppHost runs and publishes through dotnet run. -->
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Docker" Version="13.6.4" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.6.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SequencePlatform.Api\SequencePlatform.Api.csproj" />
+    <ProjectReference Include="..\SequencePlatform.Ingest\SequencePlatform.Ingest.csproj" />
+  </ItemGroup>
+
+</Project>

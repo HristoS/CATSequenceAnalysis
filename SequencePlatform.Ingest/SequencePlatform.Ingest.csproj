@@ -7,7 +7,7 @@
 
   <!-- Local connection string, git-ignored. Optional: the SEQUENCE_PLATFORM_DB env var takes precedence. -->
   <ItemGroup>
-    <None Include="appsettings.json" Condition="Exists('appsettings.json')" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="appsettings.json" Condition="Exists('appsettings.json')" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>

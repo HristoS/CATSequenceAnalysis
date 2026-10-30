@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SequencePlatform.Core\SequencePlatform.Core.csproj" />
+    <ProjectReference Include="..\SequencePlatform.ServiceDefaults\SequencePlatform.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
