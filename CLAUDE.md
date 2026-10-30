@@ -68,8 +68,8 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
 - `Phylogeny.cs` — neighbour-joining (midpoint-rooted for display) and UPGMA trees, Newick, leaf order, and per-taxon
   clade recovery judged on the unrooted tree (P5). Validated on the textbook examples in `PhylogenyTests`.
 - `GenomeSignatures.cs` — whole-genome composition signatures (P5 baselines): window summary, Z-curve mean, Zheng-style
-  curve, Natural Vector, Karlin ρ\*/δ\*, and the second-order Z-curve (lag-1 axis correlations: dinucleotides in Z-curve form,
-  equal to Karlin for trees). The profile-derived ones solve each window's base counts from its Z-curve averages.
+  curve, Natural Vector, Karlin ρ\*/δ\*, and the second-order Z-curve (lag-1 axis correlations: dinucleotides in Z-curve form;
+  `SecondOrderLog` is log ρ\* in Z-curve axes). It ties Karlin on ranking AUC but trails it slightly on nearest neighbours. The profile-derived ones solve each window's base counts from its Z-curve averages.
 - `Ordination.cs` — PCA and a general symmetric eigen-decomposition (cyclic Jacobi), used by the P5 map and `GenomeSignatures`.
 - `NeedlemanWunsch.cs` — global alignment (match +2 / mismatch −1 / gap −2), O(min(len)) space via two rolling
   rows. Returns matches / min(len1, len2), not a standard identity ratio. Used as accuracy ground truth at

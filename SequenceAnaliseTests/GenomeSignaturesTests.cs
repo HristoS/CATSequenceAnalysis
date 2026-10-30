@@ -68,6 +68,28 @@ namespace SequenceAnaliseTests
         }
 
         [Test]
+        public void SecondOrderLogIsLogRhoInZCurveAxesAndIgnoresComposition()
+        {
+            var counts = GenomeSignatures.DinucleotideCounts(Structured(4));
+            Assert.That(GenomeSignatures.SecondOrderLog(counts),
+                Is.EqualTo(GenomeSignatures.SecondOrderLog(GenomeSignatures.DinucleotideCounts(ReverseComplement(Structured(4))))).Within(1e-12));
+
+            // The same coefficients taken from log rho* directly: composition sits in the main effects, which the projection drops.
+            var logRho = GenomeSignatures.KarlinRho(counts).Select(r => Math.Log(r)).ToArray();
+            var axes = "ACGT".Select(b => b switch { 'A' => new[] { 1, 1, -1 }, 'C' => new[] { -1, 1, 1 }, 'G' => new[] { 1, -1, 1 }, _ => new[] { -1, -1, -1 } }).ToArray();
+            double Coefficient(int i, int j) => Enumerable.Range(0, 16).Sum(p => logRho[p] * axes[p / 4][i] * axes[p % 4][j]) / 16;
+            var expected = new[] { Coefficient(0, 0), Coefficient(1, 1), Coefficient(2, 2), Coefficient(0, 1), Coefficient(0, 2), Coefficient(1, 2) };
+            Assert.That(GenomeSignatures.SecondOrderLog(counts), Is.EqualTo(expected).Within(1e-4));
+
+            // Independent bases of a strongly GC-rich composition: no interaction left.
+            var rng = new Random(6);
+            var gcRich = new string(Enumerable.Range(0, 400_000).Select(_ => "ACCCGGGT"[rng.Next(8)]).ToArray());
+            Assert.That(GenomeSignatures.SecondOrderLog(GenomeSignatures.DinucleotideCounts(gcRich)).All(v => Math.Abs(v) < 0.01));
+            Assert.That(GenomeSignatures.SecondOrderIndependent(counts),
+                Is.EqualTo(new[] { 0, 4, 8, 1, 2, 5 }.Select(i => GenomeSignatures.SecondOrder(counts)[i])));
+        }
+
+        [Test]
         public void SlidingDistanceFindsAnEmbeddedSeriesOnEitherStrand()
         {
             var rng = new Random(9);

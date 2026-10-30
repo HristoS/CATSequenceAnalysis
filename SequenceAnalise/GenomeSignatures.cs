@@ -221,6 +221,40 @@ namespace SequenceAnalyses
         }
 
         /// <summary>
+        /// The 6 independent values of <see cref="SecondOrder"/>, in the order xx, yy, zz, xy, xz, yz: over both strands
+        /// xy = yx, xz = -zx and yz = -zy (the complement flips x and y and the pair's order reverses), so the other three repeat.
+        /// </summary>
+        public static double[] SecondOrderIndependent(long[] dinucleotideCounts)
+        {
+            var all = SecondOrder(dinucleotideCounts);
+            return new[] { all[0], all[4], all[8], all[1], all[2], all[5] };
+        }
+
+        /// <summary>
+        /// The second-order Z-curve on Karlin's multiplicative scale: the log of the both-strand dinucleotide frequencies (plus 0.5 per
+        /// cell, so an absent pair stays finite) projected onto the products a_i(n) a_j(n + 1) of the Z-curve axes, the interaction
+        /// terms of a log-linear model. Composition only moves the main effects, so these equal log rho* in Z-curve coordinates.
+        /// The 6 independent values, in the order xx, yy, zz, xy, xz, yz (see <see cref="SecondOrderIndependent"/>).
+        /// </summary>
+        public static double[] SecondOrderLog(long[] dinucleotideCounts)
+        {
+            var axes = bases.Select(b => ZCurveProfile.Axes(b)).Select(a => new double[] { a.X, a.Y, a.Z }).ToArray();
+            var log = new double[16];
+            double total = 0;
+            for (int first = 0; first < 4; first++)
+                for (int second = 0; second < 4; second++)
+                {
+                    log[4 * first + second] = dinucleotideCounts[4 * first + second] + dinucleotideCounts[4 * (3 - second) + (3 - first)] + 0.5;
+                    total += log[4 * first + second];
+                }
+            for (int pair = 0; pair < 16; pair++) log[pair] = Math.Log(log[pair] / total);
+            // Each axis is +-1 on the four bases and orthogonal to the others and to the constant, so a coefficient is the mean of
+            // log f times the product of the two axes.
+            double Coefficient(int i, int j) => Enumerable.Range(0, 16).Sum(pair => log[pair] * axes[pair / 4][i] * axes[pair % 4][j]) / 16;
+            return new[] { Coefficient(0, 0), Coefficient(1, 1), Coefficient(2, 2), Coefficient(0, 1), Coefficient(0, 2), Coefficient(1, 2) };
+        }
+
+        /// <summary>
         /// <see cref="SecondOrder"/> per window of <paramref name="windowSize"/> bases, from the pairs inside each window (a pair across
         /// a window boundary is left out); a partial last window is dropped, as <see cref="ZCurveWindowedProfile"/> does.
         /// </summary>
