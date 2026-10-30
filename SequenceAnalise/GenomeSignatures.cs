@@ -255,6 +255,42 @@ namespace SequenceAnalyses
         }
 
         /// <summary>
+        /// log rho*, over both strands, with 0.5 added to every dinucleotide count (as <see cref="SecondOrderLog"/>) so an absent pair
+        /// stays finite. 16 values, index 4 * first + second.
+        /// </summary>
+        public static double[] KarlinLogRho(long[] dinucleotideCounts)
+        {
+            var both = new double[16];
+            for (int first = 0; first < 4; first++)
+                for (int second = 0; second < 4; second++)
+                    both[4 * first + second] = dinucleotideCounts[4 * first + second] + dinucleotideCounts[4 * (3 - second) + (3 - first)] + 0.5;
+            double total = both.Sum();
+            var firstBase = new double[4];
+            var secondBase = new double[4];
+            for (int i = 0; i < 16; i++)
+            {
+                firstBase[i / 4] += both[i] / total;
+                secondBase[i % 4] += both[i] / total;
+            }
+            return Enumerable.Range(0, 16).Select(i => Math.Log(both[i] / total / (firstBase[i / 4] * secondBase[i % 4]))).ToArray();
+        }
+
+        /// <summary>
+        /// Any 16-value dinucleotide vector (index 4 * first + second) in Z-curve coordinates: its coefficients on the products
+        /// h_i(n) h_j(n + 1) with h in (1, x, y, z), at index 4 * i + j. The basis is orthogonal, so this is a rotation and a scaling by
+        /// 1/4: Euclidean distances between the coefficient vectors are a quarter of those between the original vectors.
+        /// </summary>
+        public static double[] ToZCurveBasis(double[] dinucleotideValues)
+        {
+            var basis = bases.Select(b => ZCurveProfile.Axes(b)).Select(a => new double[] { 1, a.X, a.Y, a.Z }).ToArray();
+            var result = new double[16];
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    result[4 * i + j] = Enumerable.Range(0, 16).Sum(pair => dinucleotideValues[pair] * basis[pair / 4][i] * basis[pair % 4][j]) / 16;
+            return result;
+        }
+
+        /// <summary>
         /// <see cref="SecondOrder"/> per window of <paramref name="windowSize"/> bases, from the pairs inside each window (a pair across
         /// a window boundary is left out); a partial last window is dropped, as <see cref="ZCurveWindowedProfile"/> does.
         /// </summary>

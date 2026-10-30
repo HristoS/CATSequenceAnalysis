@@ -89,6 +89,50 @@ namespace SequenceAnaliseTests
                 Is.EqualTo(new[] { 0, 4, 8, 1, 2, 5 }.Select(i => GenomeSignatures.SecondOrder(counts)[i])));
         }
 
+        // A = (1, 1, -1), C = (-1, 1, 1), G = (1, -1, 1), T = (-1, -1, -1), with the constant first: the basis h = (1, x, y, z).
+        private static readonly int[][] basis = { new[] { 1, 1, 1, -1 }, new[] { 1, -1, 1, 1 }, new[] { 1, 1, -1, 1 }, new[] { 1, -1, -1, -1 } };
+
+        [Test]
+        public void SecondOrderAndCompositionRebuildTheDinucleotideFrequencies()
+        {
+            var counts = GenomeSignatures.DinucleotideCounts(Structured(7));
+            var both = Enumerable.Range(0, 16).Select(i => (double)(counts[i] + counts[4 * (3 - i % 4) + (3 - i / 4)])).ToArray();
+            double total = both.Sum();
+            var p = both.Select(v => v / total).ToArray();
+
+            // Composition: the axis means of the first and second base. Neighbour structure: the 9 covariances from SecondOrder.
+            var meanFirst = Enumerable.Range(0, 4).Select(i => Enumerable.Range(0, 16).Sum(c => p[c] * basis[c / 4][i])).ToArray();
+            var meanSecond = Enumerable.Range(0, 4).Select(j => Enumerable.Range(0, 16).Sum(c => p[c] * basis[c % 4][j])).ToArray();
+            var covariance = GenomeSignatures.SecondOrder(counts, correlation: false);
+            double Moment(int i, int j) => i == 0 ? meanSecond[j] : j == 0 ? meanFirst[i] : covariance[3 * (i - 1) + (j - 1)] + meanFirst[i] * meanSecond[j];
+
+            // The inverse Hadamard transform gives back every frequency: nothing is lost.
+            for (int c = 0; c < 16; c++)
+            {
+                double rebuilt = 0;
+                for (int i = 0; i < 4; i++)
+                    for (int j = 0; j < 4; j++)
+                        rebuilt += Moment(i, j) * basis[c / 4][i] * basis[c % 4][j] / 16;
+                Assert.That(rebuilt, Is.EqualTo(p[c]).Within(1e-12), $"dinucleotide {"ACGT"[c / 4]}{"ACGT"[c % 4]}");
+            }
+        }
+
+        [Test]
+        public void LogRhoInZCurveCoordinatesIsARotationOfKarlin()
+        {
+            var a = GenomeSignatures.KarlinLogRho(GenomeSignatures.DinucleotideCounts(Structured(8)));
+            var b = GenomeSignatures.KarlinLogRho(GenomeSignatures.DinucleotideCounts(Generator.GetRandomDNA(200_000, seed: 9)));
+            double Euclidean(double[] u, double[] v) => Math.Sqrt(u.Zip(v, (s, t) => (s - t) * (s - t)).Sum());
+
+            var (za, zb) = (GenomeSignatures.ToZCurveBasis(a), GenomeSignatures.ToZCurveBasis(b));
+            Assert.That(Euclidean(a, b), Is.EqualTo(4 * Euclidean(za, zb)).Within(1e-12));
+
+            // Its interaction part is SecondOrderLog: the marginals of rho* only move the constant and main-effect coefficients.
+            var counts = GenomeSignatures.DinucleotideCounts(Structured(8));
+            var interactions = new[] { 4 * 1 + 1, 4 * 2 + 2, 4 * 3 + 3, 4 * 1 + 2, 4 * 1 + 3, 4 * 2 + 3 }.Select(i => za[i]).ToArray();
+            Assert.That(interactions, Is.EqualTo(GenomeSignatures.SecondOrderLog(counts)).Within(1e-12));
+        }
+
         [Test]
         public void SlidingDistanceFindsAnEmbeddedSeriesOnEitherStrand()
         {
