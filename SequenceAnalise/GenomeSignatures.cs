@@ -286,7 +286,7 @@ namespace SequenceAnalyses
                 for (int i = 0; i < 3; i++)
                     for (int j = 0; j < 3; j++)
                         covariance[i, j] = products[i, j] / count - centre[i] * centre[j];
-                var (values, vectors) = SymmetricEigen(covariance);
+                var (values, vectors) = Ordination.SymmetricEigen(covariance);
                 var result = new List<double>(centre);
                 foreach (int column in Enumerable.Range(0, 3).OrderByDescending(c => values[c]))
                 {
@@ -296,44 +296,6 @@ namespace SequenceAnalyses
                 }
                 return result.ToArray();
             }
-        }
-
-        // Cyclic Jacobi rotations for a symmetric 3x3 matrix: eigenvalues on the diagonal, eigenvectors as the columns of v.
-        private static (double[] Values, double[,] Vectors) SymmetricEigen(double[,] matrix)
-        {
-            var a = (double[,])matrix.Clone();
-            var v = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
-            for (int sweep = 0; sweep < 50; sweep++)
-            {
-                double off = Math.Abs(a[0, 1]) + Math.Abs(a[0, 2]) + Math.Abs(a[1, 2]);
-                if (off < 1e-30) break;
-                foreach (var (p, q) in new[] { (0, 1), (0, 2), (1, 2) })
-                {
-                    if (a[p, q] == 0) continue;
-                    double theta = (a[q, q] - a[p, p]) / (2 * a[p, q]);
-                    double t = Math.Sign(theta == 0 ? 1 : theta) / (Math.Abs(theta) + Math.Sqrt(theta * theta + 1));
-                    double c = 1 / Math.Sqrt(t * t + 1), s = t * c;
-                    for (int k = 0; k < 3; k++)
-                    {
-                        double akp = a[k, p], akq = a[k, q];
-                        a[k, p] = c * akp - s * akq;
-                        a[k, q] = s * akp + c * akq;
-                    }
-                    for (int k = 0; k < 3; k++)
-                    {
-                        double apk = a[p, k], aqk = a[q, k];
-                        a[p, k] = c * apk - s * aqk;
-                        a[q, k] = s * apk + c * aqk;
-                    }
-                    for (int k = 0; k < 3; k++)
-                    {
-                        double vkp = v[k, p], vkq = v[k, q];
-                        v[k, p] = c * vkp - s * vkq;
-                        v[k, q] = s * vkp + c * vkq;
-                    }
-                }
-            }
-            return (new[] { a[0, 0], a[1, 1], a[2, 2] }, v);
         }
     }
 }

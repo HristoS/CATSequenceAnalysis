@@ -1,0 +1,9 @@
+Corpus, Space, Component, ExplainedVariance, F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, FeatureNames
+cellular, secondOrder2D, PC1, 0.5562, 0.4323, -0.1318, 0.3425, -0.1318, 0.5526, -0.2644, -0.3425, 0.2644, 0.3142, , , , , , , , xx xy xz yx yy yz zx zy zz
+cellular, secondOrder2D, PC2, 0.1809, 0.5658, -0.3231, -0.0447, -0.3231, 0.0591, 0.3487, 0.0447, -0.3487, -0.4694, , , , , , , , xx xy xz yx yy yz zx zy zz
+cellular, karlin2D, PC1, 0.4904, -0.2152, 0.1851, -0.0926, 0.2327, -0.0815, -0.3052, 0.4820, -0.0926, 0.3099, -0.1944, -0.3052, 0.1851, -0.3253, 0.3099, -0.0815, -0.2152, AA AC AG AT CA CC CG CT GA GC GG GT TA TC TG TT
+cellular, karlin2D, PC2, 0.2121, 0.3361, -0.1608, -0.2414, 0.3006, 0.1554, -0.1969, 0.3849, -0.2414, -0.2542, 0.3226, -0.1969, -0.1608, -0.0908, -0.2542, 0.1554, 0.3361, AA AC AG AT CA CC CG CT GA GC GG GT TA TC TG TT
+viruses, secondOrder2D, PC1, 0.4214, 0.4876, -0.2900, 0.3243, -0.2900, 0.3698, -0.3257, -0.3243, 0.3257, -0.1865, , , , , , , , xx xy xz yx yy yz zx zy zz
+viruses, secondOrder2D, PC2, 0.1763, -0.1338, 0.2379, 0.2016, 0.2379, 0.4701, -0.0586, -0.2016, 0.0586, 0.7482, , , , , , , , xx xy xz yx yy yz zx zy zz
+viruses, karlin2D, PC1, 0.4381, 0.0178, 0.1343, -0.2473, 0.0994, -0.1686, -0.2466, 0.7939, -0.2475, 0.0651, 0.0858, -0.2466, 0.1342, -0.0800, 0.0650, -0.1687, 0.0175, AA AC AG AT CA CC CG CT GA GC GG GT TA TC TG TT
+viruses, karlin2D, PC2, 0.1758, -0.2436, 0.0217, 0.1502, 0.0757, -0.0251, -0.0985, -0.0614, 0.1503, 0.5051, -0.3970, -0.0985, 0.0216, -0.3703, 0.5052, -0.0251, -0.2436, AA AC AG AT CA CC CG CT GA GC GG GT TA TC TG TT
