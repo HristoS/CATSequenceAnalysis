@@ -1,0 +1,7 @@
+Corpus, Signature, Genomes, Pairs, SpearmanExactVsDerived, MaxFeatureErrorInSds
+bacteria, naturalVector, 30, 435, 1.0000, 0.0006
+bacteria, zheng, 30, 435, 1.0000, 0.0020
+bacteria, zMean, 30, 435, 1.0000, 0.0084
+viruses, naturalVector, 31, 465, 0.9999, 0.0183
+viruses, zheng, 31, 465, 0.9939, 4.6301
+viruses, zMean, 31, 465, 0.9973, 0.2306

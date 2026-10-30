@@ -30,7 +30,7 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   experiments, not fast checks — some cases run tens of minutes (up to a synthetic 3.1 Gbp reference). Don't run
   the full suite expecting CI-style feedback. The fast deterministic correctness tests are
   `ZCurveProfileTests`, `ZCurveWindowedProfileTests`, `WindowedProfileTests`, `FastaReaderTests`,
-  `GeneratorTests`, and `RealGenomeProfileTests`.
+  `GeneratorTests`, `PhylogenyTests`, `GenomeSignaturesTests`, and `RealGenomeProfileTests`.
 - `--filter "Name=Foo(123)"` does not work for parameterized cases with this adapter; use `NUnit.Where` as above.
 - All experiment output (`.csv`) is written to `SequenceAnaliseTests/bin/Debug/net10.0/`; committed snapshots live
   in `results/` — see `results/README.md` for which file backs which manuscript section.
@@ -65,6 +65,10 @@ dotnet test SequencePlatform.Tests        # platform tests, ~1 s; need a reachab
   vector (default k=4) compared by cosine. Richer signal, heavier memory; used as a comparison point.
 - `FastaReader.cs` — gzip-transparent FASTA parser for the real genomes in `data/genomes/`. Passes IUPAC
   ambiguity codes through unchanged (both profile types treat them as zero-contribution).
+- `Phylogeny.cs` — neighbour-joining (midpoint-rooted for display) and UPGMA trees, Newick, leaf order, and per-taxon
+  clade recovery judged on the unrooted tree (P5). Validated on the textbook examples in `PhylogenyTests`.
+- `GenomeSignatures.cs` — whole-genome composition signatures (P5 baselines): window summary, Z-curve mean, Zheng-style
+  curve, Natural Vector, Karlin ρ\*/δ\*. The profile-derived ones solve each window's base counts from its Z-curve averages.
 - `NeedlemanWunsch.cs` — global alignment (match +2 / mismatch −1 / gap −2), O(min(len)) space via two rolling
   rows. Returns matches / min(len1, len2), not a standard identity ratio. Used as accuracy ground truth at
   lengths where O(n·m) is affordable (`TrilaterationAccuracyBenchmarks` calibrates that).

@@ -1,0 +1,851 @@
+Corpus, Level, Distance, Method, Position, Organism, Genus, Higher
+bacteria, 32kbp, compare, NJ, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 1, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 2, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 3, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 4, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 5, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 32kbp, compare, NJ, 6, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, compare, NJ, 7, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 32kbp, compare, NJ, 8, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 32kbp, compare, NJ, 9, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 32kbp, compare, NJ, 10, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 32kbp, compare, NJ, 11, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 32kbp, compare, NJ, 12, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 32kbp, compare, NJ, 13, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 32kbp, compare, NJ, 14, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, compare, NJ, 15, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 32kbp, compare, NJ, 16, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 32kbp, compare, NJ, 17, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 32kbp, compare, NJ, 18, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 32kbp, compare, NJ, 19, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 32kbp, compare, NJ, 20, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 21, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 22, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 23, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 24, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 25, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 32kbp, compare, NJ, 26, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 32kbp, compare, NJ, 27, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 32kbp, compare, NJ, 28, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 32kbp, compare, NJ, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 32kbp, compare, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 2, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 3, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 5, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 6, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 7, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 8, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 9, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, compare, UPGMA, 10, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 11, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 12, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 13, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 32kbp, compare, UPGMA, 14, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 32kbp, compare, UPGMA, 15, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 16, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 17, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 18, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 19, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 20, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 32kbp, compare, UPGMA, 21, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, compare, UPGMA, 22, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 32kbp, compare, UPGMA, 23, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 32kbp, compare, UPGMA, 24, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 32kbp, compare, UPGMA, 25, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 32kbp, compare, UPGMA, 26, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 32kbp, compare, UPGMA, 27, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 32kbp, compare, UPGMA, 28, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 32kbp, compare, UPGMA, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 32kbp, strandOrigin, NJ, 0, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 1, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 2, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 3, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 5, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 6, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 7, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, strandOrigin, NJ, 8, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 9, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 10, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 11, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 12, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 13, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 14, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, strandOrigin, NJ, 15, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 16, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 32kbp, strandOrigin, NJ, 17, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 32kbp, strandOrigin, NJ, 18, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 19, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 32kbp, strandOrigin, NJ, 20, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 32kbp, strandOrigin, NJ, 21, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 22, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 23, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 24, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 25, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 32kbp, strandOrigin, NJ, 26, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 32kbp, strandOrigin, NJ, 27, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 32kbp, strandOrigin, NJ, 28, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 32kbp, strandOrigin, NJ, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 32kbp, strandOrigin, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 2, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 3, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 5, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 6, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 7, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 8, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 9, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 10, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 32kbp, strandOrigin, UPGMA, 11, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 12, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 13, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, strandOrigin, UPGMA, 14, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 15, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 16, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 17, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 18, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 19, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 20, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 21, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, strandOrigin, UPGMA, 22, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 32kbp, strandOrigin, UPGMA, 23, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 32kbp, strandOrigin, UPGMA, 24, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 32kbp, strandOrigin, UPGMA, 25, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 32kbp, strandOrigin, UPGMA, 26, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 32kbp, strandOrigin, UPGMA, 27, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 32kbp, strandOrigin, UPGMA, 28, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 32kbp, strandOrigin, UPGMA, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 32kbp, summary, NJ, 0, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 1, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 32kbp, summary, NJ, 2, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 32kbp, summary, NJ, 3, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 32kbp, summary, NJ, 4, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 32kbp, summary, NJ, 5, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 32kbp, summary, NJ, 6, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 32kbp, summary, NJ, 7, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 32kbp, summary, NJ, 8, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 32kbp, summary, NJ, 9, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 32kbp, summary, NJ, 10, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 32kbp, summary, NJ, 11, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 32kbp, summary, NJ, 12, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, summary, NJ, 13, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, summary, NJ, 14, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 15, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 32kbp, summary, NJ, 16, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 32kbp, summary, NJ, 17, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 32kbp, summary, NJ, 18, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 32kbp, summary, NJ, 19, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 20, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 21, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 22, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 23, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 24, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 25, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 26, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 27, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 32kbp, summary, NJ, 28, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 32kbp, summary, NJ, 29, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 32kbp, summary, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 1, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 2, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 3, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 4, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 5, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 6, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 7, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 8, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 9, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 10, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 11, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 12, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 32kbp, summary, UPGMA, 13, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 32kbp, summary, UPGMA, 14, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 32kbp, summary, UPGMA, 15, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 32kbp, summary, UPGMA, 16, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 32kbp, summary, UPGMA, 17, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 32kbp, summary, UPGMA, 18, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 19, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 20, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 32kbp, summary, UPGMA, 21, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 22, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 23, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 24, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 32kbp, summary, UPGMA, 25, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 32kbp, summary, UPGMA, 26, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 32kbp, summary, UPGMA, 27, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, summary, UPGMA, 28, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 32kbp, summary, UPGMA, 29, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 500bp, compare, NJ, 0, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 500bp, compare, NJ, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 500bp, compare, NJ, 2, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 500bp, compare, NJ, 3, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 500bp, compare, NJ, 4, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 500bp, compare, NJ, 5, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 500bp, compare, NJ, 6, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 500bp, compare, NJ, 7, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 500bp, compare, NJ, 8, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, compare, NJ, 9, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 500bp, compare, NJ, 10, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 500bp, compare, NJ, 11, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 500bp, compare, NJ, 12, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 500bp, compare, NJ, 13, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 500bp, compare, NJ, 14, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 500bp, compare, NJ, 15, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 500bp, compare, NJ, 16, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 500bp, compare, NJ, 17, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, compare, NJ, 18, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 500bp, compare, NJ, 19, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 500bp, compare, NJ, 20, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 500bp, compare, NJ, 21, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 500bp, compare, NJ, 22, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 500bp, compare, NJ, 23, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 500bp, compare, NJ, 24, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 500bp, compare, NJ, 25, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 500bp, compare, NJ, 26, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 500bp, compare, NJ, 27, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 500bp, compare, NJ, 28, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 500bp, compare, NJ, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 500bp, compare, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 2, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 3, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 5, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 6, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 7, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 8, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 9, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 10, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 500bp, compare, UPGMA, 11, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 500bp, compare, UPGMA, 12, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, compare, UPGMA, 13, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 500bp, compare, UPGMA, 14, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 500bp, compare, UPGMA, 15, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 500bp, compare, UPGMA, 16, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 500bp, compare, UPGMA, 17, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 500bp, compare, UPGMA, 18, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 500bp, compare, UPGMA, 19, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 500bp, compare, UPGMA, 20, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 500bp, compare, UPGMA, 21, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, compare, UPGMA, 22, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 500bp, compare, UPGMA, 23, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 500bp, compare, UPGMA, 24, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 500bp, compare, UPGMA, 25, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 500bp, compare, UPGMA, 26, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 500bp, compare, UPGMA, 27, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 500bp, compare, UPGMA, 28, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 500bp, compare, UPGMA, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 500bp, strandOrigin, NJ, 0, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 2, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 3, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 4, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 5, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 6, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 7, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 8, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, strandOrigin, NJ, 9, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 10, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 500bp, strandOrigin, NJ, 11, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 12, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 13, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 14, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 15, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 16, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 17, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, strandOrigin, NJ, 18, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 19, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 500bp, strandOrigin, NJ, 20, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 500bp, strandOrigin, NJ, 21, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 500bp, strandOrigin, NJ, 22, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 23, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 24, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 25, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 500bp, strandOrigin, NJ, 26, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 500bp, strandOrigin, NJ, 27, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 500bp, strandOrigin, NJ, 28, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 500bp, strandOrigin, NJ, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 500bp, strandOrigin, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 2, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 3, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 5, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 6, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 7, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 8, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 9, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 10, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 11, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 12, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, strandOrigin, UPGMA, 13, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 14, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 15, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 500bp, strandOrigin, UPGMA, 16, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 17, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 18, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 19, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 20, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 21, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, strandOrigin, UPGMA, 22, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 500bp, strandOrigin, UPGMA, 23, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 500bp, strandOrigin, UPGMA, 24, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 500bp, strandOrigin, UPGMA, 25, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 500bp, strandOrigin, UPGMA, 26, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 500bp, strandOrigin, UPGMA, 27, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 500bp, strandOrigin, UPGMA, 28, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 500bp, strandOrigin, UPGMA, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 500bp, summary, NJ, 0, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 500bp, summary, NJ, 1, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 500bp, summary, NJ, 2, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 500bp, summary, NJ, 3, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 500bp, summary, NJ, 4, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 500bp, summary, NJ, 5, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 500bp, summary, NJ, 6, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 500bp, summary, NJ, 7, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 500bp, summary, NJ, 8, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 500bp, summary, NJ, 9, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 500bp, summary, NJ, 10, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, summary, NJ, 11, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, summary, NJ, 12, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 500bp, summary, NJ, 13, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 500bp, summary, NJ, 14, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 500bp, summary, NJ, 15, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 500bp, summary, NJ, 16, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 500bp, summary, NJ, 17, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 500bp, summary, NJ, 18, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 500bp, summary, NJ, 19, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 500bp, summary, NJ, 20, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 500bp, summary, NJ, 21, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 500bp, summary, NJ, 22, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 500bp, summary, NJ, 23, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 500bp, summary, NJ, 24, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 500bp, summary, NJ, 25, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 500bp, summary, NJ, 26, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 500bp, summary, NJ, 27, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 500bp, summary, NJ, 28, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 500bp, summary, NJ, 29, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, 500bp, summary, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 1, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 2, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 3, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 5, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 6, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 7, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 8, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 9, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 10, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, 500bp, summary, UPGMA, 11, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, 500bp, summary, UPGMA, 12, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, 500bp, summary, UPGMA, 13, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, 500bp, summary, UPGMA, 14, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, 500bp, summary, UPGMA, 15, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, 500bp, summary, UPGMA, 16, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, 500bp, summary, UPGMA, 17, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, 500bp, summary, UPGMA, 18, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, 500bp, summary, UPGMA, 19, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, 500bp, summary, UPGMA, 20, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, 500bp, summary, UPGMA, 21, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, 500bp, summary, UPGMA, 22, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, 500bp, summary, UPGMA, 23, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, 500bp, summary, UPGMA, 24, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, 500bp, summary, UPGMA, 25, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, 500bp, summary, UPGMA, 26, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, 500bp, summary, UPGMA, 27, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, summary, UPGMA, 28, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, 500bp, summary, UPGMA, 29, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, -, mash, NJ, 0, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, -, mash, NJ, 1, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, -, mash, NJ, 2, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, -, mash, NJ, 3, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, -, mash, NJ, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, -, mash, NJ, 5, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, -, mash, NJ, 6, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, -, mash, NJ, 7, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, -, mash, NJ, 8, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, -, mash, NJ, 9, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, -, mash, NJ, 10, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, -, mash, NJ, 11, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, -, mash, NJ, 12, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, -, mash, NJ, 13, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, -, mash, NJ, 14, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, -, mash, NJ, 15, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, -, mash, NJ, 16, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, -, mash, NJ, 17, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, -, mash, NJ, 18, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, -, mash, NJ, 19, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, -, mash, NJ, 20, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, -, mash, NJ, 21, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, -, mash, NJ, 22, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, -, mash, NJ, 23, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, -, mash, NJ, 24, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, -, mash, NJ, 25, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, -, mash, NJ, 26, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, -, mash, NJ, 27, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, -, mash, NJ, 28, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, -, mash, NJ, 29, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, -, mash, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, -, mash, UPGMA, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, -, mash, UPGMA, 2, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, -, mash, UPGMA, 3, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, -, mash, UPGMA, 4, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, -, mash, UPGMA, 5, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, -, mash, UPGMA, 6, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, -, mash, UPGMA, 7, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, -, mash, UPGMA, 8, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, -, mash, UPGMA, 9, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, -, mash, UPGMA, 10, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, -, mash, UPGMA, 11, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, -, mash, UPGMA, 12, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, -, mash, UPGMA, 13, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, -, mash, UPGMA, 14, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, -, mash, UPGMA, 15, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, -, mash, UPGMA, 16, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, -, mash, UPGMA, 17, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, -, mash, UPGMA, 18, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, -, mash, UPGMA, 19, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, -, mash, UPGMA, 20, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, -, mash, UPGMA, 21, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, -, mash, UPGMA, 22, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, -, mash, UPGMA, 23, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, -, mash, UPGMA, 24, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, -, mash, UPGMA, 25, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, -, mash, UPGMA, 26, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, -, mash, UPGMA, 27, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, -, mash, UPGMA, 28, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, -, mash, UPGMA, 29, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, -, gc, NJ, 0, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, -, gc, NJ, 1, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, -, gc, NJ, 2, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, -, gc, NJ, 3, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, -, gc, NJ, 4, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, -, gc, NJ, 5, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, -, gc, NJ, 6, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, -, gc, NJ, 7, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, -, gc, NJ, 8, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, -, gc, NJ, 9, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, -, gc, NJ, 10, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, -, gc, NJ, 11, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, -, gc, NJ, 12, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, -, gc, NJ, 13, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, -, gc, NJ, 14, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, -, gc, NJ, 15, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, -, gc, NJ, 16, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, -, gc, NJ, 17, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, -, gc, NJ, 18, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, -, gc, NJ, 19, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, -, gc, NJ, 20, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, -, gc, NJ, 21, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, -, gc, NJ, 22, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, -, gc, NJ, 23, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, -, gc, NJ, 24, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, -, gc, NJ, 25, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, -, gc, NJ, 26, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, -, gc, NJ, 27, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, -, gc, NJ, 28, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, -, gc, NJ, 29, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, -, gc, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, -, gc, UPGMA, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, -, gc, UPGMA, 2, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, -, gc, UPGMA, 3, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, -, gc, UPGMA, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, -, gc, UPGMA, 5, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, -, gc, UPGMA, 6, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, -, gc, UPGMA, 7, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, -, gc, UPGMA, 8, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, -, gc, UPGMA, 9, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, -, gc, UPGMA, 10, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, -, gc, UPGMA, 11, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, -, gc, UPGMA, 12, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, -, gc, UPGMA, 13, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, -, gc, UPGMA, 14, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, -, gc, UPGMA, 15, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, -, gc, UPGMA, 16, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, -, gc, UPGMA, 17, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, -, gc, UPGMA, 18, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, -, gc, UPGMA, 19, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, -, gc, UPGMA, 20, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, -, gc, UPGMA, 21, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, -, gc, UPGMA, 22, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, -, gc, UPGMA, 23, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, -, gc, UPGMA, 24, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, -, gc, UPGMA, 25, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, -, gc, UPGMA, 26, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, -, gc, UPGMA, 27, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, -, gc, UPGMA, 28, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, -, gc, UPGMA, 29, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, -, gcLength, NJ, 0, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, -, gcLength, NJ, 1, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, -, gcLength, NJ, 2, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, -, gcLength, NJ, 3, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, -, gcLength, NJ, 4, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, -, gcLength, NJ, 5, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, -, gcLength, NJ, 6, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, -, gcLength, NJ, 7, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, -, gcLength, NJ, 8, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, -, gcLength, NJ, 9, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, -, gcLength, NJ, 10, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, -, gcLength, NJ, 11, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, -, gcLength, NJ, 12, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, -, gcLength, NJ, 13, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, -, gcLength, NJ, 14, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, -, gcLength, NJ, 15, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, -, gcLength, NJ, 16, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, -, gcLength, NJ, 17, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, -, gcLength, NJ, 18, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, -, gcLength, NJ, 19, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, -, gcLength, NJ, 20, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, -, gcLength, NJ, 21, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, -, gcLength, NJ, 22, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, -, gcLength, NJ, 23, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+bacteria, -, gcLength, NJ, 24, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, -, gcLength, NJ, 25, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, -, gcLength, NJ, 26, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, -, gcLength, NJ, 27, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, -, gcLength, NJ, 28, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, -, gcLength, NJ, 29, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, -, gcLength, UPGMA, 0, "Escherichia coli K-12 MG1655", Escherichia, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 1, "Shigella flexneri 2a 301", Shigella, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 2, "Salmonella enterica Typhimurium LT2", Salmonella, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 3, "Escherichia coli O157:H7 Sakai", Escherichia, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 4, "Yersinia pestis CO92", Yersinia, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 5, "Yersinia pseudotuberculosis IP 32953", Yersinia, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 6, "Klebsiella pneumoniae MGH 78578", Klebsiella, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 7, "Vibrio cholerae N16961", Vibrio, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 8, "Acinetobacter baumannii ATCC 17978", Acinetobacter, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 9, "Bacillus subtilis 168", Bacillus, Bacillota
+bacteria, -, gcLength, UPGMA, 10, "Bacillus anthracis Ames", Bacillus, Bacillota
+bacteria, -, gcLength, UPGMA, 11, "Bacillus cereus ATCC 14579", Bacillus, Bacillota
+bacteria, -, gcLength, UPGMA, 12, "Clostridioides difficile 630", Clostridioides, Bacillota
+bacteria, -, gcLength, UPGMA, 13, "Haemophilus influenzae Rd KW20", Haemophilus, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 14, "Streptococcus pyogenes M1 GAS", Streptococcus, Bacillota
+bacteria, -, gcLength, UPGMA, 15, "Helicobacter pylori 26695", Helicobacter, Campylobacterota
+bacteria, -, gcLength, UPGMA, 16, "Streptococcus pneumoniae TIGR4", Streptococcus, Bacillota
+bacteria, -, gcLength, UPGMA, 17, "Campylobacter jejuni NCTC 11168", Campylobacter, Campylobacterota
+bacteria, -, gcLength, UPGMA, 18, "Staphylococcus aureus NCTC 8325", Staphylococcus, Bacillota
+bacteria, -, gcLength, UPGMA, 19, "Staphylococcus epidermidis ATCC 12228", Staphylococcus, Bacillota
+bacteria, -, gcLength, UPGMA, 20, "Listeria monocytogenes EGD-e", Listeria, Bacillota
+bacteria, -, gcLength, UPGMA, 21, "Enterococcus faecalis V583", Enterococcus, Bacillota
+bacteria, -, gcLength, UPGMA, 22, "Pseudomonas aeruginosa PAO1", Pseudomonas, Pseudomonadota
+bacteria, -, gcLength, UPGMA, 23, "Mycolicibacterium smegmatis MC2 155", Mycolicibacterium, Actinomycetota
+bacteria, -, gcLength, UPGMA, 24, "Streptomyces coelicolor A3(2)", Streptomyces, Actinomycetota
+bacteria, -, gcLength, UPGMA, 25, "Mycobacterium tuberculosis H37Rv", Mycobacterium, Actinomycetota
+bacteria, -, gcLength, UPGMA, 26, "Deinococcus radiodurans R1", Deinococcus, Deinococcota
+bacteria, -, gcLength, UPGMA, 27, "Mycoplasmoides genitalium G37", Mycoplasmoides, Mycoplasmatota
+bacteria, -, gcLength, UPGMA, 28, "Borreliella burgdorferi B31", Borreliella, Spirochaetota
+bacteria, -, gcLength, UPGMA, 29, "Mycoplasmoides pneumoniae M129", Mycoplasmoides, Mycoplasmatota
+viruses, ladder, compare, NJ, 0, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, ladder, compare, NJ, 1, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, ladder, compare, NJ, 2, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, ladder, compare, NJ, 3, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, ladder, compare, NJ, 4, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, ladder, compare, NJ, 5, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, ladder, compare, NJ, 6, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, ladder, compare, NJ, 7, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, ladder, compare, NJ, 8, "Poliovirus", Enterovirus, Picornaviridae
+viruses, ladder, compare, NJ, 9, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, ladder, compare, NJ, 10, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, ladder, compare, NJ, 11, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, ladder, compare, NJ, 12, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, ladder, compare, NJ, 13, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, ladder, compare, NJ, 14, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, compare, NJ, 15, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, ladder, compare, NJ, 16, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, ladder, compare, NJ, 17, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, ladder, compare, NJ, 18, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, ladder, compare, NJ, 19, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, ladder, compare, NJ, 20, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, ladder, compare, NJ, 21, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, ladder, compare, NJ, 22, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, compare, NJ, 23, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, ladder, compare, NJ, 24, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, ladder, compare, NJ, 25, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, ladder, compare, NJ, 26, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, ladder, compare, NJ, 27, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, ladder, compare, NJ, 28, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, ladder, compare, NJ, 29, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, ladder, compare, NJ, 30, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, ladder, compare, UPGMA, 0, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, ladder, compare, UPGMA, 1, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, ladder, compare, UPGMA, 2, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, ladder, compare, UPGMA, 3, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, ladder, compare, UPGMA, 4, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, ladder, compare, UPGMA, 5, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, ladder, compare, UPGMA, 6, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, ladder, compare, UPGMA, 7, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, ladder, compare, UPGMA, 8, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, ladder, compare, UPGMA, 9, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, ladder, compare, UPGMA, 10, "Poliovirus", Enterovirus, Picornaviridae
+viruses, ladder, compare, UPGMA, 11, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, ladder, compare, UPGMA, 12, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, ladder, compare, UPGMA, 13, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, ladder, compare, UPGMA, 14, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, ladder, compare, UPGMA, 15, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, ladder, compare, UPGMA, 16, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, ladder, compare, UPGMA, 17, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, ladder, compare, UPGMA, 18, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, ladder, compare, UPGMA, 19, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, ladder, compare, UPGMA, 20, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, ladder, compare, UPGMA, 21, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, ladder, compare, UPGMA, 22, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, ladder, compare, UPGMA, 23, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, compare, UPGMA, 24, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, ladder, compare, UPGMA, 25, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, ladder, compare, UPGMA, 26, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, ladder, compare, UPGMA, 27, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, ladder, compare, UPGMA, 28, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, ladder, compare, UPGMA, 29, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, compare, UPGMA, 30, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, ladder, strandOrigin, NJ, 0, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, ladder, strandOrigin, NJ, 1, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, NJ, 2, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, ladder, strandOrigin, NJ, 3, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, ladder, strandOrigin, NJ, 4, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, NJ, 5, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, NJ, 6, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, ladder, strandOrigin, NJ, 7, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, NJ, 8, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, ladder, strandOrigin, NJ, 9, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, ladder, strandOrigin, NJ, 10, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, ladder, strandOrigin, NJ, 11, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, ladder, strandOrigin, NJ, 12, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, NJ, 13, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, NJ, 14, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, NJ, 15, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, strandOrigin, NJ, 16, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, ladder, strandOrigin, NJ, 17, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, ladder, strandOrigin, NJ, 18, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, ladder, strandOrigin, NJ, 19, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, ladder, strandOrigin, NJ, 20, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, NJ, 21, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, NJ, 22, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, strandOrigin, NJ, 23, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, ladder, strandOrigin, NJ, 24, "Poliovirus", Enterovirus, Picornaviridae
+viruses, ladder, strandOrigin, NJ, 25, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, ladder, strandOrigin, NJ, 26, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, ladder, strandOrigin, NJ, 27, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, ladder, strandOrigin, NJ, 28, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, ladder, strandOrigin, NJ, 29, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, ladder, strandOrigin, NJ, 30, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, ladder, strandOrigin, UPGMA, 0, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, UPGMA, 1, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, UPGMA, 2, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, ladder, strandOrigin, UPGMA, 3, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, UPGMA, 4, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, UPGMA, 5, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, ladder, strandOrigin, UPGMA, 6, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, ladder, strandOrigin, UPGMA, 7, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, ladder, strandOrigin, UPGMA, 8, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, ladder, strandOrigin, UPGMA, 9, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, ladder, strandOrigin, UPGMA, 10, "Poliovirus", Enterovirus, Picornaviridae
+viruses, ladder, strandOrigin, UPGMA, 11, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, ladder, strandOrigin, UPGMA, 12, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, ladder, strandOrigin, UPGMA, 13, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, ladder, strandOrigin, UPGMA, 14, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, ladder, strandOrigin, UPGMA, 15, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, ladder, strandOrigin, UPGMA, 16, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, ladder, strandOrigin, UPGMA, 17, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, ladder, strandOrigin, UPGMA, 18, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, ladder, strandOrigin, UPGMA, 19, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, ladder, strandOrigin, UPGMA, 20, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, ladder, strandOrigin, UPGMA, 21, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, ladder, strandOrigin, UPGMA, 22, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, ladder, strandOrigin, UPGMA, 23, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, strandOrigin, UPGMA, 24, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, UPGMA, 25, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, UPGMA, 26, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, UPGMA, 27, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, ladder, strandOrigin, UPGMA, 28, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, ladder, strandOrigin, UPGMA, 29, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, ladder, strandOrigin, UPGMA, 30, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, 500bp, summary, NJ, 0, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, 500bp, summary, NJ, 1, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, 500bp, summary, NJ, 2, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, 500bp, summary, NJ, 3, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, 500bp, summary, NJ, 4, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, 500bp, summary, NJ, 5, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, 500bp, summary, NJ, 6, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, 500bp, summary, NJ, 7, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, 500bp, summary, NJ, 8, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, 500bp, summary, NJ, 9, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, 500bp, summary, NJ, 10, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, 500bp, summary, NJ, 11, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, 500bp, summary, NJ, 12, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, 500bp, summary, NJ, 13, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, 500bp, summary, NJ, 14, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, 500bp, summary, NJ, 15, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, 500bp, summary, NJ, 16, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, 500bp, summary, NJ, 17, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, 500bp, summary, NJ, 18, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, 500bp, summary, NJ, 19, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, 500bp, summary, NJ, 20, "Poliovirus", Enterovirus, Picornaviridae
+viruses, 500bp, summary, NJ, 21, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, 500bp, summary, NJ, 22, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, 500bp, summary, NJ, 23, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, 500bp, summary, NJ, 24, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, 500bp, summary, NJ, 25, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, 500bp, summary, NJ, 26, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, 500bp, summary, NJ, 27, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, 500bp, summary, NJ, 28, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, 500bp, summary, NJ, 29, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, 500bp, summary, NJ, 30, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, 500bp, summary, UPGMA, 0, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, 500bp, summary, UPGMA, 1, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, 500bp, summary, UPGMA, 2, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, 500bp, summary, UPGMA, 3, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, 500bp, summary, UPGMA, 4, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, 500bp, summary, UPGMA, 5, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, 500bp, summary, UPGMA, 6, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, 500bp, summary, UPGMA, 7, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, 500bp, summary, UPGMA, 8, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, 500bp, summary, UPGMA, 9, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, 500bp, summary, UPGMA, 10, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, 500bp, summary, UPGMA, 11, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, 500bp, summary, UPGMA, 12, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, 500bp, summary, UPGMA, 13, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, 500bp, summary, UPGMA, 14, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, 500bp, summary, UPGMA, 15, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, 500bp, summary, UPGMA, 16, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, 500bp, summary, UPGMA, 17, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, 500bp, summary, UPGMA, 18, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, 500bp, summary, UPGMA, 19, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, 500bp, summary, UPGMA, 20, "Poliovirus", Enterovirus, Picornaviridae
+viruses, 500bp, summary, UPGMA, 21, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, 500bp, summary, UPGMA, 22, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, 500bp, summary, UPGMA, 23, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, 500bp, summary, UPGMA, 24, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, 500bp, summary, UPGMA, 25, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, 500bp, summary, UPGMA, 26, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, 500bp, summary, UPGMA, 27, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, 500bp, summary, UPGMA, 28, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, 500bp, summary, UPGMA, 29, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, 500bp, summary, UPGMA, 30, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, -, gc, NJ, 0, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, -, gc, NJ, 1, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, -, gc, NJ, 2, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, -, gc, NJ, 3, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, -, gc, NJ, 4, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, -, gc, NJ, 5, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, -, gc, NJ, 6, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, -, gc, NJ, 7, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, -, gc, NJ, 8, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, -, gc, NJ, 9, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, -, gc, NJ, 10, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, -, gc, NJ, 11, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, -, gc, NJ, 12, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, -, gc, NJ, 13, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, -, gc, NJ, 14, "Poliovirus", Enterovirus, Picornaviridae
+viruses, -, gc, NJ, 15, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, -, gc, NJ, 16, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, -, gc, NJ, 17, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, -, gc, NJ, 18, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, -, gc, NJ, 19, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, -, gc, NJ, 20, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, -, gc, NJ, 21, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, -, gc, NJ, 22, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, -, gc, NJ, 23, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, -, gc, NJ, 24, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, -, gc, NJ, 25, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, -, gc, NJ, 26, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, -, gc, NJ, 27, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, -, gc, NJ, 28, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, -, gc, NJ, 29, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, -, gc, NJ, 30, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, -, gc, UPGMA, 0, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, -, gc, UPGMA, 1, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, -, gc, UPGMA, 2, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, -, gc, UPGMA, 3, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, -, gc, UPGMA, 4, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, -, gc, UPGMA, 5, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, -, gc, UPGMA, 6, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, -, gc, UPGMA, 7, "Poliovirus", Enterovirus, Picornaviridae
+viruses, -, gc, UPGMA, 8, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, -, gc, UPGMA, 9, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, -, gc, UPGMA, 10, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, -, gc, UPGMA, 11, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, -, gc, UPGMA, 12, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, -, gc, UPGMA, 13, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, -, gc, UPGMA, 14, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, -, gc, UPGMA, 15, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, -, gc, UPGMA, 16, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, -, gc, UPGMA, 17, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, -, gc, UPGMA, 18, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, -, gc, UPGMA, 19, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, -, gc, UPGMA, 20, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, -, gc, UPGMA, 21, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, -, gc, UPGMA, 22, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, -, gc, UPGMA, 23, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, -, gc, UPGMA, 24, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, -, gc, UPGMA, 25, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, -, gc, UPGMA, 26, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, -, gc, UPGMA, 27, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, -, gc, UPGMA, 28, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, -, gc, UPGMA, 29, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, -, gc, UPGMA, 30, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, -, gcLength, NJ, 0, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
+viruses, -, gcLength, NJ, 1, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, -, gcLength, NJ, 2, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, -, gcLength, NJ, 3, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, -, gcLength, NJ, 4, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, -, gcLength, NJ, 5, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, -, gcLength, NJ, 6, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, -, gcLength, NJ, 7, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, -, gcLength, NJ, 8, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, -, gcLength, NJ, 9, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, -, gcLength, NJ, 10, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, -, gcLength, NJ, 11, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, -, gcLength, NJ, 12, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, -, gcLength, NJ, 13, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, -, gcLength, NJ, 14, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, -, gcLength, NJ, 15, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, -, gcLength, NJ, 16, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, -, gcLength, NJ, 17, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, -, gcLength, NJ, 18, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, -, gcLength, NJ, 19, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, -, gcLength, NJ, 20, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, -, gcLength, NJ, 21, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, -, gcLength, NJ, 22, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, -, gcLength, NJ, 23, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, -, gcLength, NJ, 24, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, -, gcLength, NJ, 25, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, -, gcLength, NJ, 26, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, -, gcLength, NJ, 27, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, -, gcLength, NJ, 28, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, -, gcLength, NJ, 29, "Poliovirus", Enterovirus, Picornaviridae
+viruses, -, gcLength, NJ, 30, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, -, gcLength, UPGMA, 0, "Human herpesvirus 1 strain 17", Simplexvirus, Orthoherpesviridae
+viruses, -, gcLength, UPGMA, 1, "Human herpesvirus 2 strain HG52", Simplexvirus, Orthoherpesviridae
+viruses, -, gcLength, UPGMA, 2, "Human gammaherpesvirus 4", Lymphocryptovirus, Orthoherpesviridae
+viruses, -, gcLength, UPGMA, 3, "Human herpesvirus 5 strain Merlin", Cytomegalovirus, Orthoherpesviridae
+viruses, -, gcLength, UPGMA, 4, "Molluscum contagiosum virus subtype 1", Molluscipoxvirus, Poxviridae
+viruses, -, gcLength, UPGMA, 5, "Human herpesvirus 3", Varicellovirus, Orthoherpesviridae
+viruses, -, gcLength, UPGMA, 6, "Human adenovirus 5", Mastadenovirus, Adenoviridae
+viruses, -, gcLength, UPGMA, 7, "Human adenovirus A", Mastadenovirus, Adenoviridae
+viruses, -, gcLength, UPGMA, 8, "Enterobacteria phage T7", Teseptimavirus, Autotranscriptaviridae
+viruses, -, gcLength, UPGMA, 9, "Enterobacteria phage T3", Teetrevirus, Autotranscriptaviridae
+viruses, -, gcLength, UPGMA, 10, "Enterobacteria phage lambda", Lambdavirus, Zimmerviridae
+viruses, -, gcLength, UPGMA, 11, "Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1", Betacoronavirus, Coronaviridae
+viruses, -, gcLength, UPGMA, 12, "Human coronavirus 229E", Alphacoronavirus, Coronaviridae
+viruses, -, gcLength, UPGMA, 13, "Human coronavirus OC43 strain ATCC VR-759", Betacoronavirus, Coronaviridae
+viruses, -, gcLength, UPGMA, 14, "Middle East respiratory syndrome-related coronavirus isolate HCoV-EMC/2012", Betacoronavirus, Coronaviridae
+viruses, -, gcLength, UPGMA, 15, "Dengue virus 2", Orthoflavivirus, Flaviviridae
+viruses, -, gcLength, UPGMA, 16, "Human immunodeficiency virus 2", Lentivirus, Retroviridae
+viruses, -, gcLength, UPGMA, 17, "Poliovirus", Enterovirus, Picornaviridae
+viruses, -, gcLength, UPGMA, 18, "Human enterovirus A", Enterovirus, Picornaviridae
+viruses, -, gcLength, UPGMA, 19, "Escherichia phage phiX174", Sinsheimervirus, Eubullaviridae
+viruses, -, gcLength, UPGMA, 20, "Human immunodeficiency virus 1", Lentivirus, Retroviridae
+viruses, -, gcLength, UPGMA, 21, "Human papillomavirus - 18", Alphapapillomavirus, Papillomaviridae
+viruses, -, gcLength, UPGMA, 22, "Human papillomavirus - 1", Mupapillomavirus, Papillomaviridae
+viruses, -, gcLength, UPGMA, 23, "Human papillomavirus type 16", Alphapapillomavirus, Papillomaviridae
+viruses, -, gcLength, UPGMA, 24, "Hepatitis A virus", Hepatovirus, Picornaviridae
+viruses, -, gcLength, UPGMA, 25, "Zika virus strain MR 766", Orthoflavivirus, Flaviviridae
+viruses, -, gcLength, UPGMA, 26, "Human T-lymphotropic virus 1", Deltaretrovirus, Retroviridae
+viruses, -, gcLength, UPGMA, 27, "Hepatitis C virus genotype 1", Orthohepacivirus, Hepaciviridae
+viruses, -, gcLength, UPGMA, 28, "Vaccinia virus", Orthopoxvirus, Poxviridae
+viruses, -, gcLength, UPGMA, 29, "Cowpox virus", Orthopoxvirus, Poxviridae
+viruses, -, gcLength, UPGMA, 30, "Enterobacteria phage T4", Tequatrovirus, Straboviridae
