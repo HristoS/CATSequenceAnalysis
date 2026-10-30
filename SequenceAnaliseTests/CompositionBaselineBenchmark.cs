@@ -137,7 +137,7 @@ namespace SequenceAnaliseTests
             Assert.Pass();
         }
 
-        private static (int Clades, double NullMean, double P, int Taxa) Clades(PhyloTree tree, string[] taxa)
+        internal static (int Clades, double NullMean, double P, int Taxa) Clades(PhyloTree tree, string[] taxa)
         {
             var recovery = tree.Recovery(taxa);
             int observed = recovery.Count(r => r.Monophyletic);
@@ -147,7 +147,7 @@ namespace SequenceAnaliseTests
             return (observed, nullCounts.Average(), (1 + nullCounts.Count(c => c >= observed)) / (permutations + 1.0), recovery.Count);
         }
 
-        private static double[,] Std(IEnumerable<double[]> rows) => ZCurveTreeBenchmark.Euclidean(ZCurveTreeBenchmark.Standardize(rows.ToArray()));
+        internal static double[,] Std(IEnumerable<double[]> rows) => ZCurveTreeBenchmark.Euclidean(ZCurveTreeBenchmark.Standardize(rows.ToArray()));
 
         private static double[][] StandardizeBy(double[][] rows, double[][] reference)
         {

@@ -50,6 +50,37 @@ namespace SequenceAnaliseTests
         }
 
         [Test]
+        public void SecondOrderZCurveIsStrandInvariantAndCatchesNeighbourStructure()
+        {
+            var sequence = Structured(3);
+            var forward = GenomeSignatures.SecondOrder(GenomeSignatures.DinucleotideCounts(sequence));
+            var reverse = GenomeSignatures.SecondOrder(GenomeSignatures.DinucleotideCounts(ReverseComplement(sequence)));
+            Assert.That(forward, Is.EqualTo(reverse).Within(1e-12));
+
+            // Independent bases: no correlation between neighbours, whatever the composition.
+            var random = GenomeSignatures.SecondOrder(GenomeSignatures.DinucleotideCounts(Generator.GetRandomDNA(400_000, seed: 5)));
+            Assert.That(random.All(r => Math.Abs(r) < 0.01), string.Join(", ", random));
+
+            // ATAT...: x (purine +1 / pyrimidine -1) alternates, so corr(x(n), x(n + 1)) = -1; y alternates too (A amino, T keto).
+            var alternating = GenomeSignatures.SecondOrder(GenomeSignatures.DinucleotideCounts(string.Concat(Enumerable.Repeat("AT", 5000))));
+            Assert.That(alternating[0], Is.EqualTo(-1).Within(1e-3));
+            Assert.That(alternating[4], Is.EqualTo(-1).Within(1e-3));
+        }
+
+        [Test]
+        public void SlidingDistanceFindsAnEmbeddedSeriesOnEitherStrand()
+        {
+            var rng = new Random(9);
+            var longer = Enumerable.Range(0, 30).Select(_ => Enumerable.Range(0, 9).Select(_ => rng.NextDouble()).ToArray()).ToArray();
+            var inside = longer.Skip(7).Take(10).ToArray();
+            Assert.That(GenomeSignatures.SlidingDistance(inside, longer), Is.EqualTo(0));
+            Assert.That(GenomeSignatures.SlidingDistance(longer, inside.Reverse().ToArray()), Is.EqualTo(0));
+            Assert.That(GenomeSignatures.SlidingDistance(longer, longer.Select(w => w.Select(v => v + 0.5).ToArray()).ToArray()),
+                Is.EqualTo(Math.Sqrt(9 * 0.25)).Within(1e-12));
+            Assert.That(GenomeSignatures.SlidingDistance(Array.Empty<double[]>(), longer), Is.EqualTo(double.PositiveInfinity));
+        }
+
+        [Test]
         public void ProfileDerivedSignaturesMatchTheExactOnes()
         {
             var sequence = Structured(2);

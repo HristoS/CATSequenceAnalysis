@@ -173,14 +173,18 @@ namespace SequenceAnaliseTests
             }
         }
 
-        private static ZCurveWindowedProfile? ToOrigin(ZCurveWindowedProfile fine, long lengthBp)
+        private static ZCurveWindowedProfile? ToOrigin(ZCurveWindowedProfile fine, long lengthBp) =>
+            OriginWindow(fine, lengthBp) is int origin ? fine.RotateTo(origin) : null;
+
+        /// <summary>The fine profile's replication-origin window under OriginRotation's rule; null when it can't place one.</summary>
+        internal static int? OriginWindow(ZCurveWindowedProfile fine, long lengthBp)
         {
             if (lengthBp < minRotationLength || fine.WindowCount == 0) return null;
             var skew = fine.GcSkewExtremes();
             int count = fine.WindowCount, apart = Math.Abs(skew.OriginWindow - skew.TerminusWindow);
             if ((double)Math.Min(apart, count - apart) / count < minOriginToTerminusFraction) return null;
             if (skew.AmplitudeBp / (lengthBp / 1000.0) < minSkewBpPerKbp) return null;
-            return fine.RotateTo(skew.OriginWindow);
+            return skew.OriginWindow;
         }
 
         private static double[] Features(ZCurveWindowedProfile level)

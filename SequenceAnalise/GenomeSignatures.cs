@@ -177,6 +177,91 @@ namespace SequenceAnalyses
         /// <summary>Karlin's delta*: the mean absolute difference of rho* over the 16 dinucleotides.</summary>
         public static double KarlinDelta(double[] rhoA, double[] rhoB) => rhoA.Zip(rhoB, (a, b) => Math.Abs(a - b)).Average();
 
+        /// <summary>
+        /// The second-order Z-curve: the lag-1 correlations between the axes of neighbouring bases, corr(a_i(n), a_j(n + 1)) for
+        /// a, b in (x, y, z), row-major (xx, xy, xz, yx, ...). 9 values. A, C, G and T sit on a tetrahedron where 1, x, y and z are
+        /// orthogonal (a 4 x 4 Hadamard matrix), so the 16 products {1, x, y, z}(n) {1, x, y, z}(n + 1) carry exactly the 16
+        /// dinucleotide frequencies: the means are the composition, these correlations what is left, the Z-curve's counterpart of
+        /// Karlin's rho*. Computed over both strands (the counts plus their reverse complements, as <see cref="KarlinRho"/>), so the
+        /// same for either strand. With <paramref name="correlation"/> false, covariances instead.
+        /// </summary>
+        public static double[] SecondOrder(long[] dinucleotideCounts, bool correlation = true)
+        {
+            var axes = bases.Select(b => ZCurveProfile.Axes(b)).Select(a => new double[] { a.X, a.Y, a.Z }).ToArray();
+            var both = new double[16];
+            for (int first = 0; first < 4; first++)
+                for (int second = 0; second < 4; second++)
+                    both[4 * first + second] = dinucleotideCounts[4 * first + second] + dinucleotideCounts[4 * (3 - second) + (3 - first)];
+            double total = both.Sum();
+            var result = new double[9];
+            if (total == 0) return result;
+            var meanFirst = new double[3];
+            var meanSecond = new double[3];
+            var product = new double[3, 3];
+            for (int pair = 0; pair < 16; pair++)
+            {
+                double p = both[pair] / total;
+                var (a, b) = (axes[pair / 4], axes[pair % 4]);
+                for (int i = 0; i < 3; i++)
+                {
+                    meanFirst[i] += p * a[i];
+                    meanSecond[i] += p * b[i];
+                    for (int j = 0; j < 3; j++) product[i, j] += p * a[i] * b[j];
+                }
+            }
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
+                {
+                    double covariance = product[i, j] - meanFirst[i] * meanSecond[j];
+                    // Each axis is +-1 per base, so its variance is 1 - mean^2.
+                    double scale = Math.Sqrt((1 - meanFirst[i] * meanFirst[i]) * (1 - meanSecond[j] * meanSecond[j]));
+                    result[3 * i + j] = !correlation ? covariance : scale == 0 ? 0 : covariance / scale;
+                }
+            return result;
+        }
+
+        /// <summary>
+        /// <see cref="SecondOrder"/> per window of <paramref name="windowSize"/> bases, from the pairs inside each window (a pair across
+        /// a window boundary is left out); a partial last window is dropped, as <see cref="ZCurveWindowedProfile"/> does.
+        /// </summary>
+        public static double[][] SecondOrderWindows(string sequence, int windowSize)
+        {
+            int count = sequence.Length / windowSize;
+            var result = new double[count][];
+            for (int w = 0; w < count; w++)
+                result[w] = SecondOrder(DinucleotideCounts(sequence.Substring(w * windowSize, windowSize)));
+            return result;
+        }
+
+        /// <summary>
+        /// Sliding comparison of two window series, the <see cref="ZCurveWindowedProfile.Compare"/> idea for vectors of any width:
+        /// the shorter series slides along the longer one, in its own order and reversed (the other strand reads the windows
+        /// backwards), and the result is the smallest mean Euclidean distance between aligned windows. Infinity when either is empty.
+        /// </summary>
+        public static double SlidingDistance(double[][] a, double[][] b)
+        {
+            var (shorter, longer) = a.Length <= b.Length ? (a, b) : (b, a);
+            if (shorter.Length == 0) return double.PositiveInfinity;
+            double best = double.PositiveInfinity;
+            foreach (var query in new[] { shorter, shorter.Reverse().ToArray() })
+                for (int offset = 0; offset + query.Length <= longer.Length; offset++)
+                {
+                    double sum = 0;
+                    for (int w = 0; w < query.Length && sum < best * query.Length; w++)
+                    {
+                        double squares = 0;
+                        for (int k = 0; k < query[w].Length; k++)
+                        {
+                            double d = query[w][k] - longer[offset + w][k];
+                            squares += d * d;
+                        }
+                        sum += Math.Sqrt(squares);
+                    }
+                    best = Math.Min(best, sum / query.Length);
+                }
+            return best;
+        }
+
         private sealed class CurveMoments
         {
             private readonly double[] sum = new double[3];
