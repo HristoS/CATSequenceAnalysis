@@ -1,0 +1,19 @@
+# /etc/systemd/system/cat-platform.service: starts the generated Compose stack at boot.
+# COMPOSE_PROJECT is the project name the AppHost's deploy step chose (see `docker compose ls`); it's derived from the AppHost path,
+# so it stays the same across redeploys from the same checkout. .env.Production holds the image tags and the Postgres password.
+[Unit]
+Description=CAT SequencePlatform (Docker Compose stack)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/cat/CATSequenceAnalysis/SequencePlatform.AppHost/deploy/compose
+ExecStart=/usr/bin/docker compose -p COMPOSE_PROJECT -f docker-compose.yaml --env-file .env.Production up -d --wait
+ExecStop=/usr/bin/docker compose -p COMPOSE_PROJECT -f docker-compose.yaml --env-file .env.Production stop
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

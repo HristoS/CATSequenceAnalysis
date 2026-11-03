@@ -1,0 +1,15 @@
+{
+	# Clients send no SNI for a bare IP, so serve its certificate by default.
+	default_sni SERVER_IP
+}
+
+# SequencePlatform: HTTPS on the bare IP, with a Let's Encrypt IP certificate (short-lived profile, renewed automatically).
+# Replace SERVER_IP with the instance's public IP. The API listens on 127.0.0.1:5080 only (the generated compose file binds it there).
+SERVER_IP {
+	tls {
+		issuer acme {
+			profile shortlived
+		}
+	}
+	reverse_proxy 127.0.0.1:5080
+}

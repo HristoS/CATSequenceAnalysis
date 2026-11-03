@@ -1,0 +1,11 @@
+# /etc/fail2ban/jail.d/sshd.local
+# Ubuntu 24.04 names the unit ssh.service, not the sshd.service fail2ban's filter expects, so without journalmatch the jail never
+# sees a failed login. Add admin IPs to ignoreip so a typo never locks them out.
+[sshd]
+enabled = true
+backend = systemd
+journalmatch = _SYSTEMD_UNIT=ssh.service
+maxretry = 5
+findtime = 10m
+bantime = 1h
+ignoreip = 127.0.0.1/8 ::1
