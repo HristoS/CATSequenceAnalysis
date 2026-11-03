@@ -9,6 +9,7 @@ using SequencePlatform.Ingest;
 //
 //   migrate                                   create the database if missing, apply migrations
 //   ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed] [--per-species]
+//   ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--contact you@example.org]   the eukaryote pilot: reference genomes, dinucleotide counts only
 //   load-taxonomy [--refresh] [--skip-gtdb]   NCBI's current lineage per referenced taxid, GTDB's per assembly (S2.4)
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
@@ -21,7 +22,8 @@ using SequencePlatform.Ingest;
 //   add-user NAME                             an API user (D3); prints their key once, only its hash is stored
 //   disable-user NAME                         revokes that user's key; their uploads stay
 const string usage =
-    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] [--per-species] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
+    "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] [--per-species]\n" +
+    "       | ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--contact EMAIL] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
@@ -70,6 +72,10 @@ switch (args[0])
             Option("--contact"),
             retryFailed,
             args.Contains("--per-species"));
+
+    case "ingest-ncbi":
+        return await IngestNcbiAsync(dataSource, Option("--taxon") ?? "fungi", int.Parse(Option("--limit") ?? "100"),
+            long.Parse(Option("--max-bp") ?? "2000000000"), int.Parse(Option("--parallel") ?? "1"), args.Contains("--retry-failed"), Option("--contact"), args.Contains("--dry-run"));
 
     case "load-taxonomy":
         return await LoadTaxonomyAsync(dataSource, args.Contains("--refresh"), args.Contains("--skip-gtdb"), Option("--contact"));
@@ -215,7 +221,15 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
             {
                 var genomes = new List<BvBrcGenome>();
                 foreach (var species in batch)
-                    if (await client.FirstGenomeOfSpeciesAsync(group, species) is { } genome) genomes.Add(genome);
+                    try
+                    {
+                        if (await client.FirstGenomeOfSpeciesAsync(group, species) is { } genome) genomes.Add(genome);
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        // BV-BRC rejects some names outright, such as any with an apostrophe; one species shouldn't end the run.
+                        Console.WriteLine($"  skipped species {species}: {e.Message}");
+                    }
                 await ProcessAsync(genomes, crawlGroup);
             }
         }
@@ -247,6 +261,44 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
         $"{alreadyFinal} already handled, {failedSkipped} failed earlier (use --retry-failed). " +
         $"{elapsed.TotalSeconds:F0} s{(processed > 0 ? $", {elapsed.TotalSeconds / processed:F2} s per processed genome" : "")}.");
     return counts.ContainsKey(CrawlState.Failed) ? 2 : 0;
+}
+
+// The eukaryote pilot: one reference genome per family, counted and discarded; see NcbiIngestor.
+static async Task<int> IngestNcbiAsync(NpgsqlDataSource dataSource, string taxon, int limit, long maxLengthBp, int parallel, bool retryFailed, string? contact, bool dryRun)
+{
+    int taxid = taxon switch
+    {
+        "fungi" => 4751,
+        "plants" => 33090,
+        "animals" => 33208,
+        _ => throw new ArgumentException($"Unknown taxon '{taxon}'. Use fungi, plants or animals."),
+    };
+    using var client = new NcbiGenomeClient(contact);
+    var ingestor = new NcbiIngestor(dataSource, client);
+
+    var assemblies = await client.ListAssembliesAsync(taxid);
+    var picked = NcbiIngestor.Pick(assemblies, await client.LineagesAsync(assemblies.Select(a => a.Taxid).ToList()), limit, maxLengthBp);
+    Console.WriteLine($"NCBI {taxon}: {assemblies.Count} reference assemblies, {picked.Count} picked, {picked.Sum(p => p.Assembly.LengthBp) / 1e9:F1} Gbp in all.");
+    if (dryRun)
+    {
+        foreach (var classes in picked.GroupBy(p => p.Lineage.Class ?? p.Lineage.Phylum ?? "unknown").OrderByDescending(c => c.Count()))
+            Console.WriteLine($"  {classes.Key,-28} {classes.Count(),4} genomes {classes.Sum(p => p.Assembly.LengthBp) / 1e9,7:F1} Gbp");
+        return 0;
+    }
+    var statuses = await CrawlState.RegisterAsync(dataSource, NcbiIngestor.Provider, taxon, picked.Select(p => p.Assembly.Accession).ToList());
+
+    int failed = 0;
+    var pending = picked.Where(p => statuses[p.Assembly.Accession] == "pending" || (retryFailed && statuses[p.Assembly.Accession] == CrawlState.Failed));
+    await Parallel.ForEachAsync(pending, new ParallelOptions { MaxDegreeOfParallelism = parallel }, async (item, _) =>
+    {
+        var (assembly, lineage) = item;
+        var started = DateTime.UtcNow;
+        var outcome = await ingestor.IngestAsync(assembly, lineage);
+        if (outcome.StartsWith("FAILED", StringComparison.Ordinal)) Interlocked.Increment(ref failed);
+        Console.WriteLine($"  {assembly.Accession,-18} {assembly.Organism,-44} {outcome}  {(DateTime.UtcNow - started).TotalSeconds,6:F0} s");
+    });
+    Console.WriteLine($"Done: {failed} failed.");
+    return failed > 0 ? 2 : 0;
 }
 
 static async Task<int> LoadTaxonomyAsync(NpgsqlDataSource dataSource, bool refresh, bool skipGtdb, string? contact)

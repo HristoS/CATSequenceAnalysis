@@ -108,14 +108,16 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   (`ApiTests`, `UploadTests`, `SearchApiTests` with the worker off; `WorkerTests` with it on). `NoDnaTests` runs it on Kestrel
   and scans every column, log entry and temp file for a planted marker after upload and search (S4.4). `Scenario.http` is the
   end-to-end walk-through; `scripts/platform-checks/e2e_scenario.py` makes its bodies (`prepare`) and replays it with checks (`run`).
-  `Landscape` (Core) serves `GET /api/landscape`: PCA of the signature, public records only, one genome per species, one map because the
-  Z-curve and Karlin views are a rotation. The web UI is `SequencePlatform.Api/wwwroot/`: static files in front of the API, React 18.3.1
+  `Landscape` (Core) serves `GET /api/landscape`: PCA of the signature, public records only, one genome per species per group, or `all`
+  (exactly what `SignatureIndex` holds), one map per group because the Z-curve and Karlin views are a rotation. The web UI is `SequencePlatform.Api/wwwroot/`: static files in front of the API, React 18.3.1
   and htm vendored with no build step and no Node (React 19 has no UMD builds), hash routes, `default-src 'self'`.
 - `SequencePlatform.AppHost/` and `SequencePlatform.ServiceDefaults/` (P6): Aspire. Run mode starts `migrate`, then `api` and `worker` as two
   processes of the API project on the local database; publish mode writes Docker Compose with its own empty `postgres:17`. No broker:
   PostgreSQL stays the queue. Exactly one worker. Generated output goes to the git-ignored `deploy/` (its `.env` holds a password).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
-  string) → store ladder levels and annotations → delete the file. Commands `migrate`, `ingest-bvbrc`, `load-taxonomy`, `stats`, `list`,
+  string) → store ladder levels and annotations → delete the file. `ingest-bvbrc --per-species` adds one genome per species not yet stored;
+  `ingest-ncbi` is the eukaryote pilot: one record per assembly with summed nuclear dinucleotide counts and no profile levels, streamed
+  with no temp file, human refused in code. Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
   `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `add-user`, `disable-user`; see its README. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).
 - `SequencePlatform.Tests/` (NUnit 4): each run creates `sequence_platform_test_<random>`, migrates it, and drops it.

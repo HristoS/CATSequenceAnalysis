@@ -20,8 +20,9 @@ namespace SequencePlatform.Core
     /// four scale and distance choices measured within about 0.01 of each other (results/S55_*.csv). It comes from the stored
     /// dinucleotide counts (D8), so a profile-only upload has none.
     ///
-    /// One record stands for each genome (D9): the largest chromosome of a catalogue bacterium or archaeon, every virus record, and
-    /// every record of an upload (an upload may hold many genomes); plasmids are left out. <see cref="RefreshAsync"/> reloads when the
+    /// One record stands for each genome (D9): the largest chromosome of a catalogue bacterium or archaeon, every virus record, a
+    /// eukaryote's one record (its nuclear counts summed), and every record of an upload (an upload may hold many genomes); plasmids
+    /// are left out. <see cref="RefreshAsync"/> reloads when the
     /// record count or the highest record id changed, which an insert or a deletion always does. Each refresh publishes a new
     /// snapshot, so a query keeps a consistent view while one runs.
     /// </summary>
@@ -29,6 +30,7 @@ namespace SequencePlatform.Core
     {
         public const string Cellular = "cellular";
         public const string Viral = "viral";
+        public const string Eukaryotic = "eukaryotic";
         public const int MaxTreeLeaves = 500;
         public const string Description = "log rho* over both strands (dinucleotides), Euclidean distance";
 
@@ -61,7 +63,7 @@ namespace SequencePlatform.Core
                     " select r.id, r.kind, s.owner_id, r.dinucleotide_counts," +
                     "  row_number() over (partition by r.source_id, r.kind in ('bacterium', 'archaeon') order by r.length_bp desc, r.id) as n" +
                     " from sequence_record r join sequence_source s on s.id = r.source_id" +
-                    " where r.dinucleotide_counts is not null and r.kind in ('bacterium', 'archaeon', 'virus')) x " +
+                    " where r.dinucleotide_counts is not null and r.kind in ('bacterium', 'archaeon', 'virus', 'eukaryote')) x " +
                     "where owner_id is not null or kind = 'virus' or n = 1");
                 await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
                     while (await reader.ReadAsync(cancellationToken))
@@ -95,6 +97,7 @@ namespace SequencePlatform.Core
         {
             "bacterium" or "archaeon" => Cellular,
             "virus" => Viral,
+            "eukaryote" => Eukaryotic,
             _ => null,
         };
 

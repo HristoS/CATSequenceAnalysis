@@ -60,7 +60,7 @@ function Page({ route }) {
   switch (section) {
     case "catalogue": return html`<${CataloguePage} />`;
     case "sequences": return html`<${RecordPage} key=${id} id=${id} />`;
-    case "map": return html`<${MapPage} params=${route.params} />`;
+    case "map": return html`<${MapPage} key=${route.params.get("group")} params=${route.params} />`;
     case "tree": return html`<${TreePage} params=${route.params} />`;
     case "search": return html`<${SearchPage} params=${route.params} />`;
     case "searches": return html`<${SearchRunPage} key=${id} id=${id} />`;

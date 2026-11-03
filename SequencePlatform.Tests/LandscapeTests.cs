@@ -124,6 +124,21 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task TheMapOfEverythingHoldsExactlyWhatTheSignatureIndexHolds()
+        {
+            var (_, client) = await factory.NewClientAsync("alice");
+            await WithCountsAsync(await ThrowawayDatabase.InsertRecordAsync("landscape", "parity-virus", 20_000), 21);
+            await WithCountsAsync(await ThrowawayDatabase.InsertRecordAsync("landscape", "parity-yeast", 12_000_000, kind: "eukaryote"), 22);
+
+            var index = new SequencePlatform.Core.SignatureIndex(ThrowawayDatabase.DataSource);
+            await index.RefreshAsync();
+            var map = await client.GetFromJsonAsync<JsonElement>("/api/landscape?group=all");
+
+            Assert.That(Ids(map), Is.EquivalentTo(index.Entries.Values.Where(e => e.OwnerId is null).Select(e => e.Id)));
+            Assert.That(map.GetProperty("domains").EnumerateArray().Select(d => d.GetString()), Does.Contain("Eukaryota"));
+        }
+
+        [Test]
         public async Task IsCompressedForAClientThatAsks()
         {
             var (_, client) = await factory.NewClientAsync("alice");

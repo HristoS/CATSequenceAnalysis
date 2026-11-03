@@ -28,6 +28,8 @@ $env:SEQUENCE_PLATFORM_DB = "Host=localhost;Port=5432;Username=...;Password=...;
 dotnet run --project SequencePlatform.Ingest -- migrate
 dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group viruses --limit 100
 dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group bacteria --limit 30 --offset 30
+dotnet run -c Release --project SequencePlatform.Ingest -- ingest-bvbrc --group viruses --per-species --limit 100
+dotnet run -c Release --project SequencePlatform.Ingest -- ingest-ncbi --taxon fungi --limit 100 --dry-run
 dotnet run --project SequencePlatform.Ingest -- stats
 dotnet run --project SequencePlatform.Ingest -- list --kind bacterium --rank phylum --taxon Pseudomonadota --limit 20
 dotnet run --project SequencePlatform.Ingest -- list --min-length 1000000 --name borrel --after 120
@@ -47,7 +49,21 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   step (`RecordStore`) live in `SequencePlatform.Core`; this project is the BV-BRC crawler and CLI on top of it. Platform tests: `dotnet test SequencePlatform.Tests`.
 - `--group bacteria` and `--group archaea` select complete genomes marked Reference or Representative (6,036 and 374 on
   2026-10-19). `--group viruses` selects complete Reference genomes (15,536).
+- `--per-species` widens the catalogue instead of filling it: from all of a group's complete genomes (71,364 bacteria, 1,387 archaea, 10.3 M
+  viruses on 2026-10-30), one genome for each species not yet stored, Reference or Representative first, in a fixed random order, up to
+  `--limit`. Bacteria and archaea are listed once and picked from. Viruses can't be listed, so each missing species is one request as the
+  run reaches it, and an interrupted run loses at most one batch of 50. BV-BRC refuses species names with an apostrophe; those are logged and
+  skipped. Item groups are `<group>-species`, so failed items are retried with `--retry-failed --group viruses-species`.
 - `--contact you@example.org` adds a contact address to the User-Agent. Recommended for large runs.
+- `ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--dry-run]` is the eukaryote pilot: reference assemblies at chromosome
+  level or better, one per family in a fixed random order, up to `B` bases each (default 2 Gbp). `--parallel P` streams `P` genomes at once,
+  default 1. A stream dropped midway marks that genome failed, and only `--retry-failed` fetches it again. `--dry-run` prints what would be
+  fetched, by class. The FASTA streams from NCBI's FTP tree through hash, gzip and `SequenceFeatureReader` with no temp file, so the DNA never
+  reaches the disk. A genome becomes one record, `kind = 'eukaryote'`, `data_class = 'public_eukaryote'`, holding its nuclear dinucleotide counts
+  summed and no profile levels: it has relatives and is on the map and in trees, but find-similar and localize can't score it, and in a
+  length band it appears in the Not comparable list. Organelles are left out by their FASTA description. Human assemblies are refused in
+  code. `--limit` and `--max-bp` decide what is picked, so resume a run with the same values. NCBI's FTP gave about 0.5 MB/s
+  (1.6 Mbp/s) per connection on 2026-10-30, so size a run by bases rather than genomes.
 - `search-similar --fasta X | --profile X.zcwp` (P3 S3.4) ranks the records of comparable length, [r × L, L / r] for a query
   of length L, by `ZCurveWindowedProfile` similarity at one ladder level, the better of the query's two strands. `--ratio` is
   0.25–1, default 0.5; `list`'s filters narrow the candidates further; `--top` defaults to 20. Records with the same
@@ -95,7 +111,7 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
 
 ## Behaviour
 
-- **Polite:** requests are sequential and at least 1 s apart, and HTTP 429/5xx are retried with exponential backoff
+- **Polite:** requests start at least 1 s apart and are sequential, except the genomes of `ingest-ncbi --parallel`, and HTTP 429/5xx are retried with exponential backoff
   that honours `Retry-After`. BV-BRC publishes no rate limit.
 - **Resumable:** every listed genome gets a `crawl_item` row (`pending`, then `done`, `duplicate`, `too_large` or
   `failed`, with attempt count and last error). Items in a final state are skipped without any request, so re-running a

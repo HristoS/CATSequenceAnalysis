@@ -35,7 +35,7 @@ function Relatives({ id, kind }) {
     </ol>
     <p class="actions">
       <a class="button" href="#/tree?ids=${ids.join(",")}">Tree of these genomes</a>
-      <a class="button" href="#/map?group=${kind === "virus" ? "viral" : "cellular"}&id=${id}">Show on the map</a>
+      <a class="button" href="#/map?group=${kind === "virus" ? "viral" : kind === "eukaryote" ? "eukaryotic" : "cellular"}&id=${id}">Show on the map</a>
     </p>
     <p class="hint">Nearest by ${result.signature}.</p>`;
 }

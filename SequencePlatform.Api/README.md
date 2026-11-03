@@ -76,7 +76,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
 | GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |
 | GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
-| GET | `/api/landscape?group=` | The public catalogue on two axes, `cellular` (default) or `viral`, one genome per species: PCA of the signature as parallel arrays with lineages and each axis's heaviest dinucleotides |
+| GET | `/api/landscape?group=` | The public catalogue on two axes: `cellular` (default), `viral` or `eukaryotic`, one genome per species, or `all`, every public genome on one set of axes. PCA of the signature as parallel arrays with domains, lineages and each axis's heaviest dinucleotides |
 | GET | `/health`, `/alive` | Open without a key: whether the process is up |
 
 Requests for each are in [Sequences.http](Sequences.http) and [Searches.http](Searches.http), and a whole walk-through in
@@ -93,8 +93,11 @@ local catalogue (2026-10-30, `results/S55_RelativesCheck.csv`): a relatives quer
 are 9 Escherichia or Shigella and one Citrobacter, SARS-CoV-2's are 10 coronaviruses, and a 500-genome tree takes 0.4 s (UPGMA) or 1.0 s
 (neighbour-joining).
 
-The map is built on first request from public records only, so nobody's upload moves it, and is kept until the catalogue changes.
-Cellular genomes need a GTDB assignment; viruses of at least 1 kbp carry NCBI's lineage. It uses log ρ\*, and the Z-curve and Karlin
+The map is built on first request from public records only, so nobody's upload moves it, and is kept until the record count or highest
+id changes: after `load-taxonomy` alone, restart the API. On the per-group maps cellular genomes need a GTDB assignment and viruses of at
+least 1 kbp carry NCBI's lineage; the `all` map holds exactly what `SignatureIndex` holds, labelled by GTDB where assigned and NCBI otherwise.
+Eukaryotes are in the pilot's scope only: one record per assembly, from nuclear counts. Responses are compressed for clients that ask.
+It uses log ρ\*, and the Z-curve and Karlin
 views are a rotation of one vector, so there is one map. Two axes keep phyla apart but not genera (`results/S53_Map_Metrics.csv`), so
 use relatives to find what a genome resembles. On the local catalogue (`results/P6_LocalStack.csv`, Debug): 5,480 cellular and 9,192 viral
 genomes, 1.4 s and 1.2 s cold, 70 ms warm, 0.5 and 0.8 MB.

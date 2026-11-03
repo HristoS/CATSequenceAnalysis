@@ -6,7 +6,7 @@ const minTreeLeaves = 3;
 const gridCell = 12;
 const hoverRadiusSquared = 64;
 const loaded = new Map();
-const groups = [["cellular", "Bacteria and archaea"], ["viral", "Viruses"], ["all", "Everything"]];
+const groups = [["cellular", "Bacteria and archaea"], ["viral", "Viruses"], ["eukaryotic", "Eukaryotes"], ["all", "Everything"]];
 
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const quantile = (values, q) => {

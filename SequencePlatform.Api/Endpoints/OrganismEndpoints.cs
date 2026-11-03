@@ -45,7 +45,7 @@ namespace SequencePlatform.Api
             app.MapGroup("/api/landscape").WithTags("Organisms").MapGet("/", LandscapeAsync)
                 .WithName("GetLandscape")
                 .WithSummary("The public catalogue on two axes, for a map")
-                .WithDescription("PCA of the dinucleotide signature. group is cellular (default) or viral, one genome per species, or all: every " +
+                .WithDescription("PCA of the dinucleotide signature. group is cellular (default), viral or eukaryotic, one genome per species, or all: every " +
                     "public genome on one set of axes. Two axes keep phyla apart but not genera, so this is a picture; nearest relatives come from the " +
                     "full signature. Private uploads are never on it.")
                 .ProducesProblem(StatusCodes.Status400BadRequest);
