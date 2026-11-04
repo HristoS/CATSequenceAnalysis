@@ -6,9 +6,10 @@ using SequenceAnalyses;
 namespace SequencePlatform.Core
 {
     /// <param name="HeaderId">The FASTA header id as <see cref="FastaReader"/> parses it; a provider may store a cleaned-up form.</param>
-    /// <param name="SequenceSha256">Null, like <paramref name="DinucleotideCounts"/>, only for a profile upload: there was no DNA.</param>
+    /// <param name="SequenceSha256">Null, like <paramref name="DinucleotideCounts"/> and <paramref name="HexamerCounts"/>, only for a profile upload: there was no DNA.</param>
     public sealed record ProfiledRecord(string HeaderId, string Description, long LengthBp, double? GcFraction,
-        IReadOnlyList<(int Factor, ZCurveWindowedProfile Level)> Levels, byte[]? SequenceSha256, long[]? DinucleotideCounts);
+        IReadOnlyList<(int Factor, ZCurveWindowedProfile Level)> Levels, byte[]? SequenceSha256, long[]? DinucleotideCounts,
+        int[]? HexamerCounts = null);
 
     /// <param name="RawSha256">Of the file as downloaded or uploaded; the file itself is discarded.</param>
     /// <param name="OwnerId">The uploading user (D3); null for every downloaded source.</param>
@@ -59,7 +60,7 @@ namespace SequencePlatform.Core
             var (sequenceSha256, dinucleotideCounts) = features.Finish();
             var (levels, gcFraction) = Levels(fine);
             return new ProfiledRecord(headerId, description.Trim(), features.CharactersRead, gcFraction, levels,
-                sequenceSha256, dinucleotideCounts);
+                sequenceSha256, dinucleotideCounts, features.HexamerCounts);
         }
 
         /// <summary>
@@ -152,6 +153,8 @@ namespace SequencePlatform.Core
                     sequenceId = (long)(await insertRecord.ExecuteScalarAsync())!;
                 }
                 sequenceIds.Add(sequenceId);
+                if (profile.HexamerCounts is not null)
+                    await RecordKmers.WriteAsync(connection, transaction, sequenceId, RecordKmers.Done, profile.HexamerCounts);
 
                 foreach (var (factor, level) in profile.Levels)
                     if (!await ProfileLevels.InsertAsync(connection, transaction, sequenceId, Method, MethodVersion, factor, level))

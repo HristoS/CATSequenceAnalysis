@@ -120,7 +120,9 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   string) → store ladder levels and annotations → delete the file. `ingest-bvbrc --per-species` adds one genome per species not yet stored;
   `ingest-ncbi` is the eukaryote pilot: one record per assembly with summed nuclear dinucleotide counts and no profile levels, streamed
   with no temp file, human refused in code. Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
-  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `add-user`, `disable-user`; see its README. Measurement scripts for the platform's
+  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `backfill-kmers`, `add-user`, `disable-user`; see its README.
+  6-mer counts per record (`record_kmer`, migration 0013, D8 widened 2026-11-04) are stored at ingest; `backfill-kmers` re-downloads older
+  records and stores counts only where the SHA-256 matches. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).
 - `SequencePlatform.Tests/` (NUnit 4): each run creates `sequence_platform_test_<random>`, migrates it, and drops it.
 - Connection string from the `SEQUENCE_PLATFORM_DB` env var, else the git-ignored `SequencePlatform.Ingest/appsettings.json`

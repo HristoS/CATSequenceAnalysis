@@ -12,16 +12,25 @@ namespace SequencePlatform.Core
     ///  - SHA-256 over those letters as ASCII bytes. Two records are "identical" when this matches.
     ///  - Dinucleotide counts over adjacent pairs of A, C, G, T, index 4 * first + second in A, C, G, T
     ///    order (AA, AC, AG, AT, CA, ..., TT). Any other letter (N, IUPAC codes) breaks the pair.
+    ///  - 6-mer counts the same way (D8 widened 2026-11-04): one strand, index the base-4 number of the six bases with the
+    ///    first most significant (AAAAAA = 0, ..., TTTTTT = 4095); any other letter breaks the run. Every shorter k sums out
+    ///    of them except near run ends, so they aren't summed into the dinucleotides; those stay counted directly.
     /// </summary>
     public sealed class SequenceFeatureReader : TextReader
     {
         public const string BaseOrder = "ACGT";
+        public const int HexamerLength = 6;
+        public const int HexamerCount = 1 << (2 * HexamerLength);
+        private const int hexamerMask = HexamerCount - 1;
 
         private readonly TextReader inner;
         private readonly IncrementalHash sha256 = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         private readonly long[] dinucleotideCounts = new long[16];
+        private readonly int[] hexamerCounts = new int[HexamerCount];
         private byte[] letterBytes = Array.Empty<byte>();
         private int previousBase = -1;
+        private int hexamer;
+        private int run;
         private bool reachedEnd;
         private bool finished;
 
@@ -53,6 +62,13 @@ namespace SequencePlatform.Core
                 int baseIndex = c switch { 'A' => 0, 'C' => 1, 'G' => 2, 'T' => 3, _ => -1 };
                 if (baseIndex >= 0 && previousBase >= 0) dinucleotideCounts[4 * previousBase + baseIndex]++;
                 previousBase = baseIndex;
+                if (baseIndex < 0) run = 0;
+                else
+                {
+                    hexamer = ((hexamer << 2) | baseIndex) & hexamerMask;
+                    if (run < HexamerLength) run++;   // capped, so a run longer than int.MaxValue can't wrap
+                    if (run == HexamerLength) hexamerCounts[hexamer] = checked(hexamerCounts[hexamer] + 1);
+                }
             }
             sha256.AppendData(letterBytes, 0, letters);
         }
@@ -68,6 +84,10 @@ namespace SequencePlatform.Core
             finished = true;
             return (sha256.GetHashAndReset(), (long[])dinucleotideCounts.Clone());
         }
+
+        /// <summary>The record's 6-mer counts, once <see cref="Finish"/> has been called.</summary>
+        public int[] HexamerCounts => finished ? (int[])hexamerCounts.Clone()
+            : throw new InvalidOperationException("Call Finish first: the counts are only complete at the end of the sequence.");
 
         protected override void Dispose(bool disposing)
         {

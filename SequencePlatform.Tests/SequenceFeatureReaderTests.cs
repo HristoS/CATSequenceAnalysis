@@ -52,6 +52,33 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public void HexamersCountWithinRunsOfBases()
+        {
+            // AAAAAAC|N|ACGTACG: AAAAAA and AAAAAC, then ACGTAC and CGTACG; the N run can't start a 6-mer.
+            using var reader = new SequenceFeatureReader(new StringReader("aaaaaac\nNacgtacg"));
+            while (reader.Read(new char[3], 0, 3) > 0) { }
+            reader.Finish();
+            var counts = reader.HexamerCounts;
+
+            var expected = new int[SequenceFeatureReader.HexamerCount];
+            foreach (var word in new[] { "AAAAAA", "AAAAAC", "ACGTAC", "CGTACG" })
+                expected[word.Aggregate(0, (code, c) => 4 * code + SequenceFeatureReader.BaseOrder.IndexOf(c))]++;
+            Assert.That(counts, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void HexamersOfALongSequenceSumToItsRuns()
+        {
+            var dna = Generator.GetRandomDNA(10_007, 20261104);
+            using var reader = new SequenceFeatureReader(new StringReader(dna[..5000] + "NN" + dna[5000..]));
+            ZCurveWindowedProfile.FromStream(reader);
+            reader.Finish();
+
+            Assert.That(reader.HexamerCounts.Sum(), Is.EqualTo((5000 - 5) + (5007 - 5)));
+            Assert.That(() => new SequenceFeatureReader(new StringReader("ACGT")).HexamerCounts, Throws.InvalidOperationException);
+        }
+
+        [Test]
         public void WrappingTheReaderLeavesTheProfileUnchanged()
         {
             var path = WriteFasta("p.fna", Generator.GetRandomDNA(25_000, 7), 60, "\n");

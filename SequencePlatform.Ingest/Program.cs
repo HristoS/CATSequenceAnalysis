@@ -16,6 +16,7 @@ using SequencePlatform.Ingest;
 //   build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]   score_null from stored profiles (P3 S3.6)
 //   build-neighbours [--ratio R]             every record's own top 20 (other assemblies), for re-ranking by shared neighbours (P3 S3.4b)
 //   build-origins                             circular bacterial chromosomes' levels laid out from their replication origin, for find-similar
+//   backfill-kmers [--limit N] [--sample SEED] [--contact you@example.org]   6-mer counts for BV-BRC records stored before migration 0013, by re-downloading
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
@@ -26,6 +27,7 @@ const string usage =
     "       | ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--contact EMAIL] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins\n" +
+    "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL]\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
     "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | disable-user NAME";
 
@@ -115,6 +117,10 @@ switch (args[0])
         Console.WriteLine($"{rotatedCount:N0} of {examined:N0} circular chromosomes stored rotated to their origin in {originWatch.Elapsed.TotalSeconds:F0} s. " +
             "Rebuild the null (build-null) and the neighbour graph (build-neighbours): both score the way searches do.");
         return 0;
+
+    case "backfill-kmers":
+        return await BackfillKmersAsync(dataSource, int.Parse(Option("--limit") ?? "100"),
+            Option("--sample") is { } sampleSeed ? int.Parse(sampleSeed) : null, Option("--contact"));
 
     case "search-similar":
         return await SearchSimilarAsync(dataSource, Option("--fasta"), Option("--profile"), Filter(),
@@ -517,6 +523,34 @@ static async Task PrintListAsync(NpgsqlDataSource dataSource, CatalogueFilter fi
     foreach (var r in page.Records)
         Console.WriteLine($"{r.Id,6} {r.Kind,-10} {r.LengthBp,12:N0} {r.GcFraction,6:F3} {r.Lineage.Genus,-20} {r.RecordId,-14} {r.Name}");
     Console.WriteLine(page.NextAfter is { } next ? $"{page.Records.Count} shown; next page: --after {next}" : $"{page.Records.Count} shown; last page");
+}
+
+static async Task<int> BackfillKmersAsync(NpgsqlDataSource dataSource, int limit, int? seed, string? contact)
+{
+    using var client = new BvBrcClient(contact);
+    var backfill = new KmerBackfill(dataSource, client);
+    var genomes = await backfill.PendingGenomesAsync(limit, seed);
+    Console.WriteLine($"{genomes.Count} genomes to backfill{(seed is null ? "" : $" (random sample, seed {seed})")}.");
+    var statuses = new Dictionary<string, int>();
+    int failed = 0;
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    for (int i = 0; i < genomes.Count; i++)
+    {
+        try
+        {
+            foreach (var status in await backfill.BackfillAsync(genomes[i])) statuses[status] = statuses.GetValueOrDefault(status) + 1;
+        }
+        catch (Exception e)
+        {
+            // Nothing was written for this genome, so the next run tries it again.
+            failed++;
+            Console.WriteLine($"  {genomes[i]}: {e.GetType().Name}: {e.Message}");
+        }
+        if ((i + 1) % 25 == 0 || i + 1 == genomes.Count)
+            Console.WriteLine($"  {i + 1}/{genomes.Count} genomes, {watch.Elapsed.TotalMinutes:F1} min, {watch.Elapsed.TotalSeconds / (i + 1):F2} s each; " +
+                string.Join(", ", statuses.OrderBy(s => s.Key).Select(s => $"{s.Key} {s.Value}")) + (failed > 0 ? $", failed {failed}" : ""));
+    }
+    return failed == 0 ? 0 : 1;
 }
 
 static async Task PrintStatsAsync(NpgsqlDataSource dataSource)

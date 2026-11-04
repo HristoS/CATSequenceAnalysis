@@ -122,8 +122,8 @@ namespace SequencePlatform.Ingest
         }
 
         // BV-BRC headers look like ">accn|NC_003210   description"; the stored record id is the bare accession.
-        private static string RecordId(ProfiledRecord record) =>
-            record.HeaderId.StartsWith("accn|", StringComparison.Ordinal) ? record.HeaderId[5..] : record.HeaderId;
+        internal static string RecordId(string headerId) =>
+            headerId.StartsWith("accn|", StringComparison.Ordinal) ? headerId[5..] : headerId;
 
         // Returns true when some record's 500 bp level didn't fit inline (crawl status too_large: that record
         // can't be searched at full resolution until object storage exists). Coarser levels that fit are kept.
@@ -136,7 +136,7 @@ namespace SequencePlatform.Ingest
             var rows = records
                 .Select(record =>
                 {
-                    var recordId = RecordId(record);
+                    var recordId = RecordId(record.HeaderId);
                     contigs.TryGetValue(recordId, out var contig);
                     return (record, new RecordRow(recordId, genome.Name, Kind(superkingdom, contig?.SequenceType), taxid, lineage,
                         Annotations(genome, contig, record.Description), contig?.SequenceMd5));

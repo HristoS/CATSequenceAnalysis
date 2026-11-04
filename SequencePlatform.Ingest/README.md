@@ -11,6 +11,8 @@ then deletes the download. **The DNA sequence is never stored.** What goes into 
   the same streaming pass as the profile (`SequenceFeatureReader` in Core): `sequence_sha256` (SHA-256 of the record's
   letters, uppercased, nothing else) and `dinucleotide_counts` (16 adjacent A/C/G/T pair counts, AA…TT). Plus BV-BRC's
   own `sequence_md5` as `provider_md5`, which is used for de-duplication.
+- `record_kmer` (migration 0013, D8 widened 2026-11-04): the record's 6-mer counts, 4,096 on one strand (AAAAAA … TTTTTT, other
+  letters break a run), counted in the same pass. Every shorter k sums out of them. The eukaryote pilot doesn't store them yet.
 - `profile_level`: `ZCurveWindowedProfile` ladder levels 500 bp / 2 / 8 / 32 kbp in the ZCWP binary format
   (`ZCurveWindowedProfile.ToBinary`). Levels with zero windows aren't stored.
 
@@ -97,6 +99,11 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   `search-similar` then scores those records, and a query with a clear skew, both as stored and rotated, and keeps the
   better score; `strand*` marks a hit whose best score came from a rotated form. Rerun `build-null` and `build-neighbours`
   afterwards. Localization ignores the rotated levels, so its offsets stay in the deposit's coordinates.
+- `backfill-kmers [--limit N] [--sample SEED]` gives BV-BRC records stored before migration 0013 their 6-mer counts: it downloads
+  each genome again, reads it once through `SequenceFeatureReader`, deletes the file, and stores the counts only for a record whose
+  SHA-256 and dinucleotide counts match what was stored (`done`); otherwise it records `mismatch` or `missing`, so a rerun skips it.
+  Nothing else is recomputed. `--sample` takes genomes in a fixed random order (a trial); a genome that fails to download is left
+  for the next run.
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.
