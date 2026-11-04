@@ -59,5 +59,6 @@ app.MapDefaultEndpoints();
 app.MapSequences();
 app.MapSearches();
 app.MapOrganisms();
+app.MapExperiments();
 
 app.Run();

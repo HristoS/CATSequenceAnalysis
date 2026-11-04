@@ -1,5 +1,6 @@
 import { auth, get } from "./api.js";
 import { CataloguePage } from "./catalogue.js";
+import { ExperimentPage, ExperimentsPage } from "./experiments.js";
 import { Message, html, useEffect, useState } from "./html.js";
 import { MapPage } from "./map.js";
 import { RecordPage } from "./record.js";
@@ -7,7 +8,7 @@ import { SearchPage, SearchRunPage } from "./search.js";
 import { TreePage } from "./tree.js";
 import { UploadPage } from "./upload.js";
 
-const links = [["catalogue", "Catalogue"], ["map", "Map"], ["tree", "Tree"], ["search", "Search"], ["upload", "Upload"]];
+const links = [["catalogue", "Catalogue"], ["map", "Map"], ["tree", "Tree"], ["search", "Search"], ["upload", "Upload"], ["experiments", "Experiments"]];
 
 function parseRoute() {
   const [path, query = ""] = (location.hash.slice(2) || "catalogue").split("?");
@@ -65,6 +66,7 @@ function Page({ route }) {
     case "search": return html`<${SearchPage} params=${route.params} />`;
     case "searches": return html`<${SearchRunPage} key=${id} id=${id} />`;
     case "upload": return html`<${UploadPage} />`;
+    case "experiments": return id ? html`<${ExperimentPage} key=${id} name=${decodeURIComponent(id)} />` : html`<${ExperimentsPage} />`;
     default: return html`<${Message} error>There is no page here.<//>`;
   }
 }

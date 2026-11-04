@@ -77,10 +77,20 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |
 | GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
 | GET | `/api/landscape?group=` | The public catalogue on two axes: `cellular` (default), `viral` or `eukaryotic`, one genome per species, or `all`, every public genome on one set of axes. PCA of the signature as parallel arrays with domains, lineages and each axis's heaviest dinucleotides |
+| GET | `/api/experiments` | The published P9 experiments, newest first: question, verdict (`pass`, `fail`, `context`), snapshot, script, summary numbers |
+| GET | `/api/experiments/{name}` | One experiment and a page of its findings: `kind`, `order` = `score` (default) or `-score`, `offset`, `limit` (1–1000, default 100) |
+| GET | `/api/sequences/{id}/findings` | What the published experiments say about one record; empty when nothing |
 | GET | `/health`, `/alive` | Open without a key: whether the process is up |
 
 Requests for each are in [Sequences.http](Sequences.http) and [Searches.http](Searches.http), and a whole walk-through in
 [Scenario.http](Scenario.http).
+
+## Experiments (P9)
+
+Experiments run offline: `scripts/platform-checks/p9_*.cs` compute on the frozen snapshot database `sequence_platform_p9` and, with
+`--publish`, write their run and findings here (`ExperimentStore`, migration 0012). A publish replaces the previous run of the same
+name. Findings about records that have since been deleted, or that aren't public, are skipped. The API only reads them; the UI shows
+them under Experiments.
 
 ## Relatives, signatures and trees (P5 S5.5)
 

@@ -1,0 +1,401 @@
+Group, Id, Name, ProviderFamily, Score, Share, FamilyMedianShare, GenusScore, NeighbourMajorityFamily, MajorityCount, GtdbFamily, NcbiFamily, CheckmCompleteness, CheckmContamination, Gc, LengthBp
+cellular, 453, "Pseudoxanthomonas spadix BD-a59", Lysobacteraceae, 1.00, 0.00, 1.00, 0.40, Comamonadaceae, 8, , Lysobacteraceae, 97.1, 1.3, 0.677, 3452554
+cellular, 592, "Bartonella australis Aust/NH1", Bartonellaceae, 1.00, 0.00, 1.00, 1.00, Oscillospiraceae, 3, Rhizobiaceae, Bartonellaceae, 99.1, 0.9, 0.418, 1596490
+cellular, 836, "Permianibacter aggregans strain HW001", Pseudomonadaceae, 1.00, 0.00, 1.00, , Alcaligenaceae, 4, Permianibacteraceae, Pseudomonadaceae, 92.78, 0.75, 0.544, 4266648
+cellular, 1809, "Pontimonas salivibrio strain CL-TW6", Microbacteriaceae, 1.00, 0.00, 1.00, , Micrococcaceae, 10, Microbacteriaceae, Microbacteriaceae, 97.5, 0.6, 0.583, 1760810
+cellular, 1908, "Paenibacillus swuensis strain DY6", Paenibacillaceae, 1.00, 0.00, 1.00, 1.00, Veillonellaceae, 4, DY6, Paenibacillaceae, 100, 0.3, 0.489, 5012599
+cellular, 2094, "Candidatus Moranella endobia PCVAL", Enterobacteriaceae, 1.00, 0.00, 1.00, , Bruguierivoracaceae, 4, Enterobacteriaceae, Enterobacteriaceae, 100, 0, 0.435, 538203
+cellular, 2178, "Candidatus Liberibacter americanus str. Sao Paulo", Rhizobiaceae, 1.00, 0.00, 1.00, 0.20, Bacillaceae, 2, Rhizobiaceae, Rhizobiaceae, 90.3, 0.5, 0.311, 1195201
+cellular, 2193, "Psychrosphaera aestuarii strain PSC101", Pseudoalteromonadaceae, 1.00, 0.00, 1.00, , Alteromonadaceae, 5, Alteromonadaceae, Pseudoalteromonadaceae, 94.47, 0, 0.396, 3049778
+cellular, 2212, "Liberibacter crescens strain BT-0", Rhizobiaceae, 1.00, 0.00, 1.00, 0.20, Bacillaceae, 6, Rhizobiaceae, Rhizobiaceae, 97, 0, 0.354, 1522119
+cellular, 2269, "Mycolicibacterium sediminis strain JCM 17899", Mycobacteriaceae, 1.00, 0.00, 1.00, 0.70, Nocardiaceae, 10, Mycobacteriaceae, Mycobacteriaceae, 99.61, 0.9, 0.691, 6250641
+cellular, 2272, "Neorickettsia helminthoeca str. Oregon", Anaplasmataceae, 1.00, 0.00, 1.00, , Sulfurovaceae, 3, Anaplasmataceae, Anaplasmataceae, 91.1, 0, 0.417, 884232
+cellular, 2363, "Candidatus Pseudomonas adelgestsugas strain HWA_ENA", Pseudomonadaceae, 1.00, 0.00, 1.00, 1.00, Moraxellaceae, 7, Pseudomonadaceae, Pseudomonadaceae, 67.39, 0.71, 0.395, 1835598
+cellular, 2469, "Variibacter gotjawalensis strain GJW-30", Nitrobacteraceae, 1.00, 0.00, 1.00, , Burkholderiaceae, 9, Xanthobacteraceae, Nitrobacteraceae, 100, 0.8, 0.622, 4586237
+cellular, 2730, "Candidatus Tachikawaea gelatinosa UwTKB", Enterobacteriaceae, 1.00, 0.00, 1.00, , Spiroplasmataceae, 7, Enterobacteriaceae, Enterobacteriaceae, 100, 0, 0.251, 708439
+cellular, 2810, "Aneurinibacillus thermoaerophilus strain CCM 8960", Paenibacillaceae, 1.00, 0.00, 1.00, , Oscillospiraceae, 3, Aneurinibacillaceae, Paenibacillaceae, 96.27, 1.83, 0.448, 3662904
+cellular, 2963, "Paenibacillus larvae subsp. larvae strain Eric_IV", Paenibacillaceae, 1.00, 0.00, 1.00, 1.00, Bacillaceae, 8, NBRC-103111, Paenibacillaceae, 99.7, 0, 0.443, 4268596
+cellular, 3237, "Candidatus Westeberhardia cardiocondylae strain obscurior", Enterobacteriaceae, 1.00, 0.00, 1.00, , Spiroplasmataceae, 8, Enterobacteriaceae, Enterobacteriaceae, 95.83, 0, 0.234, 532684
+cellular, 3301, "Arthrobacter sp. IHBB 11108", Micrococcaceae, 1.00, 0.00, 1.00, , Corynebacteriaceae, 4, Micrococcaceae, Micrococcaceae, 99.5, 0.5, 0.590, 3595718
+cellular, 3431, "Mesorhizobium sp. B7", Phyllobacteriaceae, 1.00, 0.00, 1.00, , Methylobacteriaceae, 5, Rhizobiaceae, Phyllobacteriaceae, 99, 2.8, 0.652, 5158483
+cellular, 3522, "Rothia amarae strain KJZ-9", Micrococcaceae, 1.00, 0.00, 1.00, 0.10, Corynebacteriaceae, 4, Micrococcaceae, Micrococcaceae, 99.21, 0, 0.522, 2407675
+cellular, 3664, "Paraphotobacterium marinum NSCS20N07D", Vibrionaceae, 1.00, 0.00, 1.00, , Flavobacteriaceae, 2, Vibrionaceae, Vibrionaceae, 100, 0, 0.316, 1426504
+cellular, 3741, "Candidatus Doolittlea endobia DEMHIR", Enterobacteriaceae, 1.00, 0.00, 1.00, , Candidatus Nanosynbacteraceae, 1, Enterobacteriaceae, Enterobacteriaceae, 100, 0, 0.442, 834734
+cellular, 4226, "Sodalis endosymbiont of Henestaris halophilus strain HBA", Bruguierivoracaceae, 1.00, 0.00, 1.00, 1.00, Moraxellaceae, 4, Enterobacteriaceae, Bruguierivoracaceae, 38, 1.2, 0.368, 1622395
+cellular, 4546, "Dongshaea marina DM2", Aeromonadaceae, 1.00, 0.00, 1.00, , Lachnospiraceae, 7, Aeromonadaceae, Aeromonadaceae, 83.3, 9.7, 0.510, 5032832
+cellular, 4600, "Aquella oligotrophica DSM 100970", Neisseriaceae, 1.00, 0.00, 1.00, , Lactobacillaceae, 3, UBA11063, Neisseriaceae, 100, 0, 0.364, 2820660
+cellular, 4874, "Pseudomonas sp. QZS01", Pseudomonadaceae, 1.00, 0.00, 1.00, , Alcaligenaceae, 1, Pseudomonadaceae, Pseudomonadaceae, 91.37, 0.95, 0.381, 3337477
+cellular, 4885, "Rhodospirillaceae bacterium SCSIO 08040", Azospirillaceae, 1.00, 0.00, 1.00, , Caulobacteraceae, 2, Azospirillaceae, Azospirillaceae, 99.5, 2, 0.672, 3440599
+cellular, 4945, "Nitratireductor thuwali Nit1536", Phyllobacteriaceae, 1.00, 0.00, 1.00, 0.50, Rhizobiaceae, 6, Rhizobiaceae, Phyllobacteriaceae, 100, 0.7, 0.639, 4216528
+cellular, 4996, "Crenobacter sp. K1W11S-77", Neisseriaceae, 1.00, 0.00, 1.00, , Eggerthellaceae, 5, Chromobacteriaceae, Neisseriaceae, 96.3, 6.5, 0.653, 3271767
+cellular, 5055, "Arsenophonus endosymbiont of Aleurodicus dispersus strain ARAD", Morganellaceae, 1.00, 0.00, 1.00, 0.40, Acidaminococcaceae, 2, Enterobacteriaceae, Morganellaceae, 24.6, 1.82, 0.322, 663125
+cellular, 5155, "Vibrio sp. HBUAS61001", Vibrionaceae, 1.00, 0.00, 1.00, 1.00, Enterobacteriaceae, 6, Vibrionaceae, Vibrionaceae, 94.9, 1.58, 0.454, 2901449
+cellular, 5270, "Paenibacillus sp. FW100M-2", Paenibacillaceae, 1.00, 0.00, 1.00, 1.00, Enterobacteriaceae, 7, Paenibacillaceae, Paenibacillaceae, 96.39, 5.13, 0.515, 4228822
+cellular, 5589, "Candidatus Sneabacter namystus strain 1621", Rickettsiaceae, 1.00, 0.00, 1.00, , Anaplasmataceae, 10, Rickettsiaceae, Rickettsiaceae, 95.83, 0, 0.349, 605411
+cellular, 5729, "Vibrio algicola SM1977", Vibrionaceae, 1.00, 0.00, 1.00, 1.00, Morganellaceae, 4, Vibrionaceae, Vibrionaceae, 96.4, 1.5, 0.425, 2518765
+cellular, 6364, "Vibrio neonatus JCM 21521", Vibrionaceae, 1.00, 0.00, 1.00, 1.00, Pseudoalteromonadaceae, 7, Vibrionaceae, Vibrionaceae, 92.6, 2.7, 0.433, 2746110
+cellular, 6561, "Psychrosphaera sp. MTZ26", Pseudoalteromonadaceae, 1.00, 0.00, 1.00, , Idiomarinaceae, 4, Alteromonadaceae, Pseudoalteromonadaceae, 95.32, 1.26, 0.422, 3331814
+cellular, 6645, "Amycolatopsis sp. YIM 96748", Pseudonocardiaceae, 1.00, 0.00, 1.00, 1.00, Streptomycetaceae, 10, Pseudonocardiaceae, Pseudonocardiaceae, 98.79, 3.13, 0.702, 7657695
+cellular, 6699, "Mycetocola spongiae MSC19", Microbacteriaceae, 1.00, 0.00, 1.00, 0.30, Paenibacillaceae, 7, Microbacteriaceae, Microbacteriaceae, 98.2, 1.8, 0.664, 3196754
+cellular, 6796, "Thermomonas sp. IMCC34681", Lysobacteraceae, 1.00, 0.00, 1.00, 0.20, Comamonadaceae, 4, Xanthomonadaceae, Lysobacteraceae, , , 0.662, 2717354
+cellular, 6809, "Renibacterium salmoninarum ATCC 33209", Micrococcaceae, 1.00, 0.00, 1.00, , Corynebacteriaceae, 2, Micrococcaceae, Micrococcaceae, 99.6, 1.6, 0.563, 3155250
+cellular, 6900, "Brevibacteriaceae bacterium ZFBP1038", Brevibacteriaceae, 1.00, 0.00, 1.00, , Corynebacteriaceae, 4, Brevibacteriaceae, Brevibacteriaceae, 98.7, 1.3, 0.636, 4048523
+cellular, 7307, "Rhodococcus sp. 75", Nocardiaceae, 1.00, 0.00, 1.00, 1.00, Geodermatophilaceae, 5, Mycobacteriaceae, Nocardiaceae, 97.1, 0, 0.733, 3678202
+cellular, 8081, "Actinoalloteichus hymeniacidonis strain HPA177(T) (=DSM 45092(T))", Pseudonocardiaceae, 1.00, 0.00, 1.00, 0.20, Nocardiaceae, 3, Pseudonocardiaceae, Pseudonocardiaceae, 100, 0, 0.681, 6306386
+cellular, 8461, "Phocaeicola coprophilus strain FDAARGOS_1220 strain Not applicable", Bacteroidaceae, 1.00, 0.00, 1.00, 0.20, Paenibacillaceae, 3, Bacteroidaceae, Bacteroidaceae, 99.7, 0.29, 0.457, 4113613
+cellular, 8547, "Rothia terrae strain KJZ-14", Micrococcaceae, 1.00, 0.00, 1.00, 0.10, Vibrionaceae, 10, Micrococcaceae, Micrococcaceae, 90.17, 6.31, 0.534, 2479856
+cellular, 9093, "Nitratireductor basaltis strain RR3-28", Phyllobacteriaceae, 1.00, 0.00, 1.00, 0.50, Roseobacteraceae, 7, Rhizobiaceae, Phyllobacteriaceae, 97, 1.5, 0.586, 3357577
+cellular, 9106, "Vibrio mangrovi CECT 7927", Vibrionaceae, 1.00, 0.00, 1.00, 1.00, Paenibacillaceae, 10, Vibrionaceae, Vibrionaceae, 96.2, 2.7, 0.457, 3674542
+cellular, 9122, "Lautropia mirabilis strain NCTC12852", Burkholderiaceae, 1.00, 0.00, 1.00, , Comamonadaceae, 4, Burkholderiaceae, Burkholderiaceae, 95.83, 0, 0.655, 3172010
+cellular, 9382, "Candidatus Riesia pediculicola USDA", Enterobacteriaceae, 1.00, 0.00, 1.00, , Thermococcaceae, 4, Enterobacteriaceae, Enterobacteriaceae, 100, 4, 0.285, 574390
+cellular, 9495, "Azospirillum thiophilum strain CFH 70021", Azospirillaceae, 1.00, 0.00, 1.00, 1.00, Caulobacteraceae, 7, Azospirillaceae, Azospirillaceae, 99, 7, 0.699, 2538983
+cellular, 9690, "Neomicrococcus aestuarii strain B18", Micrococcaceae, 1.00, 0.00, 1.00, , Corynebacteriaceae, 6, Micrococcaceae, Micrococcaceae, 100, 0.4, 0.591, 2667837
+cellular, 10059, "Vitreoscilla filiformis strain ATCC 15551", Neisseriaceae, 1.00, 0.00, 1.00, , Comamonadaceae, 9, Burkholderiaceae, Neisseriaceae, 91, 4.7, 0.635, 3464895
+cellular, 10061, "Shimwellia blattae DSM 4481 = NBRC 105725", Enterobacteriaceae, 1.00, 0.00, 1.00, , Yersiniaceae, 10, Enterobacteriaceae, Enterobacteriaceae, 97.4, 0.4, 0.565, 4158725
+cellular, 10334, "Mesorhizobium sp. N3", Phyllobacteriaceae, 1.00, 0.00, 1.00, , Aurantimonadaceae, 3, Rhizobiaceae, Phyllobacteriaceae, 100, 0, 0.679, 6109263
+cellular, 10461, "Bacteroides helcogenes P 36-108", Bacteroidaceae, 1.00, 0.00, 1.00, 1.00, Paenibacillaceae, 10, Bacteroidaceae, Bacteroidaceae, 99.4, 0, 0.447, 3998906
+cellular, 10536, "Plesiomonas shigelloides strain 7A", Enterobacteriaceae, 1.00, 0.00, 1.00, , Erwiniaceae, 7, CAMTGL01, Enterobacteriaceae, 79.66, 2.23, 0.518, 3555866
+cellular, 10599, "Thermobacillus composti KWC4", Paenibacillaceae, 1.00, 0.00, 1.00, , Nitrobacteraceae, 7, , Paenibacillaceae, 100, 0, 0.606, 4206343
+cellular, 10607, "Kocuria palustris strain MU14/1", Micrococcaceae, 1.00, 0.00, 1.00, 0.10, Dermabacteraceae, 10, Micrococcaceae, Micrococcaceae, 99.6, 0, 0.705, 2854447
+cellular, 10743, "Rothia dentocariosa ATCC 17931", Micrococcaceae, 1.00, 0.00, 1.00, 0.10, Caryophanaceae, 2, Micrococcaceae, Micrococcaceae, 100, 0, 0.537, 2506025
+cellular, 11200, "Yersinia entomophaga strain MH96", Yersiniaceae, 1.00, 0.00, 1.00, 1.00, Enterobacteriaceae, 5, Enterobacteriaceae, Yersiniaceae, 100, 0, 0.486, 4275406
+cellular, 24570, "Wolbachia endosymbiont of Howardula sp. strain HA_SPA", Anaplasmataceae, 1.00, 0.00, 1.00, 1.00, Francisellaceae, 5, Anaplasmataceae, Anaplasmataceae, , , 0.295, 553558
+cellular, 24665, "Chelativorans sp. BNC1", Phyllobacteriaceae, 1.00, 0.00, 1.00, , Rhizobiaceae, 9, , Phyllobacteriaceae, 97.8, 0.8, 0.611, 4412446
+cellular, 24695, "Pseudoclavibacter sp. Marseille-Q3772", Microbacteriaceae, 1.00, 0.00, 1.00, , Mycobacteriaceae, 4, Microbacteriaceae, Microbacteriaceae, 100, 0, 0.610, 2009013
+cellular, 25080, "Palaeococcus helgesonii JCM 13384", Thermococcaceae, 1.00, 0.00, 1.00, , Methanosarcinaceae, 8, , Thermococcaceae, 98.9, 0.6, 0.470, 1954540
+cellular, 25611, "Lysobacter sp. 5GHs7-4", Lysobacteraceae, 1.00, 0.00, 1.00, 0.40, Oxalobacteraceae, 6, Xanthomonadaceae, Lysobacteraceae, 100, 0.9, 0.688, 4709885
+cellular, 27091, "Bartonella sp. DGB2", Bartonellaceae, 1.00, 0.00, 1.00, 1.00, Sporomusaceae, 3, , Bartonellaceae, 100, 4, 0.447, 1283930
+cellular, 27654, "Kutzneria buriramensis DSM 45791", Pseudonocardiaceae, 1.00, 0.00, 1.00, , Streptomycetaceae, 10, Streptomycetaceae, Pseudonocardiaceae, 100, 0, 0.703, 12347483
+cellular, 27778, "Pseudonocardia halophobica CA-135642", Pseudonocardiaceae, 1.00, 0.00, 1.00, 0.70, Nocardioidaceae, 10, , Pseudonocardiaceae, 99.5, 1.6, 0.735, 7731803
+cellular, 28022, "Kocuria sp. TGY1127_2", Micrococcaceae, 1.00, 0.00, 1.00, 0.10, Isosphaeraceae, 2, Micrococcaceae, Micrococcaceae, 98.95, 1.04, 0.609, 2963611
+cellular, 28068, "Sinorhizobium sp. C101", Rhizobiaceae, 1.00, 0.00, 1.00, 0.70, Acidobacteriaceae, 2, Rhizobiaceae, Rhizobiaceae, 99.7, 4, 0.587, 562949
+cellular, 28551, "Zhihengliuella sp. ISTPL4", Micrococcaceae, 1.00, 0.00, 1.00, , Microbacteriaceae, 10, Microbacteriaceae, Micrococcaceae, 100, 0.3, 0.698, 3529729
+cellular, 28774, "Shinella sp. H4-D48", Rhizobiaceae, 1.00, 0.00, 1.00, 0.20, Phyllobacteriaceae, 8, Rhizobiaceae, Rhizobiaceae, 97.6, 1.1, 0.628, 3477580
+cellular, 29113, "Vibrio sp. SS-MA-C1-2", Vibrionaceae, 1.00, 0.00, 1.00, 1.00, Bacillaceae, 6, Vibrionaceae, Vibrionaceae, 96, 0, 0.390, 3066909
+cellular, 29831, "Acinetobacter sp. XH1801", Moraxellaceae, 1.00, 0.00, 1.00, 1.00, Sulfurimonadaceae, 5, , Moraxellaceae, 100, 0.2, 0.411, 45140
+cellular, 29920, "Nissabacter sp. SGAir0207 strain not applicable", Yersiniaceae, 1.00, 0.00, 1.00, , Pseudomonadaceae, 4, Enterobacteriaceae, Yersiniaceae, 91.86, 2.36, 0.608, 3928779
+cellular, 29943, "Neisseriaceae bacterium CLB008", Neisseriaceae, 1.00, 0.00, 1.00, , Piscirickettsiaceae, 3, , Neisseriaceae, 98.9, 1.1, 0.513, 3258566
+cellular, 29953, "Streptomyces sp. II-2-2-2 Soil LB -1", Streptomycetaceae, 1.00, 0.00, 1.00, 1.00, Lysobacteraceae, 10, , Streptomycetaceae, 100, 2.9, 0.664, 4408735
+cellular, 29991, "Candidatus Fukatsuia anoeciicola Ancorni-2928", Yersiniaceae, 1.00, 0.00, 1.00, , Enterobacteriaceae, 4, , Yersiniaceae, 100, 0, 0.271, 1107340
+cellular, 30208, "Neorhizobium sp. SOG26", Rhizobiaceae, 1.00, 0.00, 1.00, 0.20, Phyllobacteriaceae, 9, Rhizobiaceae, Rhizobiaceae, 98.8, 0.6, 0.616, 3373620
+cellular, 30687, "Synechococcus sp. M16CYN", Synechococcaceae, 1.00, 0.00, 1.00, 1.00, Vibrionaceae, 3, , Synechococcaceae, 100, 0, 0.467, 1940073
+cellular, 31016, "Sodalis sp. Et.F2", Bruguierivoracaceae, 1.00, 0.00, 1.00, 1.00, Enterobacteriaceae, 8, Enterobacteriaceae, Bruguierivoracaceae, 100, 0, 0.530, 1870132
+cellular, 31067, "Bacteroides sp. cpbc052018", Bacteroidaceae, 1.00, 0.00, 1.00, 1.00, Clostridiaceae, 6, G022818785, Bacteroidaceae, 87.5, 0, 0.219, 489825
+cellular, 31228, "Pararhizobium sp. IMCC3301", Rhizobiaceae, 1.00, 0.00, 1.00, 0.10, Paracoccaceae, 4, GCA-2746425, Rhizobiaceae, 100, 0, 0.561, 4583537
+cellular, 31239, "Burkholderiaceae bacterium bin_007", Burkholderiaceae, 1.00, 0.00, 1.00, , Lysobacteraceae, 4, Burkholderiaceae, Burkholderiaceae, 98.2, 0.4, 0.673, 3702473
+cellular, 31685, "Rothia sp. ZJ932", Micrococcaceae, 1.00, 0.00, 1.00, 0.10, Vibrionaceae, 10, Micrococcaceae, Micrococcaceae, 87.51, 2.27, 0.538, 2261372
+cellular, 31892, "Synechococcus sp. PCC 6312", Synechococcaceae, 1.00, 0.00, 1.00, 1.00, Cyclobacteriaceae, 4, Thermosynechococcaceae, Synechococcaceae, 97.9, 0, 0.485, 3697276
+cellular, 32322, "Paraburkholderia bonniea BbQS433", Burkholderiaceae, 1.00, 0.00, 1.00, 0.90, Oxalobacteraceae, 10, Burkholderiaceae, Burkholderiaceae, 98.5, 2.3, 0.588, 3128458
+cellular, 32425, "uncultured Tolumonas sp. a475775f-8623-4fa9-a146-4f0579a07934", Aeromonadaceae, 1.00, 0.00, 1.00, , Yersiniaceae, 3, Aeromonadaceae, Aeromonadaceae, 87, 2.6, 0.462, 4069707
+cellular, 32429, "Sodalis-like secondary symbiont of Drepanosiphum platanoidis Drplatanoidis-3702", Bruguierivoracaceae, 1.00, 0.00, 1.00, 1.00, Enterobacteriaceae, 9, , Bruguierivoracaceae, 95.8, 0, 0.172, 459102
+cellular, 32445, "Frigoribacterium sp. NBH87", Microbacteriaceae, 1.00, 0.00, 1.00, , Intrasporangiaceae, 4, Microbacteriaceae, Microbacteriaceae, 99.67, 0, 0.733, 3328375
+cellular, 33436, "Serratia symbiotica strain SeCistrobi", Yersiniaceae, 1.00, 0.00, 1.00, 1.00, Veillonellaceae, 5, Enterobacteriaceae, Yersiniaceae, 61.05, 1.41, 0.403, 2414146
+cellular, 33470, "Aneurinibacillus sp. Ricciae_BoGa-3", Paenibacillaceae, 1.00, 0.00, 1.00, , Sphingobacteriaceae, 10, , Paenibacillaceae, 100, 0, 0.449, 4981254
+cellular, 33625, "uncultured Vibrio sp. 1ae3c445-8fb6-435b-8480-be0f57116070", Vibrionaceae, 1.00, 0.00, 1.00, 1.00, Bacteroidaceae, 3, Vibrionaceae, Vibrionaceae, 91.6, 1, 0.456, 2671691
+cellular, 33691, "Rhizobium sp. SSA_523 SSA5.23", Rhizobiaceae, 1.00, 0.00, 1.00, 1.00, Paracoccaceae, 9, Rhizobiaceae, Rhizobiaceae, 96.3, 3.3, 0.625, 3643693
+cellular, 33872, "Synechococcus sp. PCC 7502", Synechococcaceae, 1.00, 0.00, 1.00, 1.00, Weeksellaceae, 6, Pseudanabaenaceae, Pseudanabaenaceae, 97.9, 4, 0.406, 3510253
+cellular, 33976, "Bacteroidaceae bacterium 9b8274c1-8e9b-43da-9078-5c6851d8199b", Bacteroidaceae, 1.00, 0.00, 1.00, , Prevotellaceae, 4, , Bacteroidaceae, 99.7, 0.6, 0.389, 1658875
+cellular, 34113, "Synechococcus sp. MIT S9506", Synechococcaceae, 1.00, 0.00, 1.00, 1.00, Prochlorococcaceae, 10, , Synechococcaceae, 100, 0, 0.312, 1627281
+cellular, 34447, "Lysinibacter sp. HNR", Microbacteriaceae, 1.00, 0.00, 1.00, , Bacillaceae, 2, Microbacteriaceae, Microbacteriaceae, 97.6, 1.7, 0.561, 2918483
+cellular, 35033, "Anaplasmataceae bacterium AB001_6", Anaplasmataceae, 1.00, 0.00, 1.00, , Thermoanaerobacteraceae, 3, Anaplasmataceae, Anaplasmataceae, 79.2, 0, 0.299, 1013119
+cellular, 35421, "Synechococcus sp. CBW1108", Synechococcaceae, 1.00, 0.00, 1.00, 1.00, Aeromonadaceae, 6, Cyanobiaceae, Synechococcaceae, 99.03, 1.91, 0.637, 3226220
+cellular, 35535, "Candidatus Gallibacteroides avistercoris 6737_HOM_CTRL_s741.ctg000943l_hifiasm_large MAG", Bacteroidaceae, 1.00, 0.00, 1.00, , Odoribacteraceae, 5, , Bacteroidaceae, 100, 0, 0.460, 3064565
+cellular, 35611, "Lentilitoribacter sp. 6ee52ac0-c030-4fa4-9049-db9211fff6a3", Rhizobiaceae, 1.00, 0.00, 1.00, , Brucellaceae, 3, Rhizobiaceae, Rhizobiaceae, 100, 0, 0.459, 4212962
+cellular, 35691, "uncultured Pseudoalteromonas sp. b477293d-19e9-444a-a3ef-2e93a42cbec6", Pseudoalteromonadaceae, 1.00, 0.00, 1.00, 0.90, Alteromonadaceae, 3, , Pseudoalteromonadaceae, 97.9, 2.5, 0.367, 4651636
+cellular, 36106, "Burkholderiaceae bacterium UC74_6", Burkholderiaceae, 1.00, 0.00, 1.00, , Comamonadaceae, 9, , Burkholderiaceae, 98.1, 1, 0.663, 4838616
+cellular, 36345, "Candidatus Regiella endosymbiont of Tuberolachnus salignus 50df7a5c-45bd-4916-af13-c11c5892e7e1", Enterobacteriaceae, 1.00, 0.00, 1.00, , Morganellaceae, 7, , Enterobacteriaceae, 100, 0, 0.433, 3288801
+cellular, 36752, "Brevibacterium sp. CS2", Brevibacteriaceae, 1.00, 0.00, 1.00, 1.00, Microbacteriaceae, 9, Brevibacteriaceae, Brevibacteriaceae, 98.46, 0.44, 0.705, 3239740
+cellular, 37017, "Mangrovibacter phragmitis ASIOC01", Enterobacteriaceae, 1.00, 0.00, 1.00, , Lactobacillaceae, 3, , Enterobacteriaceae, 98, 1.5, 0.504, 5765145
+cellular, 37027, "Rhizobium sp. SL42", Rhizobiaceae, 1.00, 0.00, 1.00, 1.00, Phyllobacteriaceae, 10, Rhizobiaceae, Rhizobiaceae, 98.62, 2.52, 0.608, 4063937
+cellular, 37044, "Shinella sp. XGS7", Rhizobiaceae, 1.00, 0.00, 1.00, 0.20, Comamonadaceae, 6, Burkholderiaceae, Rhizobiaceae, 99.7, 1.7, 0.689, 5159983
+cellular, 37204, "alpha proteobacterium HIMB59", Candidatus Pelagibacteraceae, 1.00, 0.00, 1.00, , Weeksellaceae, 7, HIMB59, Candidatus Pelagibacteraceae, 82, 2.4, 0.323, 1410127
+cellular, 37331, "Paenibacillus sp. 481", Paenibacillaceae, 1.00, 0.00, 1.00, 1.00, Enterobacteriaceae, 3, Paenibacillaceae, Paenibacillaceae, 97.48, 2.65, 0.455, 5693878
+cellular, 37603, "Psychrobacter sanguinis strain FDAARGOS_1598 strain Not applicable", Moraxellaceae, 1.00, 0.00, 1.00, 1.00, Psychromonadaceae, 2, Moraxellaceae, Moraxellaceae, 99.55, 1.03, 0.414, 3315163
+cellular, 37734, "Phyllobacterium sp. T1018", Phyllobacteriaceae, 1.00, 0.00, 1.00, 0.10, Erythrobacteraceae, 3, , Phyllobacteriaceae, 100, 0, 0.592, 3483592
+cellular, 38259, "Candidatus Pelagibacter sp. IMCC9063", Candidatus Pelagibacteraceae, 1.00, 0.00, 1.00, 1.00, Thermoanaerobacteraceae, 8, Pelagibacteraceae, Candidatus Pelagibacteraceae, 79.2, 8.1, 0.317, 1284727
+cellular, 38574, "Rhizobiaceae bacterium NCC532_bact_4045", Rhizobiaceae, 1.00, 0.00, 1.00, , Comamonadaceae, 6, , Rhizobiaceae, 95.4, 1.2, 0.573, 3450511
+cellular, 38707, "Bacteroides sedimenti YN3PY1", Bacteroidaceae, 1.00, 0.00, 1.00, 1.00, Bacillaceae, 9, , Bacteroidaceae, 88.9, 1.7, 0.395, 3758787
+cellular, 38709, "Arthrobacter sp. NEB 688", Micrococcaceae, 1.00, 0.00, 1.00, 0.60, Intrasporangiaceae, 4, Dermatophilaceae, Micrococcaceae, 99.62, 1.12, 0.740, 4077299
+cellular, 38730, "Neisseriaceae bacterium strain HaMa", Neisseriaceae, 1.00, 0.00, 1.00, , Oscillospiraceae, 2, Neisseriaceae, Neisseriaceae, 95.83, 0, 0.334, 1607491
+cellular, 39316, "uncultured Bacteroides sp. e24bfff7-7933-45ae-a8f0-1b46c308d3d4", Bacteroidaceae, 1.00, 0.00, 1.00, 1.00, Paenibacillaceae, 8, Bacteroidaceae, Bacteroidaceae, 98, 0.9, 0.402, 4445687
+cellular, 39488, "Bartonella sp. DGB1", Bartonellaceae, 1.00, 0.00, 1.00, 1.00, Rickettsiaceae, 10, , Bartonellaceae, 100, 0, 0.311, 1398791
+cellular, 39653, "uncultured Gellertiella sp. 4c5a3c4b-ed77-4786-9b45-634a86d4863d", Rhizobiaceae, 1.00, 0.00, 1.00, , Paracoccaceae, 6, , Rhizobiaceae, 83.4, 4.1, 0.620, 3954878
+cellular, 39707, "Paucimonas lemoignei strain NCTC10937", Burkholderiaceae, 1.00, 0.00, 1.00, , Pseudomonadaceae, 10, Pseudomonadaceae, Burkholderiaceae, 90.6, 4.6, 0.589, 5924472
+cellular, 40109, "Polynucleobacter sp. MWH-CaK5", Burkholderiaceae, 1.00, 0.00, 1.00, 1.00, Oscillospiraceae, 5, Burkholderiaceae, Burkholderiaceae, 99.48, 1.19, 0.443, 1705318
+cellular, 41584, "Wolbachia endosymbiont of Menacanthus eurysternus MAG1", Anaplasmataceae, 1.00, 0.00, 1.00, 1.00, Flavobacteriaceae, 6, Anaplasmataceae, Anaplasmataceae, 95.8, 0, 0.280, 733850
+cellular, 41607, "Lentilitoribacter sp. Alg239-R112", Rhizobiaceae, 1.00, 0.00, 1.00, , Lactobacillaceae, 4, Rhizobiaceae, Rhizobiaceae, 100, 0, 0.444, 2695248
+cellular, 41700, "Xanthomonas sp. NCPPB 2632", Lysobacteraceae, 1.00, 0.00, 1.00, 1.00, Rhodanobacteraceae, 5, , Lysobacteraceae, 100, 0, 0.659, 4859098
+cellular, 41797, "Sphingopyxis sp. 113P3", Sphingopyxidaceae, 1.00, 0.00, 1.00, 1.00, Rhizobiaceae, 9, Sphingomonadaceae, Sphingopyxidaceae, 100, 0, 0.640, 4420776
+cellular, 42191, "Pontimonas sp. b3a953fb-2999-437c-8903-5ab00bc28a08", Microbacteriaceae, 1.00, 0.00, 1.00, , Micrococcaceae, 10, , Microbacteriaceae, 100, 0, 0.600, 1403519
+cellular, 43132, "Corallococcus sp. CAG:1435 metabat2_pooled_hifiasm.1119 MAG", Myxococcaceae, 1.00, 0.00, 1.00, 0.50, Neisseriaceae, 3, , Myxococcaceae, 100, 0, 0.457, 1591224
+cellular, 43196, "Actinokineospora sp. UTMC 2448", Pseudonocardiaceae, 1.00, 0.00, 1.00, , Micromonosporaceae, 7, , Pseudonocardiaceae, 99.1, 2.2, 0.724, 7012397
+cellular, 464, "Kocuria indica strain CE7", Micrococcaceae, 0.90, 0.10, 1.00, 0.00, Micromonosporaceae, 3, Micrococcaceae, Micrococcaceae, 98.65, 0.93, 0.687, 2809846
+cellular, 540, "Phytohabitans flavus strain NBRC 107702", Micromonosporaceae, 0.90, 0.10, 1.00, , Streptomycetaceae, 9, Micromonosporaceae, Micromonosporaceae, 95.19, 13.64, 0.708, 9607004
+cellular, 555, "Candidatus Schneideria nysicola strain NR", Enterobacteriaceae, 0.90, 0.10, 1.00, , Candidatus Brocadiaceae, 3, Enterobacteriaceae, Enterobacteriaceae, 95.83, 0, 0.292, 572184
+cellular, 1654, "Cruoricaptor ignavus strain M1214", Weeksellaceae, 0.90, 0.00, 0.90, , Bacillaceae, 5, Weeksellaceae, Weeksellaceae, 100, 0, 0.452, 2120336
+cellular, 1662, "Brevibacillus laterosporus DSM 25", Paenibacillaceae, 0.90, 0.10, 1.00, 0.20, Bacillaceae, 8, Brevibacillaceae, Paenibacillaceae, 100, 1.6, 0.407, 5400144
+cellular, 1762, "Synechococcus elongatus PCC 7942", Synechococcaceae, 0.90, 0.10, 1.00, 0.90, Oculatellaceae, 3, Synechococcaceae, Synechococcaceae, 100, 0, 0.555, 2695903
+cellular, 1873, "Anaplasma phagocytophilum JM", Anaplasmataceae, 0.90, 0.10, 1.00, 0.20, Flavobacteriaceae, 7, Anaplasmataceae, Anaplasmataceae, 100, 0, 0.416, 1481598
+cellular, 1904, "Candidatus Profftia tarda strain PROFFT", Enterobacteriaceae, 0.90, 0.10, 1.00, , Rickettsiaceae, 6, Enterobacteriaceae, Enterobacteriaceae, 95.83, 0, 0.319, 1225795
+cellular, 1954, "Snodgrassella alvi wkB2", Neisseriaceae, 0.90, 0.10, 1.00, , Morganellaceae, 2, Neisseriaceae, Neisseriaceae, 96.6, 0, 0.413, 2527978
+cellular, 1964, "secondary endosymbiont of Ctenarytaina eucalypti Ceuc_S", Enterobacteriaceae, 0.90, 0.10, 1.00, , Shewanellaceae, 3, Enterobacteriaceae, Enterobacteriaceae, 100, 0, 0.433, 1441139
+cellular, 1976, "Candidatus Carsonella ruddii HC isolate Thao2000", Halomonadaceae, 0.90, 0.00, 0.90, , Enterobacteriaceae, 6, , Halomonadaceae, 45.8, 0, 0.142, 166163
+cellular, 2015, "Virgibacillus natechei DSM 25609", Bacillaceae, 0.90, 0.00, 0.90, 0.20, Sphingobacteriaceae, 7, Amphibacillaceae, Bacillaceae, 96.7, 3.2, 0.384, 3867590
+cellular, 2140, "Actinoplanes friuliensis DSM 7358", Micromonosporaceae, 0.90, 0.10, 1.00, 0.50, Streptomycetaceae, 5, Micromonosporaceae, Micromonosporaceae, 96.5, 0, 0.704, 9376071
+cellular, 2219, "Spiroplasma platyhelix PALS-1", Spiroplasmataceae, 0.90, 0.00, 0.90, 0.90, Mycoplasmataceae, 5, VBWQ01, Spiroplasmataceae, 91.67, 0, 0.287, 744499
+cellular, 2266, "Staphylococcus simulans IVB6189", Staphylococcaceae, 0.90, 0.00, 0.90, 0.80, Vibrionaceae, 6, Staphylococcaceae, Staphylococcaceae, 99.6, 0.2, 0.362, 2626360
+cellular, 2506, "secondary endosymbiont of Heteropsylla cubana Hcub_S", Enterobacteriaceae, 0.90, 0.10, 1.00, , Coxiellaceae, 3, Enterobacteriaceae, Enterobacteriaceae, 100, 0, 0.289, 1121596
+cellular, 2577, "Anaplasma phagocytophilum str. Webster", Anaplasmataceae, 0.90, 0.10, 1.00, 0.20, Flavobacteriaceae, 7, Anaplasmataceae, Anaplasmataceae, 100, 0, 0.416, 1479407
+cellular, 2688, "Ornithobacterium rhinotracheale ORT-UMN 88", Weeksellaceae, 0.90, 0.00, 0.90, , Flavobacteriaceae, 9, Weeksellaceae, Weeksellaceae, 97.3, 0, 0.375, 2397867
+cellular, 2748, "Chromohalobacter canadensis ATCC 43984", Halomonadaceae, 0.90, 0.00, 0.90, , Rhodanobacteraceae, 4, Halomonadaceae, Halomonadaceae, 100, 0, 0.608, 3595165
+cellular, 2754, "Oceanisphaera profunda strain SM1222", Aeromonadaceae, 0.90, 0.10, 1.00, , Alteromonadaceae, 2, Aeromonadaceae, Aeromonadaceae, 98, 2, 0.498, 3508860
+cellular, 2765, "Lysinibacillus sphaericus strain LMG 22257", Bacillaceae, 0.90, 0.00, 0.90, 1.00, Caryophanaceae, 6, Planococcaceae, Bacillaceae, 92.9, 3.2, 0.390, 3436578
+cellular, 2856, "Nitrospirillum amazonense CBAmc strain CBAmC", Azospirillaceae, 0.90, 0.10, 1.00, , Roseobacteraceae, 4, , Azospirillaceae, 99.1, 6, 0.676, 2945703
+cellular, 2892, "Rathayibacter toxicus strain FH79", Microbacteriaceae, 0.90, 0.10, 1.00, 0.80, Corynebacteriaceae, 7, Microbacteriaceae, Microbacteriaceae, 98.48, 2.29, 0.615, 2343780
+cellular, 2893, "Rathayibacter toxicus strain WAC7056", Microbacteriaceae, 0.90, 0.10, 1.00, 0.80, Corynebacteriaceae, 7, Microbacteriaceae, Microbacteriaceae, 98.13, 1.5, 0.615, 2333944
+cellular, 2940, "Lysinibacillus louembei Ll15", Bacillaceae, 0.90, 0.00, 0.90, 1.00, Acidaminococcaceae, 2, Planococcaceae, Bacillaceae, 99.8, 0.7, 0.385, 3960254
+cellular, 2942, "Neisseria arctica KH1503", Neisseriaceae, 0.90, 0.10, 1.00, 0.80, Pasteurellaceae, 4, Neisseriaceae, Neisseriaceae, 100, 1.5, 0.464, 2378219
+cellular, 2991, "Bacillus smithii strain DSM 4216", Bacillaceae, 0.90, 0.00, 0.90, 1.00, Weeksellaceae, 10, DSM-4216, Bacillaceae, 98.1, 1.7, 0.408, 3368778
+cellular, 3195, "Bergeyella cardium BCP", Weeksellaceae, 0.90, 0.00, 0.90, , Methanosarcinaceae, 3, , Weeksellaceae, 97.9, 0.9, 0.396, 2036969
+cellular, 3281, "Niveispirillum cyanobacteriorum TH16", Azospirillaceae, 0.90, 0.10, 1.00, , Roseobacteraceae, 4, Azospirillaceae, Azospirillaceae, 97.4, 3.4, 0.637, 3397866
+cellular, 3387, "Rouxiella badensis DAR84756", Yersiniaceae, 0.90, 0.10, 1.00, , Enterobacteriaceae, 9, Enterobacteriaceae, Yersiniaceae, 99.8, 0.4, 0.528, 5004491
+cellular, 3389, "Rouxiella badensis strain SER3", Yersiniaceae, 0.90, 0.10, 1.00, , Enterobacteriaceae, 9, Enterobacteriaceae, Yersiniaceae, 99.83, 0.51, 0.528, 5082781
+cellular, 3529, "Oblitimonas alkaliphila strain D3318", Pseudomonadaceae, 0.90, 0.10, 1.00, , Alteromonadaceae, 8, Pseudomonadaceae, Pseudomonadaceae, 92.81, 0.95, 0.474, 2294397
+cellular, 3530, "Oblitimonas alkaliphila strain B4199", Pseudomonadaceae, 0.90, 0.10, 1.00, , Alteromonadaceae, 8, Pseudomonadaceae, Pseudomonadaceae, 93.53, 0.95, 0.474, 2494031
+cellular, 3601, "Rothia aeria strain FDAARGOS_1137 strain Not applicable", Micrococcaceae, 0.90, 0.10, 1.00, 0.00, Budviciaceae, 2, Micrococcaceae, Micrococcaceae, 96.69, 2.79, 0.568, 2583917
+cellular, 3602, "Rothia aeria NCTC10207", Micrococcaceae, 0.90, 0.10, 1.00, 0.00, Budviciaceae, 2, Micrococcaceae, Micrococcaceae, 97.3, 2.7, 0.564, 2707814
+cellular, 3604, "Brevundimonas nasdae strain Au29", Caulobacteraceae, 0.90, 0.00, 0.90, 0.90, Azospirillaceae, 9, Caulobacteraceae, Caulobacteraceae, 98.03, 1.79, 0.658, 3747438
+cellular, 3712, "Mycobacterium leprae MRHRU-235-G", Mycobacteriaceae, 0.90, 0.10, 1.00, 0.90, Staphylococcaceae, 4, Mycobacteriaceae, Mycobacteriaceae, 100, 4, 0.578, 3187112
+cellular, 3746, "Candidatus Mikella endobia strain MEPMAR", Enterobacteriaceae, 0.90, 0.10, 1.00, , Rickettsiaceae, 9, Enterobacteriaceae, Enterobacteriaceae, 95.83, 0, 0.306, 352837
+cellular, 3801, "Morganella morganii subsp. morganii strain ATCC 25830", Morganellaceae, 0.90, 0.10, 1.00, , Pectobacteriaceae, 8, Enterobacteriaceae, Morganellaceae, 99.76, 0.47, 0.510, 3889903
+cellular, 3829, "Wolbachia endosymbiont of Cruorifilaria tuberocauda strain 55YT", Anaplasmataceae, 0.90, 0.10, 1.00, 1.00, Francisellaceae, 9, Anaplasmataceae, Anaplasmataceae, 96.88, 1.03, 0.323, 863988
+cellular, 3961, "Phyllobacterium sp. Tri-48 strain Tri-48; RCAM 03910", Phyllobacteriaceae, 0.90, 0.10, 1.00, 0.00, Brucellaceae, 6, Rhizobiaceae, Phyllobacteriaceae, 100, 0.7, 0.573, 3950702
+cellular, 4007, "Candidatus Fukatsuia symbiotica 5D", Yersiniaceae, 0.90, 0.10, 1.00, , Morganellaceae, 7, Enterobacteriaceae, Yersiniaceae, 100, 7.7, 0.435, 2824008
+cellular, 4159, "Synechococcus lividus PCC 6715", Thermosynechococcaceae, 0.90, 0.10, 1.00, , Microbulbiferaceae, 3, Thermosynechococcaceae, Thermosynechococcaceae, 95.9, 4.6, 0.535, 2659739
+cellular, 4173, "Vibrio palustris CECT 9027", Vibrionaceae, 0.90, 0.10, 1.00, 0.90, Alteromonadaceae, 1, Vibrionaceae, Vibrionaceae, 94.2, 1.3, 0.436, 2654073
+cellular, 4549, "Thalassospira sp. CSC3H3", Thalassospiraceae, 0.90, 0.00, 0.90, 0.80, Paracoccaceae, 3, Thalassospiraceae, Thalassospiraceae, 99, 1, 0.547, 4530245
+cellular, 4772, "Thermomonas brevis strain KACC 16975", Lysobacteraceae, 0.90, 0.10, 1.00, 0.10, Burkholderiaceae, 6, Xanthomonadaceae, Lysobacteraceae, 95.6, 1.55, 0.686, 3435501
+cellular, 4901, "Skermanella sp. W17", Azospirillaceae, 0.90, 0.10, 1.00, , Caulobacteraceae, 8, Azospirillaceae, Azospirillaceae, 94.77, 5.54, 0.673, 5869433
+cellular, 4992, "Moraxellaceae bacterium HYN0046", Moraxellaceae, 0.90, 0.10, 1.00, , Erwiniaceae, 2, Moraxellaceae, Moraxellaceae, 98.4, 3.1, 0.460, 3777352
+cellular, 5050, "Alphaproteobacteria bacterium WS11", Rhizobiaceae, 0.90, 0.10, 1.00, , Nitrobacteraceae, 9, Rhizobiaceae, Rhizobiaceae, 100, 0, 0.623, 4356607
+cellular, 5052, "Candidatus Sodalis pierantonius strain SOPE", Bruguierivoracaceae, 0.90, 0.10, 1.00, 0.90, Enterobacteriaceae, 6, Enterobacteriaceae, Bruguierivoracaceae, 86.9, 9.4, 0.561, 4513140
+cellular, 5148, "Anoxybacillus caldiproteolyticus strain U458", Anoxybacillaceae, 0.90, 0.10, 1.00, , Flavobacteriaceae, 2, Anoxybacillaceae, Anoxybacillaceae, 95.8, 4.26, 0.408, 3737956
+cellular, 5235, "Candidatus Ornithobacterium hominis MSHR-COH1", Weeksellaceae, 0.90, 0.00, 0.90, , Metamycoplasmataceae, 3, Weeksellaceae, Weeksellaceae, 100, 0, 0.357, 2036909
+cellular, 5248, "Apibacter sp. HY041", Weeksellaceae, 0.90, 0.00, 0.90, 0.30, Aerococcaceae, 2, Weeksellaceae, Weeksellaceae, 99.15, 2.09, 0.322, 3293048
+cellular, 5416, "Halomonas sp. Y2R2", Halomonadaceae, 0.90, 0.00, 0.90, 0.60, Aeromonadaceae, 6, , Halomonadaceae, 100, 1.23, 0.570, 4895267
+cellular, 5425, "Psychrobacter arenosus strain Psychrobacter arenosus R7", Moraxellaceae, 0.90, 0.10, 1.00, 0.90, Enterobacteriaceae, 2, Moraxellaceae, Moraxellaceae, 99.7, 1.03, 0.448, 3696886
+cellular, 5585, "Nitratireductor sp. SY7", Phyllobacteriaceae, 0.90, 0.10, 1.00, 0.50, Rhizobiaceae, 6, , Phyllobacteriaceae, 100, 0, 0.649, 4838830
+cellular, 5607, "Marinobacter sp. CS412", Marinobacteraceae, 0.90, 0.00, 0.90, 0.90, Corynebacteriaceae, 3, Oleiphilaceae, Marinobacteraceae, 99.17, 0.82, 0.580, 4543926
+cellular, 5864, "Caulobacteraceae bacterium 0127_4", Caulobacteraceae, 0.90, 0.00, 0.90, , Burkholderiaceae, 6, Aquidulcibacteraceae, Hyphomonadaceae, 95.83, 0, 0.635, 3864763
+cellular, 5869, "Synechococcus elongatus PCC 6301", Synechococcaceae, 0.90, 0.10, 1.00, 0.90, Oculatellaceae, 3, Synechococcaceae, Synechococcaceae, 100, 0, 0.555, 2695389
+cellular, 6261, "Lysobacter sp. CJ11", Lysobacteraceae, 0.90, 0.10, 1.00, 0.30, Roseobacteraceae, 4, Xanthomonadaceae, Lysobacteraceae, 97.14, 0.57, 0.592, 2135237
+cellular, 6471, "Micromonosporaceae bacterium DSM 106523", Micromonosporaceae, 0.90, 0.10, 1.00, , Streptomycetaceae, 8, Micromonosporaceae, Micromonosporaceae, 88.59, 3.81, 0.702, 5699854
+cellular, 6472, "Bacteroides heparinolyticus strain F0111", Bacteroidaceae, 0.90, 0.10, 1.00, 0.90, Caryophanaceae, 7, Bacteroidaceae, Prevotellaceae, 100, 0, 0.472, 3608975
+cellular, 6483, "Bacteroides zoogleoformans strain ATCC 33285", Bacteroidaceae, 0.90, 0.10, 1.00, 0.90, Caryophanaceae, 7, Bacteroidaceae, Bacteroidaceae, 100, 0, 0.475, 3361794
+cellular, 6506, "Arthrobacter sp. C1-1", Micrococcaceae, 0.90, 0.10, 1.00, 0.50, Marinobacteraceae, 4, , Micrococcaceae, 98.6, 3.2, 0.590, 4172959
+cellular, 6540, "Vibrio metschnikovii strain 9502-00", Vibrionaceae, 0.90, 0.10, 1.00, 0.90, Enterobacteriaceae, 1, Vibrionaceae, Vibrionaceae, 95.37, 1.03, 0.445, 2873510
+cellular, 7077, "Xanthomonas albilineans strain Xa-FJ1", Lysobacteraceae, 0.90, 0.10, 1.00, 0.90, Oxalobacteraceae, 6, Xanthomonadaceae, Lysobacteraceae, 99.71, 0.29, 0.630, 3724581
+cellular, 7105, "Vibrio furnissii strain FDAARGOS_777 strain Not applicable", Vibrionaceae, 0.90, 0.10, 1.00, 0.90, Pseudomonadaceae, 4, Vibrionaceae, Vibrionaceae, 100, 0.66, 0.508, 3275692
+cellular, 7222, "Halomonas subglaciescola strain ACAM 12", Halomonadaceae, 0.90, 0.00, 0.90, 0.20, Enterobacteriaceae, 8, Halomonadaceae, Halomonadaceae, 100, 0, 0.608, 3110197
+cellular, 7515, "Oceanimonas pelagia NTOU-MSR1", Aeromonadaceae, 0.90, 0.10, 1.00, , Alcaligenaceae, 9, Aeromonadaceae, Aeromonadaceae, 97, 0.9, 0.610, 3592406
+cellular, 7533, "Halomonas sp. SG2L-4", Halomonadaceae, 0.90, 0.00, 0.90, 0.60, Erwiniaceae, 4, Halomonadaceae, Halomonadaceae, 99.2, 0.2, 0.633, 3227066
+viral, 681, "Agrotis segetum granulovirus DA", Baculoviridae, 1.00, 0.00, 1.00, 0.40, Microviridae, 2, , Baculoviridae, , , 0.373, 131557
+viral, 11884, "Magpie-robin coronavirus HKU18 HKU18-chu3", Coronaviridae, 1.00, 0.00, 1.00, 0.20, Autosignataviridae, 8, , Coronaviridae, , , 0.467, 26689
+viral, 12532, "Serratia phage Eta", Sarkviridae, 1.00, 0.00, 1.00, , Drexlerviridae, 1, , Sarkviridae, , , 0.499, 42724
+viral, 12755, "Budgerigar fledgling disease virus - 1", Polyomaviridae, 1.00, 0.00, 1.00, 0.10, Iflaviridae, 2, , Polyomaviridae, , , 0.486, 4981
+viral, 12920, "African elephant polyomavirus 1 DK-1/2011", Polyomaviridae, 1.00, 0.00, 1.00, 0.20, Papillomaviridae, 10, , Polyomaviridae, , , 0.429, 5722
+viral, 13295, "Lactoccocus phage WP-2", Rountreeviridae, 1.00, 0.00, 1.00, , Papillomaviridae, 4, , Rountreeviridae, , , 0.311, 18899
+viral, 13683, "Black sea bass polyomavirus 1 2835", Polyomaviridae, 1.00, 0.00, 1.00, , Hepadnaviridae, 9, , Polyomaviridae, , , 0.485, 7369
+viral, 14091, "Delftia phage IME-DE1", Autotranscriptaviridae, 1.00, 0.00, 1.00, , Schitoviridae, 4, , Autotranscriptaviridae, , , 0.604, 38084
+viral, 14200, "Marbled eel polyomavirus AMV-1", Polyomaviridae, 1.00, 0.00, 1.00, , Picornaviridae, 7, , Polyomaviridae, , , 0.486, 14334
+viral, 15251, "Sparus aurata polyomavirus 1 SA9poly", Polyomaviridae, 1.00, 0.00, 1.00, , Caliciviridae, 3, , Polyomaviridae, , , 0.521, 7299
+viral, 15877, "Aeromonas phage phiA8-29", Ackermannviridae, 1.00, 0.00, 1.00, , Solemoviridae, 3, , Ackermannviridae, , , 0.482, 144974
+viral, 16616, "Ralstonia phage RPSC1", Autotranscriptaviridae, 1.00, 0.00, 1.00, , Genomoviridae, 3, , Autotranscriptaviridae, , , 0.616, 39628
+viral, 16695, "Pseudomonas phage tabernarius", Lindbergviridae, 1.00, 0.00, 1.00, , Microviridae, 3, , Lindbergviridae, , , 0.523, 67498
+viral, 17185, "Pectobacterium phage Jarilo", Autotranscriptaviridae, 1.00, 0.00, 1.00, , Nanoviridae, 2, , Autotranscriptaviridae, , , 0.501, 40552
+viral, 17187, "Xanthomonas phage Carpasina", Lindbergviridae, 1.00, 0.00, 1.00, , Inoviridae, 2, , Lindbergviridae, , , 0.524, 61939
+viral, 17308, "Trematomus pennellii polyomavirus 1 PES6", Polyomaviridae, 1.00, 0.00, 1.00, , Alphaflexiviridae, 3, , Polyomaviridae, , , 0.461, 6219
+viral, 17444, "Microbacterium phage Zeta1847", Casidaviridae, 1.00, 0.00, 1.00, , Zierdtviridae, 7, , Casidaviridae, , , 0.714, 47921
+viral, 17577, "Trematomus bernacchii polyomavirus 1 BIS330", Polyomaviridae, 1.00, 0.00, 1.00, , Betaflexiviridae, 1, , Polyomaviridae, , , 0.452, 5541
+viral, 17819, "Vibrio phage YC", Ackermannviridae, 1.00, 0.00, 1.00, , Nanoviridae, 1, , Ackermannviridae, , , 0.473, 147890
+viral, 18077, "Escherichia phage fp01 strain Esturies", Demerecviridae, 1.00, 0.00, 1.00, 1.00, Myoviridae, 1, , Demerecviridae, , , 0.494, 44900
+viral, 18406, "Arthrobacter phage Liebe", Casidaviridae, 1.00, 0.00, 1.00, , Fiersviridae, 3, , Casidaviridae, , , 0.688, 45803
+viral, 18554, "Enterococcus phage vB_EfaP_Zip", Rountreeviridae, 1.00, 0.00, 1.00, , , 0, , Rountreeviridae, , , 0.350, 18742
+viral, 19017, "Vibrio phage VAP7 strain Vibrio alginolyticus VA1", Ackermannviridae, 1.00, 0.00, 1.00, , Chimalliviridae, 4, , Ackermannviridae, , , 0.419, 144685
+viral, 19131, "Panteoa phage Kyle", Lindbergviridae, 1.00, 0.00, 1.00, , Drexlerviridae, 7, , Lindbergviridae, , , 0.495, 73168
+viral, 19414, "Plodia interpunctella granulovirus Cambridge", Baculoviridae, 1.00, 0.00, 1.00, 0.40, Straboviridae, 5, , Baculoviridae, , , 0.442, 112536
+viral, 20434, "Cydia pomonella granulovirus Mexican 1", Baculoviridae, 1.00, 0.00, 1.00, 0.40, Rountreeviridae, 2, , Baculoviridae, , , 0.453, 123500
+viral, 20694, "Halorubrum tailed virus 25 HRTV-25/14", Hafunaviridae, 1.00, 0.00, 1.00, , Adenoviridae, 3, , Hafunaviridae, , , 0.559, 61934
+viral, 20762, "cormorant polyomavirus 1 CoPyV1", Polyomaviridae, 1.00, 0.00, 1.00, 0.10, Papillomaviridae, 5, , Polyomaviridae, , , 0.477, 5133
+viral, 21644, "Aeromonas phage phiA014S", Autotranscriptaviridae, 1.00, 0.00, 1.00, , Schitoviridae, 10, , Autotranscriptaviridae, , , 0.556, 41074
+viral, 21680, "Platynota idaeusalis granulovirus IIBBL BCIPV-2683", Baculoviridae, 1.00, 0.00, 1.00, 0.40, Rountreeviridae, 4, , Baculoviridae, , , 0.314, 106633
+viral, 22490, "Corynebacterium phage P1201", Zierdtviridae, 1.00, 0.00, 1.00, , Nanoviridae, 2, , Zierdtviridae, , , 0.509, 70579
+viral, 24245, "Canary polyomavirus CaPyV-Ha09", Polyomaviridae, 1.00, 0.00, 1.00, 0.10, Flaviviridae, 3, , Polyomaviridae, , , 0.491, 5421
+viral, 43735, "Minunacovirus sp. Msc_Tremp_Minunacovirus_2024051", Coronaviridae, 1.00, 0.00, 1.00, 0.50, Tolecusatellitidae, 3, , Coronaviridae, , , 0.440, 1412
+viral, 44487, "Klebsiella phage VLCpiS11a", Sarkviridae, 1.00, 0.00, 1.00, , , 0, , Sarkviridae, , , 0.555, 39791
+viral, 44801, "Myotacovirus sp. Mmy_OBalaguer_Myotacovirus_2022166", Coronaviridae, 1.00, 0.00, 1.00, 0.50, Anelloviridae, 7, , Coronaviridae, , , 0.465, 1288
+viral, 45395, "Serratia phage Slocum", Demerecviridae, 1.00, 0.00, 1.00, , Microviridae, 2, , Demerecviridae, , , 0.448, 112436
+viral, 45609, "Streptococcus phage M102AD", Aliceevansviridae, 1.00, 0.00, 1.00, , , 0, , Aliceevansviridae, , , 0.396, 30664
+viral, 45633, "Microbacterium phage Megan", Hodgkinviridae, 1.00, 0.00, 1.00, , Siphoviridae, 1, , Hodgkinviridae, , , 0.696, 55210
+viral, 46190, "Campylobacter phage C8", Demerecviridae, 1.00, 0.00, 1.00, 1.00, Inoviridae, 3, , Demerecviridae, , , 0.397, 2780
+viral, 46630, "Lactobacillus phage phiEF-1.1", Aliceevansviridae, 1.00, 0.00, 1.00, , Sedoreoviridae, 3, , Aliceevansviridae, , , 0.394, 39130
+viral, 46794, "Vibrio phage VCPH OB14", Demerecviridae, 1.00, 0.00, 1.00, , Herelleviridae, 10, , Demerecviridae, , , 0.448, 120501
+viral, 46835, "Varecia rubra papillomavirus 1 D43SSa", Polyomaviridae, 1.00, 0.00, 1.00, , Papillomaviridae, 3, , Polyomaviridae, , , 0.538, 7452
+viral, 47002, "Serratia phage vB_SmaM-Otaku", Sarkviridae, 1.00, 0.00, 1.00, , , 0, , Sarkviridae, , , 0.574, 39857
+viral, 47646, "Streptococcus phage Javan288", Aliceevansviridae, 1.00, 0.00, 1.00, 1.00, Siphoviridae, 5, , Aliceevansviridae, , , 0.385, 38767
+viral, 47870, "Abalone asfa-like virus MIE2018", Asfarviridae, 1.00, 0.00, 1.00, , Geminiviridae, 2, , Asfarviridae, , , 0.313, 281224
+viral, 48108, "Streptococcus phage phiKSM96", Aliceevansviridae, 1.00, 0.00, 1.00, , Siphoviridae, 5, , Aliceevansviridae, , , 0.353, 39820
+viral, 48453, "Klebsiella phage Kp11", Autotranscriptaviridae, 1.00, 0.00, 1.00, 0.90, Straboviridae, 8, , Autotranscriptaviridae, , , 0.419, 176005
+viral, 48591, "Scorpion polyomavirus 2 Bark_scorpion_3_liver_1", Polyomaviridae, 1.00, 0.00, 1.00, , Microviridae, 5, , Polyomaviridae, , , 0.374, 5945
+viral, 49563, "Streptococcus phage Javan385", Aliceevansviridae, 1.00, 0.00, 1.00, , , 0, , Aliceevansviridae, , , 0.357, 42560
+viral, 49716, "Pedacovirus sp. Mes_Tremp_Pedacovirus_2023010", Coronaviridae, 1.00, 0.00, 1.00, 0.50, Papillomaviridae, 6, , Coronaviridae, , , 0.508, 2049
+viral, 708, "Acinetobacter phage ZZ1", Straboviridae, 0.90, 0.00, 0.90, , Siphoviridae, 2, , Straboviridae, , , 0.344, 166687
+viral, 12313, "Maize stripe tenuivirus", Phenuiviridae, 0.90, 0.00, 0.90, 0.10, Peribunyaviridae, 6, , Phenuiviridae, , , 0.369, 2357
+viral, 12492, "Canis familiaris papillomavirus 15 Hercules2012", Papillomaviridae, 0.90, 0.00, 0.90, 0.50, Flaviviridae, 5, , Papillomaviridae, , , 0.529, 7776
+viral, 12813, "Castor canadensis papillomavirus 1 CcanPV1", Papillomaviridae, 0.90, 0.00, 0.90, , Paramyxoviridae, 6, , Papillomaviridae, , , 0.453, 7435
+viral, 12907, "Butcherbird polyomavirus AWH19840", Polyomaviridae, 0.90, 0.10, 1.00, 0.10, Papillomaviridae, 7, , Polyomaviridae, , , 0.457, 5084
+viral, 12932, "Ralstonia phage RSB3", Autoscriptoviridae, 0.90, 0.00, 0.90, , Autonotataviridae, 8, , Autoscriptoviridae, , , 0.610, 44578
+viral, 12993, "Tall oatgrass mosaic virus Benesov", Potyviridae, 0.90, 0.00, 0.90, 0.00, Nanoviridae, 2, , Potyviridae, , , 0.440, 9359
+viral, 13057, "Pectobacterium bacteriophage PM2", Straboviridae, 0.90, 0.00, 0.90, , Iflaviridae, 1, , Straboviridae, , , 0.348, 170286
+viral, 13071, "Bottlenose dolphin coronavirus HKU22 CF090325", Coronaviridae, 0.90, 0.10, 1.00, 0.20, Papillomaviridae, 9, , Coronaviridae, , , 0.392, 31769
+viral, 13152, "Cumuto virus TR7904", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Arenaviridae, 5, , Phenuiviridae, , , 0.387, 3269
+viral, 13153, "Cumuto virus TR7904", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Orthomyxoviridae, 2, , Phenuiviridae, , , 0.414, 1176
+viral, 13262, "Vibrio phage Vc1 strain phi-Vc1", Drexlerviridae, 0.90, 0.00, 0.90, , Autosignataviridae, 3, , Drexlerviridae, , , 0.442, 44541
+viral, 13622, "Erwinia phage phiEa2809", Ackermannviridae, 0.90, 0.10, 1.00, , Spinareoviridae, 6, , Ackermannviridae, , , 0.503, 162160
+viral, 13666, "Lactobacillus phage LfeInf", Herelleviridae, 0.90, 0.00, 0.90, , Anelloviridae, 8, , Herelleviridae, , , 0.382, 106071
+viral, 13838, "Dabieshan Tick Virus D3", Phenuiviridae, 0.90, 0.00, 0.90, 0.30, Flaviviridae, 6, , Phenuiviridae, , , 0.589, 1789
+viral, 13844, "Lihan tick virus LH-1", Phenuiviridae, 0.90, 0.00, 0.90, 0.30, Flaviviridae, 4, , Phenuiviridae, , , 0.513, 1762
+viral, 14013, "Proteus phage vB_PmiM_Pm5461", Straboviridae, 0.90, 0.00, 0.90, , Geminiviridae, 4, , Straboviridae, , , 0.311, 161989
+viral, 14282, "Diatraea saccharalis granulovirus Parana-2009", Baculoviridae, 0.90, 0.10, 1.00, 0.30, Phycodnaviridae, 5, , Baculoviridae, , , 0.349, 98392
+viral, 14320, "Rattus norvegicus polyomavirus 1 3690", Polyomaviridae, 0.90, 0.10, 1.00, 0.40, Hantaviridae, 7, , Polyomaviridae, , , 0.453, 5318
+viral, 14592, "Pudu puda papillomavirus 1 ILAT 93802", Papillomaviridae, 0.90, 0.00, 0.90, 0.00, Polyomaviridae, 3, , Papillomaviridae, , , 0.436, 7138
+viral, 14996, "Blacklegged tick phlebovirus 3 A1", Phenuiviridae, 0.90, 0.00, 0.90, 0.10, Flaviviridae, 10, , Phenuiviridae, , , 0.600, 1404
+viral, 15016, "Kabuto mountain virus T32", Phenuiviridae, 0.90, 0.00, 0.90, 0.30, Arenaviridae, 7, , Phenuiviridae, , , 0.454, 3151
+viral, 15027, "Morganella phage vB_MmoM_MP1", Straboviridae, 0.90, 0.00, 0.90, , Geminiviridae, 5, , Straboviridae, , , 0.347, 163201
+viral, 15252, "Sparus aurata papillomavirus 1 SA9pv", Papillomaviridae, 0.90, 0.00, 0.90, , Phenuiviridae, 9, , Papillomaviridae, , , 0.394, 5748
+viral, 15385, "Pidgey virus M6", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Peribunyaviridae, 5, , Phenuiviridae, , , 0.351, 1010
+viral, 15395, "Equus caballus papillomavirus 8 NCSU", Papillomaviridae, 0.90, 0.00, 0.90, , Anelloviridae, 5, , Papillomaviridae, , , 0.556, 8155
+viral, 15531, "Hubei diptera virus 5 SCM245062", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Nairoviridae, 7, , Phenuiviridae, , , 0.415, 1579
+viral, 15815, "Citrobacter phage CF1", Straboviridae, 0.90, 0.00, 0.90, , Drexlerviridae, 10, , Straboviridae, , , 0.426, 50339
+viral, 15868, "Rhodococcus phage Toil", Tectiviridae, 0.90, 0.00, 0.90, , Spinareoviridae, 3, , Tectiviridae, , , 0.545, 17253
+viral, 15978, "Phasi Charoen-like phasivirus Rio", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Adenoviridae, 2, , Phenuiviridae, , , 0.378, 1358
+viral, 15982, "Wutai mosquito phasivirus QN3-5", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Betaflexiviridae, 2, , Phenuiviridae, , , 0.379, 1454
+viral, 16012, "Pseudomonas phage PspYZU05", Straboviridae, 0.90, 0.00, 0.90, , , 0, , Straboviridae, , , 0.355, 166442
+viral, 16147, "Pasteurella phage PHB02", Autotranscriptaviridae, 0.90, 0.10, 1.00, , Herelleviridae, 8, , Autotranscriptaviridae, , , 0.408, 38670
+viral, 16160, "Pasteurella phage PHB01", Autotranscriptaviridae, 0.90, 0.10, 1.00, , Herelleviridae, 9, , Autotranscriptaviridae, , , 0.407, 37287
+viral, 16371, "Shigella phage Sf11", Drexlerviridae, 0.90, 0.00, 0.90, 1.00, , 0, , Drexlerviridae, , , 0.460, 46454
+viral, 16554, "Norway phlebovirus 1 NOR/A2/Bronnoya/2014", Phenuiviridae, 0.90, 0.00, 0.90, 0.10, Caulimoviridae, 3, , Phenuiviridae, , , 0.550, 2496
+viral, 16608, "Lactobacillus phage LpeD", Herelleviridae, 0.90, 0.00, 0.90, , Anelloviridae, 3, , Herelleviridae, , , 0.341, 145162
+viral, 16620, "Escherichia phage SRT8", Drexlerviridae, 0.90, 0.00, 0.90, , Microviridae, 2, , Drexlerviridae, , , 0.480, 49579
+viral, 16671, "Gluconobacter phage GC1", Tectiviridae, 0.90, 0.00, 0.90, , Microviridae, 3, , Tectiviridae, , , 0.505, 16523
+viral, 16881, "Proteus phage phiP4-3", Straboviridae, 0.90, 0.00, 0.90, , Dicistroviridae, 2, , Straboviridae, , , 0.315, 167849
+viral, 16892, "Enterobacter phage Ec_L1", Drexlerviridae, 0.90, 0.00, 0.90, , Siphoviridae, 3, , Drexlerviridae, , , 0.482, 51894
+viral, 17032, "Erwinia phage vB_EamM-Bue1", Ackermannviridae, 0.90, 0.10, 1.00, , Spinareoviridae, 6, , Ackermannviridae, , , 0.502, 164037
+viral, 17214, "Apple rubbery wood virus 2 R12", Phenuiviridae, 0.90, 0.00, 0.90, 0.10, Tospoviridae, 4, , Phenuiviridae, , , 0.324, 1463
+viral, 17216, "Apple rubbery wood virus 2 R12", Phenuiviridae, 0.90, 0.00, 0.90, 0.10, Potyviridae, 5, , Phenuiviridae, , , 0.348, 1319
+viral, 17307, "Rhynchobatus djiddensis polyomavirus 1 UGA1", Polyomaviridae, 0.90, 0.10, 1.00, , Peribunyaviridae, 2, , Polyomaviridae, , , 0.430, 3962
+viral, 17331, "Impatiens flower break virus Asan", Potyviridae, 0.90, 0.00, 0.90, 0.90, Chaseviridae, 10, , Potyviridae, , , 0.399, 9622
+viral, 17437, "Microbacterium phage Floof", Casidaviridae, 0.90, 0.10, 1.00, , Casidaviridae, 1, , Casidaviridae, , , 0.690, 48500
+viral, 17441, "Microbacterium phage Percival", Casidaviridae, 0.90, 0.10, 1.00, , Casidaviridae, 1, , Casidaviridae, , , 0.696, 47364
+viral, 18320, "Melon chlorotic spot virus E11-018", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Hantaviridae, 5, , Phenuiviridae, , , 0.386, 1486
+viral, 18492, "Pantoea phage vB_PagS_AAS23", Drexlerviridae, 0.90, 0.00, 0.90, , , 0, , Drexlerviridae, , , 0.476, 51170
+viral, 18962, "Dar es Salaam virus TZ-189", Phenuiviridae, 0.90, 0.00, 0.90, , Arenaviridae, 6, , Phenuiviridae, , , 0.411, 1309
+viral, 19145, "Microbacterium phage FuzzBuster", Hodgkinviridae, 0.90, 0.10, 1.00, , Hodgkinviridae, 1, , Hodgkinviridae, , , 0.680, 54844
+viral, 19385, "Rachiplusia nu nucleopolyhedrovirus VPN54", Baculoviridae, 0.90, 0.10, 1.00, 0.90, Virgaviridae, 2, , Baculoviridae, , , 0.379, 128587
+viral, 19392, "Guadeloupe mosquito phasivirus Ab-AAF-1-3", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Kyanoviridae, 2, , Phenuiviridae, , , 0.360, 1388
+viral, 19454, "Pectobacterium phage Wc4", Andersonviridae, 0.90, 0.10, 1.00, , Vandenendeviridae, 7, , Andersonviridae, , , 0.447, 92039
+viral, 19664, "Brown dog tick phlebovirus 2 TTP-Pool-5", Phenuiviridae, 0.90, 0.00, 0.90, 0.80, Flaviviridae, 3, , Phenuiviridae, , , 0.520, 2093
+viral, 19767, "Sciurus carolinensis polyomavirus 1 9804_KS15/0573", Polyomaviridae, 0.90, 0.10, 1.00, 0.10, Hantaviridae, 4, , Polyomaviridae, , , 0.432, 5236
+viral, 19940, "Coleopteran phenui-related virus OKIAV308", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Peribunyaviridae, 5, , Phenuiviridae, , , 0.297, 1054
+viral, 20094, "Fitzroy Crossing tenui-like virus 1 FCTeLV1/pool-6", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Rhabdoviridae, 7, , Phenuiviridae, , , 0.362, 855
+viral, 20103, "bat polyomavirus 2b R266", Polyomaviridae, 0.90, 0.10, 1.00, 0.10, Flaviviridae, 2, , Polyomaviridae, , , 0.387, 5041
+viral, 20288, "Onega tick phlebovirus NE-TH3", Phenuiviridae, 0.90, 0.00, 0.90, 0.80, Caulimoviridae, 4, , Phenuiviridae, , , 0.529, 1923
+viral, 20290, "Sara tick phlebovirus NE-YC4", Phenuiviridae, 0.90, 0.00, 0.90, 0.80, Picornaviridae, 4, , Phenuiviridae, , , 0.544, 2486
+viral, 20469, "Hedi virus SXYQ1867-2", Phenuiviridae, 0.90, 0.00, 0.90, 0.80, Tospoviridae, 4, , Phenuiviridae, , , 0.406, 4408
+viral, 20471, "Yunnan Paris negative-stranded virus WS", Phenuiviridae, 0.90, 0.00, 0.90, 0.00, Arenaviridae, 10, , Phenuiviridae, , , 0.366, 2864
+viral, 20587, "Chinese fire belly newt virus 1", Kolmioviridae, 0.90, 0.00, 0.90, , Alphasatellitidae, 2, , Kolmioviridae, , , 0.537, 1735
+viral, 20782, "Sanya conocephalus maculatus phenuivirus 1 BYCZSY201", Phenuiviridae, 0.90, 0.00, 0.90, , Potyviridae, 3, , Phenuiviridae, , , 0.478, 2172
+viral, 20783, "Fushun phenuivirus 1 QWXCFS109", Phenuiviridae, 0.90, 0.00, 0.90, , Caulimoviridae, 3, , Phenuiviridae, , , 0.362, 6604
+viral, 20785, "Fushun phenuivirus 1 QWXCFS239", Phenuiviridae, 0.90, 0.00, 0.90, , Caulimoviridae, 6, , Phenuiviridae, , , 0.483, 1424
+viral, 21097, "Variovorax phage VAC_51", Autoscriptoviridae, 0.90, 0.00, 0.90, , Autonotataviridae, 10, , Autoscriptoviridae, , , 0.622, 43466
+viral, 21140, "Ralstonia phage p2106", Autotranscriptaviridae, 0.90, 0.10, 1.00, , Autotranscriptaviridae, 1, , Autotranscriptaviridae, , , 0.628, 35927
+viral, 21291, "Betabaculovirus altermyunipunctae MyunGV#8", Baculoviridae, 0.90, 0.10, 1.00, 0.30, Ascoviridae, 4, , Baculoviridae, , , 0.499, 144673
+viral, 22246, "Cryptophlebia leucotreta granulovirus CV3", Baculoviridae, 0.90, 0.10, 1.00, 0.30, Circoviridae, 4, , Baculoviridae, , , 0.324, 110907
+viral, 22325, "Spodoptera litura granulovirus SlGV-K1", Baculoviridae, 0.90, 0.10, 1.00, 0.40, Baculoviridae, 1, , Baculoviridae, , , 0.388, 124121
+viral, 22366, "Rousettus aegyptiacus papillomavirus 1", Papillomaviridae, 0.90, 0.00, 0.90, , Paramyxoviridae, 4, , Papillomaviridae, , , 0.511, 7970
+viral, 22390, "Mycobacterium phage Wildcat", Vilmaviridae, 0.90, 0.00, 0.90, , Ackermannviridae, 5, , Vilmaviridae, , , 0.569, 78296
+viral, 23130, "Francolinus leucoscepus papillomavirus 1", Papillomaviridae, 0.90, 0.00, 0.90, , Sarthroviridae, 2, , Papillomaviridae, , , 0.529, 7498
+viral, 23590, "Nique virus", Phenuiviridae, 0.90, 0.00, 0.90, 0.80, Betaflexiviridae, 4, , Phenuiviridae, , , 0.435, 1744
+viral, 23728, "Rice grassy stunt tenuivirus IRRI", Phenuiviridae, 0.90, 0.00, 0.90, 0.10, Hantaviridae, 9, , Phenuiviridae, , , 0.349, 2915
+viral, 23731, "Bacillus phage Wip1", Tectiviridae, 0.90, 0.00, 0.90, , Adamaviridae, 1, , Tectiviridae, , , 0.369, 14319
+viral, 23904, "Pseudomonas phage phi-2 strain phi 2", Autoscriptoviridae, 0.90, 0.00, 0.90, , Autosignataviridae, 4, , Autoscriptoviridae, , , 0.589, 43144
+viral, 24064, "Bettongia penicillata papillomavirus 1", Papillomaviridae, 0.90, 0.00, 0.90, , Flaviviridae, 4, , Papillomaviridae, , , 0.442, 7737
+viral, 24070, "Acinetobacter phage Acj61", Straboviridae, 0.90, 0.00, 0.90, , Potyviridae, 5, , Straboviridae, , , 0.390, 164093
+viral, 24071, "Acinetobacter phage Acj9", Straboviridae, 0.90, 0.00, 0.90, , Chaseviridae, 2, , Straboviridae, , , 0.400, 169947
+viral, 24918, "Grapevine-associated poty-like virus 1 CREA-VE", Potyviridae, 0.90, 0.00, 0.90, , Chimalliviridae, 6, , Potyviridae, , , 0.377, 11032
+viral, 43797, "uncultured phage cr1_1", Suoliviridae, 0.90, 0.00, 0.90, , Microviridae, 2, , Suoliviridae, , , 0.322, 99882
+viral, 44068, "Trematomus bernacchii papillomavirus", Papillomaviridae, 0.90, 0.00, 0.90, , Phenuiviridae, 4, , Papillomaviridae, , , 0.407, 5675
+viral, 44088, "Papillomaviridae sp. Seabass_c1851", Papillomaviridae, 0.90, 0.00, 0.90, , Hantaviridae, 3, , Papillomaviridae, , , 0.401, 5960
+viral, 44203, "Snowdrop virus Y SA66", Potyviridae, 0.90, 0.00, 0.90, 0.90, , 0, , Potyviridae, , , 0.439, 10560
+viral, 44283, "Human papillomavirus", Papillomaviridae, 0.90, 0.00, 0.90, , Coronaviridae, 5, , Papillomaviridae, , , 0.436, 297
+viral, 44336, "Klebsiella phage vB_Kpn_AM_K4", Straboviridae, 0.90, 0.00, 0.90, , Microviridae, 3, , Straboviridae, , , 0.419, 288685
+viral, 44365, "Methanosarcina spherical virus GoeFT2011", Tectiviridae, 0.90, 0.00, 0.90, , Anelloviridae, 2, , Tectiviridae, , , 0.385, 10567
+viral, 44624, "Bacillus phage phiBsKO1-1", Herelleviridae, 0.90, 0.00, 0.90, , Flaviviridae, 4, , Herelleviridae, , , 0.399, 142728
+viral, 44740, "Boa constrictor papillomavirus 1 CH_2018_UZH", Papillomaviridae, 0.90, 0.00, 0.90, , Circoviridae, 2, , Papillomaviridae, , , 0.403, 7126
+viral, 45272, "Azobacteroides phage ProJPt-Bp1", Suoliviridae, 0.90, 0.00, 0.90, , Chrysoviridae, 1, , Suoliviridae, , , 0.423, 99517
+viral, 45503, "Escherichia phage IMM-001", Drexlerviridae, 0.90, 0.00, 0.90, , , 0, , Drexlerviridae, , , 0.443, 32486
+viral, 45796, "Papillomaviridae sp. Haddock_c45", Papillomaviridae, 0.90, 0.00, 0.90, , Rhabdoviridae, 3, , Papillomaviridae, , , 0.413, 6194
+viral, 46207, "Lemniscomys striatus polyomavirus 1 KY187", Polyomaviridae, 0.90, 0.10, 1.00, , Papillomaviridae, 5, , Polyomaviridae, , , 0.474, 5377
+viral, 46218, "Betta papillomavirus 1 Champ Fleurs BS20", Papillomaviridae, 0.90, 0.00, 0.90, , Picornaviridae, 6, , Papillomaviridae, , , 0.381, 5671
+viral, 46579, "Bat papillomavirus GD2017", Papillomaviridae, 0.90, 0.00, 0.90, , Hantaviridae, 6, , Papillomaviridae, , , 0.438, 1653
+viral, 47049, "uncultured phage cr118_1", Suoliviridae, 0.90, 0.00, 0.90, , Arenbergviridae, 2, , Suoliviridae, , , 0.287, 92600
+viral, 47384, "Scorpion polyomavirus 3 AZscp11_10", Polyomaviridae, 0.90, 0.10, 1.00, , Adamaviridae, 1, , Polyomaviridae, , , 0.378, 5604
+viral, 47596, "Coleopteran phenui-related virus OKIAV264", Phenuiviridae, 0.90, 0.00, 0.90, , Fimoviridae, 3, , Phenuiviridae, , , 0.316, 1996
+viral, 47751, "Hymenopteran phenui-related virus OKIAV298", Phenuiviridae, 0.90, 0.00, 0.90, , Mesyanzhinovviridae, 3, , Phenuiviridae, , , 0.472, 3413
+viral, 48128, "Epsilon virus", Kolmioviridae, 0.90, 0.00, 0.90, 0.50, Marseilleviridae, 4, , Kolmioviridae, , , 0.601, 1014
+viral, 48434, "Serinus canaria papillomavirus 1 York1", Papillomaviridae, 0.90, 0.00, 0.90, , Flaviviridae, 4, , Papillomaviridae, , , 0.494, 8071
+viral, 49618, "Rhinella marina papillomavirus 1 FG1", Papillomaviridae, 0.90, 0.00, 0.90, , Polyomaviridae, 9, , Papillomaviridae, , , 0.331, 5467
+viral, 49690, "Escherichia phage phiEC1", Straboviridae, 0.90, 0.00, 0.90, 1.00, Schitoviridae, 1, , Straboviridae, , , 0.459, 53242
+viral, 341, "Eragrostis minor streak virus", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Rountreeviridae, 6, , Geminiviridae, , , 0.516, 2689
+viral, 395, "Rattus norvegicus papillomavirus 2", Papillomaviridae, 0.80, 0.10, 0.90, , Tombusviridae, 3, , Papillomaviridae, , , 0.508, 7724
+viral, 690, "West African Asystasia virus 1 ABgV1", Geminiviridae, 0.80, 0.00, 0.80, 0.80, Nanoviridae, 2, , Geminiviridae, , , 0.417, 2661
+viral, 11420, "Paspalum striate mosaic virus", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Adenoviridae, 5, , Geminiviridae, , , 0.494, 2816
+viral, 11425, "Peromyscus papillomavirus 1 M-14 PmPV1", Papillomaviridae, 0.80, 0.10, 0.90, , Picornaviridae, 2, , Papillomaviridae, , , 0.507, 7704
+viral, 11462, "Morelia spilota papillomavirus 1 Zurich 2009", Papillomaviridae, 0.80, 0.10, 0.90, , Hepeviridae, 2, , Papillomaviridae, , , 0.409, 7048
+viral, 11467, "Chloris striate mosaic virus", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Tombusviridae, 5, , Geminiviridae, , , 0.536, 2750
+viral, 11469, "Maize streak virus MSV-F_Ng-IntB-g88-2007", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Solemoviridae, 8, , Geminiviridae, , , 0.474, 2686
+viral, 11495, "Sugarcane streak virus SSV-B[RPie]", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Tombusviridae, 6, , Geminiviridae, , , 0.520, 2745
+viral, 11496, "Digitaria streak virus", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Betaflexiviridae, 3, , Geminiviridae, , , 0.497, 2701
+viral, 11982, "Tomato necrotic stunt virus MX9354", Potyviridae, 0.80, 0.10, 0.90, 0.80, Parvoviridae, 5, , Potyviridae, , , 0.423, 10057
+viral, 11995, "Maize streak Reunion virus MSRV-RE_StP_PR52_2009", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Iridoviridae, 5, , Geminiviridae, , , 0.524, 2882
+viral, 12031, "Miniopterus schreibersii papillomavirus 1 TT20F", Papillomaviridae, 0.80, 0.10, 0.90, , Astroviridae, 2, , Papillomaviridae, , , 0.458, 7531
+viral, 12038, "Paspalum dilatatum striate mosaic virus AU-1660-2004", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Adamaviridae, 1, , Geminiviridae, , , 0.519, 2806
+viral, 12039, "Digitaria ciliaris striate mosaic virus AU-QG5-2011", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Adenoviridae, 6, , Geminiviridae, , , 0.528, 2816
+viral, 12363, "Canis familiaris papillomavirus 14", Papillomaviridae, 0.80, 0.10, 0.90, 0.40, Flaviviridae, 3, , Papillomaviridae, , , 0.533, 7826
+viral, 12414, "Dragonfly-associated mastrevirus PR_NZ50_2009", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Parvoviridae, 2, , Geminiviridae, , , 0.482, 2649
+viral, 12566, "Citrus bark cracking viroid", Pospiviroidae, 0.80, 0.00, 0.80, , Kolmioviridae, 6, , Pospiviroidae, , , 0.558, 284
+viral, 12618, "Chickpea chlorosis Australia virus CpCV-D_AU_3494I_2002", Geminiviridae, 0.80, 0.00, 0.80, 0.10, Hepadnaviridae, 6, , Geminiviridae, , , 0.399, 2572
+viral, 12634, "Culex nigripalpus nucleopolyhedrovirus Florida1997", Baculoviridae, 0.80, 0.20, 1.00, , Baculoviridae, 2, , Baculoviridae, , , 0.509, 108252
+viral, 12647, "Drosophila affinis sigmavirus 10", Rhabdoviridae, 0.80, 0.00, 0.80, 0.20, Geminiviridae, 8, , Rhabdoviridae, , , 0.414, 14409
+viral, 13200, "Fulmarus glacialis papillomavirus 1", Papillomaviridae, 0.80, 0.10, 0.90, , Tombusviridae, 2, , Papillomaviridae, , , 0.481, 8132
+viral, 13261, "Pygoscelis adeliae papillomavirus 1 Crozier_2013", Papillomaviridae, 0.80, 0.10, 0.90, , Chuviridae, 1, , Papillomaviridae, , , 0.495, 7637
+viral, 13312, "Jacquemontia yellow mosaic virus", Geminiviridae, 0.80, 0.00, 0.80, 0.80, Chrysoviridae, 2, , Geminiviridae, , , 0.444, 2578
+viral, 13386, "Fox fecal rhabdovirus S40", Rhabdoviridae, 0.80, 0.00, 0.80, 0.00, Caulimoviridae, 3, , Rhabdoviridae, , , 0.467, 15541
+viral, 13527, "Bacillus phage Mater", Herelleviridae, 0.80, 0.10, 0.90, , Demerecviridae, 7, , Herelleviridae, , , 0.395, 164302
+viral, 13546, "Prochlorococcus phage P-TIM68", Kyanoviridae, 0.80, 0.00, 0.80, , Fimoviridae, 4, , Kyanoviridae, , , 0.343, 197361
+viral, 13634, "Kaisodi virus G14132", Phenuiviridae, 0.80, 0.10, 0.90, 0.20, Arenaviridae, 9, , Phenuiviridae, , , 0.436, 3232
+viral, 13801, "Ralstonia phage phiITL-1", Autotranscriptaviridae, 0.80, 0.20, 1.00, , Autotranscriptaviridae, 2, , Autotranscriptaviridae, , , 0.628, 38731
+viral, 13840, "Huangpi Tick Virus 2 H114-17", Phenuiviridae, 0.80, 0.10, 0.90, 0.20, Arenaviridae, 9, , Phenuiviridae, , , 0.435, 3568
+viral, 13843, "Lihan tick virus LH-1", Phenuiviridae, 0.80, 0.10, 0.90, 0.30, Flaviviridae, 3, , Phenuiviridae, , , 0.464, 6517
+viral, 13859, "Tacheng Tick Virus 7 TCRP-3", Rhabdoviridae, 0.80, 0.00, 0.80, , Flaviviridae, 3, , Rhabdoviridae, , , 0.479, 13408
+viral, 13864, "Wenzhou Shrimp Virus 1 BJDX-5", Phenuiviridae, 0.80, 0.10, 0.90, 0.10, Caulimoviridae, 5, , Phenuiviridae, , , 0.488, 898
+viral, 13870, "Wuhan Fly Virus 1 SYY1-9", Phenuiviridae, 0.80, 0.10, 0.90, 0.00, Caulimoviridae, 5, , Phenuiviridae, , , 0.397, 1116
+viral, 13873, "Wuhan House Fly Virus 1 SYY2-4", Rhabdoviridae, 0.80, 0.00, 0.80, 0.20, Geminiviridae, 9, , Rhabdoviridae, , , 0.396, 12651
+viral, 13904, "Yichang Insect virus YCYC01", Phenuiviridae, 0.80, 0.10, 0.90, 0.00, Paramyxoviridae, 4, , Phenuiviridae, , , 0.470, 1030
+viral, 13906, "Yongjia Tick Virus 1 YJ1-1", Phenuiviridae, 0.80, 0.10, 0.90, 0.30, Alphaflexiviridae, 3, , Phenuiviridae, , , 0.558, 1830
+viral, 14217, "Lymantria xylina nucleopolyhedrovirus LyxyMNPV-5", Baculoviridae, 0.80, 0.20, 1.00, 0.70, Baculoviridae, 2, , Baculoviridae, , , 0.535, 156344
+viral, 14424, "Tomato chlorotic mottle Guyane virus GF:Mon2:GF455:09", Geminiviridae, 0.80, 0.00, 0.80, 0.80, Spinareoviridae, 3, , Geminiviridae, , , 0.417, 2603
+viral, 14580, "Pavonia yellow mosaic virus BR-Alb51-14", Geminiviridae, 0.80, 0.00, 0.80, 0.80, Mahapunaviridae, 2, , Geminiviridae, , , 0.467, 2700
+viral, 14611, "Rattus norvegicus papillomavirus 3 Rat_60S", Papillomaviridae, 0.80, 0.10, 0.90, , Tombusviridae, 2, , Papillomaviridae, , , 0.502, 7707
+viral, 14743, "Murine polyomavirus strain BG", Polyomaviridae, 0.80, 0.20, 1.00, 0.50, Retroviridae, 4, , Polyomaviridae, , , 0.472, 5307
+viral, 14758, "Bacillus phage Shbh1", Herelleviridae, 0.80, 0.10, 0.90, , Mitoviridae, 3, , Herelleviridae, , , 0.364, 138081

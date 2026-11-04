@@ -1,0 +1,45 @@
+Comparison, Spectrum, RatePerMbp, Seed, Substitutions, Distance500bp, LadderFactor, DistanceLadder, SignatureDistance
+"E. coli K-12 vs O157:H7", strain pair, , , , 0.181289, 64, 0.0489906, 0.035031
+"E. coli K-12 vs Shigella flexneri 2a", strain pair, , , , 0.173234, 64, 0.0378855, 0.0405865
+"Y. pestis CO92 vs Y. pseudotuberculosis", strain pair, , , , 0.18735, 64, 0.0540197, 0.0140286
+"B. anthracis Ames vs B. cereus ATCC 14579", strain pair, , , , 0.177911, 64, 0.0440025, 0.0312256
+"K-12 vs K-12 mutated", Uniform, 1, 0, 5, 3.04689E-06, 64, 3.04789E-06, 1.37518E-05
+"K-12 vs K-12 mutated", Uniform, 1, 1, 5, 3.04689E-06, 64, 3.04788E-06, 1.04193E-05
+"K-12 vs K-12 mutated", Uniform, 1, 2, 5, 3.04689E-06, 64, 3.04787E-06, 1.28181E-05
+"K-12 vs K-12 mutated", Uniform, 1, 3, 5, 3.04689E-06, 64, 3.04789E-06, 1.04694E-05
+"K-12 vs K-12 mutated", Uniform, 1, 4, 5, 3.04689E-06, 64, 3.04787E-06, 8.80751E-06
+"K-12 vs K-12 mutated", Uniform, 10, 0, 46, 2.80314E-05, 64, 2.68667E-05, 4.99365E-05
+"K-12 vs K-12 mutated", Uniform, 10, 1, 46, 2.80314E-05, 64, 2.60633E-05, 4.52431E-05
+"K-12 vs K-12 mutated", Uniform, 10, 2, 46, 2.80314E-05, 64, 2.59438E-05, 2.67269E-05
+"K-12 vs K-12 mutated", Uniform, 10, 3, 46, 2.80314E-05, 64, 2.64947E-05, 3.86736E-05
+"K-12 vs K-12 mutated", Uniform, 10, 4, 46, 2.80314E-05, 64, 2.64642E-05, 3.88519E-05
+"K-12 vs K-12 mutated", Uniform, 100, 0, 464, 0.000276181, 64, 0.00014225, 0.000172514
+"K-12 vs K-12 mutated", Uniform, 100, 1, 464, 0.000279661, 64, 0.00014171, 0.00016204
+"K-12 vs K-12 mutated", Uniform, 100, 2, 464, 0.00027324, 64, 0.000136426, 0.000289738
+"K-12 vs K-12 mutated", Uniform, 100, 3, 464, 0.000277848, 64, 0.000145488, 0.000185374
+"K-12 vs K-12 mutated", Uniform, 100, 4, 464, 0.000275186, 64, 0.000139273, 0.000192693
+"K-12 vs K-12 mutated", Uniform, 1000, 0, 4642, 0.00240067, 64, 0.000458432, 0.00198724
+"K-12 vs K-12 mutated", Uniform, 1000, 1, 4642, 0.00240606, 64, 0.000443016, 0.00172828
+"K-12 vs K-12 mutated", Uniform, 1000, 2, 4642, 0.00243606, 64, 0.000484578, 0.00159646
+"K-12 vs K-12 mutated", Uniform, 1000, 3, 4642, 0.00240965, 64, 0.000458526, 0.00184596
+"K-12 vs K-12 mutated", Uniform, 1000, 4, 4642, 0.00240787, 64, 0.000444391, 0.00191961
+"K-12 vs K-12 mutated", CpgTransition, 1, 0, 5, 3.04689E-06, 64, 3.04788E-06, 1.74759E-05
+"K-12 vs K-12 mutated", CpgTransition, 1, 1, 5, 3.04689E-06, 64, 3.04786E-06, 2.2642E-05
+"K-12 vs K-12 mutated", CpgTransition, 1, 2, 5, 3.04689E-06, 64, 3.04786E-06, 2.17936E-05
+"K-12 vs K-12 mutated", CpgTransition, 1, 3, 5, 3.04689E-06, 64, 3.04787E-06, 1.93597E-05
+"K-12 vs K-12 mutated", CpgTransition, 1, 4, 5, 3.04689E-06, 64, 3.04788E-06, 1.95663E-05
+"K-12 vs K-12 mutated", CpgTransition, 10, 0, 46, 2.80314E-05, 64, 2.69693E-05, 0.000156431
+"K-12 vs K-12 mutated", CpgTransition, 10, 1, 46, 2.80314E-05, 64, 2.76835E-05, 0.000166093
+"K-12 vs K-12 mutated", CpgTransition, 10, 2, 46, 2.80314E-05, 64, 2.62552E-05, 0.000158519
+"K-12 vs K-12 mutated", CpgTransition, 10, 3, 46, 2.80314E-05, 64, 2.75748E-05, 0.000157391
+"K-12 vs K-12 mutated", CpgTransition, 10, 4, 46, 2.80314E-05, 64, 2.73263E-05, 0.000158353
+"K-12 vs K-12 mutated", CpgTransition, 100, 0, 464, 0.000280966, 64, 0.000227345, 0.0015812
+"K-12 vs K-12 mutated", CpgTransition, 100, 1, 464, 0.000280858, 64, 0.000226934, 0.00157946
+"K-12 vs K-12 mutated", CpgTransition, 100, 2, 464, 0.000281323, 64, 0.000230477, 0.00158421
+"K-12 vs K-12 mutated", CpgTransition, 100, 3, 464, 0.000281215, 64, 0.000227038, 0.00158489
+"K-12 vs K-12 mutated", CpgTransition, 100, 4, 464, 0.000280966, 64, 0.000225147, 0.00157739
+"K-12 vs K-12 mutated", CpgTransition, 1000, 0, 4642, 0.00264523, 64, 0.00203177, 0.0157887
+"K-12 vs K-12 mutated", CpgTransition, 1000, 1, 4642, 0.0026402, 64, 0.00202594, 0.0157703
+"K-12 vs K-12 mutated", CpgTransition, 1000, 2, 4642, 0.00265096, 64, 0.00202859, 0.0158462
+"K-12 vs K-12 mutated", CpgTransition, 1000, 3, 4642, 0.00264334, 64, 0.00202978, 0.0157755
+"K-12 vs K-12 mutated", CpgTransition, 1000, 4, 4642, 0.00264759, 64, 0.00203004, 0.0158154
