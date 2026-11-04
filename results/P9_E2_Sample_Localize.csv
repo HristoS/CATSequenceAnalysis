@@ -1,0 +1,201 @@
+PhageId, Name, LengthBp, HostGenus, HostFamily, HitId, HitKind, HitGenus, HitFamily, HitScore, HitLog10E, Covered, BGenusCorrect, BFamilyCorrect, AGenus, AGenusCorrect, Candidates, Seconds
+374, "Mycobacterium phage Switzer", 52298, Mycobacterium, Mycobacteriaceae, 34908, bacterium, , , 0.8973, 0.87, False, False, False, Salinibaculum, False, 23337, 8.65
+11621, "Gordonia phage GTE7", 74431, Gordonia, Gordoniaceae, 4061, bacterium, Fuerstiella, Planctomycetaceae, 0.8869, 1.81, False, False, False, Thermophilibacter, False, 22236, 5.69
+11810, "Bacillus phage BCD7", 93839, Bacillus, Bacillaceae, 8787, bacterium, Anaerocolumna, Lachnospiraceae, 0.8771, 2.34, False, False, False, Sutcliffiella, False, 21460, 12.91
+11896, "Bacillus phage PBC1", 41164, Bacillus, Bacillaceae, 42378, bacterium, Rossellomorea, Bacillaceae, 0.8912, 2.35, False, False, True, Staphylococcus, False, 24081, 3.53
+11967, "Salmonella phage FSL SP-031", 42215, Salmonella, Enterobacteriaceae, 29770, bacterium, Erwinia, Erwiniaceae, 0.8754, 3.20, False, False, False, Prevotella, False, 24004, 4.11
+12026, "Staphylococcus phage P4W", 147590, Staphylococcus, Staphylococcaceae, 3315, bacterium, Paenibacillus, Paenibacillaceae, 0.8417, 3.31, False, False, False, Sulfolobus, False, 19956, 3.85
+12128, "Salmonella phage vB_SenS_AG11", 41546, Salmonella, Enterobacteriaceae, 5871, bacterium, Spirosoma, Cytophagaceae, 0.8707, 3.38, False, False, False, Spirosoma, False, 24057, 2.66
+12289, "Escherichia phage phAPEC8", 147737, Escherichia, Enterobacteriaceae, 27227, bacterium, Shewanella, Shewanellaceae, 0.8604, 2.88, False, False, False, Vagococcus, False, 19952, 2.71
+12302, "Propionibacterium phage P1.1", 29348, Propionibacterium, Propionibacteriaceae, 5069, bacterium, Xylella, Lysobacteraceae, 0.8465, 3.80, False, False, False, Weissella, False, 25056, 24.54
+12596, "Bacillus phage Shanette", 138877, Bacillus, Bacillaceae, 27670, bacterium, Shouchella, Bacillaceae, 0.8720, 2.34, False, False, True, Peptostreptococcus, False, 20147, 2.40
+12673, "Pseudoalteromonas phage RIO-1", 43882, Pseudoalteromonas, Pseudoalteromonadaceae, 28133, bacterium, Niabella, Chitinophagaceae, 0.8867, 2.69, False, False, False, Sulfophobococcus, False, 23901, 2.33
+12698, "Mycobacterium phage Astraea", 154872, Mycobacterium, Mycobacteriaceae, 32015, bacterium, Mycobacterium, Mycobacteriaceae, 0.8773, 2.09, False, True, True, Streptomyces, False, 19803, 2.49
+12950, "Bacillus phage Slash", 80382, Bacillus, Bacillaceae, 42106, bacterium, Pediococcus, Lactobacillaceae, 0.8732, 2.40, False, False, False, Prevotellamassilia, False, 22010, 6.80
+12953, "Clavibacter phage CN1A", 56789, Clavibacter, Microbacteriaceae, 41066, bacterium, Aminobacter, Phyllobacteriaceae, 0.8819, 2.69, False, False, False, Amycolatopsis, False, 23058, 2.90
+13073, "Staphylococcus phage vB_SepS_SEP9", 92417, Staphylococcus, Staphylococcaceae, 2779, bacterium, Liquorilactobacillus, Lactobacillaceae, 0.8486, 2.74, False, False, False, Candidatus Izemoplasma, False, 21514, 10.05
+13216, "Mycobacterium phage MosMoris", 65243, Mycobacterium, Mycobacteriaceae, 37669, bacterium, Mesorhizobium, Phyllobacteriaceae, 0.8893, 1.67, False, False, False, Gephyromycinifex, False, 22629, 3.73
+13603, "Proteus phage PM 93", 45169, Proteus, Morganellaceae, 38188, bacterium, Pseudobutyrivibrio, Lachnospiraceae, 0.8893, 2.46, False, False, False, Ehrlichia, False, 23787, 2.68
+13605, "Mycobacterium phage Murucutumbu", 60609, Mycobacterium, Mycobacteriaceae, 27212, plasmid, Sphingobium, Sphingobiaceae, 0.8898, 1.59, False, False, False, Pseudoclavibacter, False, 22863, 3.99
+13645, "Pseudomonas phage YH6", 73050, Pseudomonas, Pseudomonadaceae, 42409, bacterium, Aquiluna, Microbacteriaceae, 0.8848, 1.45, False, False, False, Actinomyces, False, 22291, 5.50
+13690, "Mannheimia phage vB_MhM_1127AP1", 36745, Mannheimia, Pasteurellaceae, 10707, bacterium, Mannheimia, Pasteurellaceae, 0.8799, 2.97, False, True, True, Mannheimia, True, 24447, 2.37
+13750, "Vibrio phage phi 1", 66708, Vibrio, Vibrionaceae, 4782, bacterium, Croceibacter, Flavobacteriaceae, 0.8746, 2.56, False, False, False, Ruminococcus, False, 22567, 4.66
+13937, "Salmonella phage f18SE", 41868, Salmonella, Enterobacteriaceae, 25230, archaeon, , , 0.8768, 2.45, False, False, False, Spirosoma, False, 24031, 2.46
+14074, "Bacillus phage phi4J1 strain vB_BceS-4J1", 41486, Bacillus, Bacillaceae, 29242, bacterium, Bacillus, Bacillaceae, 0.8840, 2.82, False, True, True, Bacillus, True, 24059, 2.59
+14153, "Propionibacterium phage Kubed", 29461, Propionibacterium, Propionibacteriaceae, 3877, bacterium, Xylella, Lysobacteraceae, 0.8433, 3.83, False, False, False, Weissella, False, 25048, 16.88
+14264, "Citrobacter phage IME-CF2", 177688, Citrobacter, Enterobacteriaceae, 25956, bacterium, Alteromonas, Alteromonadaceae, 0.8628, 2.79, False, False, False, Erysipelothrix, False, 19346, 2.88
+14278, "Citrobacter phage Merlin", 172733, Citrobacter, Enterobacteriaceae, 2193, bacterium, Psychrosphaera, Pseudoalteromonadaceae, 0.8755, 1.73, False, False, False, Prevotella, False, 19440, 2.81
+14361, "Bacillus phage Eyuki", 162252, Bacillus, Bacillaceae, 32223, plasmid, Desulfosporomusa, Sporomusaceae, 0.8614, 2.34, False, False, False, Pyrolobus, False, 19648, 2.54
+14404, "Mycobacterium phage Phatniss", 57293, Mycobacterium, Mycobacteriaceae, 2961, bacterium, Paludibaculum, Bryobacteraceae, 0.8639, 3.53, False, False, False, Mycobacterium, True, 23031, 3.11
+14417, "Mycobacterium phage HyRo", 153714, Mycobacterium, Mycobacteriaceae, 28934, bacterium, Roseateles, Sphaerotilaceae, 0.8806, 1.83, False, False, False, Streptomyces, False, 19817, 2.69
+14430, "Caulobacter phage Percy", 44974, Caulobacter, Caulobacteraceae, 34830, bacterium, Hyphomicrobium, Hyphomicrobiaceae, 0.9025, 1.13, False, False, False, Actinomyces, False, 23808, 2.59
+14442, "Streptococcus phage phiARI0923", 33477, Streptococcus, Streptococcaceae, 9021, bacterium, Staphylococcus, Staphylococcaceae, 0.8734, 3.17, False, False, False, Streptococcus, True, 24701, 2.14
+14550, "Staphylococcus phage P282", 41960, Staphylococcus, Staphylococcaceae, 11174, bacterium, Staphylococcus, Staphylococcaceae, 0.8666, 3.35, False, True, True, Vibrio, False, 24025, 2.44
+14698, "Pseudomonas phage JBD69", 36938, Pseudomonas, Pseudomonadaceae, 31349, bacterium, Pseudomonas, Pseudomonadaceae, 0.9193, 0.95, False, True, True, Corynebacterium, False, 24432, 2.40
+14790, "Mycobacterium phage Bipper", 77832, Mycobacterium, Mycobacteriaceae, 35278, bacterium, Nocardia, Nocardiaceae, 0.8877, 1.33, False, False, False, Jonesia, False, 22107, 7.26
+14861, "Pseudomonas phage PaMx41", 43490, Pseudomonas, Pseudomonadaceae, 29689, bacterium, , , 0.8908, 1.35, False, False, False, Acetohalobium, False, 23927, 2.47
+14862, "Erwinia phage vB_EamM_Deimos-Minion", 273501, Erwinia, Erwiniaceae, 29386, bacterium, Streptomyces, Streptomycetaceae, 0.9052, 1.86, False, False, False, Staphylococcus, False, 18170, 4.68
+14892, "Staphylococcus phage SLPW", 17861, Staphylococcus, Staphylococcaceae, 34340, bacterium, Flavobacterium, Flavobacteriaceae, 0.8923, 3.13, False, False, False, Lacticaseibacillus, False, 26165, 5.45
+14894, "Mycobacterium phage Xeno", 42395, Mycobacterium, Mycobacteriaceae, 35595, bacterium, Nesterenkonia, Micrococcaceae, 0.8898, 2.30, False, False, False, Mycobacterium, True, 23994, 2.79
+14912, "Streptomyces phage Chymera", 34742, Streptomyces, Streptomycetaceae, 36768, plasmid, Actinacidiphila, Streptomycetaceae, 0.8887, 1.77, False, False, True, Streptomyces, True, 24612, 2.63
+14953, "Gordonia phage Soups", 52924, Gordonia, Gordoniaceae, 4826, bacterium, Erythrobacter, Erythrobacteraceae, 0.8951, 1.18, False, False, False, Streptomyces, False, 23299, 2.98
+15142, "Lactococcus phage D4410", 22825, Lactococcus, Streptococcaceae, 31294, bacterium, Wolbachia, Anaplasmataceae, 0.8872, 2.79, False, False, False, Mesoflavibacter, False, 25682, 12.02
+15231, "Synechococcus phage S-CAM22 strain 0210CC35", 172230, Synechococcus, Synechococcaceae, 26248, bacterium, Chryseomicrobium, Caryophanaceae, 0.8585, 2.88, False, False, False, Sulfurovum, False, 19448, 2.64
+15316, "Klebsiella phage phiKpS2", 44024, Klebsiella, Enterobacteriaceae, 9724, bacterium, Paenibacillus, Paenibacillaceae, 0.8957, 1.94, False, False, False, Dokdonia, False, 23890, 2.75
+15330, "Escherichia phage ZG49", 40291, Escherichia, Enterobacteriaceae, 26436, bacterium, Chitinophaga, Chitinophagaceae, 0.9051, 1.25, False, False, False, Prevotella, False, 24168, 2.26
+15331, "Leuconostoc phage Ln-7", 28093, Leuconostoc, Lactobacillaceae, 39931, bacterium, Maribacter, Flavobacteriaceae, 0.8818, 3.18, False, False, False, Apilactobacillus, False, 25172, 15.67
+15442, "Bordetella phage CN2", 62030, Bordetella, Alcaligenaceae, 38423, bacterium, Bradyrhizobium, Nitrobacteraceae, 0.8903, 2.02, False, False, False, Polystyrenella, False, 22799, 2.93
+15449, "Streptococcus phage IPP14", 37252, Streptococcus, Streptococcaceae, 3255, bacterium, Enterococcus, Enterococcaceae, 0.8894, 2.35, False, False, False, Streptococcus, True, 24417, 2.28
+15484, "Streptococcus phage IPP66", 37969, Streptococcus, Streptococcaceae, 10585, bacterium, Enterococcus, Enterococcaceae, 0.8847, 2.74, False, False, False, Streptococcus, True, 24364, 2.24
+15618, "Vibrio phage Vp670", 43121, Vibrio, Vibrionaceae, 37464, bacterium, Brevibacillus, Paenibacillaceae, 0.8997, 1.36, False, False, False, Sulfurimonas, False, 23945, 2.21
+15815, "Citrobacter phage CF1", 50339, Citrobacter, Enterobacteriaceae, 30688, bacterium, Bacillus, Bacillaceae, 0.8621, 3.31, False, False, False, Deefgea, False, 23448, 2.62
+15827, "Streptococcus phage P3681", 36168, Streptococcus, Streptococcaceae, 38348, bacterium, Erysipelothrix, Erysipelotrichaceae, 0.8852, 2.70, False, False, False, Mycoplasma, False, 24497, 1.88
+16153, "Pseudomonas phage Phabio", 309157, Pseudomonas, Pseudomonadaceae, 6558, bacterium, Peredibacter, Bacteriovoracaceae, 0.8787, 1.59, False, False, False, Jeotgalicoccus, False, 17851, 5.66
+16234, "Mycobacterium phage GuuelaD", 76315, Mycobacterium, Mycobacteriaceae, 4827, bacterium, Erythrobacter, Erythrobacteraceae, 0.8797, 2.03, False, False, False, Staphylococcus, False, 22180, 5.03
+16250, "Mycobacterium phage Amohnition", 61761, Mycobacterium, Mycobacteriaceae, 30635, bacterium, , Nocardioidaceae, 0.8961, 1.44, False, False, False, Deinococcus, False, 22811, 2.90
+16399, "Erwinia phage vB_EamM_RisingSun", 235108, Erwinia, Erwiniaceae, 4031, bacterium, Candidatus Planktophila, Candidatus Nanopelagicaceae, 0.8811, 2.00, False, False, False, Acholeplasma, False, 18541, 3.30
+16502, "Mycobacterium phage Wachhund", 54513, Mycobacterium, Mycobacteriaceae, 4994, bacterium, Hyphomonas, Hyphomonadaceae, 0.8514, 3.51, False, False, False, Mycobacterium, True, 23179, 2.65
+16521, "Lactococcus phage 16802", 28721, Lactococcus, Streptococcaceae, 27047, bacterium, Thermodesulfovibrio, Thermodesulfovibrionaceae, 0.8800, 2.84, False, False, False, Gloeocapsopsis, False, 25111, 16.15
+16526, "Lactococcus phage 51701", 32529, Lactococcus, Streptococcaceae, 7195, bacterium, Wolbachia, Anaplasmataceae, 0.8622, 3.18, False, False, False, Lacinutrix, False, 24780, 2.11
+16531, "Lactococcus phage 62605", 31014, Lactococcus, Streptococcaceae, 7145, bacterium, Wolbachia, Anaplasmataceae, 0.8638, 3.26, False, False, False, Lacinutrix, False, 24904, 18.67
+16609, "Klebsiella phage vB_KpnS_IME279", 42518, Klebsiella, Enterobacteriaceae, 1269, archaeon, Halovivax, Natrialbaceae, 0.8740, 3.18, False, False, False, Candidatus Cenarchaeum, False, 23987, 2.20
+16697, "Pseudomonas phage ventosus", 97425, Pseudomonas, Pseudomonadaceae, 4028, bacterium, Candidatus Planktophila, Candidatus Nanopelagicaceae, 0.8854, 1.45, False, False, False, Aurantimicrobium, False, 21339, 10.77
+16741, "Escherichia phage EG1", 39919, Escherichia, Enterobacteriaceae, 40367, bacterium, Brevibacillus, Paenibacillaceae, 0.9018, 1.42, False, False, False, Prevotella, False, 24196, 2.34
+16937, "Citrobacter phage vB_CroP_CrRp3", 44349, Citrobacter, Enterobacteriaceae, 40810, bacterium, Paenibacillus, Paenibacillaceae, 0.8929, 2.35, False, False, False, Anaplasma, False, 23859, 2.92
+17067, "Escherichia phage myPSH2311", 68712, Escherichia, Enterobacteriaceae, 10438, bacterium, Vibrio, Vibrionaceae, 0.8795, 2.15, False, False, False, Prevotella, False, 22479, 3.66
+17193, "Enterobacteria phage vB_EcoM_IME341", 172379, Escherichia, Enterobacteriaceae, 26017, bacterium, Bdellovibrio, Pseudobdellovibrionaceae, 0.8737, 2.26, False, False, False, Sutcliffiella, False, 19444, 2.61
+17198, "Aeromonas phage 25AhydR2PP", 42696, Aeromonas, Aeromonadaceae, 9643, bacterium, Brevibacillus, Paenibacillaceae, 0.8932, 2.17, False, False, False, Prevotella, False, 23977, 2.35
+17369, "Ecterococcus phage vB_EfaS_AL3", 40789, Enterococcus, Enterococcaceae, 7167, bacterium, Wolbachia, Anaplasmataceae, 0.8674, 3.01, False, False, False, Ruminococcus, False, 24123, 2.00
+17846, "Klebsiella phage KN4-1", 41219, Klebsiella, Enterobacteriaceae, 8620, bacterium, Xenorhabdus, Morganellaceae, 0.8987, 1.44, False, False, False, Prevotella, False, 24076, 2.30
+17871, "Caulobacter phage CcrBL10", 220934, Caulobacter, Caulobacteraceae, 5102, bacterium, Luteibacter, Rhodanobacteraceae, 0.8762, 2.07, False, False, False, Corynebacterium, False, 18706, 3.09
+17960, "Pseudomonas phage Fc22", 38255, Pseudomonas, Pseudomonadaceae, 31349, bacterium, Pseudomonas, Pseudomonadaceae, 0.9392, 0.94, False, True, True, Deinococcus, False, 24343, 2.80
+18050, "Acinetobacter phage vB_AbaM_B09_Aci02-2", 104354, Acinetobacter, Moraxellaceae, 5846, bacterium, Veillonella, Veillonellaceae, 0.8685, 2.30, False, False, False, Sulfurovum, False, 21121, 12.52
+18144, "Streptococcus phage CHPC1152", 35353, Streptococcus, Streptococcaceae, 34523, bacterium, Bacillus, Bacillaceae, 0.8744, 3.17, False, False, False, Vibrio, False, 24555, 2.48
+18161, "Streptococcus phage CHPC925", 34759, Streptococcus, Streptococcaceae, 29040, bacterium, Lysinibacillus, Bacillaceae, 0.8896, 2.49, False, False, False, Mycoplasma, False, 24611, 2.22
+18235, "Salmonella phage SeWh-1", 59878, Salmonella, Enterobacteriaceae, 4061, bacterium, Fuerstiella, Planctomycetaceae, 0.8830, 2.60, False, False, False, Alistipes, False, 22890, 3.13
+18436, "Alteromonas phage ZP6", 37743, Alteromonas, Alteromonadaceae, 41807, bacterium, Chitinophaga, Chitinophagaceae, 0.8716, 3.36, False, False, False, Candidatus Paraluminiphilus, False, 24379, 2.27
+18512, "Vibrio virus vB_VspP_SBP1", 78071, Vibrio, Vibrionaceae, 6244, bacterium, Croceimicrobium, Owenweeksiaceae, 0.8868, 1.78, False, False, False, Prevotella, False, 22101, 6.84
+18521, "Bacillus phage DK2", 26357, Bacillus, Bacillaceae, 4903, bacterium, Clostridium, Clostridiaceae, 0.8586, 3.78, False, False, False, Acholeplasma, False, 25351, 13.94
+18845, "Klebsiella phage Patroon", 39442, Klebsiella, Enterobacteriaceae, 26436, bacterium, Chitinophaga, Chitinophagaceae, 0.8986, 2.03, False, False, False, Prevotella, False, 24240, 2.56
+18855, "Salmonella phage Akira", 45367, Salmonella, Enterobacteriaceae, 29689, bacterium, , , 0.8552, 3.32, False, False, False, Aquirhabdus, False, 23774, 2.71
+19154, "Aeromonas phage LAh_8", 97408, Aeromonas, Aeromonadaceae, 8568, bacterium, Shewanella, Shewanellaceae, 0.8593, 3.04, False, False, False, Acholeplasma, False, 21339, 10.87
+19156, "Achromobacter phage vB_AxyP_19-32_Axy04", 73834, Achromobacter, Alcaligenaceae, 5044, bacterium, Rhodoluna, Microbacteriaceae, 0.8919, 1.45, False, False, False, Aurantimicrobium, False, 22257, 5.55
+19226, "Salmonella phage SI7", 30164, Salmonella, Enterobacteriaceae, 10013, bacterium, Lelliottia, Enterobacteriaceae, 0.9080, 0.66, False, False, True, Neopusillimonas, False, 24979, 17.55
+19270, "Escherichia phage Henu8", 49890, Escherichia, Enterobacteriaceae, 33282, bacterium, Bacillus, Bacillaceae, 0.8753, 2.80, False, False, False, Ewingella, False, 23477, 2.78
+19295, "Sinorhizobium phage ort11", 75239, Sinorhizobium, Rhizobiaceae, 37381, bacterium, , , 0.8854, 2.16, False, False, False, Sphaerochaeta, False, 22218, 5.71
+19346, "Klebsiella phage vB_KpnP_IME337", 44266, Klebsiella, Enterobacteriaceae, 28331, bacterium, , Desulfomonilaceae, 0.8939, 1.89, False, False, False, Dokdonia, False, 23870, 3.01
+19473, "Salmonella virus VSe101", 41757, Salmonella, Enterobacteriaceae, 24876, archaeon, , , 0.8738, 3.15, False, False, False, Spirosoma, False, 24041, 2.54
+19509, "Bacillus phage vB_BcM_Sam112", 45037, Bacillus, Bacillaceae, 27226, bacterium, Bacillus, Bacillaceae, 0.8812, 2.90, False, True, True, Actinobacillus, False, 23800, 3.66
+19606, "Sulfolobus turreted icosahedral virus 1", 17663, Sulfolobus, Sulfolobaceae, 25772, bacterium, Bacillus, Bacillaceae, 0.8615, 3.84, False, False, False, Infirmifilum, False, 26181, 4.83
+20690, "Haloarcula virus HJTV-2 HJTV-2/27", 76821, Haloarcula, Haloarculaceae, 4229, bacterium, Rubripirellula, Pirellulaceae, 0.8700, 2.98, False, False, False, Halorussus, False, 22159, 6.60
+21157, "Citrobacter phage BSwM KMM2", 88537, Citrobacter, Enterobacteriaceae, 35392, bacterium, Christiangramia, Flavobacteriaceae, 0.8767, 2.56, False, False, False, Mycoplasma, False, 21688, 8.73
+21303, "Klebsiella phage P55", 40301, Klebsiella, Enterobacteriaceae, 10054, bacterium, Xenorhabdus, Morganellaceae, 0.9039, 0.96, False, False, False, Prevotella, False, 24168, 2.27
+21357, "Acinetobacter phage Ab69", 45076, Acinetobacter, Moraxellaceae, 24706, bacterium, , , 0.8672, 3.39, False, False, False, Kangiella, False, 23794, 2.82
+21370, "Klebsiella phage H5", 39477, Klebsiella, Enterobacteriaceae, 9643, bacterium, Brevibacillus, Paenibacillaceae, 0.8996, 1.64, False, False, False, Prevotella, False, 24238, 2.42
+21536, "Acinetobacter phage HZY2308", 45720, Acinetobacter, Moraxellaceae, 5543, bacterium, Lactococcus, Streptococcaceae, 0.8677, 3.17, False, False, False, Lactobacillus, False, 23752, 2.86
+21556, "Klebsiella phage Bumbleweed strain Teetrevirus bumbleweedii", 38833, Klebsiella, Enterobacteriaceae, 26436, bacterium, Chitinophaga, Chitinophagaceae, 0.8989, 2.03, False, False, False, Erysipelothrix, False, 24295, 2.34
+21558, "Klebsiella phage Keithstache strain Teetrevirus keithstachii", 39044, Klebsiella, Enterobacteriaceae, 26436, bacterium, Chitinophaga, Chitinophagaceae, 0.8975, 2.09, False, False, False, Erysipelothrix, False, 24279, 2.55
+21718, "Acinetobacter phage vB_Ab_01_KEN_01", 43518, Acinetobacter, Moraxellaceae, 32314, bacterium, Pseudalkalibacillus, Fictibacillaceae, 0.8676, 3.49, False, False, False, Acinetobacter, True, 23925, 2.65
+21726, "Porphyromonas phage phage010a_HG1691old", 33222, Porphyromonas, Porphyromonadaceae, 2049, plasmid, Ectopseudomonas, Pseudomonadaceae, 0.8655, 2.87, False, False, False, Rothia, False, 24717, 2.41
+21784, "Pectobacterium phage Pappous", 40850, Pectobacterium, Pectobacteriaceae, 26639, bacterium, Vibrio, Vibrionaceae, 0.8663, 3.04, False, False, False, Brenneria, False, 24115, 2.67
+21785, "Pectobacterium phage Sabo", 42167, Pectobacterium, Pectobacteriaceae, 10477, bacterium, Vibrio, Vibrionaceae, 0.8674, 3.32, False, False, False, Nitrosospira, False, 24007, 2.68
+22061, "Shigella phage Moonfish", 69166, Shigella, Enterobacteriaceae, 37375, bacterium, , Holophagaceae, 0.8877, 1.45, False, False, False, Acholeplasma, False, 22462, 4.78
+22106, "Escherichia phage RudolfBernhard_Bas96", 71918, Escherichia, Enterobacteriaceae, 31656, bacterium, Bdellovibrio, Pseudobdellovibrionaceae, 0.8892, 1.72, False, False, False, Acholeplasma, False, 22341, 4.73
+22152, "Klebsiella phage vB_KpiP_JZBo1", 71520, Klebsiella, Enterobacteriaceae, 7730, bacterium, Sanyastnella, Sanyastnellaceae, 0.8916, 1.41, False, False, False, Ruminococcus, False, 22354, 4.58
+22735, "Enterobacteria phage cdtI", 47021, Escherichia, Enterobacteriaceae, 4171, bacterium, Vibrio, Vibrionaceae, 0.8673, 3.15, False, False, False, Tatumella, False, 23662, 2.92
+22767, "Salmonella phage Vi II-E1", 45051, Salmonella, Enterobacteriaceae, 9220, bacterium, Chitinophaga, Chitinophagaceae, 0.8592, 3.61, False, False, False, Aquirhabdus, False, 23797, 2.76
+22975, "Sulfolobus spindle-shaped virus 4", 15135, Sulfolobus, Sulfolobaceae, 10706, bacterium, Lysinibacillus, Bacillaceae, 0.8697, 3.86, False, False, False, Methanonatronarchaeum, False, 26492, 3.22
+23776, "Klebsiella phage KP34", 43809, Klebsiella, Enterobacteriaceae, 28331, bacterium, , Desulfomonilaceae, 0.8959, 1.66, False, False, False, Dokdonia, False, 23905, 2.98
+23889, "Rhodococcus phage ReqiPine5", 59231, Rhodococcus, Nocardiaceae, 10278, plasmid, Rhodanobacter, Rhodanobacteraceae, 0.8894, 1.53, False, False, False, Halanaeroarchaeum, False, 22930, 3.39
+23891, "Rhodococcus phage ReqiPepy6", 76797, Rhodococcus, Nocardiaceae, 36441, bacterium, Rhodoluna, Microbacteriaceae, 0.8928, 1.45, False, False, False, Flaviflexus, False, 22161, 5.96
+23927, "Escherichia phage K1-ind(2)", 42765, Escherichia, Enterobacteriaceae, 24796, archaeon, Methanocalculus, Methanocalculaceae, 0.8734, 3.16, False, False, False, Staphylococcus, False, 23974, 2.49
+24048, "Pseudomonas phage JG004", 93017, Pseudomonas, Pseudomonadaceae, 4028, bacterium, Candidatus Planktophila, Candidatus Nanopelagicaceae, 0.8763, 1.46, False, False, False, Sulfurovum, False, 21490, 10.02
+24357, "Aeromonas phage PX29", 222006, Aeromonas, Aeromonadaceae, 4027, bacterium, Candidatus Nanopelagicus, Candidatus Nanopelagicaceae, 0.8723, 2.33, False, False, False, Alicyclobacillus, False, 18684, 3.41
+24455, "Erwinia phage ENT90", 29564, Erwinia, Erwiniaceae, 26961, bacterium, Mixta, Erwiniaceae, 0.8882, 2.98, False, False, True, Enterobacter, False, 25033, 16.47
+24468, "Vibrio phage ICP2", 49675, Vibrio, Vibrionaceae, 31359, bacterium, Pseudoalteromonas, Pseudoalteromonadaceae, 0.8841, 2.07, False, False, False, Prevotella, False, 23485, 3.42
+24908, "Listeria phage P100plus", 135028, Listeria, Listeriaceae, 2692, bacterium, Bacillus, Bacillaceae, 0.8653, 2.15, False, False, False, Sulfophobococcus, False, 20241, 2.74
+43658, "Thermus phage P74-26", 83319, Thermus, Thermaceae, 9147, plasmid, Pseudomonas, Pseudomonadaceae, 0.8739, 2.59, False, False, False, Pyrobaculum, False, 21887, 9.93
+43771, "Rhodococcus phage RexFury", 46627, Rhodococcus, Nocardiaceae, 27949, bacterium, Labrenzia, Stappiaceae, 0.8900, 2.25, False, False, False, Streptomyces, False, 23688, 3.17
+43772, "Exiguobacterium phage vB_EauM-23", 37660, Exiguobacterium, , 37050, bacterium, Alicyclobacillus, Alicyclobacillaceae, 0.8685, 3.41, False, False, False, Exiguobacterium, True, 24390, 2.94
+43799, "Rhodococcus phage Jester", 46314, Rhodococcus, Nocardiaceae, 33325, bacterium, Labrenzia, Stappiaceae, 0.8957, 1.62, False, False, False, Streptomyces, False, 23705, 3.54
+43827, "Campylobacter phage A131", 47181, Campylobacter, Campylobacteraceae, 40262, plasmid, Vibrio, Vibrionaceae, 0.8675, 2.47, False, False, False, Ewingella, False, 23647, 3.46
+43874, "Enterococcus phage PEF1", 150166, Enterococcus, Enterococcaceae, 32223, plasmid, Desulfosporomusa, Sporomusaceae, 0.8467, 2.71, False, False, False, Myroides, False, 19893, 3.06
+43885, "Streptococcus phage Javan306", 32976, Streptococcus, Streptococcaceae, 2412, bacterium, Streptococcus, Streptococcaceae, 0.8803, 2.96, False, True, True, Candidatus Minusculum, False, 24734, 3.13
+43906, "Streptococcus phage SVep1", 43429, Streptococcus, Streptococcaceae, 3245, bacterium, Planococcus, Caryophanaceae, 0.8766, 3.08, False, False, False, Kalymmatonema, False, 23929, 3.23
+43938, "Salmonella phage phagemcphageface", 105405, Salmonella, Enterobacteriaceae, 42182, bacterium, Ekhidna, Reichenbachiellaceae, 0.8774, 2.33, False, False, False, Prevotella, False, 21087, 14.81
+43944, "Bradyrhizobium phage BDU-MI-1", 121342, Bradyrhizobium, Nitrobacteraceae, 28710, bacterium, Mesorhizobium, Phyllobacteriaceae, 0.8818, 1.95, False, False, False, Homoserinimonas, False, 20594, 20.28
+44167, "Lactococcus phage RMP1", 31125, Lactococcus, Streptococcaceae, 8352, bacterium, Flammeovirga, Flammeovirgaceae, 0.8788, 2.91, False, False, False, Lacinutrix, False, 24893, 20.58
+44245, "Mycobacterium phage CactusRose", 52659, Mycobacterium, Mycobacteriaceae, 36146, bacterium, Sphingobium, Sphingobiaceae, 0.8961, 1.45, False, False, False, Salinibaculum, False, 23318, 3.22
+44310, "Pseudomonas phage PSP30", 45373, Pseudomonas, Pseudomonadaceae, 42409, bacterium, Aquiluna, Microbacteriaceae, 0.8877, 2.15, False, False, False, Thermogymnomonas, False, 23773, 2.61
+44342, "Staphylococcus phage vB_SauP-V4SA02", 16364, Staphylococcus, Staphylococcaceae, 40774, plasmid, Flavobacterium, Flavobacteriaceae, 0.9028, 1.70, False, False, False, Lacticaseibacillus, False, 26333, 3.65
+44350, "Acaryochloris phage A-HIS2", 57391, Acaryochloris, Acaryochloridaceae, 4031, bacterium, Candidatus Planktophila, Candidatus Nanopelagicaceae, 0.8905, 1.76, False, False, False, Stygiolobus, False, 23025, 3.01
+44361, "Dickeya phage Amaethon", 41436, Dickeya, Pectobacteriaceae, 4632, bacterium, Guptibacillus, Guptibacillaceae, 0.8803, 2.99, False, False, False, Pseudomonas, False, 24065, 2.38
+44424, "Listeria phage A006", 38124, Listeria, Listeriaceae, 3533, bacterium, Listeria, Listeriaceae, 0.8628, 3.48, False, True, True, Priestia, False, 24355, 2.14
+44651, "Streptococcus virus MS1", 56075, Streptococcus, Streptococcaceae, 42018, bacterium, Candidatus Thiodubiliella, Candidatus Pseudothioglobaceae, 0.8816, 2.17, False, False, False, Marinithermus, False, 23090, 3.44
+44760, "Brochothrix phage BtpYZU04", 126315, Brochothrix, Listeriaceae, 32223, plasmid, Desulfosporomusa, Sporomusaceae, 0.8598, 2.32, False, False, False, Sulfophobococcus, False, 20464, 19.57
+44782, "Escherichia phage vB_EcoM_G2494", 168327, Escherichia, Enterobacteriaceae, 2007, bacterium, Mycoplasma, Mycoplasmataceae, 0.8568, 2.56, False, False, False, Sporosarcina, False, 19508, 3.20
+44875, "Klebsiella phage PCCM_KpP1172", 40222, Klebsiella, Enterobacteriaceae, 36229, bacterium, Aquiluna, Microbacteriaceae, 0.8987, 1.38, False, False, False, Prevotella, False, 24174, 2.54
+45144, "Haloarcula virus HJTV-3 HJTV-3/25", 77353, Haloarcula, Haloarculaceae, 4061, bacterium, Fuerstiella, Planctomycetaceae, 0.8738, 2.85, False, False, False, Halorussus, False, 22133, 6.56
+45170, "Staphylococcus phage phiNM4-gamma4", 40365, Staphylococcus, Staphylococcaceae, 37247, bacterium, Staphylococcus, Staphylococcaceae, 0.8976, 1.42, False, True, True, Staphylococcus, True, 24159, 2.60
+45339, "Klebsiella phage P52_1", 174539, Klebsiella, Enterobacteriaceae, 11047, plasmid, Pseudoalteromonas, Pseudoalteromonadaceae, 0.8647, 2.18, False, False, False, Erysipelothrix, False, 19413, 3.24
+45446, "Lactococcus phage 936 group phage Phi13.16", 30577, Lactococcus, Streptococcaceae, 39168, bacterium, Aquimarina, Flavobacteriaceae, 0.8760, 3.51, False, False, False, Lacinutrix, False, 24945, 19.85
+45506, "Escherichia phage WaterSpirit strain Warwickvirus waterspiritii", 51324, Escherichia, Enterobacteriaceae, 25317, archaeon, Salinarchaeum, Natronoarchaeaceae, 0.8676, 3.16, False, False, False, Enterobacter, False, 23395, 3.62
+45609, "Streptococcus phage M102AD", 30664, Streptococcus, Streptococcaceae, 33716, bacterium, Tenacibaculum, Flavobacteriaceae, 0.8930, 2.57, False, False, False, Gardnerella, False, 24937, 19.71
+45653, "Streptococcus satellite phage Javan175", 10909, Streptococcus, Streptococcaceae, 29494, bacterium, Bacillus, Bacillaceae, 0.8650, 3.98, False, False, False, Arcticibacterium, False, 27048, 2.49
+45815, "Salmonella phage STWB21", 112834, Salmonella, Enterobacteriaceae, 2525, bacterium, Pseudoalteromonas, Pseudoalteromonadaceae, 0.8742, 2.38, False, False, False, Prevotella, False, 20841, 15.43
+46208, "Lactococcus phage D7138", 37736, Lactococcus, Streptococcaceae, 39421, bacterium, , , 0.8863, 2.06, False, False, False, Lactococcus, True, 24379, 3.24
+46213, "Enterobacter phage EcpYZU01", 39767, Enterobacter, Enterobacteriaceae, 525, bacterium, Paenibacillus, Paenibacillaceae, 0.9023, 1.24, False, False, False, Prevotella, False, 24208, 2.74
+46261, "Pseudoalteromonas phage HS2", 38208, Pseudoalteromonas, Pseudoalteromonadaceae, 32223, plasmid, Desulfosporomusa, Sporomusaceae, 0.8786, 2.41, False, False, False, Litorilituus, False, 24348, 2.79
+46463, "Streptococcus phage Javan274", 36635, Streptococcus, Streptococcaceae, 39421, bacterium, , , 0.8701, 2.94, False, False, False, Streptococcus, True, 24450, 2.56
+46505, "Klebsiella phage ExeTerminator strain Webervirus exeterminatorii", 49594, Klebsiella, Enterobacteriaceae, 9778, bacterium, Klebsiella, Enterobacteriaceae, 0.8848, 2.63, False, True, True, Listeria, False, 23488, 2.77
+46542, "Marinomonas phage P12026", 31766, Marinomonas, Oceanospirillaceae, 36903, bacterium, Paenibacillus, Paenibacillaceae, 0.8777, 3.35, False, False, False, Brumicola, False, 24854, 20.54
+46576, "Campylobacter phage C9", 128230, Campylobacter, Campylobacteraceae, 35806, bacterium, Alteromonas, Alteromonadaceae, 0.8696, 2.63, False, False, False, Vagococcus, False, 20414, 3.04
+46632, "Lactobacillus phage c5", 31841, Lactobacillus, Lactobacillaceae, 3071, bacterium, Jeotgalibacillus, Caryophanaceae, 0.8957, 2.38, False, False, False, Ligilactobacillus, False, 24847, 21.17
+46642, "Streptococcus satellite phage Javan205", 9984, Streptococcus, Streptococcaceae, 24759, archaeon, Nitrosarchaeum, Nitrosopumilaceae, 0.9005, 3.34, False, False, False, Capnocytophaga, False, 27196, 2.24
+46647, "Escherichia phage 26", 42462, Escherichia, Enterobacteriaceae, 42424, bacterium, Janthinobacterium, Oxalobacteraceae, 0.8767, 3.08, False, False, False, Staphylococcus, False, 23987, 2.25
+46661, "Klebsiella phage RCIP0016", 39748, Klebsiella, Enterobacteriaceae, 2049, plasmid, Ectopseudomonas, Pseudomonadaceae, 0.8954, 1.75, False, False, False, Prevotella, False, 24212, 2.72
+46673, "Salmonella virus STSR3", 49503, Salmonella, Enterobacteriaceae, 36739, bacterium, Alteromonas, Alteromonadaceae, 0.8732, 3.06, False, False, False, Lelliottia, False, 23493, 3.10
+46951, "Sphingomonas phage Lucius", 44200, Sphingomonas, Sphingomonadaceae, 29609, bacterium, Candidatus Sumerlaea, Candidatus Sumerlaeaceae, 0.8889, 2.49, False, False, False, Treponema, False, 23875, 4.22
+47004, "Streptococcus phage A0", 35481, Streptococcus, Streptococcaceae, 25978, bacterium, Flavobacterium, Flavobacteriaceae, 0.8879, 2.63, False, False, False, Vibrio, False, 24546, 3.15
+47012, "Klebsiella phage KpS8", 143800, Klebsiella, Enterobacteriaceae, 28470, bacterium, Bdellovibrio, Pseudobdellovibrionaceae, 0.8705, 2.44, False, False, False, Companilactobacillus, False, 20049, 3.73
+47030, "Lactococcus phage ul36.k1", 37131, Lactococcus, Streptococcaceae, 32889, bacterium, Erysipelothrix, Erysipelotrichaceae, 0.8862, 2.06, False, False, False, Lactococcus, True, 24422, 2.96
+47112, "Sinorhizobium phage HMSP1-Susan", 51963, Sinorhizobium, Rhizobiaceae, 40512, plasmid, Pseudomonas, Pseudomonadaceae, 0.8875, 1.59, False, False, False, Negativicoccus, False, 23359, 4.84
+47118, "Streptococcus phage EJ-1", 42935, Streptococcus, Streptococcaceae, 6554, bacterium, Streptococcus, Streptococcaceae, 0.9031, 1.05, False, True, True, Fervidobacterium, False, 23958, 3.35
+47125, "Klebsiella phage vB_KpnP_PRA1340", 40688, Klebsiella, Enterobacteriaceae, 28331, bacterium, , Desulfomonilaceae, 0.8975, 1.51, False, False, False, Prevotella, False, 24129, 3.20
+47204, "Enterobacter phage Mulvp2", 58539, Enterobacter, Enterobacteriaceae, 11038, bacterium, Lacticaseibacillus, Lactobacillaceae, 0.8741, 2.86, False, False, False, Staphylococcus, False, 22965, 4.06
+47218, "Lactococcus phage DM7", 30750, Lactococcus, Streptococcaceae, 8352, bacterium, Flammeovirga, Flammeovirgaceae, 0.8745, 3.04, False, False, False, Lacinutrix, False, 24929, 27.74
+47336, "Flavobacterium phage FpV9", 42696, Flavobacterium, Flavobacteriaceae, 2024, bacterium, Kordia, Flavobacteriaceae, 0.8758, 3.18, False, False, True, Methanolapillus, False, 23977, 4.58
+47370, "Lactococcus phage ul36.t1", 35992, Lactococcus, Streptococcaceae, 3942, bacterium, Macrococcoides, Staphylococcaceae, 0.8889, 2.40, False, False, False, Streptococcus, False, 24507, 3.49
+47391, "Streptococcus phage Javan553", 30807, Streptococcus, Streptococcaceae, 37464, bacterium, Brevibacillus, Paenibacillaceae, 0.8876, 2.99, False, False, False, Streptococcus, True, 24922, 29.06
+47539, "Pseudomonas phage SRT6", 91364, Pseudomonas, Pseudomonadaceae, 4028, bacterium, Candidatus Planktophila, Candidatus Nanopelagicaceae, 0.8759, 1.46, False, False, False, Sulfurovum, False, 21564, 13.12
+47591, "Salmonella phage celemicas", 43193, Salmonella, Enterobacteriaceae, 25230, archaeon, , , 0.8759, 2.49, False, False, False, Spirosoma, False, 23943, 3.92
+47595, "Pseudomonas phage H66", 65270, Pseudomonas, Pseudomonadaceae, 39758, bacterium, Devosia, Devosiaceae, 0.8730, 2.79, False, False, False, Candidatus Limicola, False, 22629, 4.52
+47674, "Corynebacterium phage CSP1", 39752, Corynebacterium, Corynebacteriaceae, 4483, bacterium, , , 0.8609, 3.59, False, False, False, Corynebacterium, True, 24211, 2.76
+47684, "Streptococcus satellite phage Javan234", 9588, Streptococcus, Streptococcaceae, 9914, bacterium, Streptococcus, Streptococcaceae, 0.8976, 3.46, False, True, True, Winogradskyella, False, 27260, 3.63
+47771, "Pseudoalteromonas phage SL25", 33906, Pseudoalteromonas, Pseudoalteromonadaceae, 26751, plasmid, Pseudoalteromonas, Pseudoalteromonadaceae, 0.8736, 2.85, False, True, True, Litorilituus, False, 24671, 2.85
+47846, "Streptococcus satellite phage Javan352", 11734, Streptococcus, Streptococcaceae, 41552, bacterium, Streptococcus, Streptococcaceae, 0.9296, 1.08, False, True, True, Chlamydia, False, 26938, 3.88
+47956, "Lactobacillus phage phiAT3", 39166, Lactobacillus, Lactobacillaceae, 9448, plasmid, Paenibacillus, Paenibacillaceae, 0.8863, 2.25, False, False, False, Acinetobacter, False, 24265, 3.96
+47988, "Vibrio phage OPA17", 75897, Vibrio, Vibrionaceae, 36903, bacterium, Paenibacillus, Paenibacillaceae, 0.8909, 1.54, False, False, False, Rothia, False, 22195, 7.88
+48154, "Streptococcus phage Javan53", 47880, Streptococcus, Streptococcaceae, 27273, bacterium, , Melioribacteraceae, 0.8659, 3.20, False, False, False, Vibrio, False, 23610, 4.07
+48155, "Pseudomonas phage Max", 61753, Pseudomonas, Pseudomonadaceae, 43443, bacterium, Synechococcus, Synechococcaceae, 0.8941, 0.86, False, False, False, Pontimonas, False, 22811, 4.49
+48232, "Escherichia phage vB_EcoM_SD350", 52757, Escherichia, Enterobacteriaceae, 35611, bacterium, Lentilitoribacter, Rhizobiaceae, 0.8865, 2.35, False, False, False, Staphylococcus, False, 23309, 6.92
+48244, "Staphylococcus virus vB_SepS_E72", 44592, Staphylococcus, Staphylococcaceae, 2305, bacterium, Staphylococcus, Staphylococcaceae, 0.8698, 3.26, False, True, True, Rothia, False, 23838, 5.41
+48274, "Streptococcus phage Javan151", 35995, Streptococcus, Streptococcaceae, 6772, bacterium, Macrococcus, Staphylococcaceae, 0.8813, 2.91, False, False, False, Neorickettsia, False, 24507, 4.11
+48289, "Shewanella phage S0112", 62286, Shewanella, Shewanellaceae, 3639, bacterium, Polynucleobacter, Burkholderiaceae, 0.8733, 2.96, False, False, False, Syntrophomonas, False, 22789, 4.94
+48369, "Mycobacterium phage HedwigODU", 59812, Mycobacterium, Mycobacteriaceae, 37373, bacterium, Gordonia, Gordoniaceae, 0.8890, 2.16, False, False, False, Deinococcus, False, 22897, 3.86
+48463, "Listeria phage A118", 40834, Listeria, Listeriaceae, 3533, bacterium, Listeria, Listeriaceae, 0.8716, 3.27, False, True, True, Priestia, False, 24118, 3.70
+48520, "Streptococcus phage Javan633", 37871, Streptococcus, Streptococcaceae, 7037, bacterium, Staphylococcus, Staphylococcaceae, 0.8704, 3.25, False, False, False, Sulfurimonas, False, 24369, 3.44
+48687, "Escherichia phage KS_A8", 59853, Escherichia, Enterobacteriaceae, 37745, bacterium, Vibrio, Vibrionaceae, 0.8778, 2.65, False, False, False, Alteromonas, False, 22891, 3.36
+48781, "Bacillus phage PBC5", 56332, Bacillus, Bacillaceae, 43251, bacterium, Fictibacillus, Fictibacillaceae, 0.8726, 3.07, False, False, False, Levilactobacillus, False, 23078, 4.12
+48944, "Aeromonas phage vB_AehM_DM9-HANS", 171254, Aeromonas, Aeromonadaceae, 6607, bacterium, Bdellovibrio, Pseudobdellovibrionaceae, 0.8709, 2.38, False, False, False, Hoylesella, False, 19463, 4.24
+48983, "Escherichia phage ECCR664", 134226, Escherichia, Enterobacteriaceae, 36643, bacterium, , Stappiaceae, 0.8749, 2.01, False, False, False, Ruoffia, False, 20262, 3.46
+49333, "Clostridium phage DCp1", 18555, Clostridium, Clostridiaceae, 36338, bacterium, Arcobacter, Arcobacteraceae, 0.8784, 3.43, False, False, False, Halothermothrix, False, 26085, 7.39
+49387, "Streptococcus satellite phage Javan595", 9201, Streptococcus, Streptococcaceae, 41729, bacterium, Bacillus, Bacillaceae, 0.9013, 3.42, False, False, False, Arcticibacterium, False, 27330, 3.07
+49504, "Ruegeria phage 45A6", 53160, Ruegeria, Roseobacteraceae, 43310, bacterium, Qipengyuania, Erythrobacteraceae, 0.8934, 1.18, False, False, False, Nitratireductor, False, 23282, 3.47
+49506, "Vibrio phage JSF3", 69396, Vibrio, Vibrionaceae, 30396, bacterium, Flavobacterium, Flavobacteriaceae, 0.8702, 2.90, False, False, False, Ruminococcus, False, 22453, 6.22
+49624, "Enterobacteria phage PRDroyal", 14722, Salmonella, Enterobacteriaceae, 34832, bacterium, Shewanella, Shewanellaceae, 0.8956, 3.30, False, False, False, Candidatus Avelusimicrobium, False, 26529, 3.73
+49686, "Escherichia phage IME267", 76631, Escherichia, Enterobacteriaceae, 29934, bacterium, , , 0.8759, 2.45, False, False, False, Mycoplasma, False, 22169, 7.87
+49750, "Bacillus phage DLc1", 28950, Bacillus, Bacillaceae, 9053, bacterium, Fusobacterium, Fusobacteriaceae, 0.8499, 3.80, False, False, False, Methanonatronarchaeum, False, 25095, 22.20
+49819, "Staphylococcus phage vB_SepiS-phiIPLA7", 42123, Staphylococcus, Staphylococcaceae, 26944, bacterium, Staphylococcus, Staphylococcaceae, 0.8700, 3.26, False, True, True, Candidatus Phycocordibacter, False, 24014, 3.91
+49882, "Stenotrophomonas phage Philippe", 74717, Stenotrophomonas, Lysobacteraceae, 36800, bacterium, , Parvibaculaceae, 0.8939, 1.31, False, False, False, Deinococcus, False, 22229, 7.84
+49944, "Proteus phage vB_PMC-PL1", 103381, Proteus, Morganellaceae, 32545, bacterium, Erysipelothrix, Erysipelotrichaceae, 0.8746, 2.33, False, False, False, Acidilobus, False, 21153, 15.19

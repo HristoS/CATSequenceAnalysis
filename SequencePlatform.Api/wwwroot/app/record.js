@@ -1,4 +1,5 @@
 import { get } from "./api.js";
+import { ZCurvePath } from "./zcurve3d.js";
 import { Message, Segmented, formatBp, formatGc, html, useEffect, useState } from "./html.js";
 
 const lineageRanks = ["superkingdom", "realm", "kingdom", "phylum", "class", "order", "family", "genus", "species"];
@@ -73,6 +74,7 @@ export function RecordPage({ id }) {
   if (!detail) return html`<${Message}>Loading…<//>`;
   const s = detail.sequence;
   const hasSignature = s.kind !== "plasmid";
+  const hasWindows = detail.levels.some(l => l.windowSize === 500 && l.methodVersion === "1");
 
   return html`<h1>${s.name || s.recordId}</h1>
     <p class="lede">${s.kind} · ${formatBp(s.lengthBp)} · GC ${formatGc(s.gcFraction)}${s.accession ? ` · ${s.accession}` : ""}${detail.owned ? " · your upload" : ""}</p>
@@ -82,6 +84,8 @@ export function RecordPage({ id }) {
         ${hasSignature ? html`<${Relatives} id=${s.id} kind=${s.kind} />` : html`<${Message}>Plasmids aren't compared by genome signature.<//>`}
       </section>
       ${hasSignature && html`<section class="panel"><h2>Dinucleotide signature</h2><${Signature} id=${s.id} /></section>`}
+      ${hasWindows && html`<section class="panel"><h2>Z-curve path</h2>
+        <${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} /></section>`}
       <section class="panel"><h2>Stored profile levels</h2>
         <div class="tablewrap"><table>
           <thead><tr><th class="num">Window</th><th class="num">Windows</th><th>Version</th></tr></thead>

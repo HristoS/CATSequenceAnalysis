@@ -21,7 +21,7 @@ export const queryString = params => {
 };
 
 // Problem details carry a message written for the caller; anything else falls back to the status.
-export async function send(path, { method = "GET", body, contentType } = {}) {
+export async function send(path, { method = "GET", body, contentType, bytes = false } = {}) {
   const headers = { Authorization: `Bearer ${auth.key}` };
   if (contentType) headers["Content-Type"] = contentType;
   const response = await fetch(path, { method, body, headers });
@@ -34,7 +34,8 @@ export async function send(path, { method = "GET", body, contentType } = {}) {
     const problem = await response.json().catch(() => null);
     throw new Error(problem?.detail ?? problem?.title ?? `The server answered ${response.status}.`);
   }
-  return response.status === 204 ? null : response.json();
+  return response.status === 204 ? null : bytes ? response.arrayBuffer() : response.json();
 }
 
 export const get = path => send(path);
+export const getBytes = path => send(path, { bytes: true });

@@ -26,7 +26,7 @@ namespace SequencePlatform.Tests
             Assert.That(body, Does.Contain("default-src 'self'"), "the browser refuses anything from another origin");
             Assert.That(body, Does.Not.Contain("http://").And.Not.Contain("https://"));
 
-            foreach (var path in new[] { "/app/main.js", "/app/experiments.js", "/app/styles.css", "/vendor/react.production.min.js", "/vendor/react-dom.production.min.js", "/vendor/htm.mjs" })
+            foreach (var path in new[] { "/app/main.js", "/app/experiments.js", "/app/zcurve3d.js", "/app/styles.css", "/vendor/react.production.min.js", "/vendor/react-dom.production.min.js", "/vendor/htm.mjs" })
                 Assert.That((await anonymous.GetAsync(path)).StatusCode, Is.EqualTo(HttpStatusCode.OK), path);
         }
 
