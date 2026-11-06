@@ -36,7 +36,8 @@ namespace SequencePlatform.Api
                 .WithName("GetSequenceProfile")
                 .WithSummary("One stored profile level as ZCWP bytes")
                 .WithDescription("The binary format of docs/database-decision.md section 4.3: 'ZCWP', version, window size, window count, " +
-                    "then the x, y and z window means as little-endian float32 blocks. windowSize is 500, 2000, 8000 or 32000 (default 500).")
+                    "then the x, y and z window means as little-endian float32 blocks. windowSize is 500, 2000, 8000 or 32000 (default 500). " +
+                    "origin=true asks for a circular chromosome's levels laid out from its replication origin (2000 bp and up, where stored).")
                 .Produces(StatusCodes.Status200OK, contentType: RequestBody.ProfileContentType);
 
             sequences.MapPost("/", SequenceUpload.UploadAsync)
@@ -72,13 +73,15 @@ namespace SequencePlatform.Api
         }
 
         private static async Task<Results<FileContentHttpResult, ProblemHttpResult>> GetProfileAsync(NpgsqlDataSource dataSource,
-            ClaimsPrincipal user, long id, int windowSize = RecordStore.FineWindowSize, CancellationToken cancellationToken = default)
+            ClaimsPrincipal user, long id, int windowSize = RecordStore.FineWindowSize, bool origin = false, CancellationToken cancellationToken = default)
         {
             if (!await Catalogue.IsVisibleAsync(dataSource, id, user.UserId(), cancellationToken))
                 return TypedResults.Problem($"No sequence {id}.", statusCode: StatusCodes.Status404NotFound);
-            var level = await ProfileLevels.ReadAsync(dataSource, id, RecordStore.Method, RecordStore.MethodVersion, windowSize);
+            var version = origin ? OriginRotation.RotatedVersion(RecordStore.MethodVersion) : RecordStore.MethodVersion;
+            var level = await ProfileLevels.ReadAsync(dataSource, id, RecordStore.Method, version, windowSize);
             return level is null
-                ? TypedResults.Problem($"Sequence {id} has no stored level of {windowSize} bp windows.", statusCode: StatusCodes.Status404NotFound)
+                ? TypedResults.Problem($"Sequence {id} has no stored level of {windowSize} bp windows{(origin ? " laid out from its origin" : "")}.",
+                    statusCode: StatusCodes.Status404NotFound)
                 : TypedResults.File(level.ToBinary(), RequestBody.ProfileContentType, $"{id}-{windowSize}.zcwp");
         }
     }

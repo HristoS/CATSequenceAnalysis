@@ -206,8 +206,14 @@ namespace SequencePlatform.Tests
             {
                 await ProfileLevels.InsertAsync(connection, transaction, mine, RecordStore.Method, RecordStore.MethodVersion, 1, fine);
                 await ProfileLevels.InsertAsync(connection, transaction, theirs, RecordStore.Method, RecordStore.MethodVersion, 1, fine);
+                await ProfileLevels.InsertAsync(connection, transaction, mine, RecordStore.Method, OriginRotation.RotatedVersion(RecordStore.MethodVersion), 4,
+                    fine.Downsample(4, 1));
                 await transaction.CommitAsync();
             }
+            var rotated = await client.GetAsync($"/api/sequences/{mine}/profile?windowSize=2000&origin=true");
+            Assert.That(await rotated.Content.ReadAsByteArrayAsync(), Is.EqualTo(fine.Downsample(4, 1).ToHalfPrecision().ToBinary()), "the origin-rotated level");
+            Assert.That((await client.GetAsync($"/api/sequences/{mine}/profile?origin=true")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound),
+                "no rotated 500 bp level");
 
             var response = await client.GetAsync($"/api/sequences/{mine}/profile");
             var missingLevel = await client.GetAsync($"/api/sequences/{mine}/profile?windowSize=32000");

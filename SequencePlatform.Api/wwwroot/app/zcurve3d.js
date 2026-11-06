@@ -8,7 +8,7 @@ const css = name => getComputedStyle(document.documentElement).getPropertyValue(
 
 // ZCWP (docs/database-decision.md section 4.3): "ZCWP", uint16 version, int32 window size at 8, int32 window count at 12, then x, y and
 // z as little-endian float32 blocks.
-function parse(buffer) {
+export function parse(buffer) {
   const view = new DataView(buffer);
   if (view.getUint32(0, true) !== 0x5057435a) throw new Error("The stored profile isn't in ZCWP format.");
   const size = view.getInt32(8, true), n = view.getInt32(12, true);
@@ -18,7 +18,7 @@ function parse(buffer) {
 
 // Running sums at window boundaries, the least-squares line of each axis (Zhang's drift), and where the running GC skew (x - y counts
 // 2 (G - C)) is lowest and highest: the replication origin and terminus of a bacterial chromosome.
-function path(profile) {
+export function path(profile) {
   const { n } = profile;
   const sums = ["x", "y", "z"].map(a => { const s = new Float64Array(n + 1); for (let i = 0; i < n; i++) s[i + 1] = s[i] + profile[a][i]; return s; });
   const fits = sums.map(s => {
@@ -52,36 +52,48 @@ function draw(canvas, profile, shape, { drift, yaw, pitch, chromosome }) {
 // A 3-D path ([x, y, z] points, in bases) coloured light to dark from start to end, with the axes and a scale bar; marks are point
 // indices to ring (window boundaries, for a gene). Returns the canvas context and each point's screen position for marks and tooltips.
 export function drawCurve(canvas, points, { yaw, pitch, marks = [] }) {
+  const { ctx, screens, width } = drawCurves(canvas, [{ points, from: "--seq-a", to: "--seq-b", marks }], { yaw, pitch });
+  return { ctx, screen: screens[0], width };
+}
+
+// Several paths on one set of axes and one scale (the compare page): each curve is { points, from, to, marks }, with from and to the
+// CSS colour variables at its start and end. Returns each curve's screen points.
+export function drawCurves(canvas, curves, { yaw, pitch, unit = "bases of excess" }) {
   const width = canvas.clientWidth, height = canvas.clientHeight, dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = css("--panel"); ctx.fillRect(0, 0, width, height);
 
-  const n = points.length - 1;
+  const all = curves.flatMap(c => c.points);
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const p of points) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], p[a]); hi[a] = Math.max(hi[a], p[a]); }
-  const centre = lo.map((v, a) => (v + hi[a]) / 2);
+  for (const p of all) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], p[a]); hi[a] = Math.max(hi[a], p[a]); }
+  const centre = all.length ? lo.map((v, a) => (v + hi[a]) / 2) : [0, 0, 0];
   let radius = 0;
-  for (const p of points) radius = Math.max(radius, Math.hypot(p[0] - centre[0], p[1] - centre[1], p[2] - centre[2]));
+  for (const p of all) radius = Math.max(radius, Math.hypot(p[0] - centre[0], p[1] - centre[1], p[2] - centre[2]));
   radius ||= 1;
   const scale = (Math.min(width, height) / 2 - 30) / radius;   // one base of excess is the same length on every axis
   const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
   const turn = v => { const x1 = cy * v[0] + sy * v[2], z1 = -sy * v[0] + cy * v[2]; return [x1, cp * v[1] - sp * z1]; };
-  const screen = points.map(p => { const [u, v] = turn([p[0] - centre[0], p[1] - centre[1], p[2] - centre[2]]); return [width / 2 + u * scale, height / 2 - v * scale]; });
+  const screens = curves.map(c => c.points.map(p => {
+    const [u, v] = turn([p[0] - centre[0], p[1] - centre[1], p[2] - centre[2]]);
+    return [width / 2 + u * scale, height / 2 - v * scale];
+  }));
 
-  // Coloured by position, light at the start and dark at the end.
-  const from = rgb(css("--seq-a")), to = rgb(css("--seq-b")), chunks = Math.min(96, n);
+  // Coloured by position, from the curve's start colour to its end colour.
   ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.lineCap = "round";
-  for (let q = 0; q < chunks; q++) {
-    const a = Math.floor(q * n / chunks), b = Math.floor((q + 1) * n / chunks), t = q / Math.max(1, chunks - 1);
-    ctx.strokeStyle = `rgb(${from.map((c, i) => Math.round(c + (to[i] - c) * t)).join(",")})`;
-    ctx.beginPath(); ctx.moveTo(...screen[a]);
-    for (let k = a + 1; k <= b; k++) ctx.lineTo(...screen[k]);
-    ctx.stroke();
-  }
-  for (const k of marks) ring(ctx, screen[k], 2.5, css("--ink-2"));
-  ring(ctx, screen[0], 3, css("--muted"));
+  curves.forEach((c, i) => {
+    const screen = screens[i], n = screen.length - 1, from = rgb(css(c.from)), to = rgb(css(c.to)), chunks = Math.min(96, n);
+    for (let q = 0; q < chunks; q++) {
+      const a = Math.floor(q * n / chunks), b = Math.floor((q + 1) * n / chunks), t = q / Math.max(1, chunks - 1);
+      ctx.strokeStyle = `rgb(${from.map((v, k) => Math.round(v + (to[k] - v) * t)).join(",")})`;
+      ctx.beginPath(); ctx.moveTo(...screen[a]);
+      for (let k = a + 1; k <= b; k++) ctx.lineTo(...screen[k]);
+      ctx.stroke();
+    }
+    for (const k of c.marks ?? []) ring(ctx, screen[k], 2.5, css("--ink-2"));
+    if (screen.length) ring(ctx, screen[0], 3, css("--muted"));
+  });
 
   const ox = width - 46, oy = height - 42;
   ctx.font = `11px ${css("--mono")}`;
@@ -95,8 +107,8 @@ export function drawCurve(canvas, points, { yaw, pitch, marks = [] }) {
   ctx.strokeStyle = css("--ink-2"); ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(12, 16); ctx.lineTo(12 + bar * scale, 16); ctx.moveTo(12, 12); ctx.lineTo(12, 20);
   ctx.moveTo(12 + bar * scale, 12); ctx.lineTo(12 + bar * scale, 20); ctx.stroke();
-  ctx.fillStyle = css("--ink-2"); ctx.fillText(`${bar.toLocaleString()} bases of excess`, 12, 33);
-  return { ctx, screen, width };
+  ctx.fillStyle = css("--ink-2"); ctx.fillText(`${bar.toLocaleString()} ${unit}`, 12, 33);
+  return { ctx, screens, width };
 }
 
 function ring(ctx, p, size, colour) {

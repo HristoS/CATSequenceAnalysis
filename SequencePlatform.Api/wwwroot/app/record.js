@@ -1,6 +1,7 @@
 import { get } from "./api.js";
 import { ZCurvePath } from "./zcurve3d.js";
 import { GeneLayerSignature, GenesPanel } from "./genes.js";
+import { compareHref } from "./compare.js";
 import { Message, Segmented, formatBp, formatGc, html, useEffect, useState } from "./html.js";
 
 const lineageRanks = ["superkingdom", "realm", "kingdom", "phylum", "class", "order", "family", "genus", "species"];
@@ -37,6 +38,7 @@ function Relatives({ id, kind }) {
     </ol>
     <p class="actions">
       <a class="button" href="#/tree?ids=${ids.join(",")}">Tree of these genomes</a>
+      <a class="button" href=${compareHref(ids.slice(0, 3))}>Compare with the nearest two</a>
       <a class="button" href="#/map?group=${kind === "virus" ? "viral" : kind === "eukaryote" ? "eukaryotic" : "cellular"}&id=${id}">Show on the map</a>
     </p>
     <p class="hint">Nearest by ${result.signature}.</p>`;
@@ -81,7 +83,7 @@ export function RecordPage({ id }) {
   const hasWindows = detail.levels.some(l => l.windowSize === 500 && l.methodVersion === "1");
 
   return html`<h1>${s.name || s.recordId}</h1>
-    <p class="lede">${s.kind} · ${formatBp(s.lengthBp)} · GC ${formatGc(s.gcFraction)}${s.accession ? ` · ${s.accession}` : ""}${detail.owned ? " · your upload" : ""}</p>
+    <p class="lede">${s.kind} · ${formatBp(s.lengthBp)} · GC ${formatGc(s.gcFraction)}${s.accession ? ` · ${s.accession}` : ""}${detail.owned ? " · your upload" : ""} · <a href=${compareHref([s.id])}>Compare with other records</a></p>
     <div class="columns">
       <section class="panel"><h2>Lineage</h2><${Lineages} detail=${detail} /></section>
       <section class="panel"><h2>Nearest relatives</h2>

@@ -1,5 +1,6 @@
 import { auth, get } from "./api.js";
 import { CataloguePage } from "./catalogue.js";
+import { ComparePage } from "./compare.js";
 import { ExperimentPage, ExperimentsPage } from "./experiments.js";
 import { Message, html, useEffect, useState } from "./html.js";
 import { MapPage } from "./map.js";
@@ -63,6 +64,7 @@ function Page({ route }) {
     case "sequences": return html`<${RecordPage} key=${id} id=${id} />`;
     case "map": return html`<${MapPage} key=${route.params.get("group")} params=${route.params} />`;
     case "tree": return html`<${TreePage} params=${route.params} />`;
+    case "compare": return html`<${ComparePage} params=${route.params} />`;
     case "search": return html`<${SearchPage} params=${route.params} />`;
     case "searches": return html`<${SearchRunPage} key=${id} id=${id} />`;
     case "upload": return html`<${UploadPage} />`;

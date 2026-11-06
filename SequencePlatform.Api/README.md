@@ -56,6 +56,13 @@ and htm with no build step and no Node: `vendor/` holds their pinned files, each
 `default-src 'self'`, so it loads nothing from elsewhere. Static files are served before authentication because they hold no data;
 every `/api` call still needs the key. A FASTA file goes from the browser straight to the API, so the no-DNA guarantee below covers it.
 
+A record's page shows its lineages, nearest relatives, dinucleotide signature (Karlin, Z-curve coefficients or the gene layer's mean
+window), Z-curve path and, for BV-BRC genomes, its genes: pick one to see its Z-curve over codon positions 1 and 2, redrawn from the
+stored windows. `#/compare?ids=a,b,c` puts 2 or 3 records on shared plots, each in its own colour that the legend switches on and off
+everywhere: their Z-curve paths (circular chromosomes from the replication origin, `results/CompareOverlay_Check.csv`; scaled to the
+same genome length or in bases), their signatures as grouped bars, and their copies of a protein family they all carry (or any gene
+picked per record) as overlaid gene curves and heat strips.
+
 ## Visibility (D3)
 
 Downloaded records are public. An upload is visible only to its owner: someone else's upload is a 404 everywhere, the same as a
@@ -69,7 +76,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/sequences` | Keyset pages (`after`, `limit` ≤ 1000); filters `kind` (a stored kind, or `prokaryote` for bacterium and archaeon), `rank` + `taxon`, `minLength`, `maxLength`, `provider`, `name`. Searches take the same filters |
 | GET | `/api/sequences/facets` | Filter choices with record counts over what the caller can see: `kinds`, `kindGroups` (with their member kinds) and `providers`, largest first, plus `total` |
 | GET | `/api/sequences/{id}` | Metadata, provider / NCBI / GTDB lineage, annotations, stored levels, provenance |
-| GET | `/api/sequences/{id}/profile?windowSize=` | One level as ZCWP bytes (`application/x-zcwp`), 500 / 2000 / 8000 / 32000 |
+| GET | `/api/sequences/{id}/profile?windowSize=&origin=` | One level as ZCWP bytes (`application/x-zcwp`), 500 / 2000 / 8000 / 32000; `origin=true` gives a circular chromosome's level laid out from its replication origin (2000 bp and up, where stored) |
 | POST | `/api/sequences` | Upload `text/x-fasta` (any number of records) or `application/x-zcwp` (the 500 bp level, with `lengthBp`); `kind` required, `name`, `taxid`, `dataClass` (default `restricted`), `recordId` for a profile. 201 with the new records |
 | POST | `/api/searches/similar` | Queue find-similar for one FASTA record or a ZCWP query (forward strand, optionally the reverse right after it); catalogue filters, `ratio` (0.25–1, default 0.5), `top` (1–1000, default 50), `lengthBp` for a profile. 202 + `Location` |
 | POST | `/api/searches/localize` | The same for a fragment: ≥ 4 kbp over the catalogue, or any length with `record`; `top` 1–100 (default 20) |

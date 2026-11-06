@@ -84,7 +84,7 @@ export function GenesPanel({ id }) {
 
 // The running sums inside window k of W positions at t in [-1, 1], from its scaled Legendre moments m0, m1, m2 (one axis):
 // W / 2 * (m0 (t + 1) + sqrt(3) m1 (t^2 - 1) / 2 + sqrt(5) m2 (t^3 - t) / 2). Exact at the window's ends.
-function genePath(windows, positions) {
+export function genePath(windows, positions) {
   const points = [[0, 0, 0]], at = [0], marks = [];
   for (const m of windows) {
     const start = points[points.length - 1], from = at[at.length - 1];
@@ -175,12 +175,18 @@ function GeneView({ id, index }) {
       trend and curvature give a smooth piece that ends exactly where the true curve does; small rings mark the window ends. Between them
       it's an approximation: on E. coli genes the worst gap is about 11–13% of the whole path, but about 40% of what's left once the
       drift (the gene's overall coding composition) is removed, so read the drift-removed bends as a sketch.</p>
-    <div class="heat" style=${{ gridTemplateColumns: `110px repeat(${gene.windows.length}, minmax(18px, 1fr))` }}>
-      <span></span>${gene.windows.map((_, w) => html`<span class="mono heathead" key=${w}>${w + 1}</span>`)}
-      ${featureNames.map((name, f) => html`<span class="mono" key=${name}>${name}</span>
-        ${gene.windows.map((m, w) => html`<i key=${`${name}${w}`} title=${`${name}, window ${w + 1}: ${m[f].toFixed(3)}`}
-          style=${{ background: `color-mix(in srgb, var(${m[f] < 0 ? "--p2" : "--p1"}) ${Math.round(Math.abs(m[f]) / peak * 100)}%, transparent)` }}></i>`)}`)}
-    </div>
+    <${HeatStrip} windows=${gene.windows} peak=${peak} />
     <p class="hint">The 9 stored numbers per window, blue positive and orange negative, darker further from zero. x purine − pyrimidine,
       y amino − keto, z strong − weak (GC).</p>`;
+}
+
+// One gene's windows as a heat strip: a row per stored feature, a column per window; peak sets full colour, so strips shown side by
+// side share one.
+export function HeatStrip({ windows, peak }) {
+  return html`<div class="heat" style=${{ gridTemplateColumns: `110px repeat(${windows.length}, minmax(18px, 1fr))` }}>
+    <span></span>${windows.map((_, w) => html`<span class="mono heathead" key=${w}>${w + 1}</span>`)}
+    ${featureNames.map((name, f) => html`<span class="mono" key=${name}>${name}</span>
+      ${windows.map((m, w) => html`<i key=${`${name}${w}`} title=${`${name}, window ${w + 1}: ${m[f].toFixed(3)}`}
+        style=${{ background: `color-mix(in srgb, var(${m[f] < 0 ? "--p2" : "--p1"}) ${Math.round(Math.abs(m[f]) / peak * 100)}%, transparent)` }}></i>`)}`)}
+  </div>`;
 }
