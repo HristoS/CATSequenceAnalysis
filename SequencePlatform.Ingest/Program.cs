@@ -19,6 +19,7 @@ using SequencePlatform.Ingest;
 //   convert-levels-half                       rewrite stored ZCWP version 1 levels as version 2 (float16), then rebuild the origin rows; no download
 //   backfill-kmers [--limit N] [--sample SEED] [--contact you@example.org]   6-mer counts for BV-BRC records stored before migration 0013, by re-downloading
 //   backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]   the gene layer (S7.R, S7.S): gene_profile rows, amino-acid 4-mers, missing 6-mers
+//   build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]   p and E for protein hits: real BV-BRC proteins (not stored) scored against other families
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
@@ -31,6 +32,7 @@ const string usage =
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins | convert-levels-half\n" +
     "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL] | backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]\n" +
+    "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
     "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | rotate-key NAME | disable-user NAME";
 
@@ -140,6 +142,9 @@ switch (args[0])
         return await BackfillGenesAsync(dataSource, int.Parse(Option("--limit") ?? "100"),
             Option("--sample") is { } geneSeed ? int.Parse(geneSeed) : null, Option("--contact"), int.Parse(Option("--check-search") ?? "0"),
             int.Parse(Option("--parallel") ?? "1"));
+
+    case "build-protein-null":
+        return await BuildProteinNullAsync(dataSource, int.Parse(Option("--per-bucket") ?? "30"), int.Parse(Option("--seed") ?? "20261106"), Option("--contact"));
 
     case "search-similar":
         return await SearchSimilarAsync(dataSource, Option("--fasta"), Option("--profile"), Filter(),
@@ -584,6 +589,25 @@ static async Task<int> BackfillKmersAsync(NpgsqlDataSource dataSource, int limit
 // The S7.R pass. Genomes go in chunks of 10 so one BV-BRC request lists their coding sequences. With --check-search N, N genes of
 // at least 1.5 kbp per genome keep their protein in memory, and at the end each is searched from the protein alone (uniform codon
 // weights, first 1,500 bp) among every gene of the pass with three windows: the trial's self-search check. Nothing is written for it.
+// p and E for protein hits (migration 0019): a seeded sample of real BV-BRC proteins with a family, per length bucket, scored as protein
+// search scores them against the genes of other families. The proteins aren't stored; only the score counts are.
+static async Task<int> BuildProteinNullAsync(NpgsqlDataSource dataSource, int perBucket, int seed, string? contact)
+{
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    using var client = new BvBrcClient(contact);
+    var queries = await ProteinNullSample.CollectAsync(dataSource, client, perBucket, seed);
+    Console.WriteLine($"{queries.Count:N0} proteins in {watch.Elapsed.TotalMinutes:F1} min; scoring them against the gene layer.");
+    var cells = await ProteinScoreNull.BuildAsync(dataSource, queries, Console.WriteLine);
+    Console.WriteLine($"{"bucket",6} {"proteins",8} {"pairs",14} {"score with 1 pair in 1,000",26}");
+    foreach (var cell in cells)
+    {
+        int bin = Enumerable.Range(0, ProteinScoreNull.Bins + 1).First(b => cell.Exceed[b] * 1000 < cell.Pairs);
+        Console.WriteLine($"{cell.Bucket,6} {cell.Queries,8} {cell.Pairs,14:N0} {bin / (double)ProteinScoreNull.Bins,26:F3}");
+    }
+    Console.WriteLine($"Protein score null: {cells.Count} buckets in {watch.Elapsed.TotalMinutes:F1} min.");
+    return 0;
+}
+
 static async Task<int> BackfillGenesAsync(NpgsqlDataSource dataSource, int limit, int? seed, string? contact, int checkSearch, int parallel)
 {
     string[] checkBands = ["50-99 aa", "100-166 aa", "167-332 aa", "333-499 aa", "500+ aa"];

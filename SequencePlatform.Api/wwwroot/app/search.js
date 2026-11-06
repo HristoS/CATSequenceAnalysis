@@ -89,7 +89,7 @@ const expected = log10 => {
 function GeneHits({ id, run }) {
   const [picked, setPicked] = useState(null);
   return html`<div class="tablewrap"><table>
-    <thead><tr><th class="num">#</th><th>Record</th><th>Gene</th><th>Family</th><th class="num">Score</th></tr></thead>
+    <thead><tr><th class="num">#</th><th>Record</th><th>Gene</th><th>Family</th><th class="num">Score</th><th class="num">E</th></tr></thead>
     <tbody>${run.hits.items.map(h => html`<tr key=${h.position} class=${picked?.position === h.position ? "row picked" : "row"} tabIndex="0"
         onClick=${() => setPicked(h)} onKeyDown=${e => { if (e.key === "Enter") setPicked(h); }}>
       <td class="num">${h.position}</td>
@@ -97,8 +97,13 @@ function GeneHits({ id, run }) {
       <td class="mono">${(h.geneStartBp + 1).toLocaleString()}–${h.geneEndBp.toLocaleString()} ${h.strand === "Reverse" ? "(−)" : "(+)"}</td>
       <td>${h.product ?? "–"}${h.familyId && html` <span class="hint mono">${h.familyId}</span>`}</td>
       <td class="num mono">${h.score == null ? "–" : h.score.toFixed(3)}</td>
+      <td class="num mono" title=${h.pKind === "Bound" ? "An upper bound: fewer than 10 protein-gene pairs of the null sample scored this high" : ""}>${
+        h.pKind === "Bound" ? `< ${expected(h.log10E)}` : expected(h.log10E)}</td>
     </tr>`)}</tbody>
   </table></div>
+  <p class="hint">E: how many genes of other protein families would score this high in a search this size, from real proteins scored against
+    the gene layer (build-protein-null). ${"\"< E\""} is a bound: no more than a few proteins of that sample met another family's gene this
+    high. Well under 1, the family is very likely right; near 1 or above, treat the hit as unconfirmed.</p>
   ${picked ? html`<${HitView} key=${picked.position} id=${id} hit=${picked} />`
     : html`<p class="hint">Pick a hit to draw the protein's expected Z-curve over the gene's.</p>`}`;
 }

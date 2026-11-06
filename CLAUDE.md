@@ -110,7 +110,7 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   profile_level row (0018 deleted the last ones); amino-acid 4-mer counts (3-mers dropped by 0016: `ProteinKmers.Shorter` derives them); BV-BRC protein
   families; all filled by `backfill-genes`),
   `ProteinSearch` (P7, migrations 0015 and 0017: a protein ≥ 50 aa, never stored, as expected Z-curve windows, compared with the long
-  genes or with the genes within ±10% of its length, reading only those buckets from the database).
+  genes or with the genes within ±10% of its length, reading only those buckets from the database; each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`).
 - `SequencePlatform.Api/`: ASP.NET Core minimal API on localhost:5080 (P4; see its README). Per-user API keys (`Users` in Core,
   only the SHA-256 stored); `CatalogueFilter.ViewerId` makes an upload visible to its owner only, and no viewer means public records
   only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw

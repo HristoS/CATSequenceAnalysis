@@ -22,6 +22,8 @@ namespace SequencePlatform.Ingest
     /// <summary>One coding sequence on a contig: [Start, End) 0-based, the stop codon included as BV-BRC gives it.</summary>
     internal sealed record BvBrcCds(string Accession, int Start, int End, bool Reverse, string? FamilyId, string? Product);
 
+    internal sealed record BvBrcProtein(string Accession, int Start, int End, bool Reverse, int LengthAa, string Md5, string FamilyId);
+
     internal sealed record DownloadedFile(string Path, string Url, byte[] Sha256, long ByteSize);
 
     /// <summary>
@@ -194,6 +196,40 @@ namespace SequencePlatform.Ingest
                 }
             }
             return result;
+        }
+
+        // A genome's PATRIC coding sequences that have a protein family and a protein, with the protein's length and MD5 (for
+        // ProteinSequencesAsync). Coordinates as in ListCodingSequencesAsync.
+        public async Task<List<BvBrcProtein>> ListProteinsAsync(string genomeId)
+        {
+            var url = $"{apiBase}genome_feature/?and(eq(genome_id,{genomeId}),eq(feature_type,CDS),eq(annotation,PATRIC))" +
+                      "&select(accession,start,end,strand,aa_length,aa_sequence_md5,pgfam_id)&sort(+feature_id)&limit(25000)";
+            using var response = await SendAsync(url, "application/json");
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            string? Text(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+            var proteins = new List<BvBrcProtein>();
+            foreach (var f in document.RootElement.EnumerateArray())
+                if (Text(f, "aa_sequence_md5") is { } md5 && Text(f, "pgfam_id") is { } family && f.TryGetProperty("aa_length", out var length)
+                    && f.TryGetProperty("start", out var start) && f.TryGetProperty("end", out var end))
+                    proteins.Add(new BvBrcProtein(Text(f, "accession") ?? "", start.GetInt32() - 1, end.GetInt32(), Text(f, "strand") == "-",
+                        length.GetInt32(), md5, family));
+            return proteins;
+        }
+
+        // Protein sequences by MD5, 100 per request; MD5s BV-BRC doesn't know are left out.
+        public async Task<Dictionary<string, string>> ProteinSequencesAsync(IReadOnlyCollection<string> md5s)
+        {
+            var sequences = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var chunk in md5s.Distinct(StringComparer.Ordinal).Chunk(100))
+            {
+                using var response = await SendAsync($"{apiBase}feature_sequence/?in(md5,({string.Join(",", chunk)}))&select(md5,sequence)&limit(1000)",
+                    "application/json");
+                using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                foreach (var p in document.RootElement.EnumerateArray())
+                    if (p.TryGetProperty("md5", out var md5) && p.TryGetProperty("sequence", out var sequence))
+                        sequences[md5.GetString()!] = sequence.GetString()!;
+            }
+            return sequences;
         }
 
         // Streams the genome's FASTA to a temp file, hashing as it goes. The caller must delete the file.

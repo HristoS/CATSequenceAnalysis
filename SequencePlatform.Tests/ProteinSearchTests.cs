@@ -212,6 +212,32 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task TheScoreNullCountsOtherFamiliesAndGivesPAndE()
+        {
+            var genes = Enumerable.Range(0, 12).Select(i => RandomGene(620, seed: 700 + i)).ToArray();
+            var (id, stored) = await StoreGenesAsync("protein-null", "null", genes.Select((g, i) => (g, false, 8_100_000 + i)).ToList());
+            var queries = Enumerable.Range(0, 4).Select(i => new ProteinNullQuery(ProteinQuery.FromProtein(ZCurveGeneProfile.Translate(genes[i])),
+                8_100_000 + i, id, stored[i].Start, stored[i].End, false)).ToList();
+
+            var cells = await ProteinScoreNull.BuildAsync(ThrowawayDatabase.DataSource, queries);
+            var cell = cells.Single(c => c.Bucket == GeneProfiles.LongBucket);
+            Assert.That(cell.Queries, Is.EqualTo(4));
+            Assert.That(cell.Pairs, Is.GreaterThanOrEqualTo(4 * 11), "each query meets at least the record's 11 genes of other families");
+            Assert.That(cell.Exceed[0], Is.EqualTo(cell.Pairs));
+            Assert.That(cell.Exceed, Is.Ordered.Descending);
+
+            var loaded = (await ProteinScoreNull.LoadAsync(ThrowawayDatabase.DataSource))!;
+            Assert.That(loaded.Cells.Single(c => c.Bucket == GeneProfiles.LongBucket).Exceed, Is.EqualTo(cell.Exceed));
+            var top = loaded.Assess(620, 1.0, 1_000)!.Value;
+            Assert.That(top.P.Kind, Is.EqualTo(PValueKind.Bound), "no gene of another family is identical");
+            Assert.That(top.P.Log10, Is.EqualTo(Math.Log10(1.0 / (cell.Pairs + 1))).Within(1e-12));
+            Assert.That(top.Log10E, Is.EqualTo(top.P.Log10 + 3).Within(1e-12), "E = p x the 1,000 genes scored");
+            var bottom = loaded.Assess(620, -1, 1_000)!.Value;
+            Assert.That((bottom.P.Kind, bottom.P.Log10), Is.EqualTo((PValueKind.Empirical, 0.0)), "every pair reaches the lowest score");
+            Assert.That(loaded.Assess(100, 0.9, 1_000), Is.Null, "no cell for 100 aa proteins");
+        }
+
+        [Test]
         public async Task InvalidProteinSearchesAreRejectedBeforeAnyJobIsQueued()
         {
             var (alice, client) = await factory.NewClientAsync("alice");

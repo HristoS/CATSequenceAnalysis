@@ -1,0 +1,8 @@
+Band,Proteins,With a same-family gene,Other-family genes per search (mean),Median E at best same-family hit,90% E,Share E < 0.01,Share E < 1,Score where mean count = 10,Count p10 there,Count p90 there,Spread p90/max(p10 1),Same-family best score median,Other-family best score median
+50-99 aa,81,73,1.42E+06,0,1.42E+04,64.4 %,75.3 %,0.619,0,20,20,0.817,0.606
+100-166 aa,82,76,3.13E+06,0,1.33E+04,63.2 %,77.6 %,0.708,0,22,22,0.848,0.701
+167-332 aa,83,80,5.98E+06,0,388,60.0 %,80.0 %,0.793,0,37,37,0.883,0.776
+333-499 aa,82,80,6.1E+06,0.0247,60.9,40.0 %,81.2 %,0.833,0,20,20,0.905,0.827
+500+ aa,83,83,8.08E+06,0,337,66.3 %,78.3 %,0.895,0,41,41,0.929,0.895
+
+Rule (167-332 aa: median E at the best same-family hit <= 0.01 and spread <= 100x),0 and 37x: build

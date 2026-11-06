@@ -119,6 +119,11 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   `--check-search N` then searches N proteins per record and length band from the protein alone, as `ProteinSearch` compares them,
   and prints top-1 measured within the pass and extrapolated to the catalogue. On the local catalogue, the S7.S pass took 299.7 min
   at 4 in parallel (0.41 s per genome): 58,141 records, 64.3M genes, 6.14 GB of gene profiles (`results/S7S_FullPass.csv`).
+- `build-protein-null [--per-bucket N] [--seed S]` (P7, migration 0019) builds p and E for protein hits: per query length bucket (the
+  26 gene_profile buckets), N real BV-BRC proteins with a protein family (default 30, at most 2 per bucket from each stored genome, in a
+  seeded order), each scored as a protein search scores it against the genes of other families; the cumulative counts go to
+  `protein_score_null`. The proteins are fetched for the build and never stored. Rebuild after a large ingest. The check behind it:
+  `results/ProteinNull_Check.csv`.
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.

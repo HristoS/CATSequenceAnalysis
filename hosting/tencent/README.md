@@ -110,6 +110,10 @@ docker compose -p COMPOSE_PROJECT -f docker-compose.yaml --env-file .env.Product
 3. Re-run the deploy command from step 6. `migrate` applies the new migrations, which are append-only.
 4. Run `systemctl restart cat-platform`.
 
+**Derived tables after a deploy that adds them:** migration 0019 (protein p and E) needs one run of
+`<command>` = `build-protein-null` (6 min on a 4-core workstation over the 2026-11 catalogue; expect several times that on 2 vCPU). It
+fetches about 780 proteins from BV-BRC and stores only score counts. Until it has run, protein hits show no E.
+
 **Seeding or replacing the catalogue:** see [`seed-database.md`](seed-database.md).
 
 **Adding an admin's SSH key.** The Lighthouse key pair bound to the instance (`cat_platform`) is the only one `ubuntu` accepts at

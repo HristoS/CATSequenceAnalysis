@@ -240,7 +240,8 @@ namespace SequencePlatform.Core
             CancellationToken cancellationToken = default)
         {
             var hits = result.Hits.Select((h, i) => new StoredHit(HitList.Ranked, i + 1, h.SequenceId, h.Reverse ? Strand.Reverse : Strand.Forward,
-                h.Score, GeneStart: h.GeneStart, GeneEnd: h.GeneEnd, FamilyId: h.Family == ZCurveGeneProfile.NoFamily ? null : h.Family)).ToList();
+                h.Score, P: h.P, Log10E: h.Log10E, GeneStart: h.GeneStart, GeneEnd: h.GeneEnd,
+                FamilyId: h.Family == ZCurveGeneProfile.NoFamily ? null : h.Family)).ToList();
             return CompleteAsync(dataSource, publicId, null, null, null, checked((int)result.Candidates), result.WeakSignal, null, hits, cancellationToken);
         }
 

@@ -74,7 +74,11 @@ namespace SequencePlatform.Core
     /// <param name="GeneStart">0-based on the record's stored strand.</param>
     /// <param name="GeneEnd">Exclusive; the stop codon is inside, as BV-BRC lists it.</param>
     /// <param name="Family">The BV-BRC PGfam number, or <see cref="ZCurveGeneProfile.NoFamily"/>.</param>
-    public sealed record ProteinHit(long SequenceId, int GeneStart, int GeneEnd, bool Reverse, int Family, double Score);
+    /// <param name="P">How often a gene of another family scores this high against a protein of this length (<see cref="ProteinScoreNull"/>);
+    /// null before the null is built.</param>
+    /// <param name="Log10E">log10 of the expected number of genes from other families scoring this high in this search: p × genes scored.</param>
+    public sealed record ProteinHit(long SequenceId, int GeneStart, int GeneEnd, bool Reverse, int Family, double Score, PValue? P = null,
+        double? Log10E = null);
 
     /// <param name="Candidates">Genes scored.</param>
     /// <param name="WeakSignal">Always false: no length band from 50 aa found the right family first under 90% of the time
@@ -114,9 +118,7 @@ namespace SequencePlatform.Core
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(top, 1);
             var visible = await Catalogue.IdsAsync(dataSource, filter ?? new CatalogueFilter(), cancellationToken);
-            Func<ZCurveGeneProfile.Gene, bool> candidate = query.LengthAa >= ZCurveGeneProfile.LongResidues
-                ? gene => gene.WindowCount >= Math.Min(query.WindowCount, sharpWindows)
-                : gene => Math.Abs(gene.Residues - query.LengthAa) <= LengthBand * query.LengthAa;
+            var candidate = CandidateRule(query);
             var rows = Channel.CreateBounded<(long Id, byte[] Payload, byte[] Sha256)>(256);
             // A worker that fails stops the reader, which would otherwise wait on a full channel; its own error is what's thrown.
             using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -149,10 +151,18 @@ namespace SequencePlatform.Core
             }
 
             var results = await Task.WhenAll(workers);
+            long scored = results.Sum(r => r.Scored);
+            var nullModel = await ProteinScoreNull.LoadAsync(dataSource, cancellationToken);
             var hits = results.SelectMany(r => r.Best.UnorderedItems.Select(item => item.Element))
-                .OrderByDescending(h => h, worseFirst).Take(top).ToList();
-            return new ProteinSearchResult(hits, results.Sum(r => r.Scored), WeakSignal: false);
+                .OrderByDescending(h => h, worseFirst).Take(top)
+                .Select(h => nullModel?.Assess(query.LengthAa, h.Score, scored) is { } e ? h with { P = e.P, Log10E = e.Log10E } : h).ToList();
+            return new ProteinSearchResult(hits, scored, WeakSignal: false);
         }
+
+        /// <summary>Which genes a query is compared with: from 500 aa the long genes, below that the genes within <see cref="LengthBand"/> of its length.</summary>
+        public static Func<ZCurveGeneProfile.Gene, bool> CandidateRule(ProteinQuery query) => query.LengthAa >= ZCurveGeneProfile.LongResidues
+            ? gene => gene.WindowCount >= Math.Min(query.WindowCount, sharpWindows)
+            : gene => Math.Abs(gene.Residues - query.LengthAa) <= LengthBand * query.LengthAa;
 
         private static async Task<(PriorityQueue<ProteinHit, ProteinHit> Best, long Scored)> ScoreAsync(
             ChannelReader<(long Id, byte[] Payload, byte[] Sha256)> rows, double[] axes, Func<ZCurveGeneProfile.Gene, bool> candidate, int top,

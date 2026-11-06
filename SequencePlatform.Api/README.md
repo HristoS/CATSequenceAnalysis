@@ -186,6 +186,11 @@ one, in every length band. The exact gene comes first for 95.0% at 50–99 aa, 9
 and 71.7% at 500 aa and up, and is in the top 10 for 95–100%. When the exact gene isn't first, the gene that is belongs to the
 same family. A search takes 2–8 s. `weakSignal` stays false for proteins.
 
+Each hit carries p and E (`log10P`, `pKind`, `log10E`) once `build-protein-null` has run: E is how many genes of other protein
+families would score this high in a search of this size, from real proteins scored against the gene layer. `pKind` Bound means fewer
+than 10 null pairs scored this high, so E is an upper bound (the page shows "< E"). On the check behind it (`results/ProteinNull_Check.csv`),
+60–66% of proteins have E < 0.01 at their best same-family hit and 75–81% have E < 1; E near 1 or above means the hit is unconfirmed.
+
 ## The worker
 
 `SearchWorker` runs queued searches one at a time: each search already uses every core. It runs in the API process by default, and
