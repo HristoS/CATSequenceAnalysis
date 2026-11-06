@@ -114,7 +114,8 @@ namespace SequencePlatform.Core
 
             var strands = Strands(fragment);
             var placements = new Placement[comparable.Length];
-            var phased = strands.Select(s => Enumerable.Range(0, factor).Select(p => s.Downsample(factor, p)).ToArray()).ToArray();
+            // Rounded as the stored levels are (RecordStore.Ladder), so phase 0 equals the query's own coarse level.
+            var phased = strands.Select(s => Enumerable.Range(0, factor).Select(p => s.Downsample(factor, p).ToHalfPrecision()).ToArray()).ToArray();
             Parallel.For(0, comparable.Length, new ParallelOptions { CancellationToken = cancellationToken },
                 i => placements[i] = Place(phased, profiles[comparable[i]]));
 

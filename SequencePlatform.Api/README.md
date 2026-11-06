@@ -1,11 +1,12 @@
 # SequencePlatform.Api
 
-The platform's HTTP API (P4) and web UI: the catalogue, uploads, find-similar and localize as asynchronous jobs, and the map and
-trees of organisms. A worker runs the jobs, in the same process by default and in its own under Aspire.
+The platform's HTTP API (P4) and web UI: the catalogue, uploads, find-similar, localize and protein search (P7) as asynchronous
+jobs, and the map and trees of organisms. A worker runs the jobs, in the same process by default and in its own under Aspire.
 It stores no DNA: uploads and queries are profiled and discarded, as in the Ingest. `NoDnaTests` checks this on Kestrel: a genome
 carrying a unique 1 kbp marker goes through upload, find-similar, localize and rejected bodies, and afterwards no column of any
 table (bytea included), no log entry at any level and no temp file holds any 24 bp piece of the marker or of its reverse
-complement; a body over 32 MiB gets 413 and stores nothing.
+complement; a body over 32 MiB gets 413 and stores nothing. A marked 1,000 aa protein goes through protein search the same way,
+and no 24-letter piece of it is stored or logged either.
 
 ## Run it
 
@@ -71,6 +72,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | POST | `/api/sequences` | Upload `text/x-fasta` (any number of records) or `application/x-zcwp` (the 500 bp level, with `lengthBp`); `kind` required, `name`, `taxid`, `dataClass` (default `restricted`), `recordId` for a profile. 201 with the new records |
 | POST | `/api/searches/similar` | Queue find-similar for one FASTA record or a ZCWP query (forward strand, optionally the reverse right after it); catalogue filters, `ratio` (0.25–1, default 0.5), `top` (1–1000, default 50), `lengthBp` for a profile. 202 + `Location` |
 | POST | `/api/searches/localize` | The same for a fragment: ≥ 4 kbp over the catalogue, or any length with `record`; `top` 1–100 (default 20) |
+| POST | `/api/searches/protein` | Queue a protein search: one protein as a FASTA record or bare letters (`text/x-fasta` or `text/plain`), ≥ 333 aa; catalogue filters, `code` (11, default, or 4), `top` (1–1000, default 50). 202 + `Location` |
 | GET | `/api/searches/{id}` | Status (Queued, Running, Done, Failed, Expired), parameters, summary, and once done one page of one hit list: `list` = Ranked / Identical / NotComparable, `after`, `limit` |
 | DELETE | `/api/searches/{id}` | Drop the query profile and results now (D7); 204. The search stays as Expired with its summary |
 | GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
@@ -155,6 +157,24 @@ job keeps the fine profile and SHA-256 of both strands. A ZCWP query has no hash
 reverse strand it is searched on the forward strand only. Searches are private: anyone else's id is a 404. Results are kept 30
 days (D7), then the search is Expired and keeps only its parameters, the query's length and hash, and the summary.
 
+## Protein search
+
+Which stored genes encode a protein (P7): the protein is turned into the Z-curve windows its gene would have on codon positions 1
+and 2 (synonymous codons weighted equally, genetic code 11 or 4) and compared with the genes BV-BRC annotates on the matching
+records (`gene_profile`, migration 0017, filled by `backfill-genes`). A protein of 500 aa or more has windows of 333 positions from
+the start codon and meets the genes of 500 aa and up. A protein of 50–499 aa is split into 5 equal windows and meets only the genes
+within 10% of its length, so the search reads only those length buckets. Proteins under 50 aa are refused with 400. Uploads and NCBI
+eukaryotes have no gene rows, so only BV-BRC records are searched. The job keeps the windows, the length and the SHA-256 of the letters, never the letters (migration
+0015). A hit is one gene: its record, `geneStartBp` (0-based) and `geneEndBp` (exclusive, stop codon included) on the stored
+strand, its `strand`, its BV-BRC protein family (`familyId`, PGF_…) and that family's `product`. There is one list, Ranked, and no p
+or E yet.
+
+Measured over the local catalogue (58,141 records, 64.3M genes), from BV-BRC's own proteins alone
+(`results/ProteinSearch_CatalogueV2.csv`, 301 proteins from 13 genomes): the right family comes first for every protein that has
+one, in every length band. The exact gene comes first for 95.0% at 50–99 aa, 95.2% at 100–166, 90.0% at 167–332, 88.1% at 333–499
+and 71.7% at 500 aa and up, and is in the top 10 for 95–100%. When the exact gene isn't first, the gene that is belongs to the
+same family. A search takes 2–8 s. `weakSignal` stays false for proteins.
+
 ## The worker
 
 `SearchWorker` runs queued searches one at a time: each search already uses every core. It runs in the API process by default, and
@@ -167,7 +187,9 @@ it is failed instead. Every 10 minutes it applies D7's expiry and reloads the sc
 rebuilds; the cached profiles are refreshed before every search, so a record stored a moment ago is a candidate.
 
 Find-similar keeps its band levels in memory (24 MB at ratio 0.5). Localization streams from the database by default
-(`SearchWorker:CacheLocalization=false`): about 1-2.3 s per fragment instead of 0.2-1 s, without 823 MB in the process. Other
+(`SearchWorker:CacheLocalization=false`): about 1-2.3 s per fragment instead of 0.2-1 s, without 823 MB in the process. Protein
+search streams the 2.7 GB of gene rows from the database for every query (about 21 s on 8 threads), so it holds the worker that
+long and other searches queue behind it. Other
 settings in the `SearchWorker` section: `Enabled`, `PollInterval`, `StuckAfter`, `MaintenanceInterval`.
 
 On the local catalogue (`results/S43_WorkerTiming.csv`, Release): warm find-similar takes 150-650 ms from POST to Done (the

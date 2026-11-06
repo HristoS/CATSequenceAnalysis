@@ -62,9 +62,9 @@ namespace SequencePlatform.Core
         /// </summary>
         public static QueryProfile FromStoredRecord(ZCurveWindowedProfile fine, long lengthBp, bool circularChromosome = false)
         {
-            var query = new QueryProfile(new ZCurveProfileLadder(fine), new ZCurveProfileLadder(Flip(fine)), lengthBp, null, null);
+            var query = new QueryProfile(RecordStore.Ladder(fine), RecordStore.Ladder(Flip(fine)), lengthBp, null, null);
             return circularChromosome && OriginRotation.ToOrigin(fine, lengthBp) is { } turned
-                ? query with { Rotated = new ZCurveProfileLadder(turned), RotatedReverse = new ZCurveProfileLadder(Flip(turned)) }
+                ? query with { Rotated = RecordStore.Ladder(turned), RotatedReverse = RecordStore.Ladder(Flip(turned)) }
                 : query;
         }
 
@@ -78,7 +78,7 @@ namespace SequencePlatform.Core
         /// </summary>
         public static QueryProfile FromFineProfiles(ZCurveWindowedProfile forward, ZCurveWindowedProfile? reverse, long lengthBp,
             byte[]? sha256, byte[]? reverseSha256) =>
-            new QueryProfile(new ZCurveProfileLadder(forward), reverse is null ? null : new ZCurveProfileLadder(reverse),
+            new QueryProfile(RecordStore.Ladder(forward), reverse is null ? null : RecordStore.Ladder(reverse),
                 lengthBp, sha256, reverseSha256).WithOrigin();
 
         // Rotates both strands to the origin when the forward strand places one. The reverse strand's own skew minimum is the same
@@ -89,8 +89,8 @@ namespace SequencePlatform.Core
             var reverse = Reverse?.Fine;
             return this with
             {
-                Rotated = new ZCurveProfileLadder(turned),
-                RotatedReverse = reverse is null ? null : new ZCurveProfileLadder(reverse.RotateTo(reverse.GcSkewExtremes().OriginWindow)),
+                Rotated = RecordStore.Ladder(turned),
+                RotatedReverse = reverse is null ? null : RecordStore.Ladder(reverse.RotateTo(reverse.GcSkewExtremes().OriginWindow)),
             };
         }
 
@@ -101,7 +101,7 @@ namespace SequencePlatform.Core
         {
             using var features = new SequenceFeatureReader(new StringReader(sequence));
             var fine = ZCurveWindowedProfile.FromStream(features, RecordStore.FineWindowSize);
-            return (new ZCurveProfileLadder(fine), features.Finish().Sha256, features.CharactersRead);
+            return (RecordStore.Ladder(fine), features.Finish().Sha256, features.CharactersRead);
         }
 
         /// <summary>

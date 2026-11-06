@@ -1,0 +1,14 @@
+Arm,Kind,Proteins,Exact top-1,Exact top-10,With PGfam,Family top-1,Median rank
+2 window,bacterium,120,71.7%,87.5%,86,93.0%,1
+2 window,archaeon,40,70.0%,80.0%,24,70.8%,1
+2 window,plasmid,36,41.7%,77.8%,29,69.0%,2
+2 window,virus,24,50.0%,95.8%,2,100.0%,2
+2 window,all,220,64.1%,85.5%,141,84.4%,1
+
+Measure,Value
+Candidate genes (>= 2 windows),23168001
+Decode-only streamed pass (s),19.9
+Scoring pass for 220 queries (s),449.1
+One streamed query (s; decode pass + scoring share),21.9
+Cores,8
+Rule (2 window family top-1 >= 50%),84.4%: the API accepts proteins of 333 aa

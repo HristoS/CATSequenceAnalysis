@@ -1,0 +1,13 @@
+Measure,Value,Limit,Verdict
+Genomes in the pass,"43,560 (the 200-genome trial's records were already done)",,
+Records with a gene profile,"58,141",,
+Coding sequences listed / skipped,"67,202,760 / 109,907",,
+Clean translation (no internal stop),99.93%,,
+Wall time (4 genomes in parallel),299.7 min (0.41 s per genome),<= 25 h,pass
+Gene profiles,"987,381 bucket rows, 64,252,620 genes (50 aa and up), 312,733,940 windows",,
+Gene profile payload bytes,"6,140,340,742 (card computed 6.09 GB)",<= 1.5x computed,pass (1.01x)
+gene_profile table on disk,"6,713,925,632 bytes (heap and TOAST 6,668,738,560; indexes 45,187,072)",,
+zcurve-cds rows left in profile_level,0,,migration 0018 applied
+profile_level on disk after VACUUM FULL,"1,414,291,456 bytes (was 4.04 GiB before the vacuum)",,
+protein_kmer / record_kmer / protein_family on disk,"3,069,026,304 / 450,584,576 / 325,214,208 bytes",,
+Database on disk,"12,220,886,163 bytes (card about 11.2 GB)",,

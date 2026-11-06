@@ -24,7 +24,7 @@ namespace SequencePlatform.Tests
         private static async Task<long> StoreAsync(string provider, string accession, string dna, string kind, string topology)
         {
             var sequenceId = await ThrowawayDatabase.InsertRecordAsync(provider, accession, dna.Length, kind);
-            var ladder = new ZCurveProfileLadder(new ZCurveWindowedProfile(dna));
+            var ladder = RecordStore.Ladder(new ZCurveWindowedProfile(dna));
 
             await using var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync();
             await using var transaction = await connection.BeginTransactionAsync();
@@ -77,7 +77,7 @@ namespace SequencePlatform.Tests
 
             var fine = new ZCurveWindowedProfile(dna);
             var stored = await ProfileLevels.ReadAsync(ThrowawayDatabase.DataSource, chromosome, method, OriginRotation.RotatedVersion(methodVersion), 32_000);
-            Assert.That(stored!.Windows, Is.EqualTo(OriginRotation.ToOrigin(fine, dna.Length)!.Downsample(64).Windows));
+            Assert.That(stored!.Windows, Is.EqualTo(RecordStore.Ladder(OriginRotation.ToOrigin(fine.ToHalfPrecision(), dna.Length)!).Level(64).Windows));
         }
 
         [Test]

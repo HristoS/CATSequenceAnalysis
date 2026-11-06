@@ -9,7 +9,9 @@ namespace SequencePlatform.Core
     /// <summary>
     /// profile_level I/O (docs/database-decision.md rev 2, section 5.1): one row per ladder level, the
     /// ZCWP bytes of <see cref="ZCurveWindowedProfile.ToBinary"/> inline up to 1 MB. Larger levels belong
-    /// in object storage, which doesn't exist yet, so they're refused on write and on read.
+    /// in object storage, which doesn't exist yet, so they're refused on write and on read. Since 2026-11-05
+    /// levels are written as ZCWP version 2 (float16, half the bytes); <see cref="RecordStore.Ladder"/> rounds
+    /// them before they get here, so writing them loses nothing. Version 1 rows still read.
     /// </summary>
     /// <summary>Record lengths in [Min, Max); a null Max is unbounded. The default is every length.</summary>
     public readonly record struct LengthRange(long Min, long? Max)
@@ -22,7 +24,8 @@ namespace SequencePlatform.Core
     public static class ProfileLevels
     {
         public const int MaxInlineBytes = 1 << 20;
-        private const short formatVersion = 1; // the ZCWP header version ToBinary writes
+        private const short formatVersion = 2; // the ZCWP header version ToBinary(half: true) writes
+        private const int conversionBatch = 500;
 
         /// <summary>
         /// Inserts one level inside the caller's transaction, so a genome's records and levels commit together.
@@ -34,7 +37,7 @@ namespace SequencePlatform.Core
             if (factor < 1 || level.WindowSize % factor != 0)
                 throw new ArgumentException($"Window size {level.WindowSize} isn't a multiple of factor {factor}.", nameof(factor));
 
-            var payload = level.ToBinary();
+            var payload = level.ToBinary(half: true);
             if (payload.Length > MaxInlineBytes) return false;
 
             await using var insert = new NpgsqlCommand(
@@ -54,6 +57,66 @@ namespace SequencePlatform.Core
             p.AddWithValue(SHA256.HashData(payload));
             await insert.ExecuteNonQueryAsync();
             return true;
+        }
+
+        /// <summary>
+        /// Rewrites every record whose fine level is still ZCWP version 1 as version 2, with no download: each record's levels are
+        /// rebuilt from its stored fine level by <see cref="RecordStore.Ladder"/>, which equals what ingest stores now. A batch of
+        /// records commits together, and a record's fine row changes with its coarse rows, so a stopped run resumes where it was.
+        /// Origin-rotated rows aren't touched: rebuild them afterwards (<see cref="OriginRotation.BuildAsync"/>), then score_null
+        /// and the neighbour graph, since all three are scored the way searches are.
+        /// </summary>
+        /// <returns>Records converted.</returns>
+        public static async Task<int> ConvertToHalfAsync(NpgsqlDataSource dataSource, Action<string> log, string method = RecordStore.Method,
+            string methodVersion = RecordStore.MethodVersion, CancellationToken cancellationToken = default)
+        {
+            int converted = 0;
+            while (true)
+            {
+                var ids = new List<long>();
+                await using (var command = dataSource.CreateCommand(
+                    "select sequence_id from profile_level where method = $1 and method_version = $2 and window_size = $3 and format_version = 1 " +
+                    "order by sequence_id limit $4"))
+                {
+                    command.Parameters.AddWithValue(method);
+                    command.Parameters.AddWithValue(methodVersion);
+                    command.Parameters.AddWithValue(RecordStore.FineWindowSize);
+                    command.Parameters.AddWithValue(conversionBatch);
+                    await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                    while (await reader.ReadAsync(cancellationToken)) ids.Add(reader.GetInt64(0));
+                }
+                if (ids.Count == 0) return converted;
+
+                var fines = await ReadManyAsync(dataSource, ids, method, methodVersion, RecordStore.FineWindowSize, cancellationToken);
+                await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+                await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+                foreach (var (sequenceId, fine) in fines)
+                {
+                    var ladder = RecordStore.Ladder(fine);
+                    foreach (var factor in ladder.Factors)
+                    {
+                        var level = ladder.Level(factor);
+                        var payload = level.ToBinary(half: true);
+                        await using var update = new NpgsqlCommand(
+                            "update profile_level set window_count = $5, format_version = $6, payload = $7, byte_size = $8, sha256 = $9 " +
+                            "where sequence_id = $1 and method = $2 and method_version = $3 and window_size = $4", connection, transaction);
+                        var p = update.Parameters;
+                        p.AddWithValue(sequenceId);
+                        p.AddWithValue(method);
+                        p.AddWithValue(methodVersion);
+                        p.AddWithValue(level.WindowSize);
+                        p.AddWithValue(level.WindowCount);
+                        p.AddWithValue(formatVersion);
+                        p.AddWithValue(payload);
+                        p.AddWithValue((long)payload.Length);
+                        p.AddWithValue(SHA256.HashData(payload));
+                        await update.ExecuteNonQueryAsync(cancellationToken);
+                    }
+                }
+                await transaction.CommitAsync(cancellationToken);
+                converted += fines.Count;
+                log($"  {converted:N0} records converted");
+            }
         }
 
         /// <returns>null when the sequence has no level of that window size.</returns>

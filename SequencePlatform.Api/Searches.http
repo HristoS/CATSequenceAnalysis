@@ -50,6 +50,18 @@ Content-Type: text/x-fasta
 
 < ./gene.fna
 
+### Protein search: which stored genes encode this protein (at least 333 aa; FASTA or the bare letters)
+# @name protein
+POST {{baseUrl}}/api/searches/protein?kind=bacterium&top=20
+Authorization: Bearer {{apiKey}}
+Content-Type: text/x-fasta
+
+< ./protein.faa
+
+### Poll it: about 20 s on the local catalogue; each hit is a gene with its family and product
+GET {{baseUrl}}{{protein.response.headers.Location}}
+Authorization: Bearer {{apiKey}}
+
 ### Drop a search's query profile and results now (D7); it stays listed as Expired
 DELETE {{baseUrl}}{{similar.response.headers.Location}}
 Authorization: Bearer {{apiKey}}

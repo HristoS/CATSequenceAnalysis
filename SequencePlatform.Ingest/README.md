@@ -99,11 +99,26 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   `search-similar` then scores those records, and a query with a clear skew, both as stored and rotated, and keeps the
   better score; `strand*` marks a hit whose best score came from a rotated form. Rerun `build-null` and `build-neighbours`
   afterwards. Localization ignores the rotated levels, so its offsets stay in the deposit's coordinates.
+- `convert-levels-half` (2026-11-05) rewrites every record whose stored levels are still ZCWP version 1 (float32) as version 2
+  (float16): each record's 2, 8 and 32 kbp levels are rebuilt from its stored 500 bp level and rounded as ingest now stores them,
+  in batches that commit together, so a stopped run resumes. It then reruns `build-origins`. No download. Afterwards rebuild the
+  null and the neighbour graph and `VACUUM FULL profile_level`. On the local catalogue: 60,847 records in 408 s, 11,304 origins
+  in 35 s more. The logical size halves, but on disk it saves almost nothing, because PostgreSQL's TOAST compression had already
+  halved the float32 rows (`results/P7_StorageReduction.csv`).
 - `backfill-kmers [--limit N] [--sample SEED]` gives BV-BRC records stored before migration 0013 their 6-mer counts: it downloads
   each genome again, reads it once through `SequenceFeatureReader`, deletes the file, and stores the counts only for a record whose
   SHA-256 and dinucleotide counts match what was stored (`done`); otherwise it records `mismatch` or `missing`, so a rerun skips it.
   Nothing else is recomputed. `--sample` takes genomes in a fixed random order (a trial); a genome that fails to download is left
   for the next run.
+- `backfill-genes [--limit N] [--sample SEED] [--check-search N] [--parallel P]` (P7, migrations 0014–0018) builds the gene layer
+  for BV-BRC records: it downloads each genome and its coding sequences (BV-BRC's own calls and PGfam numbers), checks the SHA-256 as
+  `backfill-kmers` does, and stores per record its amino-acid 4-mer counts (`protein_kmer`) and its `ZCurveGeneProfile` as
+  `gene_profile` rows by length bucket (genes of 500 aa and up in bucket 0, 50–499 aa in buckets 1–25), plus 6-mer counts where
+  they are missing; then it deletes the file. A
+  record is pending while it has no 4-mer row, or no `gene_profile` row. `--parallel` downloads that many genomes at once.
+  `--check-search N` then searches N proteins per record and length band from the protein alone, as `ProteinSearch` compares them,
+  and prints top-1 measured within the pass and extrapolated to the catalogue. On the local catalogue, the S7.S pass took 299.7 min
+  at 4 in parallel (0.41 s per genome): 58,141 records, 64.3M genes, 6.14 GB of gene profiles (`results/S7S_FullPass.csv`).
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.
@@ -118,8 +133,9 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
 
 ## Behaviour
 
-- **Polite:** requests start at least 1 s apart and are sequential, except the genomes of `ingest-ncbi --parallel`, and HTTP 429/5xx are retried with exponential backoff
-  that honours `Retry-After`. BV-BRC publishes no rate limit.
+- **Polite:** requests are sequential, except the genomes of `ingest-ncbi --parallel`, and HTTP 429/5xx are retried with exponential backoff
+  that honours `Retry-After`. NCBI's requests start at least 1 s apart; BV-BRC's follow each other with no gap since 2026-11-04 (one
+  in flight at a time; the gap had become half of each species' time). BV-BRC publishes no rate limit.
 - **Resumable:** every listed genome gets a `crawl_item` row (`pending`, then `done`, `duplicate`, `too_large` or
   `failed`, with attempt count and last error). Items in a final state are skipped without any request, so re-running a
   batch downloads nothing it already handled. One genome is one transaction, and its `done` mark commits in it, so a

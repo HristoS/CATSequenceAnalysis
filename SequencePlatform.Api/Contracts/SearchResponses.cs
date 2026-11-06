@@ -9,17 +9,18 @@ namespace SequencePlatform.Api
     /// <summary>What the search was asked: its catalogue filters, top K and kind-specific parameters.</summary>
     /// <param name="LengthRatio">Find-similar: candidates are records of length [ratio × query, query / ratio].</param>
     /// <param name="WithinSequenceId">Localize inside this one record only.</param>
+    /// <param name="GeneticCode">Protein search: the genetic code the protein was read with, 11 or 4.</param>
     public sealed record SearchParametersResponse(string? Kind, string? Rank, string? Taxon, long? MinLengthBp, long? MaxLengthBp, string? Provider,
-        string? Name, int Top, double? LengthRatio, long? WithinSequenceId);
+        string? Name, int Top, double? LengthRatio, long? WithinSequenceId, int? GeneticCode);
 
     /// <summary>The shape of a finished search's result.</summary>
     /// <param name="WindowSize">Find-similar: the level every hit is scored at; localize: the coarse scan level.</param>
     /// <param name="BandMinBp">Find-similar: the shortest candidate length.</param>
     /// <param name="BandMaxBp">Find-similar: the longest candidate length; absent when unbounded.</param>
     /// <param name="RankedTotal">Find-similar: candidates ranked before the top K was taken.</param>
-    /// <param name="Candidates">Localize: records scanned.</param>
+    /// <param name="Candidates">Localize: records scanned; protein search: genes scored.</param>
     /// <param name="WeakSignal">The query is short enough that the ranking reflects composition more than order (find-similar under
-    /// about 8 kbp, localize under 8 kbp): treat it as a hint, and check it with an aligner.</param>
+    /// about 8 kbp, localize under 8 kbp, a protein under 500 aa): treat it as a hint, and check it with an aligner.</param>
     /// <param name="NeighbourRanked">Find-similar: the top hits are ordered by shared neighbours, then score.</param>
     public sealed record SearchSummaryResponse(int? WindowSize, long? BandMinBp, long? BandMaxBp, int? RankedTotal, int? Candidates,
         bool? WeakSignal, bool? NeighbourRanked);
@@ -35,8 +36,13 @@ namespace SequencePlatform.Api
     /// <param name="Log10E">log10 of the expected number of unrelated candidates scoring as high.</param>
     /// <param name="SharedNeighbours">Find-similar: how many of the query's top 20 are also among this hit's own top 20.</param>
     /// <param name="Rotated">Find-similar: the best score came with the query or the record laid out from its replication origin.</param>
+    /// <param name="GeneStartBp">Protein search: where the gene starts on the record's stored strand, 0-based; <c>Strand</c> is the gene's.</param>
+    /// <param name="GeneEndBp">Protein search: where the gene ends, exclusive, stop codon included.</param>
+    /// <param name="FamilyId">Protein search: the gene's BV-BRC protein family (PGF_…); absent when it has none.</param>
+    /// <param name="Product">Protein search: that family's product, as BV-BRC names it.</param>
     public sealed record SearchHitResponse(int Position, long SequenceId, SequenceSummaryResponse? Sequence, Strand? Strand, double? Score,
-        double? CoarseScore, long? OffsetBp, double? Log10P, PValueKind? PKind, double? Log10E, int? SharedNeighbours, bool Rotated);
+        double? CoarseScore, long? OffsetBp, double? Log10P, PValueKind? PKind, double? Log10E, int? SharedNeighbours, bool Rotated,
+        int? GeneStartBp, int? GeneEndBp, string? FamilyId, string? Product);
 
     /// <summary>One page of one hit list.</summary>
     /// <param name="List">Ranked; Identical (records whose sequence equals the query's on either strand, by SHA-256); or NotComparable
@@ -48,7 +54,8 @@ namespace SequencePlatform.Api
     /// A search and, once done, a page of its results. Results are kept 30 days (D7), or until DELETE; after that the search is
     /// Expired and keeps only its parameters, the query's length and hash, and the summary.
     /// </summary>
-    public sealed record SearchRunResponse(Guid Id, SearchKind Kind, SearchStatus Status, string? Error, long QueryLengthBp,
+    /// <param name="QueryLengthBp">For a protein search, the coding length it implies: 3 × <c>QueryLengthAa</c>.</param>
+    public sealed record SearchRunResponse(Guid Id, SearchKind Kind, SearchStatus Status, string? Error, long QueryLengthBp, int? QueryLengthAa,
         DateTimeOffset CreatedAt, DateTimeOffset? StartedAt, DateTimeOffset? CompletedAt, DateTimeOffset ExpiresAt,
         SearchParametersResponse Parameters, SearchSummaryResponse? Summary, SearchHitPageResponse? Hits)
     {
@@ -56,10 +63,10 @@ namespace SequencePlatform.Api
         {
             var r = run.Request;
             var f = r.Filter;
-            return new SearchRunResponse(run.PublicId, r.Kind, run.Status, run.Error, run.QueryLengthBp, run.CreatedAt, run.StartedAt,
+            return new SearchRunResponse(run.PublicId, r.Kind, run.Status, run.Error, run.QueryLengthBp, run.QueryLengthAa, run.CreatedAt, run.StartedAt,
                 run.CompletedAt, run.ExpiresAt,
                 new SearchParametersResponse(f.Kind, f.Rank, f.Taxon, f.MinLengthBp, f.MaxLengthBp, f.Provider, f.NameContains, r.Top,
-                    r.LengthRatio, r.WithinSequenceId),
+                    r.LengthRatio, r.WithinSequenceId, r.GeneticCode),
                 run.CompletedAt is null || run.Status == SearchStatus.Failed ? null : new SearchSummaryResponse(run.WindowSize, run.Lengths?.Min,
                     run.Lengths?.Max - 1, run.RankedTotal, run.Candidates, run.WeakSignal, run.NeighbourRanked),
                 hits);

@@ -19,20 +19,24 @@ namespace SequencePlatform.Ingest
     internal sealed record BvBrcContig(string Accession, string? SequenceType, string? Topology, string? Description, long? Length,
         string? SequenceMd5);
 
+    /// <summary>One coding sequence on a contig: [Start, End) 0-based, the stop codon included as BV-BRC gives it.</summary>
+    internal sealed record BvBrcCds(string Accession, int Start, int End, bool Reverse, string? FamilyId, string? Product);
+
     internal sealed record DownloadedFile(string Path, string Url, byte[] Sha256, long ByteSize);
 
     /// <summary>
     /// Minimal client for the BV-BRC data API (https://www.bv-brc.org/api/). Deliberately polite
-    /// (<see cref="PoliteHttpClient"/>): requests are sequential and at least <see cref="minRequestInterval"/>
-    /// apart, and 429/5xx responses are retried with backoff. BV-BRC publishes no rate limit, so this stays
-    /// well under anything a public service would object to.
+    /// (<see cref="PoliteHttpClient"/>): requests are sequential, one in flight at a time, and 429/5xx responses
+    /// are retried with backoff. BV-BRC publishes no rate limit. There is no gap between requests (it was 1 s
+    /// until 2026-11-04): with lookups at about 0.5 s and downloads at about 0.65 s, the gap had become half of
+    /// each species' time, while one request at a time is no more load than a single browser tab.
     /// FASTA comes from the API (Accept: application/dna+fasta) because the FTP host isn't
     /// reachable from every network.
     /// </summary>
     internal sealed class BvBrcClient : IDisposable
     {
         private const string apiBase = "https://www.bv-brc.org/api/";
-        private static readonly TimeSpan minRequestInterval = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan minRequestInterval = TimeSpan.Zero;
 
         private static readonly string[] genomeFields =
         {
@@ -156,6 +160,40 @@ namespace SequencePlatform.Ingest
                             Text(c, "sequence_md5")));
             }
             return contigs;
+        }
+
+        // Coding sequences (PATRIC annotation) of a chunk of genomes per request, paged by feature id so no genome is truncated. BV-BRC
+        // coordinates are 1-based and inclusive, start below end on both strands, and include the stop codon. Every requested id gets
+        // an entry, empty when BV-BRC lists no CDS for it.
+        public async Task<Dictionary<string, List<BvBrcCds>>> ListCodingSequencesAsync(IReadOnlyCollection<string> genomeIds)
+        {
+            const int chunkSize = 10;
+            const int rowLimit = 25000;
+            var result = genomeIds.Distinct(StringComparer.Ordinal).ToDictionary(id => id, _ => new List<BvBrcCds>(), StringComparer.Ordinal);
+            var ids = result.Keys.ToList();
+            for (int i = 0; i < ids.Count; i += chunkSize)
+            {
+                var chunk = string.Join(",", ids.Skip(i).Take(chunkSize));
+                for (int offset = 0; ; offset += rowLimit)
+                {
+                    var url = $"{apiBase}genome_feature/?and(in(genome_id,({chunk})),eq(feature_type,CDS),eq(annotation,PATRIC))" +
+                              $"&select(genome_id,accession,start,end,strand,pgfam_id,product)&sort(+feature_id)&limit({rowLimit},{offset})";
+                    using var response = await SendAsync(url, "application/json");
+                    using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                    string? Text(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+                    int rows = 0;
+                    foreach (var f in document.RootElement.EnumerateArray())
+                    {
+                        rows++;
+                        if (Text(f, "genome_id") is not { } genomeId || !result.TryGetValue(genomeId, out var list)) continue;
+                        if (!f.TryGetProperty("start", out var start) || !f.TryGetProperty("end", out var end)) continue;
+                        list.Add(new BvBrcCds(Text(f, "accession") ?? "", start.GetInt32() - 1, end.GetInt32(), Text(f, "strand") == "-",
+                            Text(f, "pgfam_id"), Text(f, "product")));
+                    }
+                    if (rows < rowLimit) break;
+                }
+            }
+            return result;
         }
 
         // Streams the genome's FASTA to a temp file, hashing as it goes. The caller must delete the file.

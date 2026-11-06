@@ -356,61 +356,73 @@ namespace SequenceAnalyses
         /// </summary>
         private const uint binaryMagic = 0x5057435A; // "ZCWP" read as a little-endian uint32
         private const ushort binaryFormatVersion = 1;
+        // Version 2 stores every value as float16, 6 bytes per window instead of 12: rounding changed find-similar's top hit for 1 of
+        // 300 queries and no localization offset (results/HalfLevels_Check.csv).
+        private const ushort halfFormatVersion = 2;
         private const int binaryHeaderSize = 16;
 
         /// <summary>
         /// Serializes the windows (never the DNA string) in the storage format of
         /// docs/database-decision.md §4.3: "ZCWP" | uint16 version | uint16 reserved | int32
-        /// windowSize | int32 windowCount | float32 xs[n] | ys[n] | zs[n], all little-endian. The
-        /// per-axis blocks match the in-memory layout, so a reader can fetch just windows [a, b) of
-        /// a stored object with three byte-range reads.
+        /// windowSize | int32 windowCount | xs[n] | ys[n] | zs[n], all little-endian, the values float32
+        /// (version 1) or, with <paramref name="half"/>, float16 (version 2). The per-axis blocks match the
+        /// in-memory layout, so a reader can fetch just windows [a, b) of a stored object with three
+        /// byte-range reads.
         /// </summary>
-        public byte[] ToBinary()
+        public byte[] ToBinary(bool half = false)
         {
-            int n = xs.Length;
-            var bytes = new byte[binaryHeaderSize + 12 * n];
+            int n = xs.Length, width = half ? 2 : 4;
+            var bytes = new byte[binaryHeaderSize + 3 * width * n];
             var span = bytes.AsSpan();
             BinaryPrimitives.WriteUInt32LittleEndian(span, binaryMagic);
-            BinaryPrimitives.WriteUInt16LittleEndian(span[4..], binaryFormatVersion);
+            BinaryPrimitives.WriteUInt16LittleEndian(span[4..], half ? halfFormatVersion : binaryFormatVersion);
             BinaryPrimitives.WriteInt32LittleEndian(span[8..], WindowSize);
             BinaryPrimitives.WriteInt32LittleEndian(span[12..], n);
-            WriteAxis(span.Slice(binaryHeaderSize, 4 * n), xs);
-            WriteAxis(span.Slice(binaryHeaderSize + 4 * n, 4 * n), ys);
-            WriteAxis(span.Slice(binaryHeaderSize + 8 * n, 4 * n), zs);
+            WriteAxis(span.Slice(binaryHeaderSize, width * n), xs, half);
+            WriteAxis(span.Slice(binaryHeaderSize + width * n, width * n), ys, half);
+            WriteAxis(span.Slice(binaryHeaderSize + 2 * width * n, width * n), zs, half);
             return bytes;
         }
 
-        /// <summary>Inverse of <see cref="ToBinary"/>; the result carries no DNA string.</summary>
+        /// <summary>Inverse of <see cref="ToBinary"/>, either version; the result carries no DNA string.</summary>
         public static ZCurveWindowedProfile FromBinary(ReadOnlySpan<byte> bytes)
         {
             if (bytes.Length < binaryHeaderSize || BinaryPrimitives.ReadUInt32LittleEndian(bytes) != binaryMagic)
                 throw new FormatException("Not a ZCWP profile.");
             var version = BinaryPrimitives.ReadUInt16LittleEndian(bytes[4..]);
-            if (version != binaryFormatVersion)
+            if (version != binaryFormatVersion && version != halfFormatVersion)
                 throw new FormatException($"Unsupported ZCWP format version {version}.");
+            bool half = version == halfFormatVersion;
+            int width = half ? 2 : 4;
 
             int windowSize = BinaryPrimitives.ReadInt32LittleEndian(bytes[8..]);
             int n = BinaryPrimitives.ReadInt32LittleEndian(bytes[12..]);
-            if (windowSize < 1 || n < 0 || bytes.Length != binaryHeaderSize + 12L * n)
+            if (windowSize < 1 || n < 0 || bytes.Length != binaryHeaderSize + 3L * width * n)
                 throw new FormatException("ZCWP header does not match the payload length.");
 
             return new ZCurveWindowedProfile(null, windowSize,
-                ReadAxis(bytes.Slice(binaryHeaderSize, 4 * n)),
-                ReadAxis(bytes.Slice(binaryHeaderSize + 4 * n, 4 * n)),
-                ReadAxis(bytes.Slice(binaryHeaderSize + 8 * n, 4 * n)));
+                ReadAxis(bytes.Slice(binaryHeaderSize, width * n), half),
+                ReadAxis(bytes.Slice(binaryHeaderSize + width * n, width * n), half),
+                ReadAxis(bytes.Slice(binaryHeaderSize + 2 * width * n, width * n), half));
         }
 
-        private static void WriteAxis(Span<byte> destination, float[] values)
+        /// <summary>Every window rounded to the nearest float16, the values version 2 of <see cref="ToBinary"/> stores exactly.</summary>
+        public ZCurveWindowedProfile ToHalfPrecision() => new(DnaString, WindowSize, ToHalf(xs), ToHalf(ys), ToHalf(zs));
+
+        private static float[] ToHalf(float[] values) => values.Select(v => (float)(Half)v).ToArray();
+
+        private static void WriteAxis(Span<byte> destination, float[] values, bool half)
         {
             for (int i = 0; i < values.Length; i++)
-                BinaryPrimitives.WriteSingleLittleEndian(destination[(4 * i)..], values[i]);
+                if (half) BinaryPrimitives.WriteHalfLittleEndian(destination[(2 * i)..], (Half)values[i]);
+                else BinaryPrimitives.WriteSingleLittleEndian(destination[(4 * i)..], values[i]);
         }
 
-        private static float[] ReadAxis(ReadOnlySpan<byte> source)
+        private static float[] ReadAxis(ReadOnlySpan<byte> source, bool half)
         {
-            var values = new float[source.Length / 4];
+            var values = new float[source.Length / (half ? 2 : 4)];
             for (int i = 0; i < values.Length; i++)
-                values[i] = BinaryPrimitives.ReadSingleLittleEndian(source[(4 * i)..]);
+                values[i] = half ? (float)BinaryPrimitives.ReadHalfLittleEndian(source[(2 * i)..]) : BinaryPrimitives.ReadSingleLittleEndian(source[(4 * i)..]);
             return values;
         }
 
@@ -688,7 +700,9 @@ namespace SequenceAnalyses
         public ZCurveWindowedProfile Fine => levels[0];
 
         /// <param name="factors">Ascending downsample factors; the first must be 1 (the fine profile itself).</param>
-        public ZCurveProfileLadder(ZCurveWindowedProfile fine, IReadOnlyList<int>? factors = null)
+        /// <param name="halfPrecision">Round the fine profile, and each level derived from it, to float16 (ZCWP version 2), so a
+        /// ladder built from a query's DNA equals the one stored for the same sequence.</param>
+        public ZCurveProfileLadder(ZCurveWindowedProfile fine, IReadOnlyList<int>? factors = null, bool halfPrecision = false)
         {
             if (fine is null) throw new ArgumentNullException(nameof(fine));
             var chosen = (factors ?? DefaultFactors).ToArray();
@@ -699,7 +713,8 @@ namespace SequenceAnalyses
                     throw new ArgumentException("Factors must be strictly ascending.", nameof(factors));
 
             this.factors = chosen;
-            levels = chosen.Select(f => f == 1 ? fine : fine.Downsample(f)).ToArray();
+            if (halfPrecision) fine = fine.ToHalfPrecision();
+            levels = chosen.Select(f => f == 1 ? fine : halfPrecision ? fine.Downsample(f).ToHalfPrecision() : fine.Downsample(f)).ToArray();
         }
 
         public ZCurveWindowedProfile Level(int factor)

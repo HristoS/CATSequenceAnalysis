@@ -40,7 +40,7 @@ namespace SequencePlatform.Tests
             for (int i = 0; i < lengths.Length; i++)
             {
                 var dna = Generator.GetRandomDNA(lengths[i], seed: 100 + i);
-                stored[await StoreAsync(provider, $"r{i}", dna)] = (lengths[i], new ZCurveProfileLadder(new ZCurveWindowedProfile(dna)));
+                stored[await StoreAsync(provider, $"r{i}", dna)] = (lengths[i], RecordStore.Ladder(new ZCurveWindowedProfile(dna)));
             }
             var query = QueryProfile.FromSequence(Generator.GetRandomDNA(500_000, seed: 1));
 

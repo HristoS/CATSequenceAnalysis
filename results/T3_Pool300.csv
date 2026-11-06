@@ -1,0 +1,4 @@
+Variant,Queries,Pool,StrictTop1At30,StrictTop1At100,StrictTop1At300,HomologTop1At30,HomologTop1At100,HomologTop1At300,ModelFrom30AtFull,ModelValid,ModelTop1AtCatalogue
+Dna,600,225827,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,true,1.0000
+ExpectedUniform,600,225827,0.9950,0.9883,0.9700,0.9950,0.9900,0.9883,0.9613,true,0.8469
+ExpectedPerTarget,600,225827,1.0000,1.0000,0.9900,1.0000,1.0000,1.0000,0.9991,true,0.9696

@@ -1,0 +1,9 @@
+Axes,Features,NumbersPerWindow,Threshold,Positives,Negatives,Auc
+xyz,means,3,SameGenusOrCloser_vs_Rest,8,427,0.8352
+xyz,means,3,SamePhylumOrCloser_vs_DifferentPhylum,105,330,0.7891
+xyz,moments,9,SameGenusOrCloser_vs_Rest,8,427,0.8296
+xyz,moments,9,SamePhylumOrCloser_vs_DifferentPhylum,105,330,0.7944
+xy,means,2,SameGenusOrCloser_vs_Rest,8,427,0.6063
+xy,means,2,SamePhylumOrCloser_vs_DifferentPhylum,105,330,0.7092
+xy,moments,6,SameGenusOrCloser_vs_Rest,8,427,0.5410
+xy,moments,6,SamePhylumOrCloser_vs_DifferentPhylum,105,330,0.6862

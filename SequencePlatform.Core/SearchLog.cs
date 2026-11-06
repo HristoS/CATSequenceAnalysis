@@ -6,7 +6,7 @@ using SequenceAnalyses;
 
 namespace SequencePlatform.Core
 {
-    public enum SearchKind { Similar, Localize }
+    public enum SearchKind { Similar, Localize, Protein }
 
     public enum SearchStatus { Queued, Running, Done, Failed, Expired }
 
@@ -15,26 +15,37 @@ namespace SequencePlatform.Core
     /// <param name="Filter">Its <see cref="CatalogueFilter.ViewerId"/> is the run's owner, kept in search_run.owner_id rather than in the filters.</param>
     /// <param name="LengthRatio">Find-similar's band ratio; null for localize.</param>
     /// <param name="WithinSequenceId">Localize inside this one record (<see cref="Localization.LocalizeInRecordAsync"/>).</param>
-    public sealed record SearchRequest(SearchKind Kind, CatalogueFilter Filter, int Top, double? LengthRatio = null, long? WithinSequenceId = null);
+    /// <param name="GeneticCode">Protein search: the translation table of the query (<see cref="ProteinQuery.GeneticCode"/>).</param>
+    public sealed record SearchRequest(SearchKind Kind, CatalogueFilter Filter, int Top, double? LengthRatio = null, long? WithinSequenceId = null,
+        int? GeneticCode = null);
 
     /// <param name="WindowSize">Find-similar: the level every hit is scored at; localize: the coarse scan level. Null until done.</param>
     /// <param name="Lengths">Find-similar's candidate length band.</param>
     /// <param name="Candidates">Localize: the records scanned.</param>
-    /// <param name="WeakSignal">Find-similar's <see cref="SimilarityResult.FewWindows"/> or localize's <see cref="LocalizationResult.WeakSignal"/>.</param>
+    /// <param name="QueryLengthBp">For a protein search, the coding length it implies: 3 × <paramref name="QueryLengthAa"/>.</param>
+    /// <param name="Candidates">Localize: the records scanned; protein search: the genes scored.</param>
+    /// <param name="WeakSignal">Find-similar's <see cref="SimilarityResult.FewWindows"/>, localize's <see cref="LocalizationResult.WeakSignal"/>
+    /// or protein search's <see cref="ProteinSearchResult.WeakSignal"/>.</param>
     public sealed record SearchRun(Guid PublicId, SearchRequest Request, SearchStatus Status, string? Error, long QueryLengthBp,
         DateTimeOffset CreatedAt, DateTimeOffset? StartedAt, DateTimeOffset? CompletedAt, DateTimeOffset ExpiresAt,
-        int? WindowSize, LengthRange? Lengths, int? RankedTotal, int? Candidates, bool? WeakSignal, bool? NeighbourRanked);
-
-    /// <summary>One row of search_hit: a <see cref="SimilarityHit"/>, a <see cref="LocalizationHit"/>, an identical record or a not-comparable one.</summary>
-    /// <param name="Position">1-based order within its list; for <see cref="HitList.Ranked"/>, the rank.</param>
-    public sealed record StoredHit(HitList List, int Position, long SequenceId, Strand? Strand = null, double? Score = null,
-        double? CoarseScore = null, long? OffsetBp = null, PValue? P = null, double? Log10E = null, int? SharedNeighbours = null,
-        bool Rotated = false);
+        int? WindowSize, LengthRange? Lengths, int? RankedTotal, int? Candidates, bool? WeakSignal, bool? NeighbourRanked, int? QueryLengthAa = null);
 
     /// <summary>
-    /// search_run and search_hit I/O (migrations 0002 and 0009, P4 S4.1): a search as an asynchronous job. A job keeps what
-    /// <see cref="QueryProfile.FromFineProfiles"/> needs to rebuild the query, never the DNA; its result is the hit lists of a
-    /// <see cref="SimilarityResult"/> or <see cref="LocalizationResult"/> plus their summary. D7: <see cref="ExpireDueAsync"/>
+    /// One row of search_hit: a <see cref="SimilarityHit"/>, a <see cref="LocalizationHit"/>, a <see cref="ProteinHit"/>, an identical
+    /// record or a not-comparable one.
+    /// </summary>
+    /// <param name="Position">1-based order within its list; for <see cref="HitList.Ranked"/>, the rank.</param>
+    /// <param name="GeneStart">Protein search: the gene's 0-based start on the stored strand; <paramref name="Strand"/> is the gene's.</param>
+    /// <param name="FamilyId">Protein search: the gene's PGfam number, null when it has none.</param>
+    public sealed record StoredHit(HitList List, int Position, long SequenceId, Strand? Strand = null, double? Score = null,
+        double? CoarseScore = null, long? OffsetBp = null, PValue? P = null, double? Log10E = null, int? SharedNeighbours = null,
+        bool Rotated = false, int? GeneStart = null, int? GeneEnd = null, int? FamilyId = null);
+
+    /// <summary>
+    /// search_run and search_hit I/O (migrations 0002, 0009 and 0015, P4 S4.1): a search as an asynchronous job. A job keeps what
+    /// <see cref="QueryProfile.FromFineProfiles"/> needs to rebuild the query, never the DNA, or a <see cref="ProteinQuery"/>, never the
+    /// protein; its result is the hit lists of a <see cref="SimilarityResult"/>, <see cref="LocalizationResult"/> or
+    /// <see cref="ProteinSearchResult"/> plus their summary. D7: <see cref="ExpireDueAsync"/>
     /// drops profiles and hits after 30 days and keeps the hashes, length, parameters and summary; <see cref="ExpireAsync"/>
     /// does the same early for one run.
     ///
@@ -58,6 +69,8 @@ namespace SequencePlatform.Core
                 throw new ArgumentException("Only a localization runs inside one record.", nameof(request));
             if (request.Kind == SearchKind.Localize && request.LengthRatio is not null)
                 throw new ArgumentException("A length ratio is find-similar's.", nameof(request));
+            if (request.Kind == SearchKind.Protein || request.GeneticCode is not null)
+                throw new ArgumentException("A protein search takes a protein query.", nameof(request));
 
             await using var command = dataSource.CreateCommand(
                 "insert into search_run (search_kind, query_sha256, query_reverse_sha256, query_length_bp, query_profile, query_reverse_profile, " +
@@ -75,14 +88,43 @@ namespace SequencePlatform.Core
             p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bigint, Value = (object?)request.WithinSequenceId ?? DBNull.Value });
             p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bigint, Value = (object?)request.Filter.ViewerId ?? DBNull.Value });
             var id = (Guid)(await command.ExecuteScalarAsync(cancellationToken))!;
-
-            await using (var notify = dataSource.CreateCommand("select pg_notify($1, $2)"))
-            {
-                notify.Parameters.AddWithValue(Channel);
-                notify.Parameters.AddWithValue(id.ToString());
-                await notify.ExecuteNonQueryAsync(cancellationToken);
-            }
+            await NotifyAsync(dataSource, id, cancellationToken);
             return id;
+        }
+
+        public static async Task<Guid> EnqueueAsync(NpgsqlDataSource dataSource, SearchRequest request, ProteinQuery query,
+            CancellationToken cancellationToken = default)
+        {
+            if (request.Top < 1) throw new ArgumentOutOfRangeException(nameof(request), "Top must be at least 1.");
+            if (request.Kind != SearchKind.Protein || request.LengthRatio is not null || request.WithinSequenceId is not null)
+                throw new ArgumentException("A protein query is for a protein search, which takes neither a length ratio nor a record.", nameof(request));
+            if (request.GeneticCode != query.GeneticCode)
+                throw new ArgumentException("The request's genetic code is not the one the query was read with.", nameof(request));
+
+            await using var command = dataSource.CreateCommand(
+                "insert into search_run (search_kind, query_sha256, query_length_bp, query_length_aa, genetic_code, query_profile, filters, top_k, owner_id) " +
+                "values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning public_id");
+            var p = command.Parameters;
+            p.AddWithValue(KindName(request.Kind));
+            p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bytea, Value = (object?)query.Sha256 ?? DBNull.Value });
+            p.AddWithValue(3L * query.LengthAa);
+            p.AddWithValue(query.LengthAa);
+            p.AddWithValue((short)query.GeneticCode);
+            p.AddWithValue(query.AxesToBinary());
+            p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Jsonb, Value = JsonSerializer.Serialize(request.Filter with { ViewerId = null }, filterJson) });
+            p.AddWithValue(request.Top);
+            p.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Bigint, Value = (object?)request.Filter.ViewerId ?? DBNull.Value });
+            var id = (Guid)(await command.ExecuteScalarAsync(cancellationToken))!;
+            await NotifyAsync(dataSource, id, cancellationToken);
+            return id;
+        }
+
+        private static async Task NotifyAsync(NpgsqlDataSource dataSource, Guid id, CancellationToken cancellationToken)
+        {
+            await using var notify = dataSource.CreateCommand("select pg_notify($1, $2)");
+            notify.Parameters.AddWithValue(Channel);
+            notify.Parameters.AddWithValue(id.ToString());
+            await notify.ExecuteNonQueryAsync(cancellationToken);
         }
 
         /// <summary>Marks the oldest queued job running and counts the attempt.</summary>
@@ -123,7 +165,7 @@ namespace SequencePlatform.Core
             await using var command = dataSource.CreateCommand(
                 "select search_kind, filters::text, top_k, length_ratio, within_sequence_id, status, error, query_length_bp, " +
                 "created_at, started_at, completed_at, expires_at, level_window_size, band_min_bp, band_max_bp, ranked_total, " +
-                "candidates, weak_signal, neighbour_ranked, owner_id from search_run where public_id = $1");
+                "candidates, weak_signal, neighbour_ranked, owner_id, query_length_aa, genetic_code from search_run where public_id = $1");
             command.Parameters.AddWithValue(publicId);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             if (!await reader.ReadAsync(cancellationToken)) return null;
@@ -131,13 +173,13 @@ namespace SequencePlatform.Core
             var request = new SearchRequest(ParseKind(reader.GetString(0)),
                 JsonSerializer.Deserialize<CatalogueFilter>(reader.GetString(1), filterJson)! with { ViewerId = Nullable<long>(reader, 19) },
                 reader.GetInt32(2),
-                Nullable<double>(reader, 3), Nullable<long>(reader, 4));
+                Nullable<double>(reader, 3), Nullable<long>(reader, 4), reader.IsDBNull(21) ? null : reader.GetInt16(21));
             return new SearchRun(publicId, request, Enum.Parse<SearchStatus>(reader.GetString(5), ignoreCase: true),
                 reader.IsDBNull(6) ? null : reader.GetString(6), reader.GetInt64(7),
                 reader.GetFieldValue<DateTimeOffset>(8), Nullable<DateTimeOffset>(reader, 9), Nullable<DateTimeOffset>(reader, 10),
                 reader.GetFieldValue<DateTimeOffset>(11), Nullable<int>(reader, 12),
                 reader.IsDBNull(13) ? null : new LengthRange(reader.GetInt64(13), Nullable<long>(reader, 14)),
-                Nullable<int>(reader, 15), Nullable<int>(reader, 16), Nullable<bool>(reader, 17), Nullable<bool>(reader, 18));
+                Nullable<int>(reader, 15), Nullable<int>(reader, 16), Nullable<bool>(reader, 17), Nullable<bool>(reader, 18), Nullable<int>(reader, 20));
         }
 
         /// <returns>The job's query, rebuilt exactly; null when no run has this id or it has expired.</returns>
@@ -145,7 +187,7 @@ namespace SequencePlatform.Core
         {
             await using var command = dataSource.CreateCommand(
                 "select query_profile, query_reverse_profile, query_length_bp, query_sha256, query_reverse_sha256 " +
-                "from search_run where public_id = $1 and query_profile is not null");
+                "from search_run where public_id = $1 and query_profile is not null and search_kind <> 'protein'");
             command.Parameters.AddWithValue(publicId);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             if (!await reader.ReadAsync(cancellationToken)) return null;
@@ -153,6 +195,19 @@ namespace SequencePlatform.Core
             return QueryProfile.FromFineProfiles(ZCurveWindowedProfile.FromBinary(reader.GetFieldValue<byte[]>(0)),
                 reader.IsDBNull(1) ? null : ZCurveWindowedProfile.FromBinary(reader.GetFieldValue<byte[]>(1)), reader.GetInt64(2),
                 reader.IsDBNull(3) ? null : reader.GetFieldValue<byte[]>(3), reader.IsDBNull(4) ? null : reader.GetFieldValue<byte[]>(4));
+        }
+
+        /// <returns>A protein job's query; null when no protein run has this id or it has expired.</returns>
+        public static async Task<ProteinQuery?> ProteinQueryAsync(NpgsqlDataSource dataSource, Guid publicId, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand(
+                "select query_profile, query_length_aa, query_sha256, genetic_code from search_run " +
+                "where public_id = $1 and query_profile is not null and search_kind = 'protein'");
+            command.Parameters.AddWithValue(publicId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            if (!await reader.ReadAsync(cancellationToken)) return null;
+            return new ProteinQuery(ProteinQuery.AxesFromBinary(reader.GetFieldValue<byte[]>(0)), reader.GetInt32(1),
+                reader.IsDBNull(2) ? null : reader.GetFieldValue<byte[]>(2), reader.GetInt16(3));
         }
 
         /// <returns>false when the run is no longer queued or running (expired or deleted meanwhile): nothing is written.</returns>
@@ -178,6 +233,15 @@ namespace SequencePlatform.Core
             hits.AddRange(result.NotComparable.Select((id, i) => new StoredHit(HitList.NotComparable, i + 1, id)));
             return CompleteAsync(dataSource, publicId, result.CoarseWindowSize, null, null, result.Candidates,
                 result.WeakSignal, null, hits, cancellationToken);
+        }
+
+        /// <returns>false when the run is no longer queued or running (expired or deleted meanwhile): nothing is written.</returns>
+        public static Task<bool> SaveAsync(NpgsqlDataSource dataSource, Guid publicId, ProteinSearchResult result,
+            CancellationToken cancellationToken = default)
+        {
+            var hits = result.Hits.Select((h, i) => new StoredHit(HitList.Ranked, i + 1, h.SequenceId, h.Reverse ? Strand.Reverse : Strand.Forward,
+                h.Score, GeneStart: h.GeneStart, GeneEnd: h.GeneEnd, FamilyId: h.Family == ZCurveGeneProfile.NoFamily ? null : h.Family)).ToList();
+            return CompleteAsync(dataSource, publicId, null, null, null, checked((int)result.Candidates), result.WeakSignal, null, hits, cancellationToken);
         }
 
         private static async Task<bool> CompleteAsync(NpgsqlDataSource dataSource, Guid publicId, int? windowSize, LengthRange? lengths,
@@ -207,9 +271,10 @@ namespace SequencePlatform.Core
             // One statement for the whole result: unnest zips the column arrays into rows.
             await using (var insert = new NpgsqlCommand(
                 "insert into search_hit (search_run_id, list_kind, position, sequence_id, strand, score, coarse_score, offset_bp, " +
-                "log10_p, p_kind, log10_e, shared_neighbours, rotated) " +
+                "log10_p, p_kind, log10_e, shared_neighbours, rotated, gene_start, gene_end, family_id) " +
                 "select $1, * from unnest($2::text[], $3::integer[], $4::bigint[], $5::text[], $6::float8[], $7::float8[], $8::bigint[], " +
-                "$9::float8[], $10::text[], $11::float8[], $12::smallint[], $13::boolean[])", connection, transaction))
+                "$9::float8[], $10::text[], $11::float8[], $12::smallint[], $13::boolean[], $14::integer[], $15::integer[], $16::integer[])",
+                connection, transaction))
             {
                 var p = insert.Parameters;
                 p.AddWithValue(runId);
@@ -225,6 +290,9 @@ namespace SequencePlatform.Core
                 p.AddWithValue(hits.Select(h => h.Log10E).ToArray());
                 p.AddWithValue(hits.Select(h => (short?)h.SharedNeighbours).ToArray());
                 p.AddWithValue(hits.Select(h => h.Rotated).ToArray());
+                p.AddWithValue(hits.Select(h => h.GeneStart).ToArray());
+                p.AddWithValue(hits.Select(h => h.GeneEnd).ToArray());
+                p.AddWithValue(hits.Select(h => h.FamilyId).ToArray());
                 await insert.ExecuteNonQueryAsync(cancellationToken);
             }
             await transaction.CommitAsync(cancellationToken);
@@ -246,7 +314,8 @@ namespace SequencePlatform.Core
             int afterPosition = 0, int limit = 50, CancellationToken cancellationToken = default)
         {
             await using var command = dataSource.CreateCommand(
-                "select position, sequence_id, strand, score, coarse_score, offset_bp, log10_p, p_kind, log10_e, shared_neighbours, rotated " +
+                "select position, sequence_id, strand, score, coarse_score, offset_bp, log10_p, p_kind, log10_e, shared_neighbours, rotated, " +
+                "gene_start, gene_end, family_id " +
                 "from search_hit where search_run_id = (select id from search_run where public_id = $1) and list_kind = $2 and position > $3 " +
                 "order by position limit $4");
             var p = command.Parameters;
@@ -262,7 +331,8 @@ namespace SequencePlatform.Core
                     reader.IsDBNull(2) ? null : Enum.Parse<Strand>(reader.GetString(2), ignoreCase: true),
                     Nullable<double>(reader, 3), Nullable<double>(reader, 4), Nullable<long>(reader, 5),
                     reader.IsDBNull(6) ? null : new PValue(reader.GetDouble(6), Enum.Parse<PValueKind>(reader.GetString(7), ignoreCase: true)),
-                    Nullable<double>(reader, 8), reader.IsDBNull(9) ? null : reader.GetInt16(9), reader.GetBoolean(10)));
+                    Nullable<double>(reader, 8), reader.IsDBNull(9) ? null : reader.GetInt16(9), reader.GetBoolean(10),
+                    Nullable<int>(reader, 11), Nullable<int>(reader, 12), Nullable<int>(reader, 13)));
             return hits;
         }
 
@@ -288,9 +358,9 @@ namespace SequencePlatform.Core
             return (int)(await command.ExecuteScalarAsync(cancellationToken))!;
         }
 
-        private static string KindName(SearchKind kind) => kind == SearchKind.Similar ? "similar" : "localize";
+        private static string KindName(SearchKind kind) => kind.ToString().ToLowerInvariant();
 
-        private static SearchKind ParseKind(string name) => name == "similar" ? SearchKind.Similar : SearchKind.Localize;
+        private static SearchKind ParseKind(string name) => Enum.Parse<SearchKind>(name, ignoreCase: true);
 
         private static string ListName(HitList list) => list switch
         {

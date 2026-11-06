@@ -13,7 +13,8 @@ namespace SequencePlatform.Tests
     /// <summary>
     /// The platform never stores DNA (S4.4): a genome carrying a unique 1 kbp marker goes through every route that takes sequence
     /// (upload, find-similar, localize, rejected bodies), and afterwards no column of any table, no log entry and no temp file holds
-    /// any piece of the marker. The API runs on Kestrel here, not the test server, so its request size limit is the real one.
+    /// any piece of the marker. The API runs on Kestrel here, not the test server, so its request size limit is the real one. A
+    /// marked protein goes through protein search (P7) the same way.
     /// </summary>
     public class NoDnaTests
     {
@@ -170,6 +171,34 @@ namespace SequencePlatform.Tests
             Assert.That(entries, Has.Some.Contains($"sha256 {Convert.ToHexStringLower(SHA256.HashData(Encoding.ASCII.GetBytes(fasta)))}")
                 .And.Contains($"1 record(s), {genome.Length} bp"), "the upload is logged by hash and length");
 
+            AssertNoTempFiles();
+        }
+
+        [Test]
+        public async Task AMarkedProteinLeavesNoTraceInTheDatabaseTheLogsOrTheTempDirectory()
+        {
+            var (_, client) = await factory.NewClientAsync("alice");
+            var marker = ZCurveGeneProfile.Translate(ProteinSearchTests.RandomGene(markerLength, seed: 4405));
+            var wrapped = await PostSearchAsync(client, "/api/searches/protein", $">marked protein\n{Wrap(marker, 60)}\n");
+            var bare = await client.PostAsync("/api/searches/protein", new StringContent(marker, Encoding.ASCII, "text/plain"));
+            Assert.That((int)bare.StatusCode, Is.EqualTo(202), await bare.Content.ReadAsStringAsync());
+            // Rejected bodies whose error could echo what they carry.
+            var twoRecords = await client.PostAsync("/api/searches/protein", Fasta($">a\n{marker}\n>b\n{marker}\n"));
+            var internalStop = await client.PostAsync("/api/searches/protein", Fasta($">a\n{marker[..500]}*{marker[500..]}\n"));
+            await DoneAsync(wrapped);
+            await DoneAsync((await bare.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid());
+
+            var pieces = Enumerable.Range(0, marker.Length / pieceLength).Select(i => marker.Substring(i * pieceLength, pieceLength)).ToList();
+            foreach (var rejected in new[] { twoRecords, internalStop })
+            {
+                Assert.That(rejected.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+                Assert.That(Holds(await rejected.Content.ReadAsStringAsync(), pieces), Is.False, "the error repeats the body");
+            }
+            Assert.That(await ColumnsHoldingAsync(pieces), Is.Empty, "columns holding a piece of the marker");
+            var entries = logs.Entries;
+            Assert.That(entries.Where(e => Holds(e, pieces)), Is.Empty, "log entries holding a piece of the marker");
+            Assert.That(entries, Has.Some.Contains($"{markerLength} aa, code 11, sha256 {Convert.ToHexStringLower(SHA256.HashData(Encoding.ASCII.GetBytes(marker)))}"),
+                "the protein is logged by length and hash");
             AssertNoTempFiles();
         }
 

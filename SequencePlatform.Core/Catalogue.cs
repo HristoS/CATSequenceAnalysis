@@ -167,9 +167,10 @@ namespace SequencePlatform.Core
             }
 
             await using var levels = dataSource.CreateCommand(
-                "select method_version, window_size, window_count, byte_size from profile_level where sequence_id = $1 " +
+                "select method_version, window_size, window_count, byte_size from profile_level where sequence_id = $1 and method = $2 " +
                 "order by method_version, window_size");
             levels.Parameters.AddWithValue(id);
+            levels.Parameters.AddWithValue(RecordStore.Method);
             var list = new List<LevelInfo>();
             await using var levelReader = await levels.ExecuteReaderAsync(cancellationToken);
             while (await levelReader.ReadAsync(cancellationToken))

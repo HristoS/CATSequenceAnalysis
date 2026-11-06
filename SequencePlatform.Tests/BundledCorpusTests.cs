@@ -61,7 +61,7 @@ namespace SequencePlatform.Tests
             var path = GenomeCatalog.PathTo("viral/hpv16_NC_001526.4.fna.gz");
             var expected = ZCurveWindowedProfile.FromStream(FastaReader.OpenSequenceReader(path, "NC_001526.4"));
             var stored = await ProfileLevels.ReadAsync(dataSource, hpv16.Id, RecordStore.Method, RecordStore.MethodVersion, RecordStore.FineWindowSize);
-            Assert.That(stored!.Windows, Is.EqualTo(expected.Windows));
+            Assert.That(stored!.Windows, Is.EqualTo(expected.ToHalfPrecision().Windows), "stored as float16");
         }
 
         [Test, Explicit("Profiles and stores all 61 bundled genomes (about 100 Mbp); run it by name.")]

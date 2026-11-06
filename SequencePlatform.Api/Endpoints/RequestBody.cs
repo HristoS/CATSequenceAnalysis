@@ -18,11 +18,13 @@ namespace SequencePlatform.Api
         public const string FastaContentType = "text/x-fasta";
         public const string ProfileContentType = "application/x-zcwp";
 
-        // The ZCWP header (docs/database-decision.md section 4.3): magic, version, reserved, window size, then the window count at
-        // byte 12; 12 bytes of float32 x, y and z per window follow.
+        // The ZCWP header (docs/database-decision.md section 4.3): magic, version at byte 4, reserved, window size, then the window
+        // count at byte 12; x, y and z per window follow, 12 bytes as float32 (version 1) or 6 as float16 (version 2).
         private const int profileHeaderSize = 16;
+        private const int profileVersionOffset = 4;
         private const int profileCountOffset = 12;
-        private const int profileBytesPerWindow = 12;
+        // Far over the longest known protein (titin, about 35,000 aa), so only a wrong file reaches it.
+        private const int maxProteinChars = 1_000_000;
 
         private static readonly HashSet<string> fastaTypes = new(StringComparer.OrdinalIgnoreCase) { FastaContentType, "application/x-fasta", "text/plain" };
 
@@ -79,6 +81,26 @@ namespace SequencePlatform.Api
             return QueryProfile.FromFineProfiles(forward, reverse, lengthBp ?? (long)forward.WindowCount * forward.WindowSize, null, null);
         }
 
+        /// <summary>
+        /// A protein search's query: one FASTA record, or the bare letters with no header. Returns the letters as sent, white space
+        /// included; <see cref="ProteinQuery.FromProtein"/> checks them. Never echoed in an error.
+        /// </summary>
+        public static async Task<string> ReadProteinAsync(HttpRequest request, CancellationToken cancellationToken)
+        {
+            using var reader = new StreamReader(request.Body, leaveOpen: true);
+            var buffer = new char[maxProteinChars + 1];
+            int length = 0, read;
+            while (length < buffer.Length && (read = await reader.ReadAsync(buffer.AsMemory(length), cancellationToken)) > 0) length += read;
+            if (length > maxProteinChars) throw new ArgumentException($"A protein query is at most {maxProteinChars:N0} characters.");
+
+            var lines = new string(buffer, 0, length).Split('\n');
+            int headers = lines.Count(l => l.StartsWith('>'));
+            if (headers > 1) throw new FormatException("A protein search takes one FASTA record; this query has more.");
+            if (headers == 1 && !lines.First(l => l.Trim().Length > 0).StartsWith('>'))
+                throw new FormatException("A FASTA query starts with its '>' header line.");
+            return string.Concat(lines.Where(l => !l.StartsWith('>') && !l.StartsWith(';')));
+        }
+
         private static List<ZCurveWindowedProfile> SplitProfiles(byte[] bytes)
         {
             var profiles = new List<ZCurveWindowedProfile>();
@@ -87,7 +109,8 @@ namespace SequencePlatform.Api
             {
                 if (bytes.Length - offset < profileHeaderSize) throw new FormatException("Not a ZCWP profile.");
                 long count = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(offset + profileCountOffset));
-                long size = profileHeaderSize + profileBytesPerWindow * count;
+                int bytesPerWindow = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(offset + profileVersionOffset)) == 2 ? 6 : 12;
+                long size = profileHeaderSize + bytesPerWindow * count;
                 if (count < 0 || size > bytes.Length - offset) throw new FormatException("ZCWP header does not match the payload length.");
                 profiles.Add(ZCurveWindowedProfile.FromBinary(bytes.AsSpan(offset, (int)size)));
                 offset += (int)size;

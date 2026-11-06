@@ -66,7 +66,7 @@ namespace SequencePlatform.Core
             await foreach (var (_, sequenceId, fine) in ProfileLevels.StreamAfterAsync(dataSource, method, methodVersion,
                 RecordStore.FineWindowSize, 0, new LengthRange(MinLengthBp, null), cancellationToken))
                 if (lengths.TryGetValue(sequenceId, out var lengthBp) && ToOrigin(fine, lengthBp) is { } turned)
-                    rotated.Add((sequenceId, new ZCurveProfileLadder(turned)));
+                    rotated.Add((sequenceId, RecordStore.Ladder(turned)));
             log($"{lengths.Count:N0} circular bacterial chromosomes of at least {MinLengthBp:N0} bp, {rotated.Count:N0} with a clear skew");
 
             var version = RotatedVersion(methodVersion);

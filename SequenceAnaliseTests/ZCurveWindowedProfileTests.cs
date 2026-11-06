@@ -421,6 +421,39 @@ namespace SequenceAnaliseTests
         }
 
         [Test]
+        public void HalfFormatStoresTheRoundedWindowsExactlyInHalfTheBytes()
+        {
+            var fresh = new ZCurveWindowedProfile(Generator.GetRandomDNA(12_345, seed: 7), windowSize: 500);
+            var rounded = fresh.ToHalfPrecision();
+
+            var bytes = fresh.ToBinary(half: true);
+            var restored = ZCurveWindowedProfile.FromBinary(bytes);
+
+            Assert.That(bytes.Length, Is.EqualTo(16 + 6 * fresh.WindowCount));
+            Assert.That(BitConverter.ToUInt16(bytes, 4), Is.EqualTo(2), "version 2");
+            Assert.That(restored.Windows, Is.EqualTo(rounded.Windows));
+            Assert.That(ZCurveWindowedProfile.FromBinary(rounded.ToBinary(half: true)).Windows, Is.EqualTo(rounded.Windows), "rounding twice changes nothing");
+            Assert.That(ZCurveWindowedProfile.FromBinary(rounded.ToBinary()).Windows, Is.EqualTo(rounded.Windows), "version 1 holds the rounded values too");
+            Assert.That(restored.Windows.Zip(fresh.Windows).Max(p => Math.Abs(p.First.X - p.Second.X)), Is.LessThan(1e-3));
+        }
+
+        [Test]
+        public void HalfPrecisionLadderOfTheSameSequenceIsIdentical()
+        {
+            var dna = Generator.GetRandomDNA(300_000, seed: 8);
+            var stored = new ZCurveProfileLadder(new ZCurveWindowedProfile(dna), halfPrecision: true);
+            var query = new ZCurveProfileLadder(ZCurveWindowedProfile.FromStream(new StringReader(dna)), halfPrecision: true);
+
+            foreach (var factor in stored.Factors)
+            {
+                var level = stored.Level(factor);
+                Assert.That(ZCurveWindowedProfile.FromBinary(level.ToBinary(half: true)).Windows, Is.EqualTo(level.Windows), $"factor {factor} is stored exactly");
+                Assert.That(query.Level(factor).Windows, Is.EqualTo(level.Windows), $"factor {factor}");
+            }
+            Assert.That(ZCurveProfileLadder.Compare(query, stored), Is.EqualTo(1.0));
+        }
+
+        [Test]
         public void BinaryFormatRejectsCorruptInput()
         {
             var bytes = new ZCurveWindowedProfile(Generator.GetRandomDNA(5_000, seed: 6), windowSize: 500).ToBinary();

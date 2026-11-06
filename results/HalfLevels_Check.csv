@@ -1,0 +1,11 @@
+Part,Measure,Value
+Find-similar,Queries ranked,300
+Find-similar,Median candidates per query,1822
+Find-similar,Top-1 agreement,99.67%
+Find-similar,Top-10 overlap,99.97%
+Find-similar,Largest score change,1.76E-004
+Find-similar,Mean score change,7.94E-006
+Localization 4 kbp,Offset agreement / float within 1 window / half within 1 window (600 fragments),100.00% / 88.33% / 88.33%
+Localization 8 kbp,Offset agreement / float within 1 window / half within 1 window (600 fragments),100.00% / 99.33% / 99.33%
+Localization 16 kbp,Offset agreement / float within 1 window / half within 1 window (600 fragments),100.00% / 99.83% / 99.83%
+Rule,Top-1 agreement >= 99% and offset agreement >= 99%,99.67% and 100.00%: pass: store halves

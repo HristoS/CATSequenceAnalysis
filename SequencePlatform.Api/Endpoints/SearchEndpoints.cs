@@ -6,7 +6,7 @@ using SequencePlatform.Core;
 namespace SequencePlatform.Api
 {
     /// <summary>
-    /// Find-similar and localize as asynchronous jobs (P4 S4.2c): POST profiles the query, checks every parameter, queues a
+    /// Find-similar, localize and protein search (P7) as asynchronous jobs (P4 S4.2c): POST profiles the query, checks every parameter, queues a
     /// <see cref="SearchLog"/> job and answers 202 with its address; GET reports its status and, once done, pages through its hit
     /// lists; DELETE drops its results early (D7). The query's DNA lives only for the POST: the job keeps both strands' profiles and
     /// hashes. A search belongs to whoever ran it; anyone else gets a 404, and its candidates are the public catalogue plus the
@@ -43,6 +43,18 @@ namespace SequencePlatform.Api
                 .Accepts<Stream>(RequestBody.FastaContentType, RequestBody.ProfileContentType)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status415UnsupportedMediaType);
+
+            searches.MapPost("/protein", ProteinAsync)
+                .WithName("FindGenes")
+                .WithSummary("Queue a protein search: which stored genes encode this protein")
+                .WithDescription($"The body is one protein: a FASTA record (text/x-fasta) or the bare letters (text/plain), at least " +
+                    $"{ProteinSearch.MinLengthAa} aa. It is read with genetic code 11 (default) or 4, and scored from the protein alone against " +
+                    "the genes BV-BRC annotates on the records matching the catalogue filters: from 500 aa the genes of 500 aa and up, below that " +
+                    "the genes within 10% of its length. " +
+                    "top is 1-1000, default 50. 202 with the search's address.")
+                .Accepts<Stream>(RequestBody.FastaContentType, "text/plain")
+                .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status415UnsupportedMediaType);
 
             searches.MapGet("/{id:guid}", GetAsync)
@@ -92,6 +104,28 @@ namespace SequencePlatform.Api
                 }, cancellationToken);
         }
 
+        /// <param name="code">The genetic code the protein is read with: 11 (default) or 4 (Mycoplasma and relatives, TGA = Trp).</param>
+        /// <param name="top">Genes kept, 1 to 1000; default 50.</param>
+        private static async Task<Results<Accepted<SearchAcceptedResponse>, ProblemHttpResult>> ProteinAsync(HttpRequest request,
+            NpgsqlDataSource dataSource, ClaimsPrincipal user, ILoggerFactory loggers, string? kind, string? rank, string? taxon, long? minLength,
+            long? maxLength, string? provider, string? name, int code = ProteinQuery.StandardCode, int top = defaultSimilarTop,
+            CancellationToken cancellationToken = default)
+        {
+            var filter = Filter(user, kind, rank, taxon, minLength, maxLength, provider, name);
+            var search = new SearchRequest(SearchKind.Protein, filter, CheckTop(top, MaxTop), GeneticCode: code);
+            if (RequestBody.Format(request) != BodyFormat.Fasta) return RequestBody.Unsupported();
+            var query = ProteinQuery.FromProtein(await RequestBody.ReadProteinAsync(request, cancellationToken), code);
+
+            var id = await SearchLog.EnqueueAsync(dataSource, search, query, cancellationToken);
+            // Hash and length only: the protein never reaches a log.
+            loggers.CreateLogger(typeof(SearchEndpoints).FullName!).LogInformation(
+                "User {UserId} queued {Kind} search {SearchId}: {Residues} aa, code {Code}, sha256 {Sha256}",
+                user.UserId(), search.Kind, id, query.LengthAa, code, Convert.ToHexStringLower(query.Sha256!));
+
+            var href = $"/api/searches/{id}";
+            return TypedResults.Accepted(href, new SearchAcceptedResponse(id, SearchStatus.Queued, href));
+        }
+
         private static CatalogueFilter Filter(ClaimsPrincipal user, string? kind, string? rank, string? taxon, long? minLength, long? maxLength,
             string? provider, string? name)
         {
@@ -137,9 +171,13 @@ namespace SequencePlatform.Api
             var hits = await SearchLog.HitsAsync(dataSource, id, list, after, limit + 1, cancellationToken);
             var page = hits.Take(limit).ToList();
             var records = await Catalogue.ByIdsAsync(dataSource, page.Select(h => h.SequenceId).ToHashSet(), cancellationToken);
+            var products = await ProteinFamilies.ProductsAsync(dataSource, page.Where(h => h.FamilyId is not null).Select(h => h.FamilyId!.Value).ToHashSet(),
+                cancellationToken);
             var items = page.Select(h => new SearchHitResponse(h.Position, h.SequenceId,
                 records.TryGetValue(h.SequenceId, out var r) ? SequenceSummaryResponse.From(r) : null, h.Strand, h.Score, h.CoarseScore, h.OffsetBp,
-                h.P?.Log10, h.P?.Kind, h.Log10E, h.SharedNeighbours, h.Rotated)).ToList();
+                h.P?.Log10, h.P?.Kind, h.Log10E, h.SharedNeighbours, h.Rotated, h.GeneStart, h.GeneEnd,
+                h.FamilyId is int family ? ProteinFamilies.Format(family) : null,
+                h.FamilyId is int known && products.TryGetValue(known, out var product) ? product : null)).ToList();
             return TypedResults.Ok(SearchRunResponse.From(run,
                 new SearchHitPageResponse(list, items, hits.Count > limit ? page[^1].Position : null)));
         }

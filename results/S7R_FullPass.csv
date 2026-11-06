@@ -1,0 +1,22 @@
+Measure,Value,Limit,Verdict
+Genomes,45843,,
+Records (BV-BRC: virus / bacterium / plasmid / archaeon),61060 (31405 / 22205 / 6551 / 899),,
+Records done,58141,,
+Records without BV-BRC coding sequences (no_cds),2919,,
+Records not matching the stored hash or dinucleotides (mismatch),0,<= 1%,pass
+Records whose FASTA was missing (missing),0,,
+NCBI eukaryote records not in the pass,587,,
+Coding sequences listed by BV-BRC,66534689,,
+Coding sequences skipped (outside the record or not whole codons),109430,,
+Genes stored,67355159,,
+Gene windows stored,88243977,,
+Clean translation (no internal stop),99.93%,>= 98%,pass
+Wall time (4 genomes in parallel),427.5 min (0.56 s per genome),<= 40 h,pass
+Gene row bytes (virus / bacterium / plasmid / archaeon mean),1641 / 113074 / 6484 / 81156,,
+Gene row bytes total,2667004386 (trial extrapolated about 1.7 GB),,
+Gene row split,about 1.08 GB gene headers (16 B each) + 1.59 GB window features (9 halves each),,
+Amino-acid 3-mers bytes total,296997336,,
+Amino-acid 4-mers bytes (virus / bacterium / plasmid / archaeon mean),10544 / 80758 / 23269 / 81011,,
+Amino-acid 4-mers bytes total,2314741682 (trial extrapolated about 1.8 GB),<= 3 GB else 3-mers,pass: keep 4-mers
+Protein families (PGfam ids with products),3270446,,
+Database on disk after the pass,7710 MB (profile_level 4092 MB; protein_kmer 2642 MB; record_kmer 430 MB; protein_family 310 MB),,

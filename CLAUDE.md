@@ -30,7 +30,7 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
 - **Warning:** the `*Benchmark*.cs`, `Trilateration*.cs`, and `GenomeScaleStreamingTests.cs` suites are
   experiments, not fast checks — some cases run tens of minutes (up to a synthetic 3.1 Gbp reference). Don't run
   the full suite expecting CI-style feedback. The fast deterministic correctness tests are
-  `ZCurveProfileTests`, `ZCurveWindowedProfileTests`, `WindowedProfileTests`, `FastaReaderTests`,
+  `ZCurveProfileTests`, `ZCurveWindowedProfileTests`, `ZCurveGeneProfileTests`, `WindowedProfileTests`, `FastaReaderTests`,
   `GeneratorTests`, `PhylogenyTests`, `GenomeSignaturesTests`, `OrdinationTests`, and `RealGenomeProfileTests`.
 - `--filter "Name=Foo(123)"` does not work for parameterized cases with this adapter; use `NUnit.Where` as above.
 - All experiment output (`.csv`) is written to `SequenceAnaliseTests/bin/Debug/net10.0/`; committed snapshots live
@@ -62,6 +62,14 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
     `CompareForQuery` (one level chosen by the query; too-short candidates go to a separate short list). The viral test corpus is
     `data/genomes/viral/` (taxonomy: `SequenceAnaliseTests/ViralTaxonomy.cs`). int16-sum storage was
     prototyped and was *slower* (0.94x), so don't retry it without a new idea.
+- `ZCurveGeneProfile.cs` — the per-gene profile for protein search (S7.R, S7.S): each CDS in coding orientation, codon positions 1
+  and 2, Legendre moments P0–P2 of x, y, z per window (9 numbers, stored as 16-bit halves; 8 bits lost up to 6 points). Window rule
+  by protein length: from 500 aa, windows of 333 such bases (500 bp of gene) from the start codon; 50–499 aa, 5 equal windows over
+  the whole gene, compared only with genes within ±10% of the query's length (`results/ShortProtein_*.csv`); under 50 aa not kept.
+  Binary format ZCGP v2 (varint-packed gene headers; the window count follows from the length). Queries come from a gene
+  (`QueryFromGene`) or a protein (`QueryFromProtein`, expected axes over synonymous codons). Moments work only because windows are
+  anchored at the start codon; on the unanchored genome ladder they hurt (`results/GenomeMoments_*.csv`), so `ZCurveWindowedProfile`
+  keeps means.
 - `WindowedProfile.cs` — same windowed/sliding-alignment structure, but each window is a sparse k-mer frequency
   vector (default k=4) compared by cosine. Richer signal, heavier memory; used as a comparison point.
 - `FastaReader.cs` — gzip-transparent FASTA parser for the real genomes in `data/genomes/`. Passes IUPAC
@@ -84,7 +92,9 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
 **Platform** (`docs/database-decision.md` rev 2). **The platform never stores DNA sequences.**
 - `SequencePlatform.Core/` (library, Npgsql): `Database` (connection settings, create-if-missing, migrations), the schema
   as embedded `Migrations/*.sql` (append-only once applied; versions are the file names), `ProfileLevels` (ladder levels as
-  ZCWP bytes inline up to 1 MB: insert in the caller's transaction, read one, stream one level of all sequences),
+  ZCWP bytes inline up to 1 MB: insert in the caller's transaction, read one, stream one level of all sequences; written as ZCWP
+  version 2, float16, since 2026-11-05, from `RecordStore.Ladder`, which rounds every level so a query's ladder equals the stored one;
+  `convert-levels-half` rewrote the old rows. On disk that saved almost nothing, since TOAST already compressed float32 by half),
   `Catalogue` (keyset-paged record listing with kind/rank/length/provider/name filters), `ConnectionString`, `ProfileCache`
   (one level, optionally one length range, in memory, refreshed incrementally), `SimilaritySearch` (find-similar: only records
   of length [rL, L/r], default r = 0.5, at one level, both query strands; unbanded scores measure containment, not
@@ -95,12 +105,17 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   skew; their 2/8/32 kbp levels stored under method version `1-origin` by `build-origins`; find-similar and the genome null score
   both versions of a record and of the query and keep the best; localization stays unrotated), `SearchLog` (a search as an asynchronous job, migration 0009: keeps both strands' fine query profile and
   SHA-256, never DNA; result lists ranked / identical / not_comparable; D7 expiry after 30 days or on DELETE keeps only hashes,
-  length and summary).
+  length and summary), `GeneProfiles` / `ProteinKmers` (the gene layer: since S7.S, migration 0017, `ZCurveGeneProfile` rows in
+  `gene_profile` by length bucket, 0 for genes of 500 aa and up and 1–25 for 50 · 1.1^b aa, replacing 0014's `zcurve-cds`
+  profile_level row (0018 deleted the last ones); amino-acid 4-mer counts (3-mers dropped by 0016: `ProteinKmers.Shorter` derives them); BV-BRC protein
+  families; all filled by `backfill-genes`),
+  `ProteinSearch` (P7, migrations 0015 and 0017: a protein ≥ 50 aa, never stored, as expected Z-curve windows, compared with the long
+  genes or with the genes within ±10% of its length, reading only those buckets from the database).
 - `SequencePlatform.Api/`: ASP.NET Core minimal API on localhost:5080 (P4; see its README). Per-user API keys (`Users` in Core,
   only the SHA-256 stored); `CatalogueFilter.ViewerId` makes an upload visible to its owner only, and no viewer means public records
   only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw
   FASTA or ZCWP body, never multipart (`IFormFile` buffers to a temp file); FASTA streams through `FastaReader.ReadRecordStreams`.
-  Searches (`/api/searches/similar`, `/localize`) are `SearchLog` jobs: 202 + `Location`, then GET pages the hit lists.
+  Searches (`/api/searches/similar`, `/localize`, `/protein`) are `SearchLog` jobs: 202 + `Location`, then GET pages the hit lists.
   `SignatureIndex` (Core) serves `GET /api/sequences/{id}/relatives`, `/signature?view=zcurve|karlin` and `GET /api/trees`
   synchronously from an in-memory table of dinucleotide signatures (log ρ\* = complete second-order Z-curve; P5 S5.5).
   `SearchWorker` (a hosted service in the API) claims them with `for update skip locked`, wakes on `LISTEN search_queued`, runs
@@ -120,7 +135,8 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   string) → store ladder levels and annotations → delete the file. `ingest-bvbrc --per-species` adds one genome per species not yet stored;
   `ingest-ncbi` is the eukaryote pilot: one record per assembly with summed nuclear dinucleotide counts and no profile levels, streamed
   with no temp file, human refused in code. Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
-  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `backfill-kmers`, `add-user`, `disable-user`; see its README.
+  `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `convert-levels-half`, `backfill-kmers`,
+  `backfill-genes`, `add-user`, `disable-user`; see its README.
   6-mer counts per record (`record_kmer`, migration 0013, D8 widened 2026-11-04) are stored at ingest; `backfill-kmers` re-downloads older
   records and stores counts only where the SHA-256 matches. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).

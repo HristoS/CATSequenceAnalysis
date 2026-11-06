@@ -11,7 +11,7 @@ namespace SequencePlatform.Tests
         private static async Task<(long SequenceId, ZCurveProfileLadder Ladder)> StoreAsync(string methodVersion, string accession, int length, int seed)
         {
             var dna = Generator.GetRandomDNA(length, seed);
-            var ladder = new ZCurveProfileLadder(new ZCurveWindowedProfile(dna));
+            var ladder = RecordStore.Ladder(new ZCurveWindowedProfile(dna));
             var sequenceId = await ThrowawayDatabase.InsertRecordAsync($"cache-{methodVersion}", accession, length);
 
             await using var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync();

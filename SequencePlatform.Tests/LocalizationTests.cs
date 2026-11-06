@@ -12,7 +12,7 @@ namespace SequencePlatform.Tests
         private static async Task<long> StoreAsync(string provider, string accession, string dna)
         {
             var sequenceId = await ThrowawayDatabase.InsertRecordAsync(provider, accession, dna.Length, "bacterium");
-            var ladder = new ZCurveProfileLadder(new ZCurveWindowedProfile(dna));
+            var ladder = RecordStore.Ladder(new ZCurveWindowedProfile(dna));
 
             await using var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync();
             await using var transaction = await connection.BeginTransactionAsync();
@@ -65,7 +65,7 @@ namespace SequencePlatform.Tests
             var piece = dna.Substring(200_321, 40_000);
 
             var result = await NewLocalization().LocalizeAsync(QueryProfile.FromSequence(piece), new CatalogueFilter(Provider: provider));
-            var (score, offset) = ZCurveWindowedProfile.BestAlignment(new ZCurveWindowedProfile(piece), new ZCurveWindowedProfile(dna));
+            var (score, offset) = ZCurveWindowedProfile.BestAlignment(new ZCurveWindowedProfile(piece).ToHalfPrecision(), new ZCurveWindowedProfile(dna).ToHalfPrecision());
 
             Assert.That(result.Hits.Single(), Is.EqualTo(result.Hits[0] with { SequenceId = id, OffsetBp = offset * 500L, Score = score }),
                 "the refine finds the full 500 bp scan's best");

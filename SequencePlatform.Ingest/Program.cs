@@ -16,20 +16,23 @@ using SequencePlatform.Ingest;
 //   build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]   score_null from stored profiles (P3 S3.6)
 //   build-neighbours [--ratio R]             every record's own top 20 (other assemblies), for re-ranking by shared neighbours (P3 S3.4b)
 //   build-origins                             circular bacterial chromosomes' levels laid out from their replication origin, for find-similar
+//   convert-levels-half                       rewrite stored ZCWP version 1 levels as version 2 (float16), then rebuild the origin rows; no download
 //   backfill-kmers [--limit N] [--sample SEED] [--contact you@example.org]   6-mer counts for BV-BRC records stored before migration 0013, by re-downloading
+//   backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]   the gene layer (S7.R, S7.S): gene_profile rows, amino-acid 4-mers, missing 6-mers
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
 //   add-user NAME                             an API user (D3); prints their key once, only its hash is stored
+//   rotate-key NAME                           a new key for an enabled user, printed once; the old key stops working
 //   disable-user NAME                         revokes that user's key; their uploads stay
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] [--per-species]\n" +
     "       | ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--contact EMAIL] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
-    "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins\n" +
-    "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL]\n" +
+    "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins | convert-levels-half\n" +
+    "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL] | backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
-    "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | disable-user NAME";
+    "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | rotate-key NAME | disable-user NAME";
 
 if (args.Length == 0)
 {
@@ -118,9 +121,25 @@ switch (args[0])
             "Rebuild the null (build-null) and the neighbour graph (build-neighbours): both score the way searches do.");
         return 0;
 
+    case "convert-levels-half":
+        var convertWatch = System.Diagnostics.Stopwatch.StartNew();
+        var convertedCount = await ProfileLevels.ConvertToHalfAsync(dataSource,
+            message => Console.WriteLine($"  {convertWatch.Elapsed.TotalSeconds,6:F0} s  {message}"));
+        Console.WriteLine($"{convertedCount:N0} records' levels rewritten as ZCWP version 2 in {convertWatch.Elapsed.TotalSeconds:F0} s; rebuilding the origin rows.");
+        var (turnedCount, circular) = await OriginRotation.BuildAsync(dataSource,
+            message => Console.WriteLine($"  {convertWatch.Elapsed.TotalSeconds,6:F0} s  {message}"));
+        Console.WriteLine($"{turnedCount:N0} of {circular:N0} circular chromosomes rotated again in {convertWatch.Elapsed.TotalSeconds:F0} s. " +
+            "Rebuild the null (build-null) and the neighbour graph (build-neighbours), then VACUUM FULL profile_level to give the space back.");
+        return 0;
+
     case "backfill-kmers":
         return await BackfillKmersAsync(dataSource, int.Parse(Option("--limit") ?? "100"),
             Option("--sample") is { } sampleSeed ? int.Parse(sampleSeed) : null, Option("--contact"));
+
+    case "backfill-genes":
+        return await BackfillGenesAsync(dataSource, int.Parse(Option("--limit") ?? "100"),
+            Option("--sample") is { } geneSeed ? int.Parse(geneSeed) : null, Option("--contact"), int.Parse(Option("--check-search") ?? "0"),
+            int.Parse(Option("--parallel") ?? "1"));
 
     case "search-similar":
         return await SearchSimilarAsync(dataSource, Option("--fasta"), Option("--profile"), Filter(),
@@ -135,6 +154,15 @@ switch (args[0])
         var (user, apiKey) = await Users.CreateAsync(dataSource, args[1]);
         Console.WriteLine($"User {user.Name} (id {user.Id}). API key, shown only now: {apiKey}");
         return 0;
+
+    case "rotate-key" when args.Length > 1:
+        if (await Users.RotateKeyAsync(dataSource, args[1]) is { } rotatedKey)
+        {
+            Console.WriteLine($"User {args[1]}: new API key, shown only now: {rotatedKey}. The old key no longer works.");
+            return 0;
+        }
+        Console.WriteLine($"No enabled user named {args[1]}.");
+        return 1;
 
     case "disable-user" when args.Length > 1:
         if (await Users.DisableAsync(dataSource, args[1])) return 0;
@@ -553,6 +581,162 @@ static async Task<int> BackfillKmersAsync(NpgsqlDataSource dataSource, int limit
     return failed == 0 ? 0 : 1;
 }
 
+// The S7.R pass. Genomes go in chunks of 10 so one BV-BRC request lists their coding sequences. With --check-search N, N genes of
+// at least 1.5 kbp per genome keep their protein in memory, and at the end each is searched from the protein alone (uniform codon
+// weights, first 1,500 bp) among every gene of the pass with three windows: the trial's self-search check. Nothing is written for it.
+static async Task<int> BackfillGenesAsync(NpgsqlDataSource dataSource, int limit, int? seed, string? contact, int checkSearch, int parallel)
+{
+    string[] checkBands = ["50-99 aa", "100-166 aa", "167-332 aa", "333-499 aa", "500+ aa"];
+    static int CheckBand(int residues) => residues < 100 ? 0 : residues < 167 ? 1 : residues < 333 ? 2 : residues < 500 ? 3 : 4;
+    // Levina-Bickel tail below the 100 nearest competitors: the share of a pool this size expected closer than `distance`.
+    static double TailShare(double[] sorted, double distance)
+    {
+        int n = sorted.Length, k = Math.Min(100, n);
+        double kth = Math.Max(sorted[k - 1], 1e-12);
+        if (distance >= kth) return sorted.Count(d => d < distance) / (double)n;
+        double logSum = 0;
+        for (int i = 0; i < k - 1; i++) logSum += Math.Log(kth / Math.Max(sorted[i], 1e-12));
+        return k / (double)n * Math.Pow(Math.Max(distance, 0) / kth, (k - 1) / logSum);
+    }
+
+    const int chunk = 10;
+    using var client = new BvBrcClient(contact);
+    var backfill = new GeneBackfill(dataSource, client);
+    var genomes = await backfill.PendingGenomesAsync(limit, seed);
+    Console.WriteLine($"{genomes.Count} genomes for the gene pass{(seed is null ? "" : $" (random sample, seed {seed})")}, {parallel} at a time.");
+    var statuses = new Dictionary<string, int>();
+    long cds = 0, clean = 0, skipped = 0, records = 0;
+    int failed = 0, done = 0;
+    var checks = new List<(long SequenceId, int Gene, string Protein)>();
+    var picker = new Random(seed ?? 0);
+    var progress = new object();
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    // The BV-BRC client spaces and retries its requests across callers, so several genomes can download at once; each one still
+    // commits in its own transaction, which keeps a rerun safe.
+    for (int i = 0; i < genomes.Count; i += chunk)
+    {
+        var batch = genomes.Skip(i).Take(chunk).ToList();
+        Dictionary<string, List<BvBrcCds>> codingSequences;
+        try { codingSequences = await backfill.CodingSequencesAsync(batch); }
+        catch (Exception e)
+        {
+            failed += batch.Count;
+            Console.WriteLine($"  CDS listing for {batch[0]}..: {e.GetType().Name}: {e.Message}");
+            continue;
+        }
+        await Parallel.ForEachAsync(batch, new ParallelOptions { MaxDegreeOfParallelism = parallel }, async (genome, _) =>
+        {
+            List<RecordGeneResult>? results = null;
+            string? error = null;
+            try { results = await backfill.BackfillAsync(genome, codingSequences[genome]); }
+            catch (Exception e) { error = $"  {genome}: {e.GetType().Name}: {e.Message}"; }
+            lock (progress)
+            {
+                if (error is not null)
+                {
+                    // Nothing was written for this genome, so the next run tries it again.
+                    failed++;
+                    Console.WriteLine(error);
+                }
+                foreach (var result in results ?? new List<RecordGeneResult>())
+                {
+                    statuses[result.Status] = statuses.GetValueOrDefault(result.Status) + 1;
+                    (cds, clean, skipped, records) = (cds + result.CodingSequences, clean + result.CleanTranslations, skipped + result.Skipped, records + 1);
+                    // checkSearch whole proteins per record and length band, as a user would send them.
+                    if (checkSearch > 0 && result.Genes is not null)
+                        foreach (var band in Enumerable.Range(0, checkBands.Length))
+                            checks.AddRange(Enumerable.Range(0, result.Genes.Genes.Count)
+                                .Where(g => CheckBand(result.Genes.Genes[g].Residues) == band && !result.Proteins[g].Contains('*'))
+                                .OrderBy(_ => picker.Next()).Take(checkSearch).Select(g => (result.SequenceId, g, result.Proteins[g])));
+                }
+                done++;
+                if (done % 25 == 0 || done == genomes.Count)
+                    Console.WriteLine($"  {done}/{genomes.Count} genomes, {watch.Elapsed.TotalMinutes:F1} min, {watch.Elapsed.TotalSeconds / done:F2} s each; " +
+                        string.Join(", ", statuses.OrderBy(s => s.Key).Select(s => $"{s.Key} {s.Value}")) + (failed > 0 ? $", failed {failed}" : "") +
+                        $"; CDS {cds:N0}, clean translation {(cds == 0 ? 0 : 100.0 * clean / (cds - skipped)):F2}%, skipped {skipped}");
+            }
+        });
+    }
+
+    if (checks.Count > 0)
+    {
+        // The pool: every record the pass wrote, not only those a check came from.
+        var profiles = new Dictionary<long, ZCurveGeneProfile>();
+        var ids = new List<long>();
+        long catalogueRecords;
+        await using (var command = dataSource.CreateCommand(
+            "select k.sequence_id from protein_kmer k where k.k = $1 and k.status = 'done' and k.checked_at >= now() - make_interval(secs => $2)"))
+        {
+            command.Parameters.AddWithValue((short)ProteinKmers.Ks.Max());
+            command.Parameters.AddWithValue(watch.Elapsed.TotalSeconds + 60);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync()) ids.Add(reader.GetInt64(0));
+        }
+        await using (var command = dataSource.CreateCommand("select count(*) from protein_kmer where k = $1 and status = 'done'"))
+        {
+            command.Parameters.AddWithValue((short)ProteinKmers.Ks.Max());
+            catalogueRecords = (long)(await command.ExecuteScalarAsync())!;
+        }
+        foreach (var id in ids)
+            if (await GeneProfiles.ReadAsync(dataSource, id) is { } profile) profiles[id] = profile;
+        var pool = profiles.SelectMany(p => Enumerable.Range(0, p.Value.Genes.Count).Select(g => (Record: p.Key, Gene: g))).ToList();
+        double scale = catalogueRecords / (double)Math.Max(1, profiles.Count);
+
+        // As ProteinSearch compares: from 500 aa against genes that long, below it against genes within 10% of the length. Measured
+        // top-1 within the pool, and extrapolated to the catalogue as T3 was (results/T3_Pool300.csv): a query some other gene already
+        // beats keeps that share, else the share comes from the tail below its nearest competitors.
+        var outcomes = new (int Band, bool Top, double Catalogue)[checks.Count];
+        Parallel.For(0, checks.Count, j =>
+        {
+            var check = checks[j];
+            var own = profiles[check.SequenceId];
+            int residues = own.Genes[check.Gene].Residues;
+            var query = ZCurveGeneProfile.QueryFromProtein(check.Protein);
+            double trueDistance = 1 - own.Score(query, check.Gene);
+            int closerOwn = 0;
+            var others = new List<double>();
+            foreach (var (record, gene) in pool)
+            {
+                if (record == check.SequenceId && gene == check.Gene) continue;
+                var candidate = profiles[record].Genes[gene];
+                bool comparable = residues >= ZCurveGeneProfile.LongResidues ? candidate.Residues >= ZCurveGeneProfile.LongResidues
+                    : candidate.Residues < ZCurveGeneProfile.LongResidues && Math.Abs(candidate.Residues - residues) <= ProteinSearch.LengthBand * residues;
+                if (!comparable) continue;
+                double distance = 1 - profiles[record].Score(query, gene);
+                if (record == check.SequenceId) { if (distance < trueDistance) closerOwn++; }
+                else others.Add(distance);
+            }
+            var sorted = others.Order().ToArray();
+            int closer = sorted.Count(d => d < trueDistance);
+            double share = closerOwn > 0 ? 1 : closer > 0 || sorted.Length < 2 ? closer / (double)Math.Max(1, sorted.Length) : TailShare(sorted, trueDistance);
+            outcomes[j] = (CheckBand(residues), closerOwn == 0 && closer == 0, closerOwn > 0 ? 0 : Math.Exp(-scale * sorted.Length * share));
+        });
+        Console.WriteLine($"Self-search among {pool.Count:N0} genes of {profiles.Count:N0} records, from the protein alone (catalogue: {catalogueRecords:N0} records):");
+        for (int band = 0; band < checkBands.Length; band++)
+        {
+            var inBand = outcomes.Where(o => o.Band == band).ToList();
+            if (inBand.Count > 0)
+                Console.WriteLine($"  {checkBands[band],-12} {inBand.Count,5} proteins: top-1 {100.0 * inBand.Count(o => o.Top) / inBand.Count:F1}% here, " +
+                    $"{100 * inBand.Average(o => o.Catalogue):F1}% extrapolated to the catalogue");
+        }
+    }
+
+    await using (var command = dataSource.CreateCommand(
+        "select k, count(*), avg(octet_length(payload)) from protein_kmer where status = 'done' group by k order by k"))
+    await using (var reader = await command.ExecuteReaderAsync())
+        while (await reader.ReadAsync())
+            Console.WriteLine($"Amino-acid {reader.GetInt16(0)}-mers: {reader.GetInt64(1):N0} records, mean {reader.GetDecimal(2):N0} bytes.");
+    await using (var command = dataSource.CreateCommand(
+        "select count(distinct sequence_id), count(*), sum(byte_size), sum(gene_count), sum(window_count) from gene_profile"))
+    {
+        await using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync() && reader.GetInt64(1) > 0)
+            Console.WriteLine($"Gene profiles: {reader.GetInt64(0):N0} records in {reader.GetInt64(1):N0} bucket rows, {reader.GetInt64(2):N0} bytes, " +
+                $"{reader.GetInt64(3):N0} genes, {reader.GetInt64(4):N0} windows.");
+    }
+    return failed == 0 ? 0 : 1;
+}
+
 static async Task PrintStatsAsync(NpgsqlDataSource dataSource)
 {
     await using (var command = dataSource.CreateCommand(
@@ -565,13 +749,14 @@ static async Task PrintStatsAsync(NpgsqlDataSource dataSource)
     }
 
     await using (var command = dataSource.CreateCommand(
-        "select window_size, count(*), sum(byte_size), sum(window_count) from profile_level group by window_size order by window_size"))
+        "select method, window_size, count(*), sum(byte_size), sum(window_count) from profile_level group by 1, 2 order by 1 desc, 2"))
     await using (var reader = await command.ExecuteReaderAsync())
     {
         Console.WriteLine();
         Console.WriteLine($"{"level",-10} {"profiles",8} {"bytes",14} {"windows",12}");
         while (await reader.ReadAsync())
-            Console.WriteLine($"{reader.GetInt32(0) + " bp",-10} {reader.GetInt64(1),8:N0} {reader.GetDecimal(2),14:N0} {reader.GetInt64(3),12:N0}");
+            Console.WriteLine($"{reader.GetInt32(1) + " bp",-10} {reader.GetInt64(2),8:N0} " +
+                $"{reader.GetDecimal(3),14:N0} {reader.GetInt64(4),12:N0}");
     }
 
     await using (var command = dataSource.CreateCommand(

@@ -37,7 +37,8 @@ namespace SequencePlatform.Api
     /// on the next start.
     ///
     /// Find-similar keeps its band levels in memory (24 MB at ratio 0.5) and refreshes them incrementally before every job, so a
-    /// record stored a moment ago is a candidate with its profile.
+    /// record stored a moment ago is a candidate with its profile. A protein search streams the gene rows from the database every
+    /// time (about 20 s on the local catalogue).
     /// </summary>
     internal sealed class SearchWorker(NpgsqlDataSource dataSource, IOptions<SearchWorkerOptions> options, ILogger<SearchWorker> logger)
         : BackgroundService
@@ -105,13 +106,21 @@ namespace SequencePlatform.Api
             try
             {
                 // Null when the search was deleted after it was claimed.
-                if (await SearchLog.GetAsync(dataSource, id, cancellationToken) is not { } run
-                    || await SearchLog.QueryAsync(dataSource, id, cancellationToken) is not { } query)
-                    return;
+                if (await SearchLog.GetAsync(dataSource, id, cancellationToken) is not { } run) return;
 
                 var request = run.Request;
                 bool saved;
-                if (request.Kind == SearchKind.Similar)
+                if (request.Kind == SearchKind.Protein)
+                {
+                    if (await SearchLog.ProteinQueryAsync(dataSource, id, cancellationToken) is not { } protein) return;
+                    var result = await ProteinSearch.SearchAsync(dataSource, protein, request.Filter, request.Top, cancellationToken);
+                    saved = await SearchLog.SaveAsync(dataSource, id, result, cancellationToken);
+                }
+                else if (await SearchLog.QueryAsync(dataSource, id, cancellationToken) is not { } query)
+                {
+                    return;
+                }
+                else if (request.Kind == SearchKind.Similar)
                 {
                     await similar.RefreshProfilesAsync(cancellationToken);
                     var result = await similar.SearchAsync(query, request.Filter, request.LengthRatio ?? SimilaritySearch.DefaultLengthRatio,
@@ -126,7 +135,8 @@ namespace SequencePlatform.Api
                         : await localization.LocalizeAsync(query, request.Filter, request.Top, cancellationToken);
                     saved = await SearchLog.SaveAsync(dataSource, id, result, cancellationToken);
                 }
-                logger.LogInformation("Search {SearchId} ({Kind}, {Bases} bp): {Outcome} in {Milliseconds} ms", id, request.Kind, run.QueryLengthBp,
+                logger.LogInformation("Search {SearchId} ({Kind}, {Length}): {Outcome} in {Milliseconds} ms", id, request.Kind,
+                    run.QueryLengthAa is int aa ? $"{aa} aa" : $"{run.QueryLengthBp} bp",
                     saved ? "done" : "deleted while it ran, result dropped", watch.ElapsedMilliseconds);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

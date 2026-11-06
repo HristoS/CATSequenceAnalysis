@@ -23,7 +23,7 @@ namespace SequencePlatform.Tests
             var id = ownerId is long owner
                 ? await ThrowawayDatabase.InsertUploadAsync(owner, accession, dna.Length, "bacterium")
                 : await ThrowawayDatabase.InsertRecordAsync(provider, accession, dna.Length, "bacterium");
-            var ladder = new ZCurveProfileLadder(new ZCurveWindowedProfile(dna));
+            var ladder = RecordStore.Ladder(new ZCurveWindowedProfile(dna));
             await using var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync();
             await using var transaction = await connection.BeginTransactionAsync();
             foreach (var factor in ladder.Factors)

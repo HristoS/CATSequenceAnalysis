@@ -1,0 +1,5 @@
+Band,Proteins,Done,Exact top-1,With PGfam,Family top-1,Flagged weak,Median s,Max s
+>= 500 aa,24,24,62.5%,20,95.0%,0.0%,12.1,18.8
+333-499 aa,12,12,50.0%,8,62.5%,100.0%,12.0,14.8
+
+Rule (>= 500 aa family top-1 >= 95% and median query <= 60 s; every job done),95.0% and 12.0 s: pass

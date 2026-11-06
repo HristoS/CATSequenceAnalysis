@@ -1,0 +1,49 @@
+Signature, Dimensions, Band, Pairs, Spearman, Purity5Family
+full4, 160000, all, 179700, 0.3618, 0.6063
+full4, 160000, same family, 2596, 0.8440, 0.6063
+full4, 160000, same phylum, other family, 40117, 0.6004, 0.6063
+full4, 160000, other phyla, 136987, 0.1502, 0.6063
+full3, 8000, all, 179700, 0.4019, 0.5847
+full3, 8000, same family, 2596, 0.7939, 0.5847
+full3, 8000, same phylum, other family, 40117, 0.4534, 0.5847
+full3, 8000, other phyla, 136987, 0.1614, 0.5847
+hashed256, 256, all, 179700, 0.2179, 0.4600
+hashed256, 256, same family, 2596, 0.7522, 0.4600
+hashed256, 256, same phylum, other family, 40117, 0.2784, 0.4600
+hashed256, 256, other phyla, 136987, 0.0790, 0.4600
+hashed512, 512, all, 179700, 0.2615, 0.5140
+hashed512, 512, same family, 2596, 0.7897, 0.5140
+hashed512, 512, same phylum, other family, 40117, 0.3590, 0.5140
+hashed512, 512, other phyla, 136987, 0.1079, 0.5140
+hashed1024, 1024, all, 179700, 0.3098, 0.5637
+hashed1024, 1024, same family, 2596, 0.8179, 0.5637
+hashed1024, 1024, same phylum, other family, 40117, 0.4398, 0.5637
+hashed1024, 1024, other phyla, 136987, 0.1331, 0.5637
+hashed2048, 2048, all, 179700, 0.3391, 0.5827
+hashed2048, 2048, same family, 2596, 0.8316, 0.5827
+hashed2048, 2048, same phylum, other family, 40117, 0.5199, 0.5827
+hashed2048, 2048, other phyla, 136987, 0.1484, 0.5827
+hashed2048half, 2048, all, 179700, 0.3391, 0.5827
+hashed2048half, 2048, same family, 2596, 0.8316, 0.5827
+hashed2048half, 2048, same phylum, other family, 40117, 0.5199, 0.5827
+hashed2048half, 2048, other phyla, 136987, 0.1484, 0.5827
+hashed4096, 4096, all, 179700, 0.3585, 0.5993
+hashed4096, 4096, same family, 2596, 0.8392, 0.5993
+hashed4096, 4096, same phylum, other family, 40117, 0.5548, 0.5993
+hashed4096, 4096, other phyla, 136987, 0.1658, 0.5993
+hashed8192, 8192, all, 179700, 0.3677, 0.6013
+hashed8192, 8192, same family, 2596, 0.8505, 0.6013
+hashed8192, 8192, same phylum, other family, 40117, 0.5735, 0.6013
+hashed8192, 8192, other phyla, 136987, 0.1638, 0.6013
+full4derived, 160000, all, 179700, 0.3617, 0.6063
+full4derived, 160000, same family, 2596, 0.8444, 0.6063
+full4derived, 160000, same phylum, other family, 40117, 0.6006, 0.6063
+full4derived, 160000, other phyla, 136987, 0.1498, 0.6063
+hashed8192derived, 8192, all, 179700, 0.3677, 0.6003
+hashed8192derived, 8192, same family, 2596, 0.8511, 0.6003
+hashed8192derived, 8192, same phylum, other family, 40117, 0.5735, 0.6003
+hashed8192derived, 8192, other phyla, 136987, 0.1639, 0.6003
+karlin, 16, all, 179700, 0.3069, 0.3317
+karlin, 16, same family, 2596, 0.6179, 0.3317
+karlin, 16, same phylum, other family, 40117, 0.2999, 0.3317
+karlin, 16, other phyla, 136987, 0.0924, 0.3317

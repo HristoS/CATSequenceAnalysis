@@ -13,6 +13,7 @@ export function SearchPage({ params }) {
   const [ratio, setRatio] = useState("0.5");
   const [top, setTop] = useState("");
   const [record, setRecord] = useState(params.get("record") ?? "");
+  const [code, setCode] = useState("11");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -20,11 +21,13 @@ export function SearchPage({ params }) {
     event.preventDefault();
     setError(null);
     const pasted = text.trim();
-    if (!file && !pasted) { setError("Choose a FASTA file or paste a sequence."); return; }
+    if (!file && !pasted) { setError(`Choose a FASTA file or paste a ${mode === "protein" ? "protein" : "sequence"}.`); return; }
     setBusy(true);
     try {
       const body = file ?? (pasted.startsWith(">") ? pasted : `>query\n${pasted}`);
-      const query = mode === "similar" ? { kind, ratio, top } : { kind: record ? "" : kind, record, top };
+      const query = mode === "similar" ? { kind, ratio, top }
+        : mode === "protein" ? { kind, code, top }
+        : { kind: record ? "" : kind, record, top };
       const accepted = await send(`/api/searches/${mode}${queryString(query)}`, { method: "POST", body, contentType: "text/x-fasta" });
       location.hash = `#/searches/${accepted.id}`;
     } catch (e) {
@@ -34,14 +37,17 @@ export function SearchPage({ params }) {
   }
 
   return html`<h1>Search</h1>
-    <p class="lede">The query is profiled and discarded: a search keeps both strands' profile and hash for 30 days, never the DNA.</p>
+    <p class="lede">${mode === "protein"
+      ? "The protein is turned into its expected Z-curve windows and discarded: a search keeps those windows and its hash for 30 days, never the letters."
+      : "The query is profiled and discarded: a search keeps both strands' profile and hash for 30 days, never the DNA."}</p>
     <form class="stack narrow" onSubmit=${submit}>
       <${Segmented} label="Question" value=${mode} onChange=${setMode}
-        options=${[["similar", "Which records resemble this?"], ["localize", "Where does this fragment come from?"]]} />
+        options=${[["similar", "Which records resemble this?"], ["localize", "Where does this fragment come from?"],
+          ["protein", "Which genes encode this protein?"]]} />
       <label class="field"><span>FASTA file</span>
-        <input type="file" accept=".fa,.fasta,.fna,.txt" onChange=${e => setFile(e.target.files[0] ?? null)} />
+        <input type="file" accept=".fa,.fasta,.fna,.faa,.txt" onChange=${e => setFile(e.target.files[0] ?? null)} />
       </label>
-      <label class="field"><span>Or paste one sequence</span>
+      <label class="field"><span>${mode === "protein" ? "Or paste one protein (at least 50 aa)" : "Or paste one sequence"}</span>
         <textarea rows="5" spellCheck="false" disabled=${!!file} value=${text} onInput=${e => setText(e.target.value)}></textarea>
       </label>
       ${mode === "localize" && html`<label class="field"><span>Inside record (id, optional; required under 4 kbp)</span>
@@ -52,11 +58,17 @@ export function SearchPage({ params }) {
           ${["", "bacterium", "archaeon", "virus", "plasmid"].map(k => html`<option key=${k} value=${k}>${k || "any"}</option>`)}
         </select>
       </label>`}
+      ${mode === "protein" && html`<label class="field"><span>Genetic code</span>
+        <select value=${code} onChange=${e => setCode(e.target.value)}>
+          <option value="11">11, standard</option>
+          <option value="4">4, Mycoplasma and relatives (TGA = Trp)</option>
+        </select>
+      </label>`}
       ${mode === "similar" && html`<label class="field"><span>Length ratio (0.25–1)</span>
         <input type="number" min="0.25" max="1" step="0.05" value=${ratio} onInput=${e => setRatio(e.target.value)} />
       </label>`}
-      <label class="field"><span>Hits to keep (${mode === "similar" ? "1–1000, default 50" : "1–100, default 20"})</span>
-        <input type="number" min="1" max=${mode === "similar" ? 1000 : 100} value=${top} onInput=${e => setTop(e.target.value)} />
+      <label class="field"><span>Hits to keep (${mode === "localize" ? "1–100, default 20" : "1–1000, default 50"})</span>
+        <input type="number" min="1" max=${mode === "localize" ? 100 : 1000} value=${top} onInput=${e => setTop(e.target.value)} />
       </label>
       <button class="primary" type="submit" disabled=${busy}>${busy ? "Sending…" : "Search"}</button>
     </form>
@@ -69,7 +81,21 @@ const expected = log10 => {
   return value >= 0.01 && value < 1000 ? value.toPrecision(2) : `1e${Math.round(log10)}`;
 };
 
+function GeneHits({ run }) {
+  return html`<div class="tablewrap"><table>
+    <thead><tr><th class="num">#</th><th>Record</th><th>Gene</th><th>Family</th><th class="num">Score</th></tr></thead>
+    <tbody>${run.hits.items.map(h => html`<tr key=${h.position}>
+      <td class="num">${h.position}</td>
+      <td>${h.sequence ? html`<a href="#/sequences/${h.sequenceId}">${h.sequence.name || h.sequence.recordId}</a>` : `deleted record ${h.sequenceId}`}</td>
+      <td class="mono">${(h.geneStartBp + 1).toLocaleString()}–${h.geneEndBp.toLocaleString()} ${h.strand === "Reverse" ? "(−)" : "(+)"}</td>
+      <td>${h.product ?? "–"}${h.familyId && html` <span class="hint mono">${h.familyId}</span>`}</td>
+      <td class="num mono">${h.score == null ? "–" : h.score.toFixed(3)}</td>
+    </tr>`)}</tbody>
+  </table></div>`;
+}
+
 function Hits({ run }) {
+  if (run.kind === "Protein") return html`<${GeneHits} run=${run} />`;
   const isSimilar = run.kind === "Similar";
   return html`<div class="tablewrap"><table>
     <thead><tr><th class="num">#</th><th>Record</th><th class="num">Length</th><th class="num">Score</th>
@@ -95,10 +121,11 @@ function Summary({ run }) {
   if (s.windowSize) parts.push(`${formatBp(s.windowSize)} windows`);
   if (s.bandMinBp != null) parts.push(`candidates ${formatBp(s.bandMinBp)}${s.bandMaxBp != null ? `–${formatBp(s.bandMaxBp)}` : " and up"}`);
   if (s.rankedTotal != null) parts.push(`${s.rankedTotal.toLocaleString()} ranked`);
-  if (s.candidates != null) parts.push(`${s.candidates.toLocaleString()} scanned`);
+  if (s.candidates != null) parts.push(`${s.candidates.toLocaleString()} ${run.kind === "Protein" ? "genes scored" : "scanned"}`);
   if (s.neighbourRanked) parts.push("top hits ordered by shared neighbours");
   return html`<p class="hint">${parts.join(" · ")}</p>
-    ${s.weakSignal && html`<${Message}>This query is short, so the ranking reflects composition more than order. Treat it as a hint and check it with an aligner.<//>`}`;
+    ${s.weakSignal && html`<${Message}>This query is short, so the ranking reflects composition more than order. Treat it as a hint
+      and check it with an aligner.<//>`}`;
 }
 
 export function SearchRunPage({ id }) {
@@ -136,17 +163,17 @@ export function SearchRunPage({ id }) {
 
   if (error) return html`<${Message} error>${error}<//>`;
   if (!run) return html`<${Message}>Loading…<//>`;
-  const title = run.kind === "Similar" ? "Find similar" : "Localize";
+  const title = { Similar: "Find similar", Localize: "Localize", Protein: "Protein search" }[run.kind];
   const seconds = run.completedAt ? (new Date(run.completedAt) - new Date(run.createdAt)) / 1000 : null;
 
   return html`<h1>${title}</h1>
-    <p class="lede">${formatBp(run.queryLengthBp)} query · ${run.status}${seconds != null ? ` in ${seconds.toFixed(2)} s` : ""}</p>
+    <p class="lede">${run.queryLengthAa != null ? `${run.queryLengthAa.toLocaleString()} aa` : formatBp(run.queryLengthBp)} query · ${run.status}${seconds != null ? ` in ${seconds.toFixed(2)} s` : ""}</p>
     ${run.error && html`<${Message} error>${run.error}<//>`}
     ${(run.status === "Queued" || run.status === "Running") && html`<${Message}>Waiting for the worker…<//>`}
     ${run.status === "Expired" && html`<${Message}>The results of this search were dropped. Its parameters and summary remain.<//>`}
     <${Summary} run=${run} />
     ${run.hits && html`
-      <${Segmented} label="List" value=${list} options=${lists} onChange=${v => { setList(v); setAfter(0); }} />
+      ${run.kind !== "Protein" && html`<${Segmented} label="List" value=${list} options=${lists} onChange=${v => { setList(v); setAfter(0); }} />`}
       ${run.hits.items.length ? html`<${Hits} run=${run} />` : html`<${Message}>This list is empty.<//>`}
       <div class="pager">
         <button type="button" disabled=${after === 0} onClick=${() => setAfter(Math.max(0, after - hitsPerPage))}>Previous</button>

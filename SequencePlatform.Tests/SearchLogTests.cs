@@ -57,7 +57,7 @@ namespace SequencePlatform.Tests
             var restored = (await SearchLog.QueryAsync(ThrowawayDatabase.DataSource, id))!;
 
             Assert.That((restored.LengthBp, restored.Sha256, restored.ReverseSha256, restored.Reverse), Is.EqualTo((20_000L, (byte[]?)null, (byte[]?)null, (ZCurveProfileLadder?)null)));
-            Assert.That(restored.Forward.Fine.Windows, Is.EqualTo(forward.Windows));
+            Assert.That(restored.Forward.Fine.Windows, Is.EqualTo(forward.ToHalfPrecision().Windows), "rounded as stored levels are");
             Assert.That((await SearchLog.GetAsync(ThrowawayDatabase.DataSource, id))!.Request, Is.EqualTo(request));
         }
 

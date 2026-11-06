@@ -205,7 +205,7 @@ namespace SequencePlatform.Tests
             var bothQuery = (await SearchLog.QueryAsync(ThrowawayDatabase.DataSource, both))!;
             Assert.That((oneQuery.Reverse, oneQuery.LengthBp), Is.EqualTo(((ZCurveProfileLadder?)null, 30_000L)), "windows × 500 without lengthBp");
             Assert.That(bothQuery.LengthBp, Is.EqualTo(30_250));
-            Assert.That(bothQuery.Reverse!.Fine.Windows, Is.EqualTo(reverse.Windows));
+            Assert.That(bothQuery.Reverse!.Fine.Windows, Is.EqualTo(reverse.ToHalfPrecision().Windows), "rounded as stored levels are");
             foreach (var rejected in new[] { mismatched, wrongLength, coarse, three })
                 Assert.That(rejected.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest), await rejected.Content.ReadAsStringAsync());
         }

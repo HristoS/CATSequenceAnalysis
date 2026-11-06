@@ -1,0 +1,13 @@
+Measure,Value,Limit,Verdict
+Genomes,200 (seed 20261105),,
+Records done,237,,
+Coding sequences listed / skipped,262721 / 415,,
+Clean translation (no internal stop),99.79%,,
+Seconds per genome (4 in parallel),0.46,<= 2 s,pass (full pass about 6 h)
+Gene profiles written,"237 records, 3,866 bucket rows, 250,275 genes, 1,217,697 windows, 23,881,582 bytes",,
+Bytes per record,100.8 KB (computed 104.7 KB from the stored headers),<= 1.5x computed,pass (0.96x)
+Self-search 50-99 aa (474 proteins),100.0% in the trial pool / 99.6% extrapolated,,
+Self-search 100-166 aa (500 proteins),99.6% / 99.0%,,
+Self-search 167-332 aa (519 proteins),99.8% / 99.8%,>= 50% extrapolated,pass
+Self-search 333-499 aa (478 proteins),99.8% / 99.2%,,
+Self-search 500+ aa (503 proteins),99.2% / 92.4%,,

@@ -24,7 +24,7 @@ namespace SequencePlatform.Tests
         public async Task ProfileLevelsRoundTripBitExact()
         {
             var dna = Generator.GetRandomDNA(300_000, 20261015);
-            var ladder = new ZCurveProfileLadder(new ZCurveWindowedProfile(dna));
+            var ladder = RecordStore.Ladder(new ZCurveWindowedProfile(dna));
             var sequenceId = await ThrowawayDatabase.InsertRecordAsync("test-roundtrip", "rt-1", dna.Length);
 
             await using (var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync())
@@ -57,8 +57,8 @@ namespace SequencePlatform.Tests
         [Test]
         public async Task LevelOverInlineLimitIsRefusedAndNothingWritten()
         {
-            // 16-byte header + 12 bytes per window: one window past the 1 MB limit.
-            int windows = (ProfileLevels.MaxInlineBytes - 16) / 12 + 1;
+            // 16-byte header + 6 bytes per window (ZCWP version 2): one window past the 1 MB limit.
+            int windows = (ProfileLevels.MaxInlineBytes - 16) / 6 + 1;
             var level = ZCurveWindowedProfile.FromPrecomputedWindows(500, Enumerable.Repeat((0.0, 0.0, 0.0), windows).ToArray());
             var sequenceId = await ThrowawayDatabase.InsertRecordAsync("test-oversize", "big-1", 500L * windows);
 

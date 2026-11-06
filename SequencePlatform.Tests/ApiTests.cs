@@ -29,6 +29,22 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task RotatingAKeyKeepsTheUserAndRevokesTheOldKey()
+        {
+            var dataSource = ThrowawayDatabase.DataSource;
+            var name = $"rotated-{Guid.NewGuid():N}";
+            var (user, oldKey) = await Users.CreateAsync(dataSource, name);
+
+            var newKey = await Users.RotateKeyAsync(dataSource, name);
+
+            Assert.That(newKey, Is.Not.Null.And.Not.EqualTo(oldKey));
+            Assert.That(await Users.AuthenticateAsync(dataSource, oldKey), Is.Null);
+            Assert.That(await Users.AuthenticateAsync(dataSource, newKey!), Is.EqualTo(user));
+            await Users.DisableAsync(dataSource, name);
+            Assert.That(await Users.RotateKeyAsync(dataSource, name), Is.Null, "a disabled user stays disabled");
+        }
+
+        [Test]
         public async Task EveryEndpointNeedsAnEnabledKey()
         {
             var anonymous = factory.CreateClient();
@@ -127,7 +143,8 @@ namespace SequencePlatform.Tests
             var missingLevel = await client.GetAsync($"/api/sequences/{mine}/profile?windowSize=32000");
 
             Assert.That(response.Content.Headers.ContentType!.MediaType, Is.EqualTo("application/x-zcwp"));
-            Assert.That(await response.Content.ReadAsByteArrayAsync(), Is.EqualTo(fine.ToBinary()));
+            // Stored as float16 (ZCWP version 2), served as version 1.
+            Assert.That(await response.Content.ReadAsByteArrayAsync(), Is.EqualTo(fine.ToHalfPrecision().ToBinary()));
             Assert.That(missingLevel.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
             Assert.That(missingLevel.Content.Headers.ContentType!.MediaType, Is.EqualTo("application/problem+json"));
             Assert.That((await client.GetAsync($"/api/sequences/{theirs}/profile")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));

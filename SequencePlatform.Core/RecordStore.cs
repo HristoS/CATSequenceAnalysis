@@ -40,6 +40,12 @@ namespace SequencePlatform.Core
         public const string MethodVersion = "1";
         public const int FineWindowSize = ZCurveWindowedProfile.DefaultWindowSize;
 
+        /// <summary>
+        /// The platform's ladder: every level rounded to float16, as <see cref="ProfileLevels"/> stores it (ZCWP version 2), so the
+        /// levels a query builds from its DNA equal the stored ones of the same sequence and an identical record scores exactly 1.
+        /// </summary>
+        public static ZCurveProfileLadder Ladder(ZCurveWindowedProfile fine) => new(fine, halfPrecision: true);
+
         public static IEnumerable<ProfiledRecord> Profile(string fastaPath)
         {
             foreach (var (headerId, description) in FastaReader.ReadHeaders(fastaPath))
@@ -82,7 +88,7 @@ namespace SequencePlatform.Core
         {
             var levels = new List<(int, ZCurveWindowedProfile)>();
             if (fine.WindowCount == 0) return (levels, null);
-            var ladder = new ZCurveProfileLadder(fine);
+            var ladder = Ladder(fine);
             foreach (var factor in ladder.Factors)
             {
                 var level = ladder.Level(factor);
