@@ -11,5 +11,7 @@ SERVER_IP {
 			profile shortlived
 		}
 	}
+	# Caddy compresses the API's JSON: the API treats requests forwarded with X-Forwarded-Proto https as HTTPS and leaves those uncompressed.
+	encode zstd gzip
 	reverse_proxy 127.0.0.1:5080
 }

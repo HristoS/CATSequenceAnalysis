@@ -31,7 +31,9 @@ builder.Services.AddSingleton<Landscape>();
 builder.Services.Configure<SearchWorkerOptions>(builder.Configuration.GetSection("SearchWorker"));
 builder.Services.AddHostedService<SearchWorker>();
 
-builder.Services.AddResponseCompression();   // the map of everything is several MB of JSON; over TLS it stays off until S6.4 decides
+// The map of everything is several MB of JSON. Plain HTTP only: behind a TLS proxy the request counts as HTTPS (forwarded headers), so the
+// proxy compresses instead (hosting/tencent/Caddyfile, encode).
+builder.Services.AddResponseCompression();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecurityTransformer>());

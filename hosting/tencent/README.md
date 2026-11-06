@@ -50,8 +50,13 @@ The platform is served on the bare IP. Caddy (2.10 or later, from Caddy's own ap
 Clients send no SNI when they connect to an IP, so without `default_sni` Caddy can't choose the certificate and the TLS handshake
 fails with an internal-error alert (`openssl s_client -servername IP` still works, which hides the problem).
 
-This is the S6.4 step the API's README waits for: bearer keys now travel only over TLS, and Kestrel stays on localhost. Response
-compression is still on and goes through Caddy over TLS (see the comment in `SequencePlatform.Api/Program.cs`).
+This is the S6.4 step the API's README waits for: bearer keys now travel only over TLS, and Kestrel stays on localhost.
+
+**Compression is Caddy's job** (`encode zstd gzip`, since 2026-11-06). The API's container sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`,
+so a request Caddy forwards with `X-Forwarded-Proto: https` counts as HTTPS, and ASP.NET Core's response compression is off for HTTPS by
+default: until then every API response left the server uncompressed (E. coli K-12's gene list: 760 KB; with `encode`, 157 KB zstd or
+162 KB gzip). Static files still arrive Brotli-compressed by the API, and Caddy leaves an already-encoded response alone. BREACH, the
+reason compression over TLS needs thought, takes a secret and attacker-controlled text in one response; the API never echoes the key.
 
 ## Setting up a new server
 
