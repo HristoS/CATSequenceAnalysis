@@ -63,11 +63,14 @@ export function ComparePage({ params }) {
     <section class="panel compare-genes"><h2>Genes</h2><${CompareGenes} records=${records.filter(r => r.detail)} hidden=${hidden} /></section>`}`;
 }
 
-// One rotatable canvas for several curves: drag, the view presets, and redraw on resize.
-function CurveCanvas({ curves, unit, label }) {
+// One rotatable canvas for several curves: drag, the view presets, redraw on resize, and on hover the nearest point's curve label and
+// describe(point index) text.
+export function CurveCanvas({ curves, unit, label }) {
   const [view, setView] = useState("3d");
-  const canvas = useRef(null), angles = useRef(views["3d"]), drag = useRef(null);
-  const redraw = () => { if (canvas.current) drawCurves(canvas.current, curves, { yaw: angles.current[0], pitch: angles.current[1], unit }); };
+  const canvas = useRef(null), tip = useRef(null), screens = useRef([]), angles = useRef(views["3d"]), drag = useRef(null);
+  const redraw = () => {
+    if (canvas.current) screens.current = drawCurves(canvas.current, curves, { yaw: angles.current[0], pitch: angles.current[1], unit }).screens;
+  };
   useEffect(() => { if (view !== "free") angles.current = views[view]; redraw(); }, [curves, view]);
   useEffect(() => {
     if (!canvas.current) return;
@@ -75,18 +78,37 @@ function CurveCanvas({ curves, unit, label }) {
     observer.observe(canvas.current);
     return () => observer.disconnect();
   });
-  const down = e => { drag.current = { x: e.clientX, y: e.clientY, angles: angles.current }; e.currentTarget.setPointerCapture(e.pointerId); };
+  const down = e => { drag.current = { x: e.clientX, y: e.clientY, angles: angles.current }; e.currentTarget.setPointerCapture(e.pointerId); tip.current.hidden = true; };
   const up = () => { drag.current = null; };
   const move = e => {
-    if (!drag.current) return;
-    const d = drag.current;
-    angles.current = [d.angles[0] + (e.clientX - d.x) * 0.01, Math.max(-1.55, Math.min(1.55, d.angles[1] + (e.clientY - d.y) * 0.01))];
-    if (view !== "free") setView("free"); else redraw();
+    if (drag.current) {
+      const d = drag.current;
+      angles.current = [d.angles[0] + (e.clientX - d.x) * 0.01, Math.max(-1.55, Math.min(1.55, d.angles[1] + (e.clientY - d.y) * 0.01))];
+      if (view !== "free") setView("free"); else redraw();
+      return;
+    }
+    const r = canvas.current.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    let best = null, bestDistance = 14 * 14;
+    screens.current.forEach((screen, c) => screen.forEach((p, k) => {
+      const d = (p[0] - mx) ** 2 + (p[1] - my) ** 2;
+      if (d < bestDistance) { bestDistance = d; best = [c, k]; }
+    }));
+    if (!best) { tip.current.hidden = true; return; }
+    const [c, k] = best, curve = curves[c], point = screens.current[c][k];
+    tip.current.textContent = [curve.label, curve.describe?.(k)].filter(Boolean).join(" · ");
+    tip.current.hidden = false;
+    tip.current.style.left = `${Math.max(6, Math.min(point[0] + 12, r.width - tip.current.offsetWidth - 6))}px`;
+    tip.current.style.top = `${Math.max(6, point[1] - 14)}px`;
   };
   return html`<${Segmented} label="View" value=${view} onChange=${setView} options=${[["3d", "3-D"], ["xy", "x–y"], ["xz", "x–z"], ["yz", "y–z"]]} />
     <div class="zpath"><canvas ref=${canvas} role="img" aria-label=${label}
-      onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}></canvas></div>`;
+      onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}
+      onPointerLeave=${() => { if (!drag.current) tip.current.hidden = true; }}></canvas>
+      <div class="ztip" ref=${tip} hidden></div></div>`;
 }
+
+const nameOf = r => r.detail.sequence.name || r.detail.sequence.recordId;
+const aminoAcidAt = (shape, i) => `about amino acid ${Math.round(shape.at[i] / 2).toLocaleString()}`;
 
 const removeDrift = (sums, fits, at) => sums.map((p, i) => p.map((v, a) => v - (fits[a][0] + fits[a][1] * at(i))));
 
@@ -120,7 +142,8 @@ function ComparePaths({ records }) {
     let points = Array.from({ length: profile.n + 1 }, (_, k) => shape.sums.map(s => s[k]));   // sums are typed arrays, one per axis
     if (drift === "removed") points = removeDrift(points, shape.fits, k => k);
     if (scale === "length") points = points.map(p => p.map(v => v * 1000 / length));
-    return [{ points, from: records[i].colour, to: records[i].colour }];
+    const describe = k => `${formatBp(Math.min(k * profile.size, length))}${w.origin ? " from the origin" : ""} of ${formatBp(length)}`;
+    return [{ points, from: records[i].colour, to: records[i].colour, label: nameOf(records[i]), describe }];
   }), [profiles, wanted.map(w => w.key).join(","), drift, scale]);
 
   if (error) return html`<${Message}>${error}<//>`;
@@ -223,7 +246,7 @@ function CompareGenes({ records, hidden }) {
   const curves = useMemo(() => selected.map(s => {
     const shape = genePath(s.gene.windows, s.gene.windowPositions);
     const points = drift === "kept" ? shape.points : removeDrift(shape.points, shape.fits, i => shape.at[i]);
-    return { points, from: s.colour, to: s.colour, marks: shape.marks };
+    return { points, from: s.colour, to: s.colour, marks: shape.marks, label: nameOf(s), describe: i => aminoAcidAt(shape, i) };
   }), [selected.map(s => `${s.id}-${s.gene.gene.index}`).join(","), drift]);
   const peak = Math.max(...selected.flatMap(s => s.gene.windows.flat().map(Math.abs)), 1e-9);
 

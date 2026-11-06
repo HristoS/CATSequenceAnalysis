@@ -1,5 +1,7 @@
 import { get, queryString, send } from "./api.js";
-import { Message, Segmented, formatBp, html, useEffect, useState } from "./html.js";
+import { CurveCanvas, compareHref, maxCompared } from "./compare.js";
+import { HeatStrip, genePath, loadGenes } from "./genes.js";
+import { Message, Segmented, formatBp, html, useEffect, useMemo, useState } from "./html.js";
 
 const pollMilliseconds = 500;
 const hitsPerPage = 50;
@@ -84,21 +86,77 @@ const expected = log10 => {
   return value >= 0.01 && value < 1000 ? value.toPrecision(2) : `1e${Math.round(log10)}`;
 };
 
-function GeneHits({ run }) {
+function GeneHits({ id, run }) {
+  const [picked, setPicked] = useState(null);
   return html`<div class="tablewrap"><table>
     <thead><tr><th class="num">#</th><th>Record</th><th>Gene</th><th>Family</th><th class="num">Score</th></tr></thead>
-    <tbody>${run.hits.items.map(h => html`<tr key=${h.position}>
+    <tbody>${run.hits.items.map(h => html`<tr key=${h.position} class=${picked?.position === h.position ? "row picked" : "row"} tabIndex="0"
+        onClick=${() => setPicked(h)} onKeyDown=${e => { if (e.key === "Enter") setPicked(h); }}>
       <td class="num">${h.position}</td>
-      <td>${h.sequence ? html`<a href="#/sequences/${h.sequenceId}">${h.sequence.name || h.sequence.recordId}</a>` : `deleted record ${h.sequenceId}`}</td>
+      <td>${h.sequence ? html`<a href="#/sequences/${h.sequenceId}" onClick=${e => e.stopPropagation()}>${h.sequence.name || h.sequence.recordId}</a>` : `deleted record ${h.sequenceId}`}</td>
       <td class="mono">${(h.geneStartBp + 1).toLocaleString()}–${h.geneEndBp.toLocaleString()} ${h.strand === "Reverse" ? "(−)" : "(+)"}</td>
       <td>${h.product ?? "–"}${h.familyId && html` <span class="hint mono">${h.familyId}</span>`}</td>
       <td class="num mono">${h.score == null ? "–" : h.score.toFixed(3)}</td>
     </tr>`)}</tbody>
-  </table></div>`;
+  </table></div>
+  ${picked ? html`<${HitView} key=${picked.position} id=${id} hit=${picked} />`
+    : html`<p class="hint">Pick a hit to draw the protein's expected Z-curve over the gene's.</p>`}`;
 }
 
-function Hits({ run }) {
-  if (run.kind === "Protein") return html`<${GeneHits} run=${run} />`;
+// The query protein's expected windows against one hit gene's stored windows: the comparison the score summarizes.
+function HitView({ id, hit }) {
+  const [query, setQuery] = useState(null);
+  const [gene, setGene] = useState(null);
+  const [error, setError] = useState(null);
+  const [drift, setDrift] = useState("kept");
+  useEffect(() => {
+    let live = true;
+    const fail = e => { if (live) setError(e.message); };
+    get(`/api/searches/${id}/query`).then(q => { if (live) setQuery(q); }).catch(fail);
+    loadGenes(hit.sequenceId).then(list => {
+      const g = list.genes.find(x => x.startBp === hit.geneStartBp && x.endBp === hit.geneEndBp && x.strand === hit.strand);
+      if (!g) throw new Error("That gene is no longer stored.");
+      return get(`/api/sequences/${hit.sequenceId}/genes/${g.index}`);
+    }).then(g => { if (live) setGene(g); }).catch(fail);
+    return () => { live = false; };
+  }, [id, hit.position]);
+
+  const curves = useMemo(() => {
+    if (!query || !gene) return [];
+    return [[query, "--p4", `query protein, ${query.lengthAa} aa`], [gene, "--p1", `${gene.gene.product ?? "hit gene"}, ${gene.gene.residues} aa`]].map(([w, colour, label]) => {
+      const shape = genePath(w.windows, w.windowPositions);
+      const points = drift === "kept" ? shape.points
+        : shape.points.map((p, i) => p.map((v, a) => v - (shape.fits[a][0] + shape.fits[a][1] * shape.at[i])));
+      return { points, from: colour, to: colour, marks: shape.marks, label, describe: i => `about amino acid ${Math.round(shape.at[i] / 2).toLocaleString()}` };
+    });
+  }, [query, gene, drift]);
+
+  if (error) return html`<${Message}>${error}<//>`;
+  if (!query || !gene) return html`<${Message}>Loading the windows…<//>`;
+  const peak = Math.max(...query.windows.flat().concat(gene.windows.flat()).map(Math.abs), 1e-9);
+  return html`<div class="hitview"><h3 class="genetitle">Hit ${hit.position}: ${gene.gene.product ?? "gene"} <span class="mono">${gene.gene.familyId ?? ""}</span></h3>
+    <p class="legend"><span><span class="dot" style=${{ "--swatch": "var(--p4)" }}></span>the protein's expected curve</span>
+      <span><span class="dot" style=${{ "--swatch": "var(--p1)" }}></span>the stored gene in ${hit.sequence?.name ?? `record ${hit.sequenceId}`}</span></p>
+    <div class="toolbar"><${Segmented} label="Drift" value=${drift} onChange=${setDrift} options=${[["kept", "Kept"], ["removed", "Removed"]]} /></div>
+    <${CurveCanvas} curves=${curves} unit="bases" label="The query protein's expected Z-curve over the hit gene's; drag to rotate" />
+    <p class="hint">Both over codon positions 1 and 2. The protein's curve averages each amino acid's synonymous codons, weighted equally;
+      the gene's comes from its stored windows. The score is 1 minus their mean per-window distance over the windows they share.</p>
+    <div class="heatgrid">
+      <div><p class="heatlabel"><span class="dot" style=${{ "--swatch": "var(--p4)" }}></span>${`query, ${query.lengthAa} aa`}</p>
+        <${HeatStrip} windows=${query.windows} peak=${peak} /></div>
+      <div><p class="heatlabel"><span class="dot" style=${{ "--swatch": "var(--p1)" }}></span>${`hit gene, ${gene.gene.residues} aa`}</p>
+        <${HeatStrip} windows=${gene.windows} peak=${peak} /></div>
+    </div></div>`;
+}
+
+// Up to three distinct records from the current page of hits, for the compare page.
+function CompareTop({ run }) {
+  const ids = [...new Set(run.hits.items.filter(h => h.sequence).map(h => h.sequenceId))].slice(0, maxCompared);
+  return ids.length >= 2 && html`<p class="actions"><a class="button" href=${compareHref(ids)}>Compare the top ${ids.length}</a></p>`;
+}
+
+function Hits({ id, run }) {
+  if (run.kind === "Protein") return html`<${GeneHits} id=${id} run=${run} />`;
   const isSimilar = run.kind === "Similar";
   return html`<div class="tablewrap"><table>
     <thead><tr><th class="num">#</th><th>Record</th><th class="num">Length</th><th class="num">Score</th>
@@ -177,7 +235,7 @@ export function SearchRunPage({ id }) {
     <${Summary} run=${run} />
     ${run.hits && html`
       ${run.kind !== "Protein" && html`<${Segmented} label="List" value=${list} options=${lists} onChange=${v => { setList(v); setAfter(0); }} />`}
-      ${run.hits.items.length ? html`<${Hits} run=${run} />` : html`<${Message}>This list is empty.<//>`}
+      ${run.hits.items.length ? html`<${CompareTop} run=${run} /><${Hits} id=${id} run=${run} />` : html`<${Message}>This list is empty.<//>`}
       <div class="pager">
         <button type="button" disabled=${after === 0} onClick=${() => setAfter(Math.max(0, after - hitsPerPage))}>Previous</button>
         <button type="button" disabled=${run.hits.nextAfter == null} onClick=${() => setAfter(run.hits.nextAfter)}>Next</button>

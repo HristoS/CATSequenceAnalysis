@@ -1,4 +1,5 @@
 import { get, queryString } from "./api.js";
+import { compareHref, maxCompared } from "./compare.js";
 import { Message, formatBp, formatGc, html, useEffect, useState } from "./html.js";
 
 const pageSize = 50;
@@ -26,6 +27,7 @@ export function CataloguePage() {
   const [error, setError] = useState(null);
   const [facets, setFacets] = useState(null);
   const [facetsError, setFacetsError] = useState(null);
+  const [chosen, setChosen] = useState([]);   // records picked for the compare page, kept across pages and filters
   const after = starts[starts.length - 1];
 
   useEffect(() => {
@@ -68,17 +70,27 @@ export function CataloguePage() {
       <button class="primary" type="submit">Filter</button>
     </form>
     ${facetsError && html`<${Message}>The filter choices couldn't be loaded (${facetsError}); "any" still works.<//>`}
+    ${chosen.length > 0 && html`<div class="chosen">
+      <span>${chosen.length} of ${maxCompared} chosen: ${chosen.map(c => c.name).join(", ")}</span>
+      ${chosen.length >= 2 ? html`<a class="button primary" href=${compareHref(chosen.map(c => c.id))}>Compare</a>` : html`<span class="hint">choose one more to compare</span>`}
+      <button type="button" onClick=${() => setChosen([])}>Clear</button></div>`}
     ${error && html`<${Message} error>${error}<//>`}
     ${page && !error && html`<div class="tablewrap"><table>
-        <thead><tr><th>Name</th><th>Kind</th><th>Genus</th><th class="num">Length</th><th class="num">GC</th><th>Accession</th></tr></thead>
-        <tbody>${page.items.map(r => html`<tr key=${r.id}>
+        <thead><tr><th><span class="visually-hidden">Compare</span></th><th>Name</th><th>Kind</th><th>Genus</th><th class="num">Length</th><th class="num">GC</th><th>Accession</th></tr></thead>
+        <tbody>${page.items.map(r => {
+          const on = chosen.some(c => c.id === r.id);
+          return html`<tr key=${r.id}>
+          <td><input type="checkbox" checked=${on} disabled=${!on && chosen.length >= maxCompared} aria-label=${`Compare ${r.name || r.recordId}`}
+            title=${!on && chosen.length >= maxCompared ? `Up to ${maxCompared} records` : "Choose for the compare page"}
+            onChange=${() => setChosen(on ? chosen.filter(c => c.id !== r.id) : [...chosen, { id: r.id, name: r.name || r.recordId }])} /></td>
           <td><a href="#/sequences/${r.id}">${r.name || r.recordId}</a></td>
           <td>${r.kind}</td>
           <td>${r.providerLineage.genus ?? "–"}</td>
           <td class="num">${formatBp(r.lengthBp)}</td>
           <td class="num">${formatGc(r.gcFraction)}</td>
           <td class="mono">${r.accession ?? "upload"}</td>
-        </tr>`)}</tbody>
+        </tr>`;
+        })}</tbody>
       </table></div>
       ${page.items.length === 0 && html`<${Message}>Nothing matches these filters.<//>`}
       <div class="pager">

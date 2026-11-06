@@ -198,6 +198,17 @@ namespace SequencePlatform.Tests
                 Is.EqualTo((id, stored[2].Start, stored[2].End, "Reverse", "PGF_09000002", "Test synthase")));
             Assert.That(hits[1].GetProperty("familyId").GetString(), Does.StartWith("PGF_0900000"));
             Assert.That(hits[1].TryGetProperty("product", out _), Is.False, "a family with no stored product has none");
+
+            // The query's windows, to draw over a hit: the owner's only, and gone once the search expires.
+            var query = (await client.GetFromJsonAsync<JsonElement>($"/api/searches/{search}/query"))!;
+            var expected = ProteinQuery.FromProtein(protein).Axes;
+            Assert.That((query.GetProperty("lengthAa").GetInt32(), query.GetProperty("windowPositions").GetInt32()), Is.EqualTo((620, 333)));
+            Assert.That(query.GetProperty("windows").EnumerateArray().SelectMany(w => w.EnumerateArray().Select(v => v.GetDouble())),
+                Is.EqualTo(expected).Within(1e-9));
+            var (_, bob) = await factory.NewClientAsync("bob");
+            Assert.That((await bob.GetAsync($"/api/searches/{search}/query")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            Assert.That((await client.DeleteAsync($"/api/searches/{search}")).StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+            Assert.That((await client.GetAsync($"/api/searches/{search}/query")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound), "expired");
         }
 
         [Test]

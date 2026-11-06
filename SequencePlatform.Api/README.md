@@ -58,7 +58,7 @@ every `/api` call still needs the key. A FASTA file goes from the browser straig
 
 A record's page shows its lineages, nearest relatives, dinucleotide signature (Karlin, Z-curve coefficients or the gene layer's mean
 window), Z-curve path and, for BV-BRC genomes, its genes: pick one to see its Z-curve over codon positions 1 and 2, redrawn from the
-stored windows. `#/compare?ids=a,b,c` puts 2 or 3 records on shared plots, each in its own colour that the legend switches on and off
+stored windows. `#/compare?ids=a,b,c` (from the catalogue's checkboxes, a record's nearest relatives, or the top hits of a search) puts 2 or 3 records on shared plots, each in its own colour that the legend switches on and off
 everywhere: their Z-curve paths (circular chromosomes from the replication origin, `results/CompareOverlay_Check.csv`; scaled to the
 same genome length or in bases), their signatures as grouped bars, and their copies of a protein family they all carry (or any gene
 picked per record) as overlaid gene curves and heat strips.
@@ -82,6 +82,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | POST | `/api/searches/localize` | The same for a fragment: ≥ 4 kbp over the catalogue, or any length with `record`; `top` 1–100 (default 20) |
 | POST | `/api/searches/protein` | Queue a protein search: one protein as a FASTA record or bare letters (`text/x-fasta` or `text/plain`), ≥ 333 aa; catalogue filters, `code` (11, default, or 4), `top` (1–1000, default 50). 202 + `Location` |
 | GET | `/api/searches/{id}` | Status (Queued, Running, Done, Failed, Expired), parameters, summary, and once done one page of one hit list: `list` = Ranked / Identical / NotComparable, `after`, `limit` |
+| GET | `/api/searches/{id}/query` | A protein search's query as the windows it was compared with (the expected Z-curve, never the letters), in the gene windows' format, so the page can draw it over a hit gene; 404 for someone else's search, a DNA search, or once expired |
 | DELETE | `/api/searches/{id}` | Drop the query profile and results now (D7); 204. The search stays as Expired with its summary |
 | GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
 | GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |

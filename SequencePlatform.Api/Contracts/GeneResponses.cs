@@ -21,4 +21,8 @@ namespace SequencePlatform.Api
     /// each a Legendre moment scaled by sqrt(2k + 1). Inside a window of W positions, the running sum of an axis at t in [-1, 1] is
     /// W / 2 * (m0 (t + 1) + sqrt(3) m1 (t^2 - 1) / 2 + sqrt(5) m2 (t^3 - t) / 2).</param>
     public sealed record GeneWindowsResponse(long Id, GeneResponse Gene, int WindowPositions, IReadOnlyList<IReadOnlyList<double>> Windows);
+
+    /// <summary>A protein search's query as the windows it was compared with: the protein's expected Z-curve, never its letters.</summary>
+    /// <param name="Windows">Per window, the same 9 values as <see cref="GeneWindowsResponse.Windows"/>.</param>
+    public sealed record ProteinQueryWindowsResponse(Guid SearchId, int LengthAa, int WindowPositions, IReadOnlyList<IReadOnlyList<double>> Windows);
 }

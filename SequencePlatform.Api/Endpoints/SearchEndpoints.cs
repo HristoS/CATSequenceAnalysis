@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Npgsql;
+using SequenceAnalyses;
 using SequencePlatform.Core;
 
 namespace SequencePlatform.Api
@@ -61,6 +62,12 @@ namespace SequencePlatform.Api
                 .WithName("GetSearch")
                 .WithSummary("A search's status and, once done, one page of one hit list")
                 .WithDescription("list is Ranked (default), Identical or NotComparable; page with after (the previous page's nextAfter) and limit.");
+
+            searches.MapGet("/{id:guid}/query", QueryWindowsAsync)
+                .WithName("GetProteinQueryWindows")
+                .WithSummary("A protein search's query as windows, to draw over a hit gene")
+                .WithDescription("The expected windows the protein was compared with (mean, trend and curvature of x, y and z over codon positions 1 " +
+                    "and 2), in the gene windows' format; never the protein. 404 for another user's search, a DNA search, or once the search expired.");
 
             searches.MapDelete("/{id:guid}", DeleteAsync)
                 .WithName("DeleteSearch")
@@ -180,6 +187,16 @@ namespace SequencePlatform.Api
                 h.FamilyId is int known && products.TryGetValue(known, out var product) ? product : null)).ToList();
             return TypedResults.Ok(SearchRunResponse.From(run,
                 new SearchHitPageResponse(list, items, hits.Count > limit ? page[^1].Position : null)));
+        }
+
+        private static async Task<Results<Ok<ProteinQueryWindowsResponse>, NotFound>> QueryWindowsAsync(NpgsqlDataSource dataSource,
+            ClaimsPrincipal user, Guid id, CancellationToken cancellationToken)
+        {
+            if (await OwnRunAsync(dataSource, user, id, cancellationToken) is null) return TypedResults.NotFound();
+            if (await SearchLog.ProteinQueryAsync(dataSource, id, cancellationToken) is not { } query) return TypedResults.NotFound();
+            const int features = ZCurveGeneProfile.FeatureCount;
+            return TypedResults.Ok(new ProteinQueryWindowsResponse(id, query.LengthAa, ZCurveGeneProfile.WindowOf(query.LengthAa),
+                Enumerable.Range(0, query.Axes.Length / features).Select(w => (IReadOnlyList<double>)query.Axes[(w * features)..((w + 1) * features)]).ToList()));
         }
 
         private static async Task<Results<NoContent, NotFound>> DeleteAsync(NpgsqlDataSource dataSource, ClaimsPrincipal user, Guid id,

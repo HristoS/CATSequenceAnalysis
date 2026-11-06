@@ -134,7 +134,7 @@ tr.row.picked td { background: var(--hover); font-weight: 600; }
 .genepicks select { width: 100%; }
 .heatgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 14px; }
 .heatlabel { margin: 10px 0 0; font-size: 13px; }
-.compare-genes .zpath { max-width: 760px; }
+.compare-genes .zpath, .hitview .zpath { max-width: 760px; }
 
 .mapgrid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 14px; align-items: start; }
 figure { margin: 0; }
@@ -197,3 +197,8 @@ figure { margin: 0; }
   .brand { flex: 1; }
   .topbar nav { order: 3; flex-basis: 100%; }
 }
+
+.chosen { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; padding: 8px 12px; background: var(--panel); border: 1px solid var(--accent); border-radius: 8px; font-size: 14px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ztip { max-width: calc(100% - 12px); white-space: normal; }
