@@ -1,4 +1,4 @@
-import { get } from "./api.js";
+import { get, loadGenes } from "./api.js";
 import { Message, Segmented, formatBp, html, useEffect, useMemo, useRef, useState } from "./html.js";
 import { drawCurve, views } from "./zcurve3d.js";
 
@@ -6,12 +6,7 @@ const rowsPerPage = 25;
 const samplesPerWindow = 24;
 const featureNames = ["x mean", "y mean", "z mean", "x trend", "y trend", "z trend", "x curvature", "y curvature", "z curvature"];
 
-// One request per record however many panels ask: the gene list and the signature's gene-layer view share it.
-const lists = new Map();
-export function loadGenes(id) {
-  if (!lists.has(id)) lists.set(id, get(`/api/sequences/${id}/genes`).catch(e => { lists.delete(id); throw e; }));
-  return lists.get(id);
-}
+export { loadGenes };
 
 function useGenes(id) {
   const [state, setState] = useState({ list: null, error: null });
@@ -41,12 +36,14 @@ export function GeneLayerSignature({ id }) {
       which is what lets a protein find its gene.</p>`;
 }
 
-export function GenesPanel({ id }) {
+// onSelect(gene) tells the page which gene is picked (null when none), so its path panel can highlight it.
+export function GenesPanel({ id, onSelect = () => {} }) {
   const { list, error } = useGenes(id);
   const [text, setText] = useState("");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState(null);
-  useEffect(() => { setSelected(null); setPage(0); setText(""); }, [id]);
+  useEffect(() => { setSelected(null); setPage(0); setText(""); onSelect(null); }, [id]);
+  const pick = g => { setSelected(g.index); onSelect(g); };
 
   const shown = useMemo(() => {
     if (!list) return [];
@@ -64,8 +61,8 @@ export function GenesPanel({ id }) {
     <div class="tablewrap"><table>
       <thead><tr><th class="num">#</th><th class="num">Position</th><th>Strand</th><th class="num">aa</th><th>Product</th></tr></thead>
       <tbody>${shown.slice(current * rowsPerPage, (current + 1) * rowsPerPage).map(g => html`<tr key=${g.index}
-          class=${selected === g.index ? "row picked" : "row"} tabIndex="0" onClick=${() => setSelected(g.index)}
-          onKeyDown=${e => { if (e.key === "Enter") setSelected(g.index); }}>
+          class=${selected === g.index ? "row picked" : "row"} tabIndex="0" onClick=${() => pick(g)}
+          onKeyDown=${e => { if (e.key === "Enter") pick(g); }}>
         <td class="num">${g.index + 1}</td>
         <td class="num">${formatBp(g.startBp)}</td>
         <td>${g.strand === "Reverse" ? "−" : "+"}</td>

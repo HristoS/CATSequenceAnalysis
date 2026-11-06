@@ -150,6 +150,24 @@ namespace SequencePlatform.Tests
             Assert.That(one.GetProperty("windows").EnumerateArray().SelectMany(w => w.EnumerateArray().Select(v => v.GetDouble())),
                 Is.EqualTo(profile.WindowsOf(1)).Within(1e-9));
 
+            // The genome path built from the genes: one point per window after a leading zero, genes in order of start, the reverse-strand
+            // gene's stretch adding its coding-orientation sums with x and y negated.
+            var path = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes/path?origin=true"))!;
+            var coordinates = path.GetProperty("coordinates").EnumerateArray().Select(v => v.GetDouble()).ToArray();
+            var first = path.GetProperty("firstPoint").EnumerateArray().Select(v => v.GetInt32()).ToArray();
+            Assert.That((path.GetProperty("startBp").GetInt64(), coordinates.Length), Is.EqualTo((0L, 3 * (profile.WindowCount + 1))), "no origin: from 0");
+            Assert.That(path.GetProperty("geneIndex").EnumerateArray().Select(v => v.GetInt32()), Is.EqualTo(new[] { 0, 1, 2 }));
+            Assert.That(first, Is.EqualTo(new[] { 0, profile.Genes[0].WindowCount, profile.Genes[0].WindowCount + profile.Genes[1].WindowCount }));
+            var expected = GenePath.Build(profile, dna.Length).Points.SelectMany(p => new[] { p.X, p.Y, p.Z }).ToArray();
+            Assert.That(coordinates, Is.EqualTo(expected).Within(0.051), "rounded to 0.1 base");
+            var reverse = profile.WindowsOf(1);
+            double Sum(int axis) => Enumerable.Range(0, profile.Genes[1].WindowCount).Sum(w => 120 * reverse[9 * w + axis]);
+            double Step(int axis) => coordinates[3 * first[2] + axis] - coordinates[3 * first[1] + axis];
+            Assert.That((Step(0), Step(1), Step(2)), Is.EqualTo((-Sum(0), -Sum(1), Sum(2))).Using<(double, double, double)>(
+                (p, q) => Math.Abs(p.Item1 - q.Item1) < 0.2 && Math.Abs(p.Item2 - q.Item2) < 0.2 && Math.Abs(p.Item3 - q.Item3) < 0.2));
+            var detail = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}"))!;
+            Assert.That(detail.TryGetProperty("originBp", out _), Is.False, "no origin-rotated levels, no origin");
+
             Assert.That((await client.GetAsync($"/api/sequences/{id}/genes/3")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
             Assert.That((await client.GetAsync($"/api/sequences/{upload}/genes")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound), "Bob's upload");
             var none = (await client.GetFromJsonAsync<JsonElement>(

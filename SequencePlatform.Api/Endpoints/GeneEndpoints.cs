@@ -23,6 +23,14 @@ namespace SequencePlatform.Api
                     "without a gene layer (uploads, NCBI eukaryotes) answer with no genes.")
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
+            sequences.MapGet("/{id:long}/genes/path", PathAsync)
+                .WithName("GetGenePath")
+                .WithSummary("The record's Z-curve path built from its genes alone, in chromosome order")
+                .WithDescription("origin=true starts at the replication origin when the record has one (as the 1-origin levels do), else at 0. " +
+                    "Each gene window is one step: window positions times its means of x, y, z over codon positions 1 and 2; reverse-strand " +
+                    "genes are flipped onto the forward strand, and intergenic DNA is left out. Records without genes answer with no points.")
+                .ProducesProblem(StatusCodes.Status404NotFound);
+
             sequences.MapGet("/{id:long}/genes/{index:int}", WindowsAsync)
                 .WithName("GetGeneWindows")
                 .WithSummary("One gene's stored windows: mean, trend and curvature of x, y and z over codon positions 1 and 2")
@@ -43,6 +51,25 @@ namespace SequencePlatform.Api
             return TypedResults.Ok(new GeneListResponse(id, profile.Genes.Count, profile.WindowCount,
                 GeneProfiles.Features.Select((f, i) => new SignatureValueResponse(f.Name, mean[i], f.Meaning, null)).ToList(),
                 profile.Genes.Select((g, i) => Gene(g, i, products)).ToList()));
+        }
+
+        private static async Task<Results<Ok<GenePathResponse>, ProblemHttpResult>> PathAsync(NpgsqlDataSource dataSource, ClaimsPrincipal user,
+            long id, bool origin = false, CancellationToken cancellationToken = default)
+        {
+            var detail = await Catalogue.DetailAsync(dataSource, id, user.UserId(), cancellationToken);
+            if (detail is null) return TypedResults.Problem($"No sequence {id}.", statusCode: StatusCodes.Status404NotFound);
+            var profile = await GeneProfiles.ReadAsync(dataSource, id);
+            if (profile is null) return TypedResults.Ok(new GenePathResponse(id, 0, 0, [], [], []));
+
+            long lengthBp = detail.Record.LengthBp;
+            long startBp = origin ? await OriginRotation.OriginBpAsync(dataSource, id, lengthBp) ?? 0 : 0;
+            var path = GenePath.Build(profile, lengthBp, startBp);
+            var coordinates = new double[3 * path.Points.Count];
+            for (int i = 0; i < path.Points.Count; i++)
+                (coordinates[3 * i], coordinates[3 * i + 1], coordinates[3 * i + 2]) =
+                    (Math.Round(path.Points[i].X, 1), Math.Round(path.Points[i].Y, 1), Math.Round(path.Points[i].Z, 1));
+            return TypedResults.Ok(new GenePathResponse(id, path.StartBp, profile.Genes.Count, coordinates,
+                path.Genes.Select(g => g.Gene).ToList(), path.Genes.Select(g => g.FirstPoint).ToList()));
         }
 
         private static async Task<Results<Ok<GeneWindowsResponse>, ProblemHttpResult>> WindowsAsync(NpgsqlDataSource dataSource, ClaimsPrincipal user,

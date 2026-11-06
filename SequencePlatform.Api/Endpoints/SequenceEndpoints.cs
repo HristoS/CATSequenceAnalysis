@@ -69,7 +69,11 @@ namespace SequencePlatform.Api
             long id, CancellationToken cancellationToken)
         {
             var detail = await Catalogue.DetailAsync(dataSource, id, user.UserId(), cancellationToken);
-            return detail is null ? TypedResults.NotFound() : TypedResults.Ok(SequenceDetailResponse.From(detail));
+            if (detail is null) return TypedResults.NotFound();
+            return TypedResults.Ok(SequenceDetailResponse.From(detail) with
+            {
+                OriginBp = await OriginRotation.OriginBpAsync(dataSource, id, detail.Record.LengthBp),
+            });
         }
 
         private static async Task<Results<FileContentHttpResult, ProblemHttpResult>> GetProfileAsync(NpgsqlDataSource dataSource,

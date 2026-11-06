@@ -22,6 +22,17 @@ namespace SequencePlatform.Api
     /// W / 2 * (m0 (t + 1) + sqrt(3) m1 (t^2 - 1) / 2 + sqrt(5) m2 (t^3 - t) / 2).</param>
     public sealed record GeneWindowsResponse(long Id, GeneResponse Gene, int WindowPositions, IReadOnlyList<IReadOnlyList<double>> Windows);
 
+    /// <summary>
+    /// A record's Z-curve path built from its gene layer alone (<see cref="GenePath"/>): genes in chromosome order from <c>StartBp</c>,
+    /// each window one step of window positions times its means over codon positions 1 and 2, reverse-strand genes flipped onto the
+    /// forward strand; intergenic DNA left out.
+    /// </summary>
+    /// <param name="Coordinates">The points flattened, x, y, z per point, rounded to 0.1 base; the first point is the axes' origin.</param>
+    /// <param name="GeneIndex">The genes in path order, by their index in <c>/genes</c>.</param>
+    /// <param name="FirstPoint">Where each of those genes' stretch starts; it ends where the next one starts.</param>
+    public sealed record GenePathResponse(long Id, long StartBp, int GeneCount, IReadOnlyList<double> Coordinates, IReadOnlyList<int> GeneIndex,
+        IReadOnlyList<int> FirstPoint);
+
     /// <summary>A protein search's query as the windows it was compared with: the protein's expected Z-curve, never its letters.</summary>
     /// <param name="Windows">Per window, the same 9 values as <see cref="GeneWindowsResponse.Windows"/>.</param>
     public sealed record ProteinQueryWindowsResponse(Guid SearchId, int LengthAa, int WindowPositions, IReadOnlyList<IReadOnlyList<double>> Windows);

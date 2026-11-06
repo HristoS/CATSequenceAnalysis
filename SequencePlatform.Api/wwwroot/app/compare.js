@@ -1,7 +1,7 @@
-import { get, getBytes } from "./api.js";
+import { get, getBytes, loadGenes } from "./api.js";
 import { Message, Segmented, formatBp, html, useEffect, useMemo, useRef, useState } from "./html.js";
-import { HeatStrip, genePath, loadGenes } from "./genes.js";
-import { drawCurves, parse, path, views } from "./zcurve3d.js";
+import { HeatStrip, genePath } from "./genes.js";
+import { drawCurves, genePathOf, lineFits, parse, path, views, windowRanges } from "./zcurve3d.js";
 
 // Two or three records side by side on one set of plots: Z-curve paths, matching genes, signatures. Each record keeps its colour on
 // every plot, and the legend's switches show or hide it everywhere.
@@ -19,6 +19,7 @@ export function ComparePage({ params }) {
   const [errors, setErrors] = useState({});
   const [hidden, setHidden] = useState(new Set());
   const [adding, setAdding] = useState("");
+  const [picked, setPicked] = useState({});   // record id -> gene index, chosen in the genes panel and highlighted on the paths
 
   useEffect(() => {
     let live = true;
@@ -57,10 +58,10 @@ export function ComparePage({ params }) {
     </div>
     ${ids.length < 2 && html`<${Message}>Add a second record (up to ${maxCompared}) by its id, or use "Compare" on a record's nearest relatives.<//>`}
     ${shown.length > 0 && html`<div class="columns">
-      <section class="panel"><h2>Z-curve paths</h2><${ComparePaths} records=${shown} /></section>
+      <section class="panel"><h2>Z-curve paths</h2><${ComparePaths} records=${shown} picked=${picked} /></section>
       <section class="panel"><h2>Signature</h2><${CompareSignatures} records=${shown} /></section>
     </div>
-    <section class="panel compare-genes"><h2>Genes</h2><${CompareGenes} records=${records.filter(r => r.detail)} hidden=${hidden} /></section>`}`;
+    <section class="panel compare-genes"><h2>Genes</h2><${CompareGenes} records=${records.filter(r => r.detail)} hidden=${hidden} picked=${picked} setPicked=${setPicked} /></section>`}`;
 }
 
 // One rotatable canvas for several curves: drag, the view presets, redraw on resize, and on hover the nearest point's curve label and
@@ -111,55 +112,89 @@ const nameOf = r => r.detail.sequence.name || r.detail.sequence.recordId;
 const aminoAcidAt = (shape, i) => `about amino acid ${Math.round(shape.at[i] / 2).toLocaleString()}`;
 
 const removeDrift = (sums, fits, at) => sums.map((p, i) => p.map((v, a) => v - (fits[a][0] + fits[a][1] * at(i))));
+const withoutDrift = (points, fits) => removeDrift(points, fits, k => k);
 
-function ComparePaths({ records }) {
+// The records' Z-curve paths on one canvas: from their stored windows, or (Source: Genes) built from their stored genes alone. The genes
+// picked below (picked: record id -> gene index) are highlighted on every path.
+function ComparePaths({ records, picked }) {
   const anyOrigin = records.some(r => r.detail.levels.some(l => l.methodVersion.endsWith("-origin")));
+  const withGenes = records.filter(r => r.detail.sequence.provider === "BV-BRC");
+  const [source, setSource] = useState("windows");
   const [layout, setLayout] = useState("origin");
   const [scale, setScale] = useState("length");
   const [drift, setDrift] = useState("removed");
   const [profiles, setProfiles] = useState({});
+  const [lists, setLists] = useState({});
   const [error, setError] = useState(null);
+  const fromGenes = source === "genes";
 
-  // A chromosome with an origin-rotated level is drawn from its replication origin (2 kbp windows); anything else as deposited (500 bp).
-  const wanted = records.map(r => {
+  // A chromosome with an origin-rotated level is drawn from its replication origin (2 kbp windows, or its genes from there); anything
+  // else as deposited (500 bp windows, or its genes from 0). Records without genes have no gene path.
+  const wanted = (fromGenes ? withGenes : records).map(r => {
     const origin = layout === "origin" && r.detail.levels.some(l => l.methodVersion.endsWith("-origin") && l.windowSize === 2000);
-    return { id: r.id, origin, key: `${r.id}-${origin ? "origin" : "deposited"}` };
+    return { id: r.id, record: r, origin, key: `${r.id}-${fromGenes ? "genes" : "windows"}-${origin ? "origin" : "deposited"}` };
   });
   useEffect(() => {
     let live = true;
     setError(null);
-    for (const w of wanted)
-      if (!profiles[w.key]) getBytes(`/api/sequences/${w.id}/profile?${w.origin ? "windowSize=2000&origin=true" : "windowSize=500"}`)
-        .then(buffer => { if (live) setProfiles(old => ({ ...old, [w.key]: parse(buffer) })); })
-        .catch(e => { if (live) setError(e.message); });
+    for (const w of wanted) {
+      if (profiles[w.key]) continue;
+      const load = fromGenes
+        ? get(`/api/sequences/${w.id}/genes/path?origin=${w.origin}`).then(genePathOf)
+        : getBytes(`/api/sequences/${w.id}/profile?${w.origin ? "windowSize=2000&origin=true" : "windowSize=500"}`).then(parse);
+      load.then(p => { if (live) setProfiles(old => ({ ...old, [w.key]: p })); }).catch(e => { if (live) setError(e.message); });
+    }
+    for (const r of withGenes)
+      if (!lists[r.id]) loadGenes(r.id).then(l => { if (live) setLists(old => ({ ...old, [r.id]: l })); }).catch(() => {});
     return () => { live = false; };
   }, [wanted.map(w => w.key).join(",")]);
 
-  const curves = useMemo(() => wanted.flatMap((w, i) => {
-    const profile = profiles[w.key];
-    if (!profile) return [];
-    const shape = path(profile), length = records[i].detail.sequence.lengthBp;
-    let points = Array.from({ length: profile.n + 1 }, (_, k) => shape.sums.map(s => s[k]));   // sums are typed arrays, one per axis
-    if (drift === "removed") points = removeDrift(points, shape.fits, k => k);
+  const curves = useMemo(() => wanted.flatMap(w => {
+    const loaded = profiles[w.key];
+    if (!loaded) return [];
+    const r = w.record, length = r.detail.sequence.lengthBp, list = lists[r.id], index = picked[r.id];
+    const gene = index != null ? list?.genes[index] : null;
+    let points, highlights = [], describe;
+    if (fromGenes) {
+      points = drift === "removed" ? withoutDrift(loaded.points, lineFits(loaded.points)) : loaded.points;
+      if (gene && loaded.spans.has(gene.index)) highlights = [loaded.spans.get(gene.index)];
+      describe = k => { const g = list?.genes[loaded.geneAt(k)]; return g ? `gene #${g.index + 1} · ${g.product ?? g.familyId ?? "no family"}` : ""; };
+    } else {
+      const shape = path(loaded);
+      points = Array.from({ length: loaded.n + 1 }, (_, k) => shape.sums.map(s => s[k]));   // sums are typed arrays, one per axis
+      if (drift === "removed") points = withoutDrift(points, shape.fits.map(f => f));
+      if (gene) highlights = windowRanges(gene.startBp, gene.endBp, w.origin ? r.detail.originBp ?? 0 : 0, length, loaded.size, loaded.n);
+      describe = k => `${formatBp(Math.min(k * loaded.size, length))}${w.origin ? " from the origin" : ""} of ${formatBp(length)}`;
+    }
     if (scale === "length") points = points.map(p => p.map(v => v * 1000 / length));
-    const describe = k => `${formatBp(Math.min(k * profile.size, length))}${w.origin ? " from the origin" : ""} of ${formatBp(length)}`;
-    return [{ points, from: records[i].colour, to: records[i].colour, label: nameOf(records[i]), describe }];
-  }), [profiles, wanted.map(w => w.key).join(","), drift, scale]);
+    return [{ points, from: r.colour, to: r.colour, label: nameOf(r), describe, highlights }];
+  }), [profiles, lists, wanted.map(w => w.key).join(","), drift, scale, JSON.stringify(picked)]);
 
   if (error) return html`<${Message}>${error}<//>`;
-  const deposited = wanted.filter((w, i) => layout === "origin" && !w.origin).map(w => records.find(r => r.id === w.id).detail.sequence);
+  const deposited = wanted.filter(w => layout === "origin" && !w.origin).map(w => nameOf(w.record));
+  const missing = fromGenes ? records.filter(r => !withGenes.includes(r)).map(nameOf) : [];
+  const pickedNames = wanted.map(w => lists[w.id]?.genes[picked[w.id]]).filter(Boolean);
   return html`<div class="toolbar">
+      ${withGenes.length > 0 && html`<${Segmented} label="Source" value=${source} onChange=${setSource} options=${[["windows", "Genome windows"], ["genes", "Genes"]]} />`}
       ${anyOrigin && html`<${Segmented} label="Layout" value=${layout} onChange=${setLayout} options=${[["origin", "From origin"], ["deposited", "As deposited"]]} />`}
       <${Segmented} label="Scale" value=${scale} onChange=${setScale} options=${[["length", "Same length"], ["bases", "Bases"]]} />
       <${Segmented} label="Drift" value=${drift} onChange=${setDrift} options=${[["removed", "Removed"], ["kept", "Kept"]]} />
     </div>
     <${CurveCanvas} curves=${curves} unit=${scale === "length" ? "bases of excess per kbp of genome" : "bases of excess"}
       label="Z-curve paths of the compared records on one set of axes; drag to rotate" />
-    <p class="hint">Each record's running sums in its colour; the grey ring is each start. Same length divides each path by its genome's length,
-      so a phage and a bacterium can share the axes. ${anyOrigin && layout === "origin"
-        ? "Circular chromosomes start at their replication origin (2 kbp windows), which is what lines related genomes up: as deposited, each starts wherever its submitter chose."
-        : "As deposited, each path starts where its record does (500 bp windows)."}
-      ${deposited.length > 0 && ` Drawn as deposited, with no stored origin: ${deposited.map(s => s.name || s.recordId).join(", ")}.`}</p>`;
+    ${pickedNames.length > 0 && html`<p class="hint">${`Highlighted: ${pickedNames.map(g => `${g.product ?? g.familyId ?? "gene"} (#${g.index + 1})`).join(", ")}; ` +
+      (fromGenes ? "each an exact stretch of its record's gene path." : "on a whole chromosome a gene is a window or two, so it shows as a marked spot.")}</p>`}
+    <p class="hint">${(fromGenes
+        ? "Built from the gene layer alone: each record's stored genes in chromosome order, each window one step of its means over codon positions 1 and 2, " +
+          "reverse-strand genes flipped onto the forward strand; the DNA between genes and every third codon position are left out. Relatives " +
+          "line up a little less well on it than on the genome windows (results/GenePath_Check.csv). "
+        : "Each record's running sums in its colour; the grey ring is each start. ") +
+      "Same length divides each path by its genome's length, so a phage and a bacterium can share the axes. " +
+      (anyOrigin && layout === "origin"
+        ? "Circular chromosomes start at their replication origin, which is what lines related genomes up: as deposited, each starts wherever its submitter chose."
+        : "As deposited, each path starts where its record does.") +
+      (deposited.length > 0 ? ` Drawn as deposited, with no stored origin: ${deposited.join(", ")}.` : "") +
+      (missing.length > 0 ? ` No stored genes, so no gene path: ${missing.join(", ")}.` : "")}</p>`;
 }
 
 function CompareSignatures({ records }) {
@@ -197,10 +232,9 @@ function CompareSignatures({ records }) {
       : "The dinucleotide signature, one bar per record in its colour on a shared scale; hover a bar for its value."}</p>`;
 }
 
-function CompareGenes({ records, hidden }) {
+function CompareGenes({ records, hidden, picked, setPicked }) {
   const [lists, setLists] = useState({});
   const [text, setText] = useState("");
-  const [picked, setPicked] = useState({});   // record id -> gene index
   const [windows, setWindows] = useState({});
   const [drift, setDrift] = useState("kept");
 

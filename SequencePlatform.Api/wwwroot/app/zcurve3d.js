@@ -1,4 +1,4 @@
-import { getBytes } from "./api.js";
+import { get, getBytes, loadGenes } from "./api.js";
 import { Message, Segmented, formatBp, html, useEffect, useRef, useState } from "./html.js";
 
 // The record's Z-curve as a 3-D path, rebuilt from its stored 500 bp level: each window's mean step times its size is an exact
@@ -37,11 +37,11 @@ export function path(profile) {
   return { sums, fits, minAt, maxAt };
 }
 
-function draw(canvas, profile, shape, { drift, yaw, pitch, chromosome }) {
+function draw(canvas, profile, shape, { drift, yaw, pitch, chromosome, highlights = [] }) {
   const n = profile.n, points = new Array(n + 1);
   for (let k = 0; k <= n; k++)
     points[k] = shape.sums.map((s, a) => (drift ? s[k] : s[k] - (shape.fits[a][0] + shape.fits[a][1] * k)));
-  const { ctx, screen, width } = drawCurve(canvas, points, { yaw, pitch });
+  const { ctx, screen, width } = drawCurve(canvas, points, { yaw, pitch, highlights });
   if (chromosome) {
     ring(ctx, screen[shape.minAt], 6, css("--ink")); label(ctx, screen[shape.minAt], `skew min ${formatBp(shape.minAt * profile.size)}`, width);
     ring(ctx, screen[shape.maxAt], 4, css("--ink")); label(ctx, screen[shape.maxAt], `skew max ${formatBp(shape.maxAt * profile.size)}`, width);
@@ -51,8 +51,8 @@ function draw(canvas, profile, shape, { drift, yaw, pitch, chromosome }) {
 
 // A 3-D path ([x, y, z] points, in bases) coloured light to dark from start to end, with the axes and a scale bar; marks are point
 // indices to ring (window boundaries, for a gene). Returns the canvas context and each point's screen position for marks and tooltips.
-export function drawCurve(canvas, points, { yaw, pitch, marks = [] }) {
-  const { ctx, screens, width } = drawCurves(canvas, [{ points, from: "--seq-a", to: "--seq-b", marks }], { yaw, pitch });
+export function drawCurve(canvas, points, { yaw, pitch, marks = [], highlights = [] }) {
+  const { ctx, screens, width } = drawCurves(canvas, [{ points, from: "--seq-a", to: "--seq-b", marks, highlights }], { yaw, pitch });
   return { ctx, screen: screens[0], width };
 }
 
@@ -95,6 +95,24 @@ export function drawCurves(canvas, curves, { yaw, pitch, unit = "bases of excess
     if (screen.length) ring(ctx, screen[0], 3, css("--muted"));
   });
 
+  // Highlighted stretches ([first, last] point indices) on top of every curve: thick, in the curve's colour over an ink halo, with a
+  // ring where each starts, so even a one-window stretch on a whole chromosome shows.
+  curves.forEach((c, i) => {
+    const screen = screens[i];
+    for (const [first, last] of c.highlights ?? []) {
+      const a = Math.max(0, Math.min(first, screen.length - 1)), b = Math.max(a, Math.min(last, screen.length - 1));
+      for (const [width, colour] of [[8, css("--ink")], [4, css(c.to)]]) {
+        ctx.lineWidth = width; ctx.strokeStyle = colour;
+        ctx.beginPath(); ctx.moveTo(...screen[a]);
+        for (let k = a + 1; k <= b; k++) ctx.lineTo(...screen[k]);
+        if (a === b) ctx.lineTo(screen[a][0] + 0.1, screen[a][1]);
+        ctx.stroke();
+      }
+      ring(ctx, screen[a], 7, css("--ink"));
+    }
+  });
+  ctx.lineWidth = 2;
+
   const ox = width - 46, oy = height - 42;
   ctx.font = `11px ${css("--mono")}`;
   for (const [name, v] of [["x", [1, 0, 0]], ["y", [0, 1, 0]], ["z", [0, 0, 1]]]) {
@@ -126,16 +144,57 @@ function label(ctx, p, text, width) {
 const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
 const nice = v => { const p = 10 ** Math.floor(Math.log10(v)); const m = v / p; return (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p; };
 
-export function ZCurvePath({ id, chromosome }) {
+// The point ranges a gene covers on a window path: windows of `size` bp, the path starting `offsetBp` into the record (its origin, or
+// 0). A gene across the path's start wraps into two ranges.
+export function windowRanges(startBp, endBp, offsetBp, lengthBp, size, n) {
+  const at = bp => ((bp - offsetBp) % lengthBp + lengthBp) % lengthBp;
+  const a = Math.min(n, Math.floor(at(startBp) / size)), b = Math.min(n, Math.ceil(at(endBp) / size));
+  return at(endBp) >= at(startBp) ? [[a, Math.max(a, b)]] : [[a, n], [0, b]];
+}
+
+// The gene-built path of /genes/path: its points, each gene's stretch by gene index, and the gene a point belongs to.
+export function genePathOf(response) {
+  const c = response.coordinates, starts = response.firstPoint, points = [];
+  for (let i = 0; i < c.length; i += 3) points.push([c[i], c[i + 1], c[i + 2]]);
+  const spans = new Map(response.geneIndex.map((g, i) => [g, [starts[i], i + 1 < starts.length ? starts[i + 1] : points.length - 1]]));
+  const geneAt = k => {
+    let lo = 0, hi = starts.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (starts[mid] < k) lo = mid; else hi = mid - 1; }
+    return response.geneIndex[lo];
+  };
+  return { points, spans, geneAt };
+}
+
+// Each axis's least-squares line against the point index ([intercept, slope]): the drift removed from a path.
+export function lineFits(points) {
+  const n = points.length, mid = (n - 1) / 2;
+  let sxx = 0;
+  for (let k = 0; k < n; k++) sxx += (k - mid) ** 2;
+  return [0, 1, 2].map(a => {
+    let mean = 0, sxy = 0;
+    for (const p of points) mean += p[a] / n;
+    points.forEach((p, k) => { sxy += (k - mid) * (p[a] - mean); });
+    const slope = sxx ? sxy / sxx : 0;
+    return [mean - slope * mid, slope];
+  });
+}
+const withoutDrift = (points, fits) => points.map((p, k) => p.map((v, a) => v - (fits[a][0] + fits[a][1] * k)));
+
+// The record's Z-curve path: from its stored 500 bp windows, or (Source: Genes) built from its stored genes alone, in chromosome order.
+// `gene`, the gene picked in the genes panel, is highlighted on either.
+export function ZCurvePath({ id, chromosome, hasGenes, gene }) {
   const [profile, setProfile] = useState(null);
+  const [genePath, setGenePath] = useState(null);
+  const [geneList, setGeneList] = useState(null);
   const [error, setError] = useState(null);
+  const [source, setSource] = useState("windows");
   const [drift, setDrift] = useState("removed");
   const [view, setView] = useState("3d");
   const canvas = useRef(null), tip = useRef(null), shape = useRef(null), screen = useRef(null), angles = useRef(views["3d"]), drag = useRef(null);
 
   useEffect(() => {
     let live = true;
-    setProfile(null); setError(null);
+    setProfile(null); setGenePath(null); setGeneList(null); setError(null); setSource("windows");
     getBytes(`/api/sequences/${id}/profile?windowSize=500`).then(buffer => {
       if (!live) return;
       const parsed = parse(buffer);
@@ -144,13 +203,30 @@ export function ZCurvePath({ id, chromosome }) {
     }).catch(e => { if (live) setError(e.message); });
     return () => { live = false; };
   }, [id]);
+  useEffect(() => {
+    if (source !== "genes" || genePath) return;
+    let live = true;
+    Promise.all([get(`/api/sequences/${id}/genes/path`), loadGenes(id)])
+      .then(([p, list]) => { if (live) { setGenePath({ ...genePathOf(p), count: p.geneCount }); setGeneList(list); } })
+      .catch(e => { if (live) setError(e.message); });
+    return () => { live = false; };
+  }, [id, source]);
 
   const redraw = () => {
-    if (!profile || !canvas.current) return;
-    screen.current = draw(canvas.current, profile, shape.current,
-      { drift: drift === "kept", yaw: angles.current[0], pitch: angles.current[1], chromosome });
+    if (!canvas.current) return;
+    const options = { yaw: angles.current[0], pitch: angles.current[1] };
+    if (source === "genes") {
+      if (!genePath) return;
+      const points = drift === "kept" ? genePath.points : withoutDrift(genePath.points, lineFits(genePath.points));
+      const span = gene ? genePath.spans.get(gene.index) : null;
+      screen.current = drawCurve(canvas.current, points, { ...options, highlights: span ? [span] : [] }).screen;
+      return;
+    }
+    if (!profile) return;
+    const highlights = gene ? windowRanges(gene.startBp, gene.endBp, 0, profile.n * profile.size, profile.size, profile.n) : [];
+    screen.current = draw(canvas.current, profile, shape.current, { ...options, drift: drift === "kept", chromosome, highlights });
   };
-  useEffect(() => { if (view !== "free") angles.current = views[view]; redraw(); }, [profile, drift, view]);
+  useEffect(() => { if (view !== "free") angles.current = views[view]; redraw(); }, [profile, genePath, source, drift, view, gene]);
   useEffect(() => {
     if (!canvas.current) return;
     const observer = new ResizeObserver(redraw);
@@ -173,8 +249,13 @@ export function ZCurvePath({ id, chromosome }) {
     let best = -1, bestDistance = 14 * 14;
     screen.current?.forEach((p, k) => { const d = (p[0] - mx) ** 2 + (p[1] - my) ** 2; if (d < bestDistance) { bestDistance = d; best = k; } });
     if (best < 0) { tip.current.hidden = true; return; }
-    const w = Math.min(best, profile.n - 1);
-    tip.current.textContent = `${formatBp(best * profile.size)} · window GC ${((1 + profile.z[w] / profile.size) / 2 * 100).toFixed(1)} % · G − C ${((profile.x[w] - profile.y[w]) / 2 / profile.size * 100).toFixed(1)} %`;
+    if (source === "genes") {
+      const g = geneList?.genes[genePath.geneAt(best)];
+      tip.current.textContent = g ? `gene #${g.index + 1} at ${formatBp(g.startBp)} (${g.strand === "Reverse" ? "−" : "+"}) · ${g.product ?? g.familyId ?? "no family"}` : "";
+    } else {
+      const w = Math.min(best, profile.n - 1);
+      tip.current.textContent = `${formatBp(best * profile.size)} · window GC ${((1 + profile.z[w] / profile.size) / 2 * 100).toFixed(1)} % · G − C ${((profile.x[w] - profile.y[w]) / 2 / profile.size * 100).toFixed(1)} %`;
+    }
     tip.current.hidden = false;
     const left = screen.current[best][0] + 12;
     tip.current.style.left = `${left + tip.current.offsetWidth > r.width - 6 ? screen.current[best][0] - tip.current.offsetWidth - 12 : left}px`;
@@ -183,17 +264,29 @@ export function ZCurvePath({ id, chromosome }) {
 
   if (error) return html`<${Message}>${error}<//>`;
   if (!profile) return html`<${Message}>Loading the stored windows…<//>`;
+  const fromGenes = source === "genes";
+  const picked = gene && `Highlighted: gene #${gene.index + 1}, ${gene.product ?? gene.familyId ?? "no family"}` +
+    (fromGenes ? "." : `, ${formatBp(gene.startBp)}–${formatBp(gene.endBp)}.`);
   return html`<div class="toolbar">
+      ${hasGenes && html`<${Segmented} label="Source" value=${source} onChange=${setSource} options=${[["windows", "Genome windows"], ["genes", "Genes"]]} />`}
       <${Segmented} label="Drift" value=${drift} onChange=${setDrift} options=${[["removed", "Removed"], ["kept", "Kept"]]} />
       <${Segmented} label="View" value=${view} onChange=${setView} options=${[["3d", "3-D"], ["xy", "x–y"], ["xz", "x–z"], ["yz", "y–z"]]} />
     </div>
+    ${fromGenes && !genePath && html`<${Message}>Building the path from the stored genes…<//>`}
     <div class="zpath">
-      <canvas ref=${canvas} role="img" aria-label=${`Z-curve path of ${profile.n.toLocaleString()} windows; drag to rotate`}
+      <canvas ref=${canvas} role="img" aria-label=${fromGenes ? "Z-curve path built from the stored genes; drag to rotate"
+        : `Z-curve path of ${profile.n.toLocaleString()} windows; drag to rotate`}
         onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}
         onPointerLeave=${() => { if (!drag.current) tip.current.hidden = true; }}></canvas>
       <div class="ztip" ref=${tip} hidden></div>
     </div>
-    <p class="hint">x purine − pyrimidine, y amino − keto, z strong − weak (GC). Running sums of the ${profile.n.toLocaleString()} stored ${formatBp(profile.size)} windows,
-      light at the start and dark at the end; drag to rotate.${chromosome ? " The running GC skew (x − y) is lowest at the replication origin and highest at the terminus." : ""}${" "}
-      Removing the drift subtracts each axis's best-fit line, which is the genome's overall composition.</p>`;
+    ${picked && html`<p class="hint">${picked}</p>`}
+    ${fromGenes
+      ? html`<p class="hint">${`Built from the gene layer alone: the ${genePath?.count?.toLocaleString() ?? ""} stored genes in chromosome order, each window one step of ` +
+          "its means over codon positions 1 and 2, reverse-strand genes flipped onto the forward strand; the DNA between genes and every third " +
+          "codon position are left out. Relatives line up a little less well on it than on the genome windows (results/GenePath_Check.csv); " +
+          "a picked gene is an exact stretch of it. Hover a point to see its gene."}</p>`
+      : html`<p class="hint">x purine − pyrimidine, y amino − keto, z strong − weak (GC). Running sums of the ${profile.n.toLocaleString()} stored ${formatBp(profile.size)} windows,
+          light at the start and dark at the end; drag to rotate.${chromosome ? " The running GC skew (x − y) is lowest at the replication origin and highest at the terminus." : ""}${" "}
+          Removing the drift subtracts each axis's best-fit line, which is the genome's overall composition.</p>`}`;
 }

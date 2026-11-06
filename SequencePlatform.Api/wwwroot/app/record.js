@@ -72,6 +72,7 @@ function Signature({ id }) {
 export function RecordPage({ id }) {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
+  const [gene, setGene] = useState(null);   // picked in the genes panel, highlighted on the path
   useEffect(() => {
     get(`/api/sequences/${id}`).then(setDetail).catch(e => setError(e.message));
   }, [id]);
@@ -91,8 +92,8 @@ export function RecordPage({ id }) {
       </section>
       ${hasSignature && html`<section class="panel"><h2>Dinucleotide signature</h2><${Signature} id=${s.id} /></section>`}
       ${hasWindows && html`<section class="panel"><h2>Z-curve path</h2>
-        <${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} /></section>`}
-      ${s.provider === "BV-BRC" && html`<section class="panel"><h2>Genes</h2><${GenesPanel} id=${s.id} /></section>`}
+        <${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} hasGenes=${s.provider === "BV-BRC"} gene=${gene} /></section>`}
+      ${s.provider === "BV-BRC" && html`<section class="panel"><h2>Genes</h2><${GenesPanel} id=${s.id} onSelect=${setGene} /></section>`}
       <section class="panel"><h2>Stored profile levels</h2>
         <div class="tablewrap"><table>
           <thead><tr><th class="num">Window</th><th class="num">Windows</th><th>Version</th></tr></thead>

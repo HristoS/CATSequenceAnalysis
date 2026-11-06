@@ -33,14 +33,36 @@ namespace SequencePlatform.Core
         public static string RotatedVersion(string methodVersion) => methodVersion + "-origin";
 
         /// <summary>The fine profile rotated to start at its replication origin; null when it's too short or its skew too weak to place one.</summary>
-        public static ZCurveWindowedProfile? ToOrigin(ZCurveWindowedProfile fine, long lengthBp)
+        public static ZCurveWindowedProfile? ToOrigin(ZCurveWindowedProfile fine, long lengthBp) =>
+            OriginWindow(fine, lengthBp) is int origin ? fine.RotateTo(origin) : null;
+
+        /// <summary>
+        /// Where a record's stored origin-rotated levels start, in bp of the deposit, recomputed from its stored fine level (exactly the
+        /// rotation build-origins stored: results/GenePath_Check.csv); null when it has none.
+        /// </summary>
+        public static async Task<long?> OriginBpAsync(NpgsqlDataSource dataSource, long sequenceId, long lengthBp,
+            string method = RecordStore.Method, string methodVersion = RecordStore.MethodVersion)
+        {
+            await using (var exists = dataSource.CreateCommand("select 1 from profile_level where sequence_id = $1 and method = $2 and method_version = $3 limit 1"))
+            {
+                exists.Parameters.AddWithValue(sequenceId);
+                exists.Parameters.AddWithValue(method);
+                exists.Parameters.AddWithValue(RotatedVersion(methodVersion));
+                if (await exists.ExecuteScalarAsync() is null) return null;
+            }
+            var fine = await ProfileLevels.ReadAsync(dataSource, sequenceId, method, methodVersion, RecordStore.FineWindowSize);
+            return fine is not null && OriginWindow(fine, lengthBp) is int window ? (long)window * RecordStore.FineWindowSize : null;
+        }
+
+        /// <summary>The fine window the rotated levels start at; null when the record is too short or its skew too weak to place one.</summary>
+        public static int? OriginWindow(ZCurveWindowedProfile fine, long lengthBp)
         {
             if (lengthBp < MinLengthBp || fine.WindowCount == 0) return null;
             var skew = fine.GcSkewExtremes();
             int count = fine.WindowCount, apart = Math.Abs(skew.OriginWindow - skew.TerminusWindow);
             if ((double)Math.Min(apart, count - apart) / count < MinOriginToTerminusFraction) return null;
             if (skew.AmplitudeBp / (lengthBp / 1000.0) < MinSkewBpPerKbp) return null;
-            return fine.RotateTo(skew.OriginWindow);
+            return skew.OriginWindow;
         }
 
         /// <summary>

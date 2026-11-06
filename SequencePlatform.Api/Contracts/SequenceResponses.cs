@@ -61,9 +61,11 @@ namespace SequencePlatform.Api
     /// <param name="SequenceSha256">SHA-256 of the normalized sequence (uppercase letters only), hex: equal hashes mean identical sequences.</param>
     /// <param name="Owned">The record is your own upload; uploads are visible only to their owner.</param>
     /// <param name="Annotations">Free-form provider metadata (host, isolation source, assembly accession, ...).</param>
+    /// <param name="OriginBp">Where the record's "1-origin" levels start in its own coordinates (its replication origin); absent when it
+    /// has none.</param>
     public sealed record SequenceDetailResponse(SequenceSummaryResponse Sequence, string DataClass, string? SequenceSha256, bool Owned,
         ProvenanceResponse Provenance, NcbiTaxonResponse? Ncbi, GtdbTaxonResponse? Gtdb, IReadOnlyList<ProfileLevelResponse> Levels,
-        JsonElement Annotations)
+        JsonElement Annotations, long? OriginBp = null)
     {
         internal static SequenceDetailResponse From(CatalogueDetail d)
         {

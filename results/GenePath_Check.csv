@@ -1,0 +1,6 @@
+Pair,Gene path gap (forward),Gene path gap (reverse strand),Best,Genome-window path from the origin
+K-12 vs same genus: Escherichia sp. TC-EC600-tetX4,0.33,2.00,0.33,0.30
+K-12 vs other genus: Salmonella sp. S13,0.28,1.95,0.28,0.17
+K-12 vs control: B. subtilis 168,1.32,1.94,1.32,0.98
+
+Rule (relatives no worse than on the genome-window path, control above both): stop

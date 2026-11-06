@@ -58,8 +58,8 @@ every `/api` call still needs the key. A FASTA file goes from the browser straig
 
 A record's page shows its lineages, nearest relatives, dinucleotide signature (Karlin, Z-curve coefficients or the gene layer's mean
 window), Z-curve path and, for BV-BRC genomes, its genes: pick one to see its Z-curve over codon positions 1 and 2, redrawn from the
-stored windows. `#/compare?ids=a,b,c` (from the catalogue's checkboxes, a record's nearest relatives, or the top hits of a search) puts 2 or 3 records on shared plots, each in its own colour that the legend switches on and off
-everywhere: their Z-curve paths (circular chromosomes from the replication origin, `results/CompareOverlay_Check.csv`; scaled to the
+stored windows; the path panel can also build the genome's path from its genes alone (Source: Genes), and highlights the picked gene. `#/compare?ids=a,b,c` (from the catalogue's checkboxes, a record's nearest relatives, or the top hits of a search) puts 2 or 3 records on shared plots, each in its own colour that the legend switches on and off
+everywhere: their Z-curve paths, from the genome windows or from the genes, with the picked protein's genes highlighted (circular chromosomes from the replication origin, `results/CompareOverlay_Check.csv`; scaled to the
 same genome length or in bases), their signatures as grouped bars, and their copies of a protein family they all carry (or any gene
 picked per record) as overlaid gene curves and heat strips.
 
@@ -75,7 +75,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 |---|---|---|
 | GET | `/api/sequences` | Keyset pages (`after`, `limit` ≤ 1000); filters `kind` (a stored kind, or `prokaryote` for bacterium and archaeon), `rank` + `taxon`, `minLength`, `maxLength`, `provider`, `name`. Searches take the same filters |
 | GET | `/api/sequences/facets` | Filter choices with record counts over what the caller can see: `kinds`, `kindGroups` (with their member kinds) and `providers`, largest first, plus `total` |
-| GET | `/api/sequences/{id}` | Metadata, provider / NCBI / GTDB lineage, annotations, stored levels, provenance |
+| GET | `/api/sequences/{id}` | Metadata, provider / NCBI / GTDB lineage, annotations, stored levels, provenance, and `originBp`: where its `1-origin` levels start (its replication origin), when it has them |
 | GET | `/api/sequences/{id}/profile?windowSize=&origin=` | One level as ZCWP bytes (`application/x-zcwp`), 500 / 2000 / 8000 / 32000; `origin=true` gives a circular chromosome's level laid out from its replication origin (2000 bp and up, where stored) |
 | POST | `/api/sequences` | Upload `text/x-fasta` (any number of records) or `application/x-zcwp` (the 500 bp level, with `lengthBp`); `kind` required, `name`, `taxid`, `dataClass` (default `restricted`), `recordId` for a profile. 201 with the new records |
 | POST | `/api/searches/similar` | Queue find-similar for one FASTA record or a ZCWP query (forward strand, optionally the reverse right after it); catalogue filters, `ratio` (0.25–1, default 0.5), `top` (1–1000, default 50), `lengthBp` for a profile. 202 + `Location` |
@@ -87,6 +87,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
 | GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |
 | GET | `/api/sequences/{id}/genes` | The record's stored genes (BV-BRC, 50 aa and up), in order of start, with strand, length in aa, family and product, plus `meanWindow`: the 9 window features averaged over all of them, in the signature's format. No genes for uploads and NCBI eukaryotes |
+| GET | `/api/sequences/{id}/genes/path?origin=` | The record's Z-curve path built from its genes alone, in chromosome order (from the replication origin with `origin=true`, when it has one): each gene window one step of its means over codon positions 1 and 2, reverse-strand genes flipped onto the forward strand, intergenic DNA left out; flat `coordinates`, and each gene's `firstPoint` (`results/GenePath_Check.csv`) |
 | GET | `/api/sequences/{id}/genes/{index}` | One gene's stored windows: mean, trend and curvature of x, y and z over codon positions 1 and 2, from which the page redraws the gene's Z-curve (`results/GeneCurve_Check.csv`) |
 | GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
 | GET | `/api/landscape?group=` | The public catalogue on two axes: `cellular` (default), `viral` or `eukaryotic`, one genome per species, or `all`, every public genome on one set of axes. PCA of the signature as parallel arrays with domains, lineages and each axis's heaviest dinucleotides |

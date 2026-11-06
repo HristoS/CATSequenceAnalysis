@@ -39,3 +39,10 @@ export async function send(path, { method = "GET", body, contentType, bytes = fa
 
 export const get = path => send(path);
 export const getBytes = path => send(path, { bytes: true });
+
+// One request per record however many panels ask: the genes panel, the signature's gene-layer view, paths and the compare page share it.
+const geneLists = new Map();
+export function loadGenes(id) {
+  if (!geneLists.has(id)) geneLists.set(id, get(`/api/sequences/${id}/genes`).catch(e => { geneLists.delete(id); throw e; }));
+  return geneLists.get(id);
+}
