@@ -109,6 +109,8 @@ namespace SequencePlatform.Tests
                 (await Catalogue.ListAsync(ThrowawayDatabase.DataSource, filter with { Provider = provider })).Records.Select(r => r.Id).ToArray();
 
             Assert.That(await Ids(new CatalogueFilter(Kind: "virus")), Is.EqualTo(new[] { shortVirus, longVirus }));
+            var archaeon = await ThrowawayDatabase.InsertRecordAsync(provider, "f-arch", 2_000_000, kind: "archaeon");
+            Assert.That(await Ids(new CatalogueFilter(Kind: "prokaryote")), Is.EqualTo(new[] { bacterium, archaeon }), "the group is bacterium + archaeon");
             Assert.That(await Ids(new CatalogueFilter(MinLengthBp: 10_000, MaxLengthBp: 100_000)), Is.EqualTo(new[] { longVirus }));
             // Wildcards in the search text are literal: "_bact%" must not match "f-short" or "f-long".
             Assert.That(await Ids(new CatalogueFilter(NameContains: "_BACT%")), Is.EqualTo(new[] { bacterium }));

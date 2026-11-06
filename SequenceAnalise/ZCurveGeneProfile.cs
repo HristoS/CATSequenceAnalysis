@@ -168,6 +168,30 @@ namespace SequenceAnalyses
             return table;
         }
 
+        /// <summary>Gene <paramref name="gene"/>'s windows as stored, window by window: <see cref="FeatureCount"/> values each, 3 * order + axis.</summary>
+        public double[] WindowsOf(int gene)
+        {
+            var (first, count) = (genes[gene].FirstWindow, genes[gene].WindowCount);
+            var windows = new double[count * FeatureCount];
+            for (int w = 0; w < count; w++)
+                for (int f = 0; f < FeatureCount; f++)
+                    windows[w * FeatureCount + f] = (double)features[f][first + w];
+            return windows;
+        }
+
+        /// <summary>Each feature's mean over every window of every gene (3 * order + axis); zeros when there's no window.</summary>
+        public double[] MeanWindow()
+        {
+            var mean = new double[FeatureCount];
+            for (int f = 0; f < FeatureCount && WindowCount > 0; f++)
+            {
+                double sum = 0;
+                foreach (var value in features[f]) sum += (double)value;
+                mean[f] = sum / WindowCount;
+            }
+            return mean;
+        }
+
         /// <summary>
         /// 1 - the mean over the common windows of the per-window Euclidean distance between a query (from <see cref="QueryFromGene"/>
         /// or <see cref="QueryFromProtein"/>) and gene <paramref name="gene"/>, the convention of <see cref="ZCurveWindowedProfile.BestAlignment"/>.
@@ -295,8 +319,8 @@ namespace SequenceAnalyses
             return codons > 0 && CodonIndex(gene, 3 * (codons - 1)) is int last && last >= 0 && geneticCode[last] == '*' ? codons - 1 : codons;
         }
 
-        // The window rule: positions 1 and 2 per window for a protein of this length; 0 when it's too short to keep.
-        private static int WindowOf(int residues) =>
+        /// <summary>The window rule: codon positions 1 and 2 per window for a protein of this length; 0 when it's too short to keep.</summary>
+        public static int WindowOf(int residues) =>
             residues >= LongResidues ? WindowBases : residues >= MinResidues ? 2 * residues / SplitWindows : 0;
 
         // Complete windows of `window` positions-1-and-2 bases over the first `bases`: per window, for k = 0, 1, 2 and each axis,

@@ -12,6 +12,22 @@ namespace SequencePlatform.Core
     public static class GeneProfiles
     {
         public const int LongBucket = 0;
+        private const string over = " over codon positions 1 and 2 in a window";
+
+        /// <summary>The 9 window features in stored order (3 * order + axis), with what each measures.</summary>
+        public static readonly IReadOnlyList<(string Name, string Meaning)> Features =
+        [
+            ("x mean", "purine (A, G) minus pyrimidine (C, T)" + over),
+            ("y mean", "amino (A, C) minus keto (G, T)" + over),
+            ("z mean", "strong (C, G) minus weak (A, T)" + over),
+            ("x trend", "how x changes from the window's 5' end to its 3' end (Legendre P1, scaled)"),
+            ("y trend", "how y changes from the window's 5' end to its 3' end (Legendre P1, scaled)"),
+            ("z trend", "how z changes from the window's 5' end to its 3' end (Legendre P1, scaled)"),
+            ("x curvature", "whether x bulges or dips in the window's middle (Legendre P2, scaled)"),
+            ("y curvature", "whether y bulges or dips in the window's middle (Legendre P2, scaled)"),
+            ("z curvature", "whether z bulges or dips in the window's middle (Legendre P2, scaled)"),
+        ];
+
         public const int MaxBucket = 25;
         private const double bucketRatio = 1.1;
         private const short formatVersion = 2; // the ZCGP header version ToBinary writes

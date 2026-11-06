@@ -19,8 +19,14 @@ namespace SequencePlatform.Api
                 .WithName("ListSequences")
                 .WithSummary("List the catalogue")
                 .WithDescription("Keyset-paged in id order: pass the previous page's nextAfter as after. Filters combine with AND; " +
-                    "rank and taxon go together (rank: superkingdom, realm, kingdom, phylum, class, order, family, genus, species).")
+                    "rank and taxon go together (rank: superkingdom, realm, kingdom, phylum, class, order, family, genus, species). " +
+                    "kind is a stored kind or a group from /api/sequences/facets (prokaryote: bacterium and archaeon).")
                 .ProducesValidationProblem();
+
+            sequences.MapGet("/facets", FacetsAsync)
+                .WithName("GetSequenceFacets")
+                .WithSummary("Filter choices: each kind, kind group and provider with its record count")
+                .WithDescription("Counts cover what the caller can see: the public catalogue and the caller's own uploads.");
 
             sequences.MapGet("/{id:long}", GetAsync)
                 .WithName("GetSequence")
@@ -53,6 +59,10 @@ namespace SequencePlatform.Api
             var page = await Catalogue.ListAsync(dataSource, filter, after, limit, cancellationToken);
             return TypedResults.Ok(new SequencePageResponse(page.Records.Select(SequenceSummaryResponse.From).ToList(), page.NextAfter));
         }
+
+        private static async Task<Ok<SequenceFacetsResponse>> FacetsAsync(NpgsqlDataSource dataSource, ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+            TypedResults.Ok(SequenceFacetsResponse.From(await Catalogue.FacetsAsync(dataSource, user.UserId(), cancellationToken)));
 
         private static async Task<Results<Ok<SequenceDetailResponse>, NotFound>> GetAsync(NpgsqlDataSource dataSource, ClaimsPrincipal user,
             long id, CancellationToken cancellationToken)

@@ -21,6 +21,22 @@ namespace SequencePlatform.Api
             new(r.Id, r.Provider, r.SourceAccession, r.RecordId, r.Name, r.Kind, r.LengthBp, r.GcFraction, r.NcbiTaxid, LineageResponse.From(r.Lineage));
     }
 
+    /// <summary>One filter value and how many records the caller can see with it.</summary>
+    public sealed record FacetCountResponse(string Value, long Count);
+
+    /// <summary>A kind filter value that stands for several kinds (prokaryote: bacterium and archaeon).</summary>
+    public sealed record KindGroupResponse(string Value, IReadOnlyList<string> Kinds, long Count);
+
+    /// <summary>What the caller's catalogue holds, for filter choices: public records plus the caller's own uploads, largest first.</summary>
+    public sealed record SequenceFacetsResponse(long Total, IReadOnlyList<FacetCountResponse> Kinds, IReadOnlyList<KindGroupResponse> KindGroups,
+        IReadOnlyList<FacetCountResponse> Providers)
+    {
+        internal static SequenceFacetsResponse From(CatalogueFacets f) =>
+            new(f.Kinds.Sum(k => k.Count), f.Kinds.Select(k => new FacetCountResponse(k.Value, k.Count)).ToList(),
+                f.KindGroups.Select(g => new KindGroupResponse(g.Value, g.Kinds, g.Count)).ToList(),
+                f.Providers.Select(p => new FacetCountResponse(p.Value, p.Count)).ToList());
+    }
+
     /// <summary>A page of the catalogue, in id order.</summary>
     /// <param name="NextAfter">Pass as <c>after</c> for the next page; absent on the last page.</param>
     public sealed record SequencePageResponse(IReadOnlyList<SequenceSummaryResponse> Items, long? NextAfter);

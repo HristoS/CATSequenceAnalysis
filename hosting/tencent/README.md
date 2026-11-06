@@ -15,7 +15,8 @@ addresses replaced by placeholders. Set up 2026-11 from commit `86c7736`.
 ## Why this setup
 
 The stack is PostgreSQL 17, a one-off `migrate`, the API with the web UI, and exactly one search worker. It's CPU-only, uses about
-450 MB of RAM in total, and its database holds profiles, never DNA (about 0.5 GB for the 2026-10 catalogue).
+450 MB of RAM in total, and its database holds profiles, never DNA (about 0.5 GB for the 2026-10 catalogue; 11 GB since
+2026-11-06, with the gene layer). With that catalogue the API peaks at about 0.8 GB, during localization (measured locally).
 
 | Choice | Why |
 |---|---|
@@ -110,6 +111,18 @@ docker compose -p COMPOSE_PROJECT -f docker-compose.yaml --env-file .env.Product
 4. Run `systemctl restart cat-platform`.
 
 **Seeding or replacing the catalogue:** see [`seed-database.md`](seed-database.md).
+
+**Adding an admin's SSH key.** The Lighthouse key pair bound to the instance (`cat_platform`) is the only one `ubuntu` accepts at
+first. To let another admin in without a restart, log in through the console (instance → **Log in**, the browser terminal) and
+append their public key:
+
+```bash
+echo 'ssh-ed25519 AAAA... their-comment' >> /home/ubuntu/.ssh/authorized_keys
+```
+
+Importing the key in the console and binding it to the instance works too, but may restart the instance. fail2ban bans an address for
+an hour after 5 failed logins in 10 minutes, so check the key's fingerprint (`ssh-keygen -l -f`) before trying it. A private key saved
+on Windows may need LF line endings and a final newline before OpenSSH accepts it (`Load key ...: invalid format`).
 
 **Still to do:**
 - nightly `pg_dump -Fc` with copies kept off the server

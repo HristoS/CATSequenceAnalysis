@@ -3,7 +3,7 @@ import { Message, Segmented, formatBp, html, useEffect, useRef, useState } from 
 
 // The record's Z-curve as a 3-D path, rebuilt from its stored 500 bp level: each window's mean step times its size is an exact
 // count of bases, so the running sums are the classic Z-curve at window resolution, with no DNA involved.
-const views = { "3d": [-0.65, 0.42], xy: [0, 0], xz: [0, Math.PI / 2], yz: [Math.PI / 2, 0] };
+export const views = { "3d": [-0.65, 0.42], xy: [0, 0], xz: [0, Math.PI / 2], yz: [Math.PI / 2, 0] };
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 // ZCWP (docs/database-decision.md section 4.3): "ZCWP", uint16 version, int32 window size at 8, int32 window count at 12, then x, y and
@@ -38,15 +38,27 @@ function path(profile) {
 }
 
 function draw(canvas, profile, shape, { drift, yaw, pitch, chromosome }) {
+  const n = profile.n, points = new Array(n + 1);
+  for (let k = 0; k <= n; k++)
+    points[k] = shape.sums.map((s, a) => (drift ? s[k] : s[k] - (shape.fits[a][0] + shape.fits[a][1] * k)));
+  const { ctx, screen, width } = drawCurve(canvas, points, { yaw, pitch });
+  if (chromosome) {
+    ring(ctx, screen[shape.minAt], 6, css("--ink")); label(ctx, screen[shape.minAt], `skew min ${formatBp(shape.minAt * profile.size)}`, width);
+    ring(ctx, screen[shape.maxAt], 4, css("--ink")); label(ctx, screen[shape.maxAt], `skew max ${formatBp(shape.maxAt * profile.size)}`, width);
+  }
+  return screen;
+}
+
+// A 3-D path ([x, y, z] points, in bases) coloured light to dark from start to end, with the axes and a scale bar; marks are point
+// indices to ring (window boundaries, for a gene). Returns the canvas context and each point's screen position for marks and tooltips.
+export function drawCurve(canvas, points, { yaw, pitch, marks = [] }) {
   const width = canvas.clientWidth, height = canvas.clientHeight, dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = css("--panel"); ctx.fillRect(0, 0, width, height);
 
-  const n = profile.n, points = new Array(n + 1);
-  for (let k = 0; k <= n; k++)
-    points[k] = shape.sums.map((s, a) => (drift ? s[k] : s[k] - (shape.fits[a][0] + shape.fits[a][1] * k)));
+  const n = points.length - 1;
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const p of points) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], p[a]); hi[a] = Math.max(hi[a], p[a]); }
   const centre = lo.map((v, a) => (v + hi[a]) / 2);
@@ -68,11 +80,8 @@ function draw(canvas, profile, shape, { drift, yaw, pitch, chromosome }) {
     for (let k = a + 1; k <= b; k++) ctx.lineTo(...screen[k]);
     ctx.stroke();
   }
+  for (const k of marks) ring(ctx, screen[k], 2.5, css("--ink-2"));
   ring(ctx, screen[0], 3, css("--muted"));
-  if (chromosome) {
-    ring(ctx, screen[shape.minAt], 6, css("--ink")); label(ctx, screen[shape.minAt], `skew min ${formatBp(shape.minAt * profile.size)}`, width);
-    ring(ctx, screen[shape.maxAt], 4, css("--ink")); label(ctx, screen[shape.maxAt], `skew max ${formatBp(shape.maxAt * profile.size)}`, width);
-  }
 
   const ox = width - 46, oy = height - 42;
   ctx.font = `11px ${css("--mono")}`;
@@ -87,7 +96,7 @@ function draw(canvas, profile, shape, { drift, yaw, pitch, chromosome }) {
   ctx.beginPath(); ctx.moveTo(12, 16); ctx.lineTo(12 + bar * scale, 16); ctx.moveTo(12, 12); ctx.lineTo(12, 20);
   ctx.moveTo(12 + bar * scale, 12); ctx.lineTo(12 + bar * scale, 20); ctx.stroke();
   ctx.fillStyle = css("--ink-2"); ctx.fillText(`${bar.toLocaleString()} bases of excess`, 12, 33);
-  return screen;
+  return { ctx, screen, width };
 }
 
 function ring(ctx, p, size, colour) {

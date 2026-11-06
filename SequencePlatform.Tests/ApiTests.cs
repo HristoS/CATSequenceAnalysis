@@ -88,6 +88,76 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task FacetsCountWhatTheCallerCanSee()
+        {
+            var (alice, client) = await NewClientAsync("alice");
+            var (bob, _) = await NewClientAsync("bob");
+            foreach (var (accession, kind) in new[] { ("facet-b", "bacterium"), ("facet-a", "archaeon"), ("facet-e", "eukaryote") })
+                await ThrowawayDatabase.InsertRecordAsync("api-facets", accession, 1_000_000, kind);
+            await ThrowawayDatabase.InsertUploadAsync(alice.Id, "facet-alice", 12_345);
+            await ThrowawayDatabase.InsertUploadAsync(bob.Id, "facet-bob", 12_345);
+
+            var facets = (await client.GetFromJsonAsync<JsonElement>("/api/sequences/facets"))!;
+            Dictionary<string, long> Counts(string name) => facets.GetProperty(name).EnumerateArray()
+                .ToDictionary(f => f.GetProperty("value").GetString()!, f => f.GetProperty("count").GetInt64());
+            var (kinds, providers) = (Counts("kinds"), Counts("providers"));
+            var group = facets.GetProperty("kindGroups").EnumerateArray().Single(g => g.GetProperty("value").GetString() == "prokaryote");
+
+            Assert.That(providers["api-facets"], Is.EqualTo(3));
+            Assert.That(providers["user upload"], Is.EqualTo(1), "Alice's upload, not Bob's");
+            Assert.That(kinds["eukaryote"], Is.GreaterThanOrEqualTo(1));
+            Assert.That(group.GetProperty("count").GetInt64(), Is.EqualTo(kinds["bacterium"] + kinds["archaeon"]));
+            Assert.That(facets.GetProperty("total").GetInt64(), Is.EqualTo(kinds.Values.Sum()).And.EqualTo(providers.Values.Sum()));
+
+            var prokaryotes = (await client.GetFromJsonAsync<JsonElement>("/api/sequences?provider=api-facets&kind=prokaryote"))!;
+            Assert.That(prokaryotes.GetProperty("items").EnumerateArray().Select(r => r.GetProperty("kind").GetString()),
+                Is.EquivalentTo(new[] { "bacterium", "archaeon" }));
+        }
+
+        [Test]
+        public async Task GenesListTheGeneLayerAndOneGenesWindows()
+        {
+            var (alice, client) = await NewClientAsync("alice");
+            var (bob, _) = await NewClientAsync("bob");
+            var genes = new[] { 60, 300, 700 }.Select(aa => "ATG" + Generator.GetRandomDNA(3 * (aa - 1), 40 + aa).Replace("TAA", "TAC")
+                .Replace("TAG", "TAC").Replace("TGA", "TGC") + "TAA").ToArray();
+            // The second gene sits on the reverse strand, so the record holds its reverse complement.
+            var dna = genes[0] + ZCurveGeneProfile.CodingSequence(genes[1], 0, genes[1].Length, reverse: true) + genes[2];
+            int a = genes[0].Length, b = a + genes[1].Length;
+            var profile = ZCurveGeneProfile.FromRecord(dna, new[] { (0, a, false, 990_000_101), (a, b, true, 990_000_102), (b, dna.Length, false, -1) });
+            var id = await ThrowawayDatabase.InsertRecordAsync("api-genes", "genes-1", dna.Length, kind: "bacterium");
+            var upload = await ThrowawayDatabase.InsertUploadAsync(bob.Id, "genes-bob", dna.Length);
+            await using (var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync())
+            await using (var transaction = await connection.BeginTransactionAsync())
+            {
+                await ProteinFamilies.AddAsync(connection, transaction, [(990_000_101, "test gyrase")]);
+                Assert.That(await GeneProfiles.WriteAsync(connection, transaction, id, profile), Is.True);
+                Assert.That(await GeneProfiles.WriteAsync(connection, transaction, upload, profile), Is.True);
+                await transaction.CommitAsync();
+            }
+
+            var list = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes"))!;
+            var listed = list.GetProperty("genes").EnumerateArray().ToList();
+            Assert.That((list.GetProperty("geneCount").GetInt32(), list.GetProperty("windowCount").GetInt32()), Is.EqualTo((3, profile.WindowCount)));
+            Assert.That(listed.Select(g => g.GetProperty("residues").GetInt32()), Is.EqualTo(new[] { 60, 300, 700 }));
+            Assert.That(listed.Select(g => g.TryGetProperty("familyId", out var f) ? f.GetString() : null), Is.EqualTo(new[] { "PGF_990000101", "PGF_990000102", null }));
+            Assert.That(listed[0].GetProperty("product").GetString(), Is.EqualTo("test gyrase"));
+            Assert.That(listed[1].GetProperty("strand").GetString(), Is.EqualTo("Reverse"));
+            Assert.That(list.GetProperty("meanWindow").EnumerateArray().Select(v => v.GetProperty("value").GetDouble()), Is.EqualTo(profile.MeanWindow()).Within(1e-9));
+
+            var one = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes/1"))!;
+            Assert.That(one.GetProperty("windowPositions").GetInt32(), Is.EqualTo(120), "300 aa: 5 windows of 120 positions");
+            Assert.That(one.GetProperty("windows").EnumerateArray().SelectMany(w => w.EnumerateArray().Select(v => v.GetDouble())),
+                Is.EqualTo(profile.WindowsOf(1)).Within(1e-9));
+
+            Assert.That((await client.GetAsync($"/api/sequences/{id}/genes/3")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            Assert.That((await client.GetAsync($"/api/sequences/{upload}/genes")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound), "Bob's upload");
+            var none = (await client.GetFromJsonAsync<JsonElement>(
+                $"/api/sequences/{await ThrowawayDatabase.InsertRecordAsync("api-genes", "genes-none", 5_000)}/genes"))!;
+            Assert.That(none.GetProperty("geneCount").GetInt32(), Is.Zero);
+        }
+
+        [Test]
         public async Task DetailCarriesLineagesLevelsAndProvenanceButNoOneElsesUpload()
         {
             var (alice, client) = await NewClientAsync("alice");

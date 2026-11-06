@@ -66,7 +66,8 @@ built from public records only, so private uploads don't shape anyone else's ran
 
 | Method | Route | |
 |---|---|---|
-| GET | `/api/sequences` | Keyset pages (`after`, `limit` ≤ 1000); filters `kind`, `rank` + `taxon`, `minLength`, `maxLength`, `provider`, `name` |
+| GET | `/api/sequences` | Keyset pages (`after`, `limit` ≤ 1000); filters `kind` (a stored kind, or `prokaryote` for bacterium and archaeon), `rank` + `taxon`, `minLength`, `maxLength`, `provider`, `name`. Searches take the same filters |
+| GET | `/api/sequences/facets` | Filter choices with record counts over what the caller can see: `kinds`, `kindGroups` (with their member kinds) and `providers`, largest first, plus `total` |
 | GET | `/api/sequences/{id}` | Metadata, provider / NCBI / GTDB lineage, annotations, stored levels, provenance |
 | GET | `/api/sequences/{id}/profile?windowSize=` | One level as ZCWP bytes (`application/x-zcwp`), 500 / 2000 / 8000 / 32000 |
 | POST | `/api/sequences` | Upload `text/x-fasta` (any number of records) or `application/x-zcwp` (the 500 bp level, with `lengthBp`); `kind` required, `name`, `taxid`, `dataClass` (default `restricted`), `recordId` for a profile. 201 with the new records |
@@ -77,6 +78,8 @@ built from public records only, so private uploads don't shape anyone else's ran
 | DELETE | `/api/searches/{id}` | Drop the query profile and results now (D7); 204. The search stays as Expired with its summary |
 | GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
 | GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |
+| GET | `/api/sequences/{id}/genes` | The record's stored genes (BV-BRC, 50 aa and up), in order of start, with strand, length in aa, family and product, plus `meanWindow`: the 9 window features averaged over all of them, in the signature's format. No genes for uploads and NCBI eukaryotes |
+| GET | `/api/sequences/{id}/genes/{index}` | One gene's stored windows: mean, trend and curvature of x, y and z over codon positions 1 and 2, from which the page redraws the gene's Z-curve (`results/GeneCurve_Check.csv`) |
 | GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
 | GET | `/api/landscape?group=` | The public catalogue on two axes: `cellular` (default), `viral` or `eukaryotic`, one genome per species, or `all`, every public genome on one set of axes. PCA of the signature as parallel arrays with domains, lineages and each axis's heaviest dinucleotides |
 | GET | `/api/experiments` | The published P9 experiments, newest first: question, verdict (`pass`, `fail`, `context`), snapshot, script, summary numbers |

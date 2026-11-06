@@ -1,5 +1,6 @@
 import { get } from "./api.js";
 import { ZCurvePath } from "./zcurve3d.js";
+import { GeneLayerSignature, GenesPanel } from "./genes.js";
 import { Message, Segmented, formatBp, formatGc, html, useEffect, useState } from "./html.js";
 
 const lineageRanks = ["superkingdom", "realm", "kingdom", "phylum", "class", "order", "family", "genus", "species"];
@@ -46,13 +47,16 @@ function Signature({ id }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   useEffect(() => {
+    if (view === "genes") return;
     setError(null);
     get(`/api/sequences/${id}/signature?view=${view}`).then(setResult).catch(e => setError(e.message));
   }, [id, view]);
 
   const peak = result ? Math.max(...result.values.map(v => Math.abs(v.value)), 1e-9) : 1;
-  return html`<${Segmented} label="View" value=${view} onChange=${setView}
-      options=${[["karlin", "Karlin ρ*"], ["zcurve", "Z-curve coefficients"]]} />
+  const views = html`<${Segmented} label="View" value=${view} onChange=${setView}
+      options=${[["karlin", "Karlin ρ*"], ["zcurve", "Z-curve coefficients"], ["genes", "Gene layer"]]} />`;
+  if (view === "genes") return html`${views}<${GeneLayerSignature} id=${id} />`;
+  return html`${views}
     ${error && html`<${Message}>${error}<//>`}
     ${result && !error && html`<div class="bars">${result.values.map(v => html`<div class="bar" key=${v.name} title=${v.meaning}>
         <span class="mono">${v.name}</span>
@@ -86,6 +90,7 @@ export function RecordPage({ id }) {
       ${hasSignature && html`<section class="panel"><h2>Dinucleotide signature</h2><${Signature} id=${s.id} /></section>`}
       ${hasWindows && html`<section class="panel"><h2>Z-curve path</h2>
         <${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} /></section>`}
+      ${s.provider === "BV-BRC" && html`<section class="panel"><h2>Genes</h2><${GenesPanel} id=${s.id} /></section>`}
       <section class="panel"><h2>Stored profile levels</h2>
         <div class="tablewrap"><table>
           <thead><tr><th class="num">Window</th><th class="num">Windows</th><th>Version</th></tr></thead>

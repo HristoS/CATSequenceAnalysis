@@ -1,0 +1,3 @@
+Genes,Count,Gap from moments median (bases),Gap from moments 95%,Straight segments median (bases),Straight segments 95%,Moments gap / path extent (drift kept) median,Moments gap / drift-removed extent median,Straight / drift-removed extent median,Moments gap / mean window step median
+50-499 aa (5 windows),2880,4.43,10.39,8.72,18.94,13.3%,40.8%,79.2%,42.7%
+500+ aa (333-position windows),120,14.96,19.06,27.55,41.17,10.5%,43.1%,85.6%,30.0%

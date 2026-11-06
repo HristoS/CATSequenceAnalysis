@@ -111,6 +111,15 @@ tbody tr:last-child td { border-bottom: 0; }
 .track i.positive { left: 50%; background: var(--p1); }
 .track i.negative { right: 50%; background: var(--p2); }
 
+tr.row { cursor: pointer; }
+tr.row:hover td { background: var(--hover); }
+tr.row.picked td { background: var(--hover); font-weight: 600; }
+.genetitle { font-size: 16px; margin: 16px 0 2px; }
+.genetitle .mono { color: var(--muted); font-size: 13px; font-weight: 400; }
+.heat { display: grid; gap: 2px; margin-top: 12px; font-size: 12px; align-items: center; overflow-x: auto; }
+.heat i { height: 16px; border-radius: 2px; outline: 1px solid var(--rule); outline-offset: -1px; }
+.heat .heathead { text-align: center; color: var(--muted); }
+
 .mapgrid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 14px; align-items: start; }
 figure { margin: 0; }
 .canvaswrap { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 78vh; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }

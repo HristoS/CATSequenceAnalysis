@@ -76,6 +76,24 @@ namespace SequenceAnaliseTests
         }
 
         [Test]
+        public void WindowsOfGiveEachGenesStoredWindowsAndMeanWindowAveragesThemAll()
+        {
+            var (short1, long1) = (RandomGene(120, 21), RandomGene(700, 22));
+            var record = short1 + long1;
+            var profile = ZCurveGeneProfile.FromRecord(record, new[] { (0, short1.Length, false, 1), (short1.Length, record.Length, false, 2) });
+
+            var stored = new[] { short1, long1 }.Select(g => ZCurveGeneProfile.QueryFromGene(g).Select(v => (double)(Half)v).ToArray()).ToArray();
+            Assert.That(profile.WindowsOf(0), Is.EqualTo(stored[0]));
+            Assert.That(profile.WindowsOf(1), Is.EqualTo(stored[1]));
+            Assert.That((ZCurveGeneProfile.WindowOf(120), ZCurveGeneProfile.WindowOf(700), ZCurveGeneProfile.WindowOf(49)), Is.EqualTo((48, 333, 0)));
+
+            var all = stored.SelectMany(s => s).ToArray();
+            var expected = Enumerable.Range(0, ZCurveGeneProfile.FeatureCount)
+                .Select(f => Enumerable.Range(0, all.Length / ZCurveGeneProfile.FeatureCount).Average(w => all[w * ZCurveGeneProfile.FeatureCount + f]));
+            Assert.That(profile.MeanWindow(), Is.EqualTo(expected).Within(1e-12));
+        }
+
+        [Test]
         public void FinalStopCodonIsLeftOut()
         {
             var gene = RandomGene(700, 2);

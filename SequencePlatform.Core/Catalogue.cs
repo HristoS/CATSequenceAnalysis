@@ -36,6 +36,14 @@ namespace SequencePlatform.Core
     /// <param name="NextAfter">The <c>after</c> value for the next page; null on the last page.</param>
     public sealed record CataloguePage(IReadOnlyList<CatalogueRecord> Records, long? NextAfter);
 
+    public sealed record FacetCount(string Value, long Count);
+
+    /// <param name="Kinds">The kinds a group filter value stands for.</param>
+    public sealed record KindGroupCount(string Value, IReadOnlyList<string> Kinds, long Count);
+
+    /// <summary>What a viewer's catalogue holds, for filter choices: each kind, kind group and provider with its record count.</summary>
+    public sealed record CatalogueFacets(IReadOnlyList<FacetCount> Kinds, IReadOnlyList<KindGroupCount> KindGroups, IReadOnlyList<FacetCount> Providers);
+
     /// <summary>
     /// Catalogue listing shared by the Ingest's <c>list</c> command and the P4 API. Pages are keyset
     /// (<c>id &gt; after</c>, ordered by id), not OFFSET, so a page costs the same at any depth and
@@ -60,6 +68,14 @@ namespace SequencePlatform.Core
         };
 
         public static IReadOnlyCollection<string> Ranks => rankColumns.Keys;
+
+        // Kind filter values that stand for several stored kinds.
+        private static readonly Dictionary<string, string[]> kindGroups = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["prokaryote"] = ["bacterium", "archaeon"],
+        };
+
+        public static IReadOnlyDictionary<string, string[]> KindGroups => kindGroups;
 
         private const string recordSelect =
             "select r.id, s.provider, s.accession, r.record_id, r.name, r.kind, r.length_bp, r.gc_fraction, r.ncbi_taxid, " +
@@ -87,6 +103,31 @@ namespace SequencePlatform.Core
             if (records.Count <= limit) return new CataloguePage(records, null);
             records.RemoveAt(limit);
             return new CataloguePage(records, records[^1].Id);
+        }
+
+        /// <summary>Record counts by kind, kind group and provider over what the viewer may see, largest first.</summary>
+        public static async Task<CatalogueFacets> FacetsAsync(NpgsqlDataSource dataSource, long? viewerId, CancellationToken cancellationToken = default)
+        {
+            await using var command = dataSource.CreateCommand();
+            var sql = new StringBuilder("select r.kind, s.provider, count(*)").Append(recordFrom).Append(" where true");
+            AppendFilter(command, sql, new CatalogueFilter(ViewerId: viewerId));
+            command.CommandText = sql.Append(" group by r.kind, s.provider").ToString();
+
+            var kinds = new Dictionary<string, long>();
+            var providers = new Dictionary<string, long>();
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    long count = reader.GetInt64(2);
+                    kinds[reader.GetString(0)] = kinds.GetValueOrDefault(reader.GetString(0)) + count;
+                    providers[reader.GetString(1)] = providers.GetValueOrDefault(reader.GetString(1)) + count;
+                }
+
+            static List<FacetCount> Largest(Dictionary<string, long> counts) =>
+                counts.OrderByDescending(c => c.Value).ThenBy(c => c.Key, StringComparer.Ordinal).Select(c => new FacetCount(c.Key, c.Value)).ToList();
+            var groups = kindGroups.Select(g => new KindGroupCount(g.Key, g.Value, g.Value.Sum(k => kinds.GetValueOrDefault(k))))
+                .Where(g => g.Count > 0).ToList();
+            return new CatalogueFacets(Largest(kinds), groups, Largest(providers));
         }
 
         /// <summary>Every species name the public catalogue holds, as its providers gave it.</summary>
@@ -225,7 +266,7 @@ namespace SequencePlatform.Core
                 sql.Append(" and ").Append(condition.Replace("@", "$" + command.Parameters.Count));
             }
 
-            if (filter.Kind is not null) Where("r.kind = @", filter.Kind);
+            if (filter.Kind is not null) Where("r.kind = any(@)", kindGroups.GetValueOrDefault(filter.Kind) ?? [filter.Kind]);
             if (filter.Rank is not null) Where($"r.{rankColumns[filter.Rank]} = @", filter.Taxon!);
             if (filter.MinLengthBp is not null) Where("r.length_bp >= @", filter.MinLengthBp.Value);
             if (filter.MaxLengthBp is not null) Where("r.length_bp <= @", filter.MaxLengthBp.Value);

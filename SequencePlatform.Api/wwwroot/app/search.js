@@ -4,6 +4,9 @@ import { Message, Segmented, formatBp, html, useEffect, useState } from "./html.
 const pollMilliseconds = 500;
 const hitsPerPage = 50;
 const lists = [["Ranked", "Ranked"], ["Identical", "Identical"], ["NotComparable", "Not comparable"]];
+// Eukaryotes are left out: they're stored without profile levels or genes, so no search can reach them.
+const searchKinds = [["", "any"], ["prokaryote", "prokaryotes: bacteria and archaea"], ["bacterium", "bacterium"], ["archaeon", "archaeon"],
+  ["virus", "virus"], ["plasmid", "plasmid"]];
 
 export function SearchPage({ params }) {
   const [mode, setMode] = useState(params.get("mode") ?? "similar");
@@ -55,7 +58,7 @@ export function SearchPage({ params }) {
       </label>`}
       ${(mode === "similar" || !record) && html`<label class="field"><span>Kind</span>
         <select value=${kind} onChange=${e => setKind(e.target.value)}>
-          ${["", "bacterium", "archaeon", "virus", "plasmid"].map(k => html`<option key=${k} value=${k}>${k || "any"}</option>`)}
+          ${searchKinds.map(([k, text]) => html`<option key=${k} value=${k}>${text}</option>`)}
         </select>
       </label>`}
       ${mode === "protein" && html`<label class="field"><span>Genetic code</span>
