@@ -66,7 +66,8 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   and 2, Legendre moments P0–P2 of x, y, z per window (9 numbers, stored as 16-bit halves; 8 bits lost up to 6 points). Window rule
   by protein length: from 500 aa, windows of 333 such bases (500 bp of gene) from the start codon; 50–499 aa, 5 equal windows over
   the whole gene, compared only with genes within ±10% of the query's length (`results/ShortProtein_*.csv`); under 50 aa not kept.
-  Binary format ZCGP v2 (varint-packed gene headers; the window count follows from the length). Queries come from a gene
+  Binary format ZCGP v2 (varint-packed gene headers; the window count follows from the length); v3 (S7.T, NCBI eukaryotes) adds per gene
+  the sequence it lies on and its introns, and is written only when some gene needs them, so BV-BRC rows stay v2. Queries come from a gene
   (`QueryFromGene`) or a protein (`QueryFromProtein`, expected axes over synonymous codons). Moments work only because windows are
   anchored at the start codon; on the unanchored genome ladder they hurt (`results/GenomeMoments_*.csv`), so `ZCurveWindowedProfile`
   keeps means.
@@ -108,7 +109,8 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   length and summary), `GeneProfiles` / `ProteinKmers` (the gene layer: since S7.S, migration 0017, `ZCurveGeneProfile` rows in
   `gene_profile` by length bucket, 0 for genes of 500 aa and up and 1–25 for 50 · 1.1^b aa, replacing 0014's `zcurve-cds`
   profile_level row (0018 deleted the last ones); amino-acid 4-mer counts (3-mers dropped by 0016: `ProteinKmers.Shorter` derives them); BV-BRC protein
-  families; all filled by `backfill-genes`),
+  families; all filled by `backfill-genes`, and for annotated NCBI eukaryotes by `backfill-genes-ncbi` from the CDS file, with the
+  sequences genes lie on listed in `annotations.ncbi.gene_layer` and kept on protein hits as `search_hit.gene_sequence`, migration 0020),
   `ProteinSearch` (P7, migrations 0015 and 0017: a protein ≥ 50 aa, never stored, as expected Z-curve windows, compared with the long
   genes or with the genes within ±10% of its length, reading only those buckets from the database; each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`).
 - `SequencePlatform.Api/`: ASP.NET Core minimal API on localhost:5080 (P4; see its README). Per-user API keys (`Users` in Core,
@@ -134,9 +136,9 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. `ingest-bvbrc --per-species` adds one genome per species not yet stored;
   `ingest-ncbi` is the eukaryote pilot: one record per assembly with summed nuclear dinucleotide counts and no profile levels, streamed
-  with no temp file, human refused in code. Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
+  with no temp file, human refused in code; annotated assemblies also get the gene layer (no 6-mers: those would need the genome again). Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
   `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `convert-levels-half`, `backfill-kmers`,
-  `backfill-genes`, `add-user`, `disable-user`; see its README.
+  `backfill-genes`, `backfill-genes-ncbi`, `build-protein-null`, `add-user`, `disable-user`; see its README.
   6-mer counts per record (`record_kmer`, migration 0013, D8 widened 2026-11-04) are stored at ingest; `backfill-kmers` re-downloads older
   records and stores counts only where the SHA-256 matches. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).

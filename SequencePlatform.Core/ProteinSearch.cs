@@ -71,14 +71,16 @@ namespace SequencePlatform.Core
         }
     }
 
-    /// <param name="GeneStart">0-based on the record's stored strand.</param>
-    /// <param name="GeneEnd">Exclusive; the stop codon is inside, as BV-BRC lists it.</param>
+    /// <param name="GeneStart">0-based on the record's stored strand, on sequence <paramref name="GeneSequence"/>.</param>
+    /// <param name="GeneEnd">Exclusive; the stop codon is inside, as BV-BRC lists it. A spliced gene's span covers its introns.</param>
     /// <param name="Family">The BV-BRC PGfam number, or <see cref="ZCurveGeneProfile.NoFamily"/>.</param>
     /// <param name="P">How often a gene of another family scores this high against a protein of this length (<see cref="ProteinScoreNull"/>);
     /// null before the null is built.</param>
     /// <param name="Log10E">log10 of the expected number of genes from other families scoring this high in this search: p × genes scored.</param>
+    /// <param name="GeneSequence">Which of a whole-assembly record's sequences the gene lies on (<see cref="GeneProfiles.SequenceNamesAsync"/>);
+    /// 0 for a record whose genes lie on itself.</param>
     public sealed record ProteinHit(long SequenceId, int GeneStart, int GeneEnd, bool Reverse, int Family, double Score, PValue? P = null,
-        double? Log10E = null);
+        double? Log10E = null, int GeneSequence = 0);
 
     /// <param name="Candidates">Genes scored.</param>
     /// <param name="WeakSignal">Always false: no length band from 50 aa found the right family first under 90% of the time
@@ -110,7 +112,9 @@ namespace SequencePlatform.Core
             int byScore = a.Score.CompareTo(b.Score);
             if (byScore != 0) return byScore;
             int byRecord = b.SequenceId.CompareTo(a.SequenceId);
-            return byRecord != 0 ? byRecord : b.GeneStart.CompareTo(a.GeneStart);
+            if (byRecord != 0) return byRecord;
+            int bySequence = b.GeneSequence.CompareTo(a.GeneSequence);
+            return bySequence != 0 ? bySequence : b.GeneStart.CompareTo(a.GeneStart);
         });
 
         public static async Task<ProteinSearchResult> SearchAsync(NpgsqlDataSource dataSource, ProteinQuery query, CatalogueFilter? filter = null,
@@ -180,7 +184,7 @@ namespace SequencePlatform.Core
                     var gene = profile.Genes[g];
                     if (!candidate(gene)) continue;
                     scored++;
-                    var hit = new ProteinHit(id, gene.Start, gene.End, gene.Reverse, gene.Family, profile.Score(axes, g));
+                    var hit = new ProteinHit(id, gene.Start, gene.End, gene.Reverse, gene.Family, profile.Score(axes, g), GeneSequence: gene.Chromosome);
                     if (best.Count < top) best.Enqueue(hit, hit);
                     else if (worseFirst.Compare(hit, best.Peek()) > 0) best.EnqueueDequeue(hit, hit);
                 }

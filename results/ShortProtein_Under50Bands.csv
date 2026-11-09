@@ -1,0 +1,7 @@
+ProteinAa,Cell,Queries,Searchable,MedianCandidates,Top1At30,Model8To30,ModelValid,ModelTop1AtCatalogue
+20-34,split5,1000,1000,38013,0.9980,0.9949,true,0.9720
+35-49,split5,1000,1000,10528,0.9960,0.9969,true,0.9704
+20-34,split5-band20,1000,1000,47419,0.9980,0.9940,true,0.9723
+35-49,split5-band20,1000,1000,22360,0.9960,0.9953,true,0.9702
+20-34,split5-pm5,1000,1000,51313,0.9980,0.9926,true,0.9727
+35-49,split5-pm5,1000,1000,14844,0.9960,0.9946,true,0.9701

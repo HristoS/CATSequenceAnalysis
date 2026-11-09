@@ -121,6 +121,27 @@ fetches about 780 proteins from BV-BRC and stores only score counts. Until it ha
 
 **Seeding or replacing the catalogue:** see [`seed-database.md`](seed-database.md).
 
+**Adding a layer computed locally (P6 S6.5).** Don't dump and restore for this: a restore replaces the server's own users, uploads and
+search log. Since the 2026-11-06 restore, the server's records have the ids the local ones have, so a layer that only adds rows to
+existing records can be rebuilt on the server by the same command from the same commit, and then compared. For the eukaryote gene layer
+(S7.T):
+
+1. Deploy the commit as in **Upgrading**; `migrate` applies migration 0020.
+2. Run the pass through the `migrate` image (about 1.3 GB from NCBI and an hour for the 131 annotated assemblies, extrapolated):
+   `... run --rm --no-deps -T migrate backfill-genes-ncbi --contact EMAIL`.
+3. Run this on both databases; the lines must match. If a `cds_sha256` differs, NCBI re-released that annotation between the two runs:
+   rerun the local pass for it (delete its `protein_kmer` rows first) rather than accept the difference.
+
+   ```sql
+   select s.accession, r.annotations #>> '{ncbi,gene_layer,cds_sha256}' as cds_sha256, count(g.*) as rows, sum(g.byte_size) as bytes,
+          md5(string_agg(encode(g.sha256, 'hex'), '' order by g.bucket)) as rows_md5
+   from sequence_record r join sequence_source s on s.id = r.source_id left join gene_profile g on g.sequence_id = r.id
+   where r.kind = 'eukaryote' group by 1, 2 order by 1;
+   ```
+
+New records created locally are a different matter: their ids can collide with uploads made on the server, so they go to the server by
+ingesting there, not by copying rows.
+
 **Adding an admin's SSH key.** The Lighthouse key pair bound to the instance (`cat_platform`) is the only one `ubuntu` accepts at
 first. To let another admin in without a restart, log in through the console (instance → **Log in**, the browser terminal) and
 append their public key:

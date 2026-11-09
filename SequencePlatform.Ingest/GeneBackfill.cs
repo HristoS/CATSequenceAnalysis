@@ -82,7 +82,7 @@ namespace SequencePlatform.Ingest
             foreach (var result in results)
             {
                 if (result.Status == ProteinKmers.Done && !await GeneProfiles.WriteAsync(connection, transaction, result.SequenceId, result.Genes!))
-                    throw new InvalidOperationException($"A gene profile bucket of record {result.SequenceId} is over the inline limit.");
+                    throw new InvalidOperationException($"A gene profile bucket of record {result.SequenceId} is over {GeneProfiles.MaxRowBytes:N0} bytes.");
                 foreach (var k in ProteinKmers.Ks)
                     await ProteinKmers.WriteAsync(connection, transaction, result.SequenceId, k, result.Status,
                         result.Status == ProteinKmers.Done ? result.Genes!.Genes.Count : null, result.ProteinCounts?[k]);

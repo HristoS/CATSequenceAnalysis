@@ -31,9 +31,12 @@ namespace SequenceAnalyses
         // table 1) and table 4 (Mycoplasma and relatives, TGA = Trp).
         public const string standardCode = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
         public const string mycoplasmaCode = "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
+        // Table 12, the CUG-Ser yeasts' nuclear code: CTG reads as Ser. Table 1, every other nuclear eukaryote here, is standardCode.
+        public const string alternativeYeastCode = "FFLLSSSSYY**CC*WLLLSPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
         private const string codonBases = "TCAG";
         private const uint binaryMagic = 0x5047435A; // "ZCGP" read as a little-endian uint32
-        private const ushort binaryFormatVersion = 2;
+        private const ushort singleSequenceVersion = 2;
+        private const ushort splicedVersion = 3;
         private const int binaryHeaderSize = 16;
 
         private readonly Gene[] genes;
@@ -44,6 +47,9 @@ namespace SequenceAnalyses
 
         public int WindowCount { get; }
 
+        /// <summary>The ZCGP version <see cref="ToBinary"/> writes: 2 while every gene is one unspliced stretch of the record itself, else 3.</summary>
+        public int BinaryFormatVersion => genes.Any(g => g.Chromosome != 0 || g.Introns != 0) ? splicedVersion : singleSequenceVersion;
+
         private ZCurveGeneProfile(Gene[] genes, Half[][] features)
         {
             this.genes = genes;
@@ -53,9 +59,12 @@ namespace SequenceAnalyses
 
         /// <summary>
         /// One coding sequence on the record: [Start, End) in record coordinates, its strand, BV-BRC PGfam number and protein length
-        /// (codons without the stop), and where its windows are.
+        /// (codons without the stop), and where its windows are. A record that is a whole assembly (an NCBI eukaryote) numbers its
+        /// sequences: <paramref name="Chromosome"/> is the gene's, and Start and End are on it. <paramref name="Introns"/> is how much of
+        /// [Start, End) a spliced gene leaves out, so its coding length is End - Start - Introns.
         /// </summary>
-        public readonly record struct Gene(int Start, int End, bool Reverse, int Family, int FirstWindow, int WindowCount, int Residues);
+        public readonly record struct Gene(int Start, int End, bool Reverse, int Family, int FirstWindow, int WindowCount, int Residues,
+            int Chromosome = 0, int Introns = 0);
 
         /// <summary>
         /// Profiles every coding sequence of one record of at least <see cref="MinResidues"/> aa, in order of start. Coordinates are 0-based,
@@ -63,16 +72,27 @@ namespace SequenceAnalyses
         /// without it give the same windows. Bases other than A, C, G, T contribute nothing, as in <see cref="ZCurveProfile"/>.
         /// </summary>
         public static ZCurveGeneProfile FromRecord(string record, IEnumerable<(int Start, int End, bool Reverse, int Family)> codingSequences,
-            string geneticCode = standardCode)
+            string geneticCode = standardCode) =>
+            FromCodingSequences(codingSequences.Select(c => (0, c.Start, c.End, c.Reverse, c.Family, CodingSequence(record, c.Start, c.End, c.Reverse))),
+                geneticCode);
+
+        /// <summary>
+        /// Profiles coding sequences given already in coding orientation and spliced, each with where it lies: its sequence's number,
+        /// [Start, End) on it spanning every exon, and its strand. Genes under <see cref="MinResidues"/> aa are left out, as in
+        /// <see cref="FromRecord"/>; the rest are kept in order of chromosome, then start.
+        /// </summary>
+        public static ZCurveGeneProfile FromCodingSequences(
+            IEnumerable<(int Chromosome, int Start, int End, bool Reverse, int Family, string Gene)> codingSequences, string geneticCode = standardCode)
         {
             var genes = new List<(Gene Gene, double[] Windows)>();
-            foreach (var (start, end, reverse, family) in codingSequences.OrderBy(c => c.Start))
+            foreach (var (chromosome, start, end, reverse, family, gene) in codingSequences.OrderBy(c => c.Chromosome).ThenBy(c => c.Start))
             {
-                var gene = CodingSequence(record, start, end, reverse);
+                int introns = end - start - gene.Length;
+                if (chromosome < 0 || introns < 0) throw new ArgumentException($"A coding sequence of {gene.Length} bp can't lie on [{start}, {end}).");
                 int residues = Residues(gene, geneticCode);
                 if (residues < MinResidues) continue;
                 var windows = QueryFromGene(gene, geneticCode);
-                genes.Add((new Gene(start, end, reverse, family, 0, windows.Length / FeatureCount, residues), windows));
+                genes.Add((new Gene(start, end, reverse, family, 0, windows.Length / FeatureCount, residues, chromosome, introns), windows));
             }
             return Build(genes.Select(g => (g.Gene, (Func<int, int, double>)((w, f) => g.Windows[w * FeatureCount + f]))).ToList());
         }
@@ -81,10 +101,10 @@ namespace SequenceAnalyses
         public ZCurveGeneProfile Select(IEnumerable<int> indices) =>
             Build(indices.Order().Select(g => (genes[g], (Func<int, int, double>)((w, f) => (double)features[f][genes[g].FirstWindow + w]))).ToList());
 
-        /// <summary>The genes of several profiles of one record (its storage buckets) as one profile, in order of start.</summary>
+        /// <summary>The genes of several profiles of one record (its storage buckets) as one profile, in order of chromosome, then start.</summary>
         public static ZCurveGeneProfile Combine(IEnumerable<ZCurveGeneProfile> parts) =>
             Build(parts.SelectMany(p => p.genes.Select(g => (g, (Func<int, int, double>)((w, f) => (double)p.features[f][g.FirstWindow + w]))))
-                .OrderBy(g => g.Item1.Start).ToList());
+                .OrderBy(g => g.Item1.Chromosome).ThenBy(g => g.Item1.Start).ToList());
 
         private static ZCurveGeneProfile Build(List<(Gene Gene, Func<int, int, double> Feature)> parts)
         {
@@ -222,26 +242,36 @@ namespace SequenceAnalyses
         /// unsigned LEB128 varints: start minus the previous gene's start, End - Start, and (Family + 1) * 4 + 2 * (a stop codon ends it) +
         /// (reverse strand) | then the <see cref="FeatureCount"/> feature blocks, each windowCount float16 values, little-endian. A gene's
         /// residues and window count follow from its length and stop bit. Never any bases.
+        ///
+        /// Version 3 (<see cref="BinaryFormatVersion"/>, genes on several sequences or spliced) is version 2 with two more varints per gene,
+        /// genes in order of chromosome, then start: first the chromosome minus the previous gene's, and the start counts from the previous
+        /// gene's start only on the same chromosome, from 0 on a new one; after the flags, the introns. End - Start is the span, and the
+        /// coding length End - Start - Introns is what residues and windows follow from.
         /// </summary>
         public byte[] ToBinary()
         {
             int n = WindowCount;
+            int version = BinaryFormatVersion;
             var header = new List<byte>(8 * genes.Length);
-            int previous = 0;
+            int previous = 0, previousChromosome = 0;
             foreach (var gene in genes)
             {
-                if (gene.Start < previous) throw new InvalidOperationException("Genes must be in order of start.");
+                if (gene.Chromosome < previousChromosome || (gene.Chromosome == previousChromosome && gene.Start < previous))
+                    throw new InvalidOperationException("Genes must be in order of chromosome, then start.");
+                if (gene.Chromosome != previousChromosome) previous = 0;
                 int length = gene.End - gene.Start;
-                bool stop = length / 3 != gene.Residues;
+                bool stop = (length - gene.Introns) / 3 != gene.Residues;
+                if (version == splicedVersion) WriteVarint(header, (ulong)(gene.Chromosome - previousChromosome));
                 WriteVarint(header, (ulong)(gene.Start - previous));
                 WriteVarint(header, (ulong)length);
                 WriteVarint(header, ((ulong)(gene.Family + 1) << 2) | (stop ? 2UL : 0) | (gene.Reverse ? 1UL : 0));
-                previous = gene.Start;
+                if (version == splicedVersion) WriteVarint(header, (ulong)gene.Introns);
+                (previous, previousChromosome) = (gene.Start, gene.Chromosome);
             }
             var bytes = new byte[binaryHeaderSize + header.Count + 2 * FeatureCount * n];
             var span = bytes.AsSpan();
             BinaryPrimitives.WriteUInt32LittleEndian(span, binaryMagic);
-            BinaryPrimitives.WriteUInt16LittleEndian(span[4..], binaryFormatVersion);
+            BinaryPrimitives.WriteUInt16LittleEndian(span[4..], (ushort)version);
             BinaryPrimitives.WriteInt32LittleEndian(span[8..], genes.Length);
             BinaryPrimitives.WriteInt32LittleEndian(span[12..], n);
             header.CopyTo(bytes, binaryHeaderSize);
@@ -258,23 +288,29 @@ namespace SequenceAnalyses
             if (bytes.Length < binaryHeaderSize || BinaryPrimitives.ReadUInt32LittleEndian(bytes) != binaryMagic)
                 throw new FormatException("Not a ZCGP profile.");
             var version = BinaryPrimitives.ReadUInt16LittleEndian(bytes[4..]);
-            if (version != binaryFormatVersion)
+            if (version != singleSequenceVersion && version != splicedVersion)
                 throw new FormatException($"Unsupported ZCGP format version {version}.");
+            bool spliced = version == splicedVersion;
             int geneCount = BinaryPrimitives.ReadInt32LittleEndian(bytes[8..]);
             int n = BinaryPrimitives.ReadInt32LittleEndian(bytes[12..]);
             if (geneCount < 0 || n < 0) throw new FormatException("ZCGP header does not match the payload length.");
 
             var genes = new Gene[geneCount];
-            int offset = binaryHeaderSize, firstWindow = 0, start = 0;
+            int offset = binaryHeaderSize, firstWindow = 0, start = 0, chromosome = 0;
             for (int g = 0; g < geneCount; g++)
             {
+                int nextChromosome = spliced ? checked(chromosome + (int)ReadVarint(bytes, ref offset)) : 0;
+                if (nextChromosome != chromosome) (start, chromosome) = (0, nextChromosome);
                 start += checked((int)ReadVarint(bytes, ref offset));
                 int length = checked((int)ReadVarint(bytes, ref offset));
                 ulong flags = ReadVarint(bytes, ref offset);
-                int residues = length / 3 - ((flags & 2) != 0 ? 1 : 0);
+                int introns = spliced ? checked((int)ReadVarint(bytes, ref offset)) : 0;
+                if (introns > length) throw new FormatException("ZCGP gene has more introns than span.");
+                int residues = (length - introns) / 3 - ((flags & 2) != 0 ? 1 : 0);
                 int window = WindowOf(residues);
                 int windows = window == 0 ? 0 : 2 * residues / window;
-                genes[g] = new Gene(start, start + length, (flags & 1) != 0, checked((int)(flags >> 2)) - 1, firstWindow, windows, residues);
+                genes[g] = new Gene(start, start + length, (flags & 1) != 0, checked((int)(flags >> 2)) - 1, firstWindow, windows, residues,
+                    chromosome, introns);
                 firstWindow += windows;
             }
             if (firstWindow != n) throw new FormatException("ZCGP gene windows do not add up to the window count.");

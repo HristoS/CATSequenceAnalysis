@@ -94,7 +94,7 @@ function GeneHits({ id, run }) {
         onClick=${() => setPicked(h)} onKeyDown=${e => { if (e.key === "Enter") setPicked(h); }}>
       <td class="num">${h.position}</td>
       <td>${h.sequence ? html`<a href="#/sequences/${h.sequenceId}" onClick=${e => e.stopPropagation()}>${h.sequence.name || h.sequence.recordId}</a>` : `deleted record ${h.sequenceId}`}</td>
-      <td class="mono">${(h.geneStartBp + 1).toLocaleString()}–${h.geneEndBp.toLocaleString()} ${h.strand === "Reverse" ? "(−)" : "(+)"}</td>
+      <td class="mono">${h.geneSequence ? `${h.geneSequence}: ` : ""}${(h.geneStartBp + 1).toLocaleString()}–${h.geneEndBp.toLocaleString()} ${h.strand === "Reverse" ? "(−)" : "(+)"}</td>
       <td>${h.product ?? "–"}${h.familyId && html` <span class="hint mono">${h.familyId}</span>`}</td>
       <td class="num mono">${h.score == null ? "–" : h.score.toFixed(3)}</td>
       <td class="num mono" title=${h.pKind === "Bound" ? "An upper bound: fewer than 10 protein-gene pairs of the null sample scored this high" : ""}>${

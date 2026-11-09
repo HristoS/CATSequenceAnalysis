@@ -10,6 +10,9 @@ namespace SequencePlatform.Ingest
 {
     internal sealed record NcbiAssembly(string Accession, string AssemblyName, int Taxid, string Organism, long LengthBp);
 
+    /// <summary>An assembly's gene annotation, as the Datasets genome report has it.</summary>
+    internal sealed record NcbiAnnotation(string? Name, string? ReleaseDate, string? Provider);
+
     /// <summary>What a genome's nuclear records add up to.</summary>
     /// <param name="Counts">Dinucleotide counts summed over the nuclear records; a pair spanning two records isn't counted.</param>
     internal sealed record NuclearCounts(long[] Counts, long LengthBp, int Records, int OrganellesLeftOut);
@@ -24,6 +27,8 @@ namespace SequencePlatform.Ingest
         private const string fastaBase = "https://ftp.ncbi.nlm.nih.gov/genomes/all/";
         private const int pageSize = 1000;
         private const int taxaPerRequest = 200;
+        private const int accessionsPerRequest = 50;
+        private const string genomeSuffix = "_genomic.fna.gz";
 
         private readonly PoliteHttpClient http;
 
@@ -86,6 +91,59 @@ namespace SequencePlatform.Ingest
 
         public Task<HttpResponseMessage> OpenFastaAsync(string url) => http.SendAsync(url, "application/gzip", HttpCompletionOption.ResponseHeadersRead);
 
+        /// <summary>Each assembly's gene annotation as the Datasets genome report names it; an assembly without one maps to null.</summary>
+        public async Task<Dictionary<string, NcbiAnnotation?>> AnnotationsAsync(IReadOnlyCollection<string> accessions)
+        {
+            var annotations = accessions.ToDictionary(a => a, _ => (NcbiAnnotation?)null, StringComparer.Ordinal);
+            foreach (var chunk in accessions.Chunk(accessionsPerRequest))
+            {
+                using var response = await http.SendAsync($"{datasetsBase}genome/accession/{string.Join(",", chunk)}/dataset_report?page_size={pageSize}",
+                    "application/json");
+                using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                if (!document.RootElement.TryGetProperty("reports", out var reports)) continue;
+                foreach (var report in reports.EnumerateArray())
+                    if (report.TryGetProperty("annotation_info", out var info) && annotations.ContainsKey(report.GetProperty("accession").GetString()!))
+                        annotations[report.GetProperty("accession").GetString()!] = new NcbiAnnotation(
+                            info.TryGetProperty("name", out var name) ? name.GetString() : null,
+                            info.TryGetProperty("release_date", out var date) ? date.GetString() : null,
+                            info.TryGetProperty("provider", out var provider) ? provider.GetString() : null);
+            }
+            return annotations;
+        }
+
+        /// <summary>Each taxon's primary (nuclear) NCBI translation table, from the Datasets taxonomy report.</summary>
+        public async Task<Dictionary<int, int>> GeneticCodesAsync(IReadOnlyCollection<int> taxids)
+        {
+            var codes = new Dictionary<int, int>();
+            foreach (var chunk in taxids.Distinct().Chunk(taxaPerRequest))
+            {
+                using var response = await http.SendAsync(
+                    $"{datasetsBase}taxonomy/taxon/{string.Join(",", chunk)}/dataset_report?page_size={taxaPerRequest * 2}", "application/json");
+                using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                if (!document.RootElement.TryGetProperty("reports", out var reports)) continue;
+                // A taxid NCBI no longer recognizes comes back as an error report with no taxonomy (147272, 2026-11-09); its code stays
+                // unknown, so the record is skipped and stays pending.
+                foreach (var report in reports.EnumerateArray())
+                {
+                    if (!report.TryGetProperty("taxonomy", out var taxonomy)) continue;
+                    if (taxonomy.TryGetProperty("genetic_code", out var code) && code.TryGetProperty("primary", out var primary))
+                        codes[taxonomy.GetProperty("tax_id").GetInt32()] = primary.GetProperty("id").GetInt32();
+                }
+            }
+            return codes;
+        }
+
+        // The assembly's other files sit next to its genome FASTA, with another suffix.
+        internal static string SiblingUrl(string fastaUrl, string suffix) =>
+            fastaUrl.EndsWith(genomeSuffix, StringComparison.Ordinal) ? fastaUrl[..^genomeSuffix.Length] + suffix
+                : throw new ArgumentException($"Not an NCBI genome FASTA URL: {fastaUrl}");
+
+        public async Task<string> ReadTextAsync(string url)
+        {
+            using var response = await http.SendAsync(url, "text/plain");
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public void Dispose() => http.Dispose();
     }
 
@@ -107,7 +165,7 @@ namespace SequencePlatform.Ingest
         private const int seed = 20261030;
         private const int bufferChars = 1 << 20;
 
-        private static readonly Regex organelle = new(@"\b(mitochondri(on|al)|chloroplast|plastid|apicoplast|kinetoplast)\b",
+        internal static readonly Regex organelle = new(@"\b(mitochondri(on|al)|chloroplast|plastid|apicoplast|kinetoplast)\b",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private readonly NpgsqlDataSource dataSource;

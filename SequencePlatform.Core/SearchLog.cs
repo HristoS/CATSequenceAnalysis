@@ -37,9 +37,10 @@ namespace SequencePlatform.Core
     /// <param name="Position">1-based order within its list; for <see cref="HitList.Ranked"/>, the rank.</param>
     /// <param name="GeneStart">Protein search: the gene's 0-based start on the stored strand; <paramref name="Strand"/> is the gene's.</param>
     /// <param name="FamilyId">Protein search: the gene's PGfam number, null when it has none.</param>
+    /// <param name="GeneSequence">Protein search: which of the record's sequences the gene lies on (<see cref="ProteinHit.GeneSequence"/>).</param>
     public sealed record StoredHit(HitList List, int Position, long SequenceId, Strand? Strand = null, double? Score = null,
         double? CoarseScore = null, long? OffsetBp = null, PValue? P = null, double? Log10E = null, int? SharedNeighbours = null,
-        bool Rotated = false, int? GeneStart = null, int? GeneEnd = null, int? FamilyId = null);
+        bool Rotated = false, int? GeneStart = null, int? GeneEnd = null, int? FamilyId = null, int? GeneSequence = null);
 
     /// <summary>
     /// search_run and search_hit I/O (migrations 0002, 0009 and 0015, P4 S4.1): a search as an asynchronous job. A job keeps what
@@ -241,7 +242,7 @@ namespace SequencePlatform.Core
         {
             var hits = result.Hits.Select((h, i) => new StoredHit(HitList.Ranked, i + 1, h.SequenceId, h.Reverse ? Strand.Reverse : Strand.Forward,
                 h.Score, P: h.P, Log10E: h.Log10E, GeneStart: h.GeneStart, GeneEnd: h.GeneEnd,
-                FamilyId: h.Family == ZCurveGeneProfile.NoFamily ? null : h.Family)).ToList();
+                FamilyId: h.Family == ZCurveGeneProfile.NoFamily ? null : h.Family, GeneSequence: h.GeneSequence)).ToList();
             return CompleteAsync(dataSource, publicId, null, null, null, checked((int)result.Candidates), result.WeakSignal, null, hits, cancellationToken);
         }
 
@@ -272,9 +273,9 @@ namespace SequencePlatform.Core
             // One statement for the whole result: unnest zips the column arrays into rows.
             await using (var insert = new NpgsqlCommand(
                 "insert into search_hit (search_run_id, list_kind, position, sequence_id, strand, score, coarse_score, offset_bp, " +
-                "log10_p, p_kind, log10_e, shared_neighbours, rotated, gene_start, gene_end, family_id) " +
+                "log10_p, p_kind, log10_e, shared_neighbours, rotated, gene_start, gene_end, family_id, gene_sequence) " +
                 "select $1, * from unnest($2::text[], $3::integer[], $4::bigint[], $5::text[], $6::float8[], $7::float8[], $8::bigint[], " +
-                "$9::float8[], $10::text[], $11::float8[], $12::smallint[], $13::boolean[], $14::integer[], $15::integer[], $16::integer[])",
+                "$9::float8[], $10::text[], $11::float8[], $12::smallint[], $13::boolean[], $14::integer[], $15::integer[], $16::integer[], $17::integer[])",
                 connection, transaction))
             {
                 var p = insert.Parameters;
@@ -294,6 +295,7 @@ namespace SequencePlatform.Core
                 p.AddWithValue(hits.Select(h => h.GeneStart).ToArray());
                 p.AddWithValue(hits.Select(h => h.GeneEnd).ToArray());
                 p.AddWithValue(hits.Select(h => h.FamilyId).ToArray());
+                p.AddWithValue(hits.Select(h => h.GeneSequence).ToArray());
                 await insert.ExecuteNonQueryAsync(cancellationToken);
             }
             await transaction.CommitAsync(cancellationToken);
@@ -316,7 +318,7 @@ namespace SequencePlatform.Core
         {
             await using var command = dataSource.CreateCommand(
                 "select position, sequence_id, strand, score, coarse_score, offset_bp, log10_p, p_kind, log10_e, shared_neighbours, rotated, " +
-                "gene_start, gene_end, family_id " +
+                "gene_start, gene_end, family_id, gene_sequence " +
                 "from search_hit where search_run_id = (select id from search_run where public_id = $1) and list_kind = $2 and position > $3 " +
                 "order by position limit $4");
             var p = command.Parameters;
@@ -333,7 +335,7 @@ namespace SequencePlatform.Core
                     Nullable<double>(reader, 3), Nullable<double>(reader, 4), Nullable<long>(reader, 5),
                     reader.IsDBNull(6) ? null : new PValue(reader.GetDouble(6), Enum.Parse<PValueKind>(reader.GetString(7), ignoreCase: true)),
                     Nullable<double>(reader, 8), reader.IsDBNull(9) ? null : reader.GetInt16(9), reader.GetBoolean(10),
-                    Nullable<int>(reader, 11), Nullable<int>(reader, 12), Nullable<int>(reader, 13)));
+                    Nullable<int>(reader, 11), Nullable<int>(reader, 12), Nullable<int>(reader, 13), Nullable<int>(reader, 14)));
             return hits;
         }
 

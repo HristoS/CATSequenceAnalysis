@@ -65,7 +65,20 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   summed and no profile levels: it has relatives and is on the map and in trees, but find-similar and localize can't score it, and in a
   length band it appears in the Not comparable list. Organelles are left out by their FASTA description. Human assemblies are refused in
   code. `--limit` and `--max-bp` decide what is picked, so resume a run with the same values. NCBI's FTP gave about 0.5 MB/s
-  (1.6 Mbp/s) per connection on 2026-10-30, so size a run by bases rather than genomes.
+  (1.6 Mbp/s) per connection on 2026-10-30, so size a run by bases rather than genomes. Since S7.T, each genome stored also gets its
+  gene layer, as `backfill-genes-ncbi` builds it.
+- `backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N]` (P7 S7.T, migration 0020) builds the gene layer for
+  NCBI eukaryotes without downloading a genome. For each record with no 4-mer row it looks the assembly's annotation and nuclear genetic
+  code up in NCBI Datasets, then streams the assembly report (which sequences are nuclear) and `*_cds_from_genomic.fna.gz` (each coding
+  sequence already spliced, in coding orientation, with its location). Per gene (GeneID) it keeps the longest isoform and leaves out
+  partial, pseudo and `exception`-flagged coding sequences, since the windows are anchored at the start codon. It stores the
+  `gene_profile` rows (ZCGP version 3 where genes lie on several sequences or are spliced), amino-acid 4-mers, and under
+  `annotations.ncbi.gene_layer` the CDS file's URL and SHA-256, the annotation's name and release, the counts left out and the names of
+  the sequences the genes lie on, which protein hits refer to. An assembly with no annotation gets `no_cds` and is skipped by later runs.
+  Genetic codes 1 and 12 (CUG-Ser yeasts) are read; any other is skipped and stays pending. Nothing of the DNA or the proteins is kept.
+  `--dry-run` builds and reports without writing (the largest bucket row against gene rows' 4 MB limit, `GeneProfiles.MaxRowBytes`; genome levels keep 1 MB); `--check-search N` then searches
+  N proteins of each assembly through `ProteinSearch` over the whole catalogue. On 2026-11-06, 131 of the 587 stored eukaryotes
+  were annotated: 4–38 s per assembly; a 3 Gbp mammal kept 20,457 genes of 47,953 coding sequences (26,268 other isoforms).
 - `search-similar --fasta X | --profile X.zcwp` (P3 S3.4) ranks the records of comparable length, [r × L, L / r] for a query
   of length L, by `ZCurveWindowedProfile` similarity at one ladder level, the better of the query's two strands. `--ratio` is
   0.25–1, default 0.5; `list`'s filters narrow the candidates further; `--top` defaults to 20. Records with the same

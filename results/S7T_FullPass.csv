@@ -1,0 +1,24 @@
+Measure,Value
+Stored NCBI eukaryotes,587
+With an NCBI annotation (gene layer done),131 (Fungi 57; Viridiplantae 52; Metazoa 22)
+Without one (no_cds),456
+Failed,0 (8 vertebrates first failed on the 1 MB row limit; done after gene rows got their own 4 MB limit)
+Genes profiled (50 aa and up),"2,254,307"
+Windows,"11,078,965"
+Gene rows (record x length bucket),"3,374"
+Gene-row payload,209 MB
+Largest gene row,"1,838,894 bytes (a vertebrate's 500+ aa bucket)"
+Amino-acid 4-mer payload,21 MB
+gene_profile table after the pass,6621 MB
+protein_kmer table after the pass,2927 MB
+Database after the pass,12 GB
+Pass time,41.4 min for records 1-400 (crashed on an unrecognized taxid: fixed) + 27.2 min for the remaining 193
+Yeast GCF_000348985.1 self-search (50 proteins),right gene first 100%; median 6.2 s
+Plant GCA_014851425.1 self-search (50 proteins),right gene first 98% (one miss at 500+ aa); median 6.1 s
+Rerun self-search (42 assemblies x 10 proteins),right gene first 95.2% (400/420); first or tied 96.4% (405/420); median 8.1 s
+Rerun by band 50-99 aa,first or tied 94.4% (17/18)
+Rerun by band 100-166 aa,first or tied 95.6% (43/45)
+Rerun by band 167-332 aa,first or tied 97.4% (114/117)
+Rerun by band 333-499 aa,first or tied 98.9% (92/93)
+Rerun by band 500+ aa,first or tied 94.6% (139/147)
+Lowest assemblies (10 proteins each),first or tied 70%: Anabas testudineus GCF_900324465.3; Astyanax lacustris GCA_059641275.1; 80%: Citrus x aurantiifolia GCA_052148995.1; Pseudoscourfieldia marina GCA_049488355.1

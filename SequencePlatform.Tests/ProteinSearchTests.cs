@@ -151,11 +151,12 @@ namespace SequencePlatform.Tests
             Assert.That(() => SearchLog.EnqueueAsync(dataSource, request with { GeneticCode = 11 }, query), Throws.ArgumentException);
             Assert.That(() => SearchLog.EnqueueAsync(dataSource, request with { Kind = SearchKind.Similar }, query), Throws.ArgumentException);
 
-            var hit = new ProteinHit(await ThrowawayDatabase.InsertRecordAsync("protein-job", "job", 2_000), 30, 1_233, true, ZCurveGeneProfile.NoFamily, 0.9);
+            var hit = new ProteinHit(await ThrowawayDatabase.InsertRecordAsync("protein-job", "job", 2_000), 30, 1_233, true, ZCurveGeneProfile.NoFamily, 0.9,
+                GeneSequence: 3);
             Assert.That(await SearchLog.SaveAsync(dataSource, id, new ProteinSearchResult(new[] { hit }, 12, true)), Is.True);
             var stored = (await SearchLog.HitsAsync(dataSource, id, HitList.Ranked)).Single();
-            Assert.That((stored.SequenceId, stored.GeneStart, stored.GeneEnd, stored.Strand, stored.FamilyId, stored.Score),
-                Is.EqualTo((hit.SequenceId, (int?)30, (int?)1_233, (Strand?)Strand.Reverse, (int?)null, (double?)0.9)));
+            Assert.That((stored.SequenceId, stored.GeneStart, stored.GeneEnd, stored.Strand, stored.FamilyId, stored.Score, stored.GeneSequence),
+                Is.EqualTo((hit.SequenceId, (int?)30, (int?)1_233, (Strand?)Strand.Reverse, (int?)null, (double?)0.9, (int?)3)));
             var done = (await SearchLog.GetAsync(dataSource, id))!;
             Assert.That((done.Candidates, done.WeakSignal), Is.EqualTo(((int?)12, (bool?)true)));
 

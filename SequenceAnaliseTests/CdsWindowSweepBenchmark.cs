@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using SequenceAnalyses;
 
 namespace SequenceAnaliseTests
@@ -611,13 +612,32 @@ namespace SequenceAnaliseTests
         [Test]
         public void ShortProteinsWithGeneSizedWindows()
         {
-            const int minProtein = 50;
-            const int queriesPerBin = 400;
-            const double lengthBand = 0.1;
-            const int fixedWindow = 333;
             var bins = new (int Min, int Max)[] { (50, 99), (100, 166), (167, 332), (333, 499) };
             // split5-half and split5-byte (added 2026-11-05): split5 with the stored targets rounded to 16 bits or to 8 bits (ByteRounded).
             var cells = new[] { "fixed333", "fixed333-band", "split3", "split4", "split5", "split6", "split9", "split5-half", "split5-byte" };
+            var rows = ShortProteinSelfSearchRows(50, bins, cells);
+
+            using (var csv = File.CreateText("ShortProtein_Windows.csv"))
+            {
+                csv.WriteLine("ProteinAa,Cell,Queries,Searchable,MedianCandidates,Top1At30,Model8To30,ModelValid,ModelTop1AtCatalogue");
+                foreach (var row in rows)
+                    csv.WriteLine(row);
+            }
+            var splits = rows.Select(r => r.Split(',')).Where(r => r[0] == "167-332" && r[1].StartsWith("split", StringComparison.Ordinal) && !r[1].Contains('-') && r[7] == "true")
+                .Select(r => (Cell: r[1], Value: double.Parse(r[^1], CultureInfo.InvariantCulture))).ToList();
+            double best = splits.Count == 0 ? 0 : splits.Max(s => s.Value);
+            var chosen = splits.FirstOrDefault(s => s.Value >= best - 0.02);
+            TestContext.Out.WriteLine(best >= 0.5
+                ? $"Rule: {chosen.Cell} at {Format(chosen.Value)} for 167-332 aa at catalogue scale (best {Format(best)}) -> build card"
+                : $"Rule: best valid split cell {Format(best)} for 167-332 aa at catalogue scale -> stop, keep the 333 aa minimum");
+            Assert.That(rows, Has.Count.EqualTo(cells.Length * bins.Length));
+        }
+
+        // Genes are called from minProtein aa, so the pool also holds every gene shorter than the first bin that a band can reach.
+        private static List<string> ShortProteinSelfSearchRows(int minProtein, (int Min, int Max)[] bins, string[] cells, int queriesPerBin = 400)
+        {
+            const double lengthBand = 0.1;
+            const int fixedWindow = 333;
             var xyz = new[] { 0, 1, 2 };
             var uniformUsage = Enumerable.Repeat(1L, 64).ToArray();
             var fileNames = P.Corpus().Where(c => c.Group == "Bacteria").Select(c => c.FileName).ToList();
@@ -667,7 +687,7 @@ namespace SequenceAnaliseTests
                     for (int i = 0; i < pool.Count; i++)
                     {
                         if (i == truth || targets[i].Length < Math.Min(query.Length, 3)) continue;
-                        if (banded && Math.Abs(pool[i].Protein.Length - protein.Length) > lengthBand * protein.Length) continue;
+                        if (banded && Math.Abs(pool[i].Protein.Length - protein.Length) > Tolerance(cell, protein.Length, lengthBand)) continue;
                         var distance = Distance(query, targets[i]);
                         if (pool[i].Genome == own)
                         {
@@ -701,21 +721,7 @@ namespace SequenceAnaliseTests
                     TestContext.Out.WriteLine(line);
                 }
             }
-
-            using (var csv = File.CreateText("ShortProtein_Windows.csv"))
-            {
-                csv.WriteLine("ProteinAa,Cell,Queries,Searchable,MedianCandidates,Top1At30,Model8To30,ModelValid,ModelTop1AtCatalogue");
-                foreach (var row in rows)
-                    csv.WriteLine(row);
-            }
-            var splits = rows.Select(r => r.Split(',')).Where(r => r[0] == "167-332" && r[1].StartsWith("split", StringComparison.Ordinal) && !r[1].Contains('-') && r[7] == "true")
-                .Select(r => (Cell: r[1], Value: double.Parse(r[^1], CultureInfo.InvariantCulture))).ToList();
-            double best = splits.Count == 0 ? 0 : splits.Max(s => s.Value);
-            var chosen = splits.FirstOrDefault(s => s.Value >= best - 0.02);
-            TestContext.Out.WriteLine(best >= 0.5
-                ? $"Rule: {chosen.Cell} at {Format(chosen.Value)} for 167-332 aa at catalogue scale (best {Format(best)}) -> build card"
-                : $"Rule: best valid split cell {Format(best)} for 167-332 aa at catalogue scale -> stop, keep the 333 aa minimum");
-            Assert.That(rows, Has.Count.EqualTo(cells.Length * bins.Length));
+            return rows;
         }
 
         /// <summary>
@@ -733,15 +739,24 @@ namespace SequenceAnaliseTests
         [Test]
         public void ShortProteinHomologsWithGeneSizedWindows()
         {
-            const int minProtein = 50;
-            const int queriesPerBin = 300;
-            const int fixedWindow = 333;
             var bins = new (int Min, int Max)[] { (50, 99), (100, 166), (167, 332), (333, 499) };
             var cells = new (string Name, int Split, double Band)[]
             {
                 ("fixed333", 0, double.PositiveInfinity), ("split3", 3, 0.1), ("split4", 4, 0.1), ("split5", 5, 0.1), ("split6", 6, 0.1),
                 ("split9", 9, 0.1), ("split6-band20", 6, 0.2), ("split5-half", 5, 0.1), ("split5-byte", 5, 0.1),
             };
+            var rows = ShortProteinHomologRows(50, bins, cells);
+            WriteHomologCsv("ShortProtein_Homologs.csv", rows);
+            double fixedTop1 = MeanHomologTop1(rows, "333-499", "fixed333"), splitTop1 = MeanHomologTop1(rows, "333-499", "split6");
+            TestContext.Out.WriteLine($"Rule: at 333-499 aa split6 {Format(splitTop1)} vs fixed333 {Format(fixedTop1)} -> " +
+                (splitTop1 >= fixedTop1 - 0.05 ? "split every gene under 500 aa" : "split only under 333 aa"));
+            Assert.That(rows, Is.Not.Empty);
+        }
+
+        private static List<string> ShortProteinHomologRows(int minProtein, (int Min, int Max)[] bins, (string Name, int Split, double Band)[] cells,
+            int queriesPerBin = 300)
+        {
+            const int fixedWindow = 333;
             var xyz = new[] { 0, 1, 2 };
             var uniformTable = P.ExpectedAxesTable(P.Synonyms(P.standardCode), Enumerable.Repeat(1L, 64).ToArray());
             var queryGenes = GeneLevelSignatureBenchmark.CallGenes(FastaReader.ReadPrimaryRecord(GenomeCatalog.PathTo(P.genericUsageFile)).Sequence,
@@ -792,7 +807,7 @@ namespace SequenceAnaliseTests
                         if (truth < 0) return;
                         var protein = queries[j].Protein;
                         var query = Features(ExpectedAxes(protein, uniformTable), 2 * protein.Length, WindowOf(split, 2 * protein.Length), true, xyz);
-                        bool Eligible(int i) => targets[i].Length >= Math.Min(query.Length, 3) && Math.Abs(proteins[i].Length - protein.Length) <= band * protein.Length;
+                        bool Eligible(int i) => targets[i].Length >= Math.Min(query.Length, 3) && Math.Abs(proteins[i].Length - protein.Length) <= Tolerance(name, protein.Length, band);
                         if (query.Length == 0 || !Eligible(truth))
                         {
                             outcomes[j] = (false, int.MaxValue);
@@ -816,8 +831,12 @@ namespace SequenceAnaliseTests
                     }
                 }
             }
+            return rows;
+        }
 
-            using (var csv = File.CreateText("ShortProtein_Homologs.csv"))
+        private static void WriteHomologCsv(string fileName, List<string> rows)
+        {
+            using (var csv = File.CreateText(fileName))
             {
                 csv.WriteLine("ProteinAa,Cell,Target,Orthologs,OrthologReachable,Top1,Top10");
                 foreach (var row in rows)
@@ -829,12 +848,107 @@ namespace SequenceAnaliseTests
                         Format(group.Average(r => double.Parse(r[5], CultureInfo.InvariantCulture))),
                         Format(group.Average(r => double.Parse(r[6], CultureInfo.InvariantCulture)))));
             }
-            double MeanTop1(string bin, string cell) => rows.Select(r => r.Split(',')).Where(r => r[0] == bin && r[1] == cell)
-                .Average(r => double.Parse(r[5], CultureInfo.InvariantCulture));
-            double fixedTop1 = MeanTop1("333-499", "fixed333"), splitTop1 = MeanTop1("333-499", "split6");
-            TestContext.Out.WriteLine($"Rule: at 333-499 aa split6 {Format(splitTop1)} vs fixed333 {Format(fixedTop1)} -> " +
-                (splitTop1 >= fixedTop1 - 0.05 ? "split every gene under 500 aa" : "split only under 333 aa"));
-            Assert.That(rows, Is.Not.Empty);
+        }
+
+        // How many residues a candidate's length may differ from the query's: "-pm5" in the cell name means 5 aa, "-band20" 20% of the
+        // query's length; any other cell keeps the caller's relative band (so the committed cells compute what they did).
+        private static double Tolerance(string cell, int residues, double band)
+        {
+            if (Regex.Match(cell, @"-pm(\d+)") is { Success: true } absolute) return int.Parse(absolute.Groups[1].Value, CultureInfo.InvariantCulture);
+            if (Regex.Match(cell, @"-band(\d+)") is { Success: true } relative) return int.Parse(relative.Groups[1].Value, CultureInfo.InvariantCulture) / 100.0 * residues;
+            return band * residues;
+        }
+
+        private static double MeanHomologTop1(List<string> rows, string bin, string cell) => rows.Select(r => r.Split(',')).Where(r => r[0] == bin && r[1] == cell)
+            .Average(r => double.Parse(r[5], CultureInfo.InvariantCulture));
+
+        /// <summary>
+        /// Proteins under 50 aa (2026-11-09, your idea: two windows instead of leaving them out). The platform stores no gene under 50 aa
+        /// (ZCurveGeneProfile.MinResidues; 4.6% of BV-BRC's genes, 12.7% of one plant annotation), a floor set by the S7.S card, never measured.
+        /// Both short-protein checks above, with genes called from 20 aa (the ORF caller places longer ORFs first, so the pool of 50 aa and up
+        /// is unchanged and short ORFs fill the gaps; an ORF caller over-calls short genes, which makes the pool harder than an annotation).
+        /// Bins 20-34 and 35-49 aa, and 50-99 aa as the anchor; cells split2, split3 and split5 within 10% of the query's length.
+        /// Rule fixed before the run: a bin is searchable if some valid cell reaches 90% exact-gene top-1 at catalogue scale (the weakSignal
+        /// line) and that cell's mean ortholog top-1 is at least 70%; the cell is the smallest N within 2 points of the best on both. If neither
+        /// bin passes, the 50 aa floor stays. Writes ShortProtein_Under50.csv and ShortProtein_Under50_Homologs.csv.
+        /// </summary>
+        [Test]
+        public void ProteinsUnder50WithFewWindows()
+        {
+            var bins = new (int Min, int Max)[] { (20, 34), (35, 49), (50, 99) };
+            var selfRows = ShortProteinSelfSearchRows(20, bins, ["split2", "split3", "split5"]);
+            using (var csv = File.CreateText("ShortProtein_Under50.csv"))
+            {
+                csv.WriteLine("ProteinAa,Cell,Queries,Searchable,MedianCandidates,Top1At30,Model8To30,ModelValid,ModelTop1AtCatalogue");
+                foreach (var row in selfRows)
+                    csv.WriteLine(row);
+            }
+            var homologRows = ShortProteinHomologRows(20, bins, [("split2", 2, 0.1), ("split3", 3, 0.1), ("split5", 5, 0.1)]);
+            WriteHomologCsv("ShortProtein_Under50_Homologs.csv", homologRows);
+
+            foreach (var bin in new[] { "20-34", "35-49", "50-99" })
+            {
+                var cells = selfRows.Select(r => r.Split(',')).Where(r => r[0] == bin).Select(r => (Cell: r[1], Valid: r[7] == "true",
+                    Exact: double.Parse(r[^1], CultureInfo.InvariantCulture), Ortholog: MeanHomologTop1(homologRows, bin, r[1]))).ToList();
+                foreach (var c in cells)
+                    TestContext.Out.WriteLine($"{bin} {c.Cell}: exact at catalogue scale {Format(c.Exact)} (model valid {c.Valid}), ortholog {Format(c.Ortholog)}");
+                var passing = cells.Where(c => c.Valid && c.Exact >= 0.9 && c.Ortholog >= 0.7).ToList();
+                if (passing.Count == 0)
+                {
+                    TestContext.Out.WriteLine($"Rule: {bin} aa -> not searchable");
+                    continue;
+                }
+                double bestExact = passing.Max(c => c.Exact), bestOrtholog = passing.Max(c => c.Ortholog);
+                var chosen = passing.FirstOrDefault(c => c.Exact >= bestExact - 0.02 && c.Ortholog >= bestOrtholog - 0.02);
+                TestContext.Out.WriteLine(chosen.Cell is null
+                    ? $"Rule: {bin} aa -> searchable, but no cell is within 2 points of the best on both; pick by hand"
+                    : $"Rule: {bin} aa -> searchable with {chosen.Cell}");
+            }
+            Assert.That(selfRows, Has.Count.EqualTo(3 * bins.Length));
+        }
+
+        /// <summary>
+        /// Wider length bands for proteins under 50 aa (2026-11-09, your go). ProteinsUnder50WithFewWindows failed 35-49 aa only on
+        /// orthologs (69.5% against 70%), and almost every miss was an ortholog outside the ±10% band. Same pools and five windows, with
+        /// 1,000 queries per bin (400 and 300 before) for more orthologs: split5 at ±10% (today), ±20% (split5-band20) and ±5 aa (split5-pm5).
+        /// Rule fixed before the run: a band passes if, in both 20-34 and 35-49 aa, it reaches 90% exact-gene top-1 at catalogue scale
+        /// (valid model) and 70% mean ortholog top-1; of the passing bands, the one with the fewest median candidates over the two bins. If
+        /// none passes, the 50 aa floor stays and the question is closed. Writes ShortProtein_Under50Bands.csv and
+        /// ShortProtein_Under50Bands_Homologs.csv.
+        /// </summary>
+        [Test]
+        public void ProteinsUnder50WithWiderBands()
+        {
+            const int queriesPerBin = 1000;
+            var bins = new (int Min, int Max)[] { (20, 34), (35, 49) };
+            string[] cells = ["split5", "split5-band20", "split5-pm5"];
+            var selfRows = ShortProteinSelfSearchRows(20, bins, cells, queriesPerBin);
+            using (var csv = File.CreateText("ShortProtein_Under50Bands.csv"))
+            {
+                csv.WriteLine("ProteinAa,Cell,Queries,Searchable,MedianCandidates,Top1At30,Model8To30,ModelValid,ModelTop1AtCatalogue");
+                foreach (var row in selfRows)
+                    csv.WriteLine(row);
+            }
+            var homologRows = ShortProteinHomologRows(20, bins, [("split5", 5, 0.1), ("split5-band20", 5, 0.2), ("split5-pm5", 5, 0.1)], queriesPerBin);
+            WriteHomologCsv("ShortProtein_Under50Bands_Homologs.csv", homologRows);
+
+            var passing = new List<(string Cell, double Candidates)>();
+            foreach (var cell in cells)
+            {
+                var rows = selfRows.Select(r => r.Split(',')).Where(r => r[1] == cell).ToList();
+                bool passes = true;
+                foreach (var r in rows)
+                {
+                    double exact = double.Parse(r[^1], CultureInfo.InvariantCulture), ortholog = MeanHomologTop1(homologRows, r[0], cell);
+                    TestContext.Out.WriteLine($"{r[0]} {cell}: exact at catalogue scale {Format(exact)} (model valid {r[7]}), ortholog {Format(ortholog)}, median candidates {r[4]}");
+                    passes &= r[7] == "true" && exact >= 0.9 && ortholog >= 0.7;
+                }
+                if (passes) passing.Add((cell, rows.Average(r => double.Parse(r[4], CultureInfo.InvariantCulture))));
+            }
+            TestContext.Out.WriteLine(passing.Count == 0
+                ? "Rule: no band passes in both bins -> the 50 aa floor stays, question closed"
+                : $"Rule: passes with {passing.MinBy(p => p.Candidates).Cell} (passing: {string.Join(", ", passing.Select(p => p.Cell))})");
+            Assert.That(selfRows, Has.Count.EqualTo(cells.Length * bins.Length));
         }
 
         [Test]

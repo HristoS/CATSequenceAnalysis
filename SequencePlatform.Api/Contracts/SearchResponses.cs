@@ -40,9 +40,12 @@ namespace SequencePlatform.Api
     /// <param name="GeneEndBp">Protein search: where the gene ends, exclusive, stop codon included.</param>
     /// <param name="FamilyId">Protein search: the gene's BV-BRC protein family (PGF_…); absent when it has none.</param>
     /// <param name="Product">Protein search: that family's product, as BV-BRC names it.</param>
+    /// <param name="GeneSequence">Protein search on a whole-assembly record (an NCBI eukaryote): the accession of the chromosome or scaffold
+    /// the gene lies on, which <c>GeneStartBp</c> and <c>GeneEndBp</c> are on; the span covers its introns. Absent when the gene lies on the
+    /// record itself.</param>
     public sealed record SearchHitResponse(int Position, long SequenceId, SequenceSummaryResponse? Sequence, Strand? Strand, double? Score,
         double? CoarseScore, long? OffsetBp, double? Log10P, PValueKind? PKind, double? Log10E, int? SharedNeighbours, bool Rotated,
-        int? GeneStartBp, int? GeneEndBp, string? FamilyId, string? Product);
+        int? GeneStartBp, int? GeneEndBp, string? FamilyId, string? Product, string? GeneSequence = null);
 
     /// <summary>One page of one hit list.</summary>
     /// <param name="List">Ranked; Identical (records whose sequence equals the query's on either strand, by SHA-256); or NotComparable

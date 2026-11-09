@@ -180,11 +180,15 @@ namespace SequencePlatform.Api
             var records = await Catalogue.ByIdsAsync(dataSource, page.Select(h => h.SequenceId).ToHashSet(), cancellationToken);
             var products = await ProteinFamilies.ProductsAsync(dataSource, page.Where(h => h.FamilyId is not null).Select(h => h.FamilyId!.Value).ToHashSet(),
                 cancellationToken);
+            var sequenceNames = await GeneProfiles.SequenceNamesAsync(dataSource,
+                page.Where(h => h.GeneStart is not null).Select(h => h.SequenceId).ToHashSet(), cancellationToken);
+            string? GeneSequence(StoredHit h) => h.GeneSequence is int s && sequenceNames.TryGetValue(h.SequenceId, out var names) && s < names.Length
+                ? names[s] : null;
             var items = page.Select(h => new SearchHitResponse(h.Position, h.SequenceId,
                 records.TryGetValue(h.SequenceId, out var r) ? SequenceSummaryResponse.From(r) : null, h.Strand, h.Score, h.CoarseScore, h.OffsetBp,
                 h.P?.Log10, h.P?.Kind, h.Log10E, h.SharedNeighbours, h.Rotated, h.GeneStart, h.GeneEnd,
                 h.FamilyId is int family ? ProteinFamilies.Format(family) : null,
-                h.FamilyId is int known && products.TryGetValue(known, out var product) ? product : null)).ToList();
+                h.FamilyId is int known && products.TryGetValue(known, out var product) ? product : null, GeneSequence(h))).ToList();
             return TypedResults.Ok(SearchRunResponse.From(run,
                 new SearchHitPageResponse(list, items, hits.Count > limit ? page[^1].Position : null)));
         }

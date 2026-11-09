@@ -199,6 +199,51 @@ namespace SequenceAnaliseTests
         }
 
         [Test]
+        public void GenesOfTheRecordItselfStayFormatVersion2()
+        {
+            var profile = ZCurveGeneProfile.FromRecord(RandomGene(700, 16), new[] { (0, 2106, false, 1) });
+            Assert.That(profile.BinaryFormatVersion, Is.EqualTo(2));
+            Assert.That(BitConverter.ToUInt16(profile.ToBinary(), 4), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void SplicedGenesOnSeveralChromosomesRoundTripAsVersion3()
+        {
+            var genes = new[] { RandomGene(700, 17), RandomGene(120, 18), RandomGene(900, 19) };
+            // Spans as an annotation gives them: wider than the coding sequence by the introns, two genes on chromosome 2.
+            var spliced = new[]
+            {
+                (Chromosome: 2, Start: 5_000, End: 5_000 + genes[0].Length + 640, Reverse: true, Family: 7, Gene: genes[0]),
+                (Chromosome: 0, Start: 90, End: 90 + genes[1].Length, Reverse: false, Family: ZCurveGeneProfile.NoFamily, Gene: genes[1]),
+                (Chromosome: 2, Start: 1_200, End: 1_200 + genes[2].Length + 3_333, Reverse: false, Family: ZCurveGeneProfile.NoFamily, Gene: genes[2]),
+            };
+            var profile = ZCurveGeneProfile.FromCodingSequences(spliced);
+            var bytes = profile.ToBinary();
+            var copy = ZCurveGeneProfile.FromBinary(bytes);
+
+            Assert.That(BitConverter.ToUInt16(bytes, 4), Is.EqualTo(3));
+            Assert.That(profile.Genes.Select(g => (g.Chromosome, g.Start, g.Introns)), Is.EqualTo(new[] { (0, 90, 0), (2, 1_200, 3_333), (2, 5_000, 640) }));
+            Assert.That(profile.Genes.Select(g => g.Residues), Is.EqualTo(new[] { 121, 901, 701 }), "residues from the coding length, not the span");
+            Assert.That(copy.Genes, Is.EqualTo(profile.Genes));
+            var alone = ZCurveGeneProfile.FromRecord(genes[2], new[] { (0, genes[2].Length, false, 1) });
+            Assert.That(copy.WindowsOf(1), Is.EqualTo(alone.WindowsOf(0)), "introns change where a gene is, not its windows");
+        }
+
+        [Test]
+        public void SplicedGeneShorterThanItsSpanIsRequired()
+        {
+            var gene = RandomGene(100, 20);
+            Assert.Throws<ArgumentException>(() => ZCurveGeneProfile.FromCodingSequences(new[] { (0, 0, gene.Length - 3, false, 1, gene) }));
+        }
+
+        [Test]
+        public void AlternativeYeastCodeReadsCtgAsSerine()
+        {
+            Assert.That(ZCurveGeneProfile.Translate("ATGCTGTTGTAA", ZCurveGeneProfile.alternativeYeastCode), Is.EqualTo("MSL"));
+            Assert.That(ZCurveGeneProfile.Translate("ATGCTGTTGTAA"), Is.EqualTo("MLL"));
+        }
+
+        [Test]
         public void RejectsForeignOrTruncatedPayloads()
         {
             var bytes = ZCurveGeneProfile.FromRecord(RandomGene(700, 10), new[] { (0, 2106, false, 1) }).ToBinary();

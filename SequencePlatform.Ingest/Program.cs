@@ -19,6 +19,7 @@ using SequencePlatform.Ingest;
 //   convert-levels-half                       rewrite stored ZCWP version 1 levels as version 2 (float16), then rebuild the origin rows; no download
 //   backfill-kmers [--limit N] [--sample SEED] [--contact you@example.org]   6-mer counts for BV-BRC records stored before migration 0013, by re-downloading
 //   backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]   the gene layer (S7.R, S7.S): gene_profile rows, amino-acid 4-mers, missing 6-mers
+//   backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]   the gene layer for NCBI eukaryotes (S7.T), from each annotated assembly's CDS file; no genome download
 //   build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]   p and E for protein hits: real BV-BRC proteins (not stored) scored against other families
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
@@ -32,6 +33,7 @@ const string usage =
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins | convert-levels-half\n" +
     "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL] | backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]\n" +
+    "       | backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]\n" +
     "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
     "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | rotate-key NAME | disable-user NAME";
@@ -142,6 +144,14 @@ switch (args[0])
         return await BackfillGenesAsync(dataSource, int.Parse(Option("--limit") ?? "100"),
             Option("--sample") is { } geneSeed ? int.Parse(geneSeed) : null, Option("--contact"), int.Parse(Option("--check-search") ?? "0"),
             int.Parse(Option("--parallel") ?? "1"));
+
+    case "backfill-genes-ncbi":
+        using (var ncbi = new NcbiGenomeClient(Option("--contact")))
+        {
+            var geneLayer = new NcbiGeneLayer(dataSource, ncbi);
+            return await NcbiGenePassAsync(dataSource, geneLayer, await geneLayer.PendingAsync(int.Parse(Option("--limit") ?? "1000"), Option("--accession")),
+                args.Contains("--dry-run"), int.Parse(Option("--check-search") ?? "0"));
+        }
 
     case "build-protein-null":
         return await BuildProteinNullAsync(dataSource, int.Parse(Option("--per-bucket") ?? "30"), int.Parse(Option("--seed") ?? "20261106"), Option("--contact"));
@@ -328,16 +338,93 @@ static async Task<int> IngestNcbiAsync(NpgsqlDataSource dataSource, string taxon
 
     int failed = 0;
     var pending = picked.Where(p => statuses[p.Assembly.Accession] == "pending" || (retryFailed && statuses[p.Assembly.Accession] == CrawlState.Failed));
+    var stored = new System.Collections.Concurrent.ConcurrentBag<string>();
     await Parallel.ForEachAsync(pending, new ParallelOptions { MaxDegreeOfParallelism = parallel }, async (item, _) =>
     {
         var (assembly, lineage) = item;
         var started = DateTime.UtcNow;
         var outcome = await ingestor.IngestAsync(assembly, lineage);
         if (outcome.StartsWith("FAILED", StringComparison.Ordinal)) Interlocked.Increment(ref failed);
+        else stored.Add(assembly.Accession);
         Console.WriteLine($"  {assembly.Accession,-18} {assembly.Organism,-44} {outcome}  {(DateTime.UtcNow - started).TotalSeconds,6:F0} s");
     });
     Console.WriteLine($"Done: {failed} failed.");
-    return failed > 0 ? 2 : 0;
+
+    // The gene layer comes from the CDS file, not the genome just read, so it follows as its own pass; a failure there leaves the
+    // record pending for backfill-genes-ncbi.
+    var geneLayer = new NcbiGeneLayer(dataSource, client);
+    var forGenes = new List<PendingEukaryote>();
+    foreach (var accession in stored) forGenes.AddRange(await geneLayer.PendingAsync(1, accession));
+    int genePass = forGenes.Count == 0 ? 0 : await NcbiGenePassAsync(dataSource, geneLayer, forGenes, dryRun: false, checkSearch: 0);
+    return failed > 0 || genePass != 0 ? 2 : 0;
+}
+
+// The gene layer for NCBI eukaryotes (S7.T): annotated assemblies' coding sequences from their CDS files, never the genome; see
+// NcbiGeneLayer. --check-search N: N proteins of each assembly searched through ProteinSearch over the whole catalogue afterwards.
+static async Task<int> NcbiGenePassAsync(NpgsqlDataSource dataSource, NcbiGeneLayer layer, List<PendingEukaryote> pending, bool dryRun, int checkSearch)
+{
+    const int chunk = 50;
+    string[] checkBands = ["50-99 aa", "100-166 aa", "167-332 aa", "333-499 aa", "500+ aa"];
+    static int CheckBand(int residues) => residues < 100 ? 0 : residues < 167 ? 1 : residues < 333 ? 2 : residues < 500 ? 3 : 4;
+
+    Console.WriteLine($"{pending.Count} NCBI eukaryote records for the gene pass{(dryRun ? " (dry run: nothing is written)" : "")}.");
+    var statuses = new Dictionary<string, int>();
+    var checks = new List<(PendingEukaryote Record, EukaryoteGenes Layer, int Gene)>();
+    var picker = new Random(20261106);
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    long genes = 0;
+    int largest = 0, done = 0;
+    foreach (var batch in pending.Chunk(chunk))
+    {
+        var (annotations, codes) = await layer.LookUpAsync(batch);
+        foreach (var record in batch)
+        {
+            var started = watch.Elapsed;
+            int? code = record.Taxid is int taxid && codes.TryGetValue(taxid, out var known) ? known : null;
+            var result = await layer.RunAsync(record, annotations.GetValueOrDefault(record.Accession), code, !dryRun);
+            statuses[result.Status] = statuses.GetValueOrDefault(result.Status) + 1;
+            done++;
+            if (result.Layer is { } built)
+            {
+                var t = built.Tally;
+                genes += built.Genes.Genes.Count;
+                largest = Math.Max(largest, result.MaxBucketBytes);
+                Console.WriteLine($"  {record.Accession,-18} {result.Note}; {t.Read:N0} CDS read, left out: isoforms {t.Isoforms:N0}, partial {t.Partial:N0}, " +
+                    $"pseudo {t.Pseudo:N0}, exception {t.Exception:N0}, organelle {t.Organelle:N0}, location {t.Location:N0}, frame {t.Frame:N0}; " +
+                    $"largest row {result.MaxBucketBytes:N0} bytes  {(watch.Elapsed - started).TotalSeconds:F0} s");
+                if (checkSearch > 0)
+                    checks.AddRange(Enumerable.Range(0, built.Genes.Genes.Count)
+                        .Where(g => built.Proteins[g].IndexOfAny(['*', 'X']) < 0).OrderBy(_ => picker.Next()).Take(checkSearch).Select(g => (record, built, g)));
+            }
+            else if (result.Status != ProteinKmers.NoCds || pending.Count <= chunk)
+                Console.WriteLine($"  {record.Accession,-18} {result.Status}: {result.Note}");
+        }
+        Console.WriteLine($"  {done}/{pending.Count} records, {watch.Elapsed.TotalMinutes:F1} min; " +
+            string.Join(", ", statuses.OrderBy(s => s.Key).Select(s => $"{s.Key} {s.Value}")));
+    }
+    Console.WriteLine($"Gene pass: {genes:N0} genes profiled; largest row {largest:N0} bytes (limit {GeneProfiles.MaxRowBytes:N0}); " +
+        $"{watch.Elapsed.TotalMinutes:F1} min.");
+
+    if (checks.Count > 0 && !dryRun)
+    {
+        // Through the real search, against every stored gene: the right gene at rank 1, or tied with it (identical paralogs score alike).
+        var outcomes = new List<(string Accession, int Band, bool Exact, bool Tied, double Seconds)>();
+        foreach (var (record, built, g) in checks)
+        {
+            var gene = built.Genes.Genes[g];
+            var query = ProteinQuery.FromProtein(built.Proteins[g]);
+            var searchWatch = System.Diagnostics.Stopwatch.StartNew();
+            var top = (await ProteinSearch.SearchAsync(dataSource, query, top: 1)).Hits[0];
+            bool exact = top.SequenceId == record.SequenceId && top.GeneSequence == gene.Chromosome && top.GeneStart == gene.Start && top.GeneEnd == gene.End;
+            bool tied = exact || built.Genes.Score(query.Axes, g) >= top.Score;
+            outcomes.Add((record.Accession, CheckBand(gene.Residues), exact, tied, searchWatch.Elapsed.TotalSeconds));
+        }
+        Console.WriteLine($"Self-search through ProteinSearch over the catalogue ({outcomes.Count} proteins, median {outcomes.Select(o => o.Seconds).Order().ElementAt(outcomes.Count / 2):F1} s each):");
+        foreach (var group in outcomes.GroupBy(o => o.Accession).Concat(outcomes.GroupBy(o => checkBands[o.Band]).OrderBy(b => Array.IndexOf(checkBands, b.Key))))
+            Console.WriteLine($"  {group.Key,-18} {group.Count(),4} proteins: right gene first {100.0 * group.Count(o => o.Exact) / group.Count():F1}%, " +
+                $"first or tied {100.0 * group.Count(o => o.Tied) / group.Count():F1}%");
+    }
+    return statuses.ContainsKey(CrawlState.Failed) ? 2 : 0;
 }
 
 static async Task<int> LoadTaxonomyAsync(NpgsqlDataSource dataSource, bool refresh, bool skipGtdb, string? contact)
