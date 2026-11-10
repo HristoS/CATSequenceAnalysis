@@ -1,0 +1,84 @@
+Search,Query,Stage,MedianMs,Bytes,Rows,Items,MBPerS,Gen2Collections
+protein,60 aa,fixed: visible ids + protein null,195,0,0,61647,,0
+protein,60 aa,read: buffered; byte[] per row (as now),2629,253313167,107490,0,96,0
+protein,60 aa,read: sequential; pooled buffer (transfer only),2347,253313167,107490,0,108,0
+protein,60 aa,sha256: every row; all cores,531,253313167,107490,0,477,0
+protein,60 aa,decode: FromBinary every row; all cores,470,253313167,107490,2589812,539,0
+protein,60 aa,score: candidates; all cores,155,0,107490,1988165,,0
+protein,60 aa,score in place: ScoreRow every row; all cores (since 2026-11-09),194,253313167,107490,1988165,1308,0
+protein,60 aa,score in place: ScoreRow with each worker's top-50 bound; all cores (since 2026-11-10),207,253313167,107490,1988165,1226,0
+protein,60 aa,end to end: ProteinSearch.SearchAsync,4190,253313167,0,1988165,60,0
+protein,120 aa,fixed: visible ids + protein null,109,0,0,61647,,0
+protein,120 aa,read: buffered; byte[] per row (as now),4108,522422353,117015,0,127,1
+protein,120 aa,read: sequential; pooled buffer (transfer only),3689,522422353,117015,0,142,0
+protein,120 aa,sha256: every row; all cores,1218,522422353,117015,0,429,0
+protein,120 aa,decode: FromBinary every row; all cores,2068,522422353,117015,5329238,253,0
+protein,120 aa,score: candidates; all cores,279,0,117015,3737859,,0
+protein,120 aa,score in place: ScoreRow every row; all cores (since 2026-11-09),442,522422353,117015,3737859,1181,0
+protein,120 aa,score in place: ScoreRow with each worker's top-50 bound; all cores (since 2026-11-10),797,522422353,117015,3737859,656,0
+protein,120 aa,end to end: ProteinSearch.SearchAsync,4066,522422353,0,3737859,128,0
+protein,250 aa,fixed: visible ids + protein null,100,0,0,61647,,0
+protein,250 aa,read: buffered; byte[] per row (as now),5834,1011040471,116312,0,173,1
+protein,250 aa,read: sequential; pooled buffer (transfer only),4798,1011040471,116312,0,211,0
+protein,250 aa,sha256: every row; all cores,2233,1011040471,116312,0,453,0
+protein,250 aa,decode: FromBinary every row; all cores,1841,1011040471,116312,10317791,549,0
+protein,250 aa,score: candidates; all cores,746,0,116312,7619199,,0
+protein,250 aa,score in place: ScoreRow every row; all cores (since 2026-11-09),800,1011040471,116312,7619199,1264,0
+protein,250 aa,score in place: ScoreRow with each worker's top-50 bound; all cores (since 2026-11-10),850,1011040471,116312,7619199,1189,0
+protein,250 aa,end to end: ProteinSearch.SearchAsync,6513,1011040471,0,7619199,155,0
+protein,400 aa,fixed: visible ids + protein null,93,0,0,61647,,0
+protein,400 aa,read: buffered; byte[] per row (as now),4918,1054369699,111641,0,214,1
+protein,400 aa,read: sequential; pooled buffer (transfer only),4521,1054369699,111641,0,233,0
+protein,400 aa,sha256: every row; all cores,2257,1054369699,111641,0,467,0
+protein,400 aa,decode: FromBinary every row; all cores,1404,1054369699,111641,10752251,751,0
+protein,400 aa,score: candidates; all cores,564,0,111641,7583919,,0
+protein,400 aa,score in place: ScoreRow every row; all cores (since 2026-11-09),761,1054369699,111641,7583919,1386,0
+protein,400 aa,score in place: ScoreRow with each worker's top-50 bound; all cores (since 2026-11-10),696,1054369699,111641,7583919,1515,0
+protein,400 aa,end to end: ProteinSearch.SearchAsync,6198,1054369699,0,7583919,170,0
+protein,700 aa,fixed: visible ids + protein null,87,0,0,61647,,0
+protein,700 aa,read: buffered; byte[] per row (as now),3030,790669709,50071,0,261,1
+protein,700 aa,read: sequential; pooled buffer (transfer only),2848,790669709,50071,0,278,0
+protein,700 aa,sha256: every row; all cores,1510,790669709,50071,0,524,0
+protein,700 aa,decode: FromBinary every row; all cores,906,790669709,50071,9696906,872,0
+protein,700 aa,score: candidates; all cores,452,0,50071,9696906,,0
+protein,700 aa,score in place: ScoreRow every row; all cores (since 2026-11-09),835,790669709,50071,9696906,947,0
+protein,700 aa,score in place: ScoreRow with each worker's top-50 bound; all cores (since 2026-11-10),579,790669709,50071,9696906,1366,0
+protein,700 aa,end to end: ProteinSearch.SearchAsync,3714,790669709,0,9696906,213,0
+localize,4 kbp at 4621214,fixed: candidate ids (level 500 bp),84,0,0,52366,,0
+localize,4 kbp at 4621214,read: level rows; sequential (transfer only),3369,831788270,51779,0,247,0
+localize,4 kbp at 4621214,read: StreamAfterAsync (hash + decode; as now),8251,831788270,51779,0,101,5
+localize,4 kbp at 4621214,scan: 2 strands x 1 phases; all cores,1117,0,51779,103558,,0
+localize,4 kbp at 4621214,end to end: LocalizeAsync streamed,9028,0,0,51779,,4
+localize,4 kbp at 4621214,end to end: LocalizeAsync cached,1127,0,0,51779,,0
+localize,8 kbp at 5289232,fixed: candidate ids (level 2000 bp),103,0,0,45989,,0
+localize,8 kbp at 5289232,read: level rows; sequential (transfer only),1690,208255116,45402,0,123,0
+localize,8 kbp at 5289232,read: StreamAfterAsync (hash + decode; as now),2648,208255116,45402,0,79,0
+localize,8 kbp at 5289232,scan: 2 strands x 4 phases; all cores,638,0,45402,363216,,0
+localize,8 kbp at 5289232,refine read: 100 fine levels,89,5888122,100,0,66,0
+localize,8 kbp at 5289232,refine compute,0,0,100,0,,0
+localize,8 kbp at 5289232,end to end: LocalizeAsync streamed,4704,0,0,45402,,0
+localize,8 kbp at 5289232,end to end: LocalizeAsync cached,922,0,0,45402,,0
+localize,20 kbp at 4748599,fixed: candidate ids (level 2000 bp),219,0,0,40626,,0
+localize,20 kbp at 4748599,read: level rows; sequential (transfer only),2145,207987952,40039,0,97,0
+localize,20 kbp at 4748599,read: StreamAfterAsync (hash + decode; as now),2568,207987952,40039,0,81,0
+localize,20 kbp at 4748599,scan: 2 strands x 4 phases; all cores,1777,0,40039,320312,,0
+localize,20 kbp at 4748599,refine read: 100 fine levels,133,5767330,100,0,43,0
+localize,20 kbp at 4748599,refine compute,0,0,100,0,,0
+localize,20 kbp at 4748599,end to end: LocalizeAsync streamed,6065,0,0,40039,,0
+localize,20 kbp at 4748599,end to end: LocalizeAsync cached,1558,0,0,40039,,0
+localize,50 kbp at 1537958,fixed: candidate ids (level 8000 bp),143,0,0,30746,,0
+localize,50 kbp at 1537958,read: level rows; sequential (transfer only),800,51978030,30159,0,65,0
+localize,50 kbp at 1537958,read: StreamAfterAsync (hash + decode; as now),1046,51978030,30159,0,50,0
+localize,50 kbp at 1537958,scan: 2 strands x 16 phases; all cores,691,0,30159,965088,,0
+localize,50 kbp at 1537958,refine read: 100 fine levels,141,6694642,100,0,48,0
+localize,50 kbp at 1537958,refine compute,1,0,100,0,,0
+localize,50 kbp at 1537958,end to end: LocalizeAsync streamed,1489,0,0,30159,,0
+localize,50 kbp at 1537958,end to end: LocalizeAsync cached,905,0,0,30159,,0
+localize,128 kbp at 1766363,fixed: candidate ids (level 32000 bp),108,0,0,23205,,0
+localize,128 kbp at 1766363,read: level rows; sequential (transfer only),329,13082572,22618,0,40,0
+localize,128 kbp at 1766363,read: StreamAfterAsync (hash + decode; as now),425,13082572,22618,0,31,0
+localize,128 kbp at 1766363,scan: 2 strands x 64 phases; all cores,562,0,22618,2895104,,0
+localize,128 kbp at 1766363,refine read: 100 fine levels,88,5715670,100,0,65,0
+localize,128 kbp at 1766363,refine compute,2,0,100,0,,0
+localize,128 kbp at 1766363,end to end: LocalizeAsync streamed,1013,0,0,22618,,0
+localize,128 kbp at 1766363,end to end: LocalizeAsync cached,643,0,0,22618,,0

@@ -139,6 +139,24 @@ namespace SequencePlatform.Core
             return (rows, mismatches);
         }
 
+        /// <summary>
+        /// Rewrites gene_profile, and its TOAST table with it, in bucket order, so the 2-3 buckets a protein search reads lie together
+        /// instead of spread over the table record by record: locally the read took 17-18% less (2026-11-10,
+        /// results/GeneProfileOrder_Check.csv). Takes an exclusive lock for the rewrite (minutes) and needs free disk about the table's
+        /// size; new records are appended unsorted, so run it again after a large ingest. Order changes no result.
+        /// </summary>
+        public static async Task ClusterAsync(NpgsqlDataSource dataSource, CancellationToken cancellationToken = default)
+        {
+            // Then vacuum, which can't share a transaction with the cluster: it sets the rewritten pages' visibility hints once, which
+            // the first searches would otherwise write while reading.
+            foreach (var sql in new[] { "cluster gene_profile using gene_profile_bucket", "vacuum (analyze) gene_profile" })
+            {
+                await using var command = dataSource.CreateCommand(sql);
+                command.CommandTimeout = 0;
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
+        }
+
         /// <summary>The record's whole gene profile, its buckets combined; null when it has none.</summary>
         public static async Task<ZCurveGeneProfile?> ReadAsync(NpgsqlDataSource dataSource, long sequenceId)
         {

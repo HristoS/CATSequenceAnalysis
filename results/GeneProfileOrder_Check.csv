@@ -1,0 +1,19 @@
+Measure,Query,Buckets,Table,Rows,Bytes,Run1Ms,Run2Ms,Run3Ms,MedianMs,PageTouches
+server (explain analyze serialize binary),60 aa,1-3,gene_profile (as stored),107490,253313167,1195,1175,1177,1177,211579
+server (explain analyze serialize binary),60 aa,1-3,sorted by bucket,107490,253313167,733,902,711,733,183001
+server (explain analyze serialize binary),60 aa,1-3,sorted; rows under 8 KB inline,107490,253313167,500,478,465,478,57246
+server (explain analyze serialize binary),400 aa,21-23,gene_profile (as stored),111641,1054369699,2630,2303,2237,2303,361917
+server (explain analyze serialize binary),400 aa,21-23,sorted by bucket,111641,1054369699,1744,1800,1963,1800,334189
+server (explain analyze serialize binary),400 aa,21-23,sorted; rows under 8 KB inline,111641,1054369699,2652,2626,4058,2652,299052
+client (Npgsql; SequentialAccess),60 aa,1-3,gene_profile (as stored),107490,253313167,2263,2160,2224,2224,
+client (Npgsql; SequentialAccess),60 aa,1-3,sorted by bucket,107490,253313167,1844,1410,1462,1462,
+client (Npgsql; SequentialAccess),60 aa,1-3,sorted; rows under 8 KB inline,107490,253313167,1314,1235,1855,1314,
+client (Npgsql; SequentialAccess),400 aa,21-23,gene_profile (as stored),111641,1054369699,5517,5347,4550,5347,
+client (Npgsql; SequentialAccess),400 aa,21-23,sorted by bucket,111641,1054369699,7112,4164,3970,4164,
+client (Npgsql; SequentialAccess),400 aa,21-23,sorted; rows under 8 KB inline,111641,1054369699,4958,4277,4674,4674,
+server (explain analyze serialize binary),60 aa,1-3,gene_profile after cluster-genes,107490,253313167,859,799,847,847,185381
+server (explain analyze serialize binary),400 aa,21-23,gene_profile after cluster-genes,111641,1054369699,1985,2589,2122,2122,335702
+server (explain analyze serialize binary),long genes,0,gene_profile after cluster-genes,50071,790669709,1247,1229,1300,1247,176284
+client (Npgsql; SequentialAccess),60 aa,1-3,gene_profile after cluster-genes,107490,253313167,1919,1841,1846,1846,
+client (Npgsql; SequentialAccess),400 aa,21-23,gene_profile after cluster-genes,111641,1054369699,4393,4409,4370,4393,
+client (Npgsql; SequentialAccess),long genes,0,gene_profile after cluster-genes,50071,790669709,2429,2549,2409,2429,

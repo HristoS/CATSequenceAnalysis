@@ -138,6 +138,9 @@ existing records can be rebuilt on the server by the same command from the same 
    from sequence_record r join sequence_source s on s.id = r.source_id left join gene_profile g on g.sequence_id = r.id
    where r.kind = 'eukaryote' group by 1, 2 order by 1;
    ```
+4. Rewrite the gene table in bucket order, which protein search reads faster (`results/GeneProfileOrder_Check.csv`):
+   `... run --rm --no-deps -T migrate cluster-genes`. Check `df -h` first: it needs free disk about the table's size (6.8 GB locally).
+   It holds an exclusive lock for the rewrite (293 s locally, longer on 2 vCPU), so protein searches wait meanwhile.
 
 New records created locally are a different matter: their ids can collide with uploads made on the server, so they go to the server by
 ingesting there, not by copying rows.

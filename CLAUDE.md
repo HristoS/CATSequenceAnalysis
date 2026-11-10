@@ -113,7 +113,7 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   sequences genes lie on listed in `annotations.ncbi.gene_layer` and kept on protein hits as `search_hit.gene_sequence`, migration 0020),
   `ProteinSearch` (P7, migrations 0015 and 0017: a protein ≥ 50 aa, never stored, as expected Z-curve windows, compared with the long
   genes or with the genes within ±10% of its length, reading only those buckets from the database and scoring them in place (`ZCurveGeneProfile.ScoreRow`, no decode and no
-  per-query hash: `verify-genes` checks the rows; since then PostgreSQL's transfer is most of a query, `results/SearchBreakdown_*.csv`); each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`).
+  per-query hash: `verify-genes` checks the rows; since then PostgreSQL's transfer is most of a query, `results/SearchBreakdown_*.csv`, and `cluster-genes` keeps each bucket's rows together); each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`).
 - `SequencePlatform.Api/`: ASP.NET Core minimal API on localhost:5080 (P4; see its README). Per-user API keys (`Users` in Core,
   only the SHA-256 stored); `CatalogueFilter.ViewerId` makes an upload visible to its owner only, and no viewer means public records
   only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw
@@ -139,7 +139,7 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   `ingest-ncbi` is the eukaryote pilot: one record per assembly with summed nuclear dinucleotide counts and no profile levels, streamed
   with no temp file, human refused in code; annotated assemblies also get the gene layer (no 6-mers: those would need the genome again). Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
   `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `convert-levels-half`, `backfill-kmers`,
-  `backfill-genes`, `backfill-genes-ncbi`, `build-protein-null`, `verify-genes`, `add-user`, `disable-user`; see its README.
+  `backfill-genes`, `backfill-genes-ncbi`, `build-protein-null`, `verify-genes`, `cluster-genes`, `add-user`, `disable-user`; see its README.
   6-mer counts per record (`record_kmer`, migration 0013, D8 widened 2026-11-04) are stored at ingest; `backfill-kmers` re-downloads older
   records and stores counts only where the SHA-256 matches. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).

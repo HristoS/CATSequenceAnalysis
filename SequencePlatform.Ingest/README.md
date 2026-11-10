@@ -141,6 +141,11 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   search stopped hashing the rows it reads on 2026-11-09, since that cost as much as decoding them (`results/SearchBreakdown_Before.csv`);
   rows are still hashed when written, and `GeneProfiles.ReadAsync` (a record's gene view) still checks what it reads. Run it after a
   restore or a disk problem, or before a measurement that must trust the layer.
+- `cluster-genes` rewrites `gene_profile` (and its TOAST table) in bucket order (`CLUSTER ... USING gene_profile_bucket`, then `VACUUM (ANALYZE)`).
+  Rows are written record by record, so a bucket's rows end up spread over the whole table, and a protein search reading 2-3 buckets
+  touches most of it; locally the read took 17-18% less afterwards (2026-11-10, `results/GeneProfileOrder_Check.csv`). It holds an
+  exclusive lock for the rewrite (293 s locally for 6.6 GB, plus 12 s of vacuum: no protein search or gene write meanwhile) and needs
+  free disk about the table's size. New records are appended unsorted, so run it again after a large ingest or gene backfill. Order changes no result.
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.
