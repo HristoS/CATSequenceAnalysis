@@ -325,10 +325,12 @@ namespace SequenceAnalyses
                 for (int w = 0; w < count; w++)
                 {
                     double squared = 0;
+                    int queryStart = w * FeatureCount;
+                    int geneWindow = gene.FirstWindow + w;
                     for (int f = 0; f < FeatureCount; f++)
                     {
-                        double difference = query[w * FeatureCount + f] -
-                            halfValues[BinaryPrimitives.ReadUInt16LittleEndian(bytes[(offset + 2 * (f * n + gene.FirstWindow + w))..])];
+                        double difference = query[queryStart + f] -
+                            halfValues[BinaryPrimitives.ReadUInt16LittleEndian(bytes[(offset + 2 * (f * n + geneWindow))..])];
                         squared += difference * difference;
                     }
                     sum += Math.Sqrt(squared);
