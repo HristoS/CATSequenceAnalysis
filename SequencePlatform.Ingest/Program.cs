@@ -7,7 +7,7 @@ using SequencePlatform.Ingest;
 // Small test app: populate the platform DB from BV-BRC. The connection string comes from the
 // SEQUENCE_PLATFORM_DB environment variable, or else the git-ignored appsettings.json (never committed).
 //
-//   migrate                                   create the database if missing, apply migrations
+//   migrate                                   create the database if missing, apply migrations; with SEQUENCE_APP_PASSWORD set, let sequence_app log in with it
 //   ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed] [--per-species]
 //   ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--contact you@example.org]   the eukaryote pilot: reference genomes, dinucleotide counts only
 //   load-taxonomy [--refresh] [--skip-gtdb]   NCBI's current lineage per referenced taxid, GTDB's per assembly (S2.4)
@@ -71,6 +71,11 @@ switch (args[0])
 {
     case "migrate":
         Console.WriteLine($"Database {settings.Database} is up to date.");
+        if (Environment.GetEnvironmentVariable(Database.AppPasswordVariable) is { Length: > 0 } appPassword)
+        {
+            await Database.SetAppPasswordAsync(dataSource, appPassword);
+            Console.WriteLine($"Role {Database.AppRole} can log in with the password from {Database.AppPasswordVariable}.");
+        }
         return 0;
 
     case "ingest-bvbrc":

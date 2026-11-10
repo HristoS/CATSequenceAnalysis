@@ -5,8 +5,8 @@ using Npgsql;
 using SequencePlatform.Api;
 using SequencePlatform.Core;
 
-// The platform's HTTP API (P4). Localhost only until S6.4: keys travel as plain bearer tokens, so the API isn't exposed
-// beyond this machine. The connection string comes from ASP.NET configuration (user-secrets, or the
+// The platform's HTTP API (P4). Kestrel serves plain HTTP; hosted, it listens on localhost behind Caddy's TLS and connects to PostgreSQL
+// as the least-privilege role sequence_app (S6.4, migration 0021). The connection string comes from ASP.NET configuration (user-secrets, or the
 // ConnectionStrings__SequencePlatform variable), else SEQUENCE_PLATFORM_DB as the Ingest reads it. The API doesn't migrate;
 // run the Ingest's migrate first.
 var builder = WebApplication.CreateBuilder(args);

@@ -132,7 +132,9 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   `sequence_platform_p9` (shared loader `scripts/platform-checks/shared/ExperimentCorpus.cs`, via `#:include`); `/api/experiments` reads them. The web UI is `SequencePlatform.Api/wwwroot/`: static files in front of the API, React 18.3.1
   and htm vendored with no build step and no Node (React 19 has no UMD builds), hash routes, `default-src 'self'`.
 - `SequencePlatform.AppHost/` and `SequencePlatform.ServiceDefaults/` (P6): Aspire. Run mode starts `migrate`, then `api` and `worker` as two
-  processes of the API project on the local database; publish mode writes Docker Compose with its own empty `postgres:17`. No broker:
+  processes of the API project on the local database; publish mode writes Docker Compose with its own empty `postgres:17`, where the API and
+  worker connect as the least-privilege role `sequence_app` (migration 0021: reads all, writes only uploads and search jobs; `migrate` sets its
+  generated password; the platform tests run the API as it, via `-c role=`). No broker:
   PostgreSQL stays the queue. Exactly one worker. Generated output goes to the git-ignored `deploy/` (its `.env` holds a password).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. `ingest-bvbrc --per-species` adds one genome per species not yet stored;

@@ -30,16 +30,31 @@ IResourceBuilder<IResourceWithConnectionString> database = server is null
     ? builder.AddConnectionString("SequencePlatform")
     : server.AddDatabase("SequencePlatform", "sequence_platform");
 
+// The API and the worker connect as sequence_app (migration 0021: reads everything, writes only uploads and search jobs), never as the
+// owner, once hosted (S6.4). migrate, as the owner, gives that role a login with a generated password (persisted with the deployment's
+// other secrets; letters and digits only, so it needs no quoting in a connection string). Run mode keeps the local connection string.
+var appPassword = server is null
+    ? null
+    : builder.AddParameter("sequence-app-password", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
+// The role's name as Database.AppRole spells it (the AppHost doesn't reference the Core library).
+const string appRole = "sequence_app";
+IResourceBuilder<IResourceWithConnectionString> appDatabase = server is null
+    ? database
+    : builder.AddConnectionString("SequencePlatformApp", ReferenceExpression.Create(
+        $"Host={server.Resource.PrimaryEndpoint.Property(EndpointProperty.Host)};Port={server.Resource.PrimaryEndpoint.Property(EndpointProperty.Port)};" +
+        $"Username={appRole};Password={appPassword!.Resource};Database=sequence_platform"));
+
 var migrate = builder.AddProject<SequencePlatform_Ingest>("migrate")
     .WithArgs("migrate")
     .WithEnvironment("SEQUENCE_PLATFORM_DB", database);
 if (server is not null)
     migrate.WaitFor(server)
+        .WithEnvironment("SEQUENCE_APP_PASSWORD", appPassword!)
         .PublishAsDockerComposeService((_, service) => service.DependsOn[server.Resource.Name] = new ServiceDependency { Condition = "service_healthy" });
 
-// Localhost only until S6.4: keys travel as plain bearer tokens.
+// Localhost only: Caddy in front holds the TLS (hosting/tencent/Caddyfile).
 builder.AddProject<SequencePlatform_Api>("api")
-    .WithEnvironment("ConnectionStrings__SequencePlatform", database)
+    .WithEnvironment("ConnectionStrings__SequencePlatform", appDatabase)
     .WaitForCompletion(migrate)
     .WithEnvironment("SearchWorker__Enabled", "false")
     .WithExternalHttpEndpoints()
@@ -47,7 +62,7 @@ builder.AddProject<SequencePlatform_Api>("api")
 
 // The same project with the worker on and no port anyone calls. Exactly one: at startup it requeues every running job as its own.
 var worker = builder.AddProject<SequencePlatform_Api>("worker", launchProfileName: null)
-    .WithEnvironment("ConnectionStrings__SequencePlatform", database)
+    .WithEnvironment("ConnectionStrings__SequencePlatform", appDatabase)
     .WaitForCompletion(migrate)
     .WithEnvironment("ASPNETCORE_URLS", "http://127.0.0.1:0");
 // Locally, localization keeps its levels in memory: 1.4-9.6x faster for about 0.8 GB (results/SearchBreakdown_Before.csv). The published

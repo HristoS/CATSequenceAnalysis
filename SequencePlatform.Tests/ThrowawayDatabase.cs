@@ -14,6 +14,13 @@ namespace SequencePlatform.Tests
     {
         public static NpgsqlDataSource DataSource { get; private set; } = null!;
 
+        /// <summary>
+        /// The same database as <see cref="Database.AppRole"/>, as the hosted API and worker connect (S6.4), so a write the role lacks
+        /// fails a test here rather than on the server. The test user switches role at connect (<c>-c role=</c>), which drops its own
+        /// powers, so no password is set on the role.
+        /// </summary>
+        public static NpgsqlDataSource AppDataSource { get; private set; } = null!;
+
         private static NpgsqlConnectionStringBuilder settings = null!;
 
         [OneTimeSetUp]
@@ -24,11 +31,16 @@ namespace SequencePlatform.Tests
             await Database.EnsureDatabaseAsync(settings);
             DataSource = NpgsqlDataSource.Create(settings.ConnectionString);
             await Database.MigrateAsync(DataSource);
+            AppDataSource = NpgsqlDataSource.Create(new NpgsqlConnectionStringBuilder(settings.ConnectionString)
+            {
+                Options = $"-c role={Database.AppRole}",
+            }.ConnectionString);
         }
 
         [OneTimeTearDown]
         public async Task DropAsync()
         {
+            await AppDataSource.DisposeAsync();
             await DataSource.DisposeAsync();
             var maintenance = new NpgsqlConnectionStringBuilder(settings.ConnectionString) { Database = "postgres", Pooling = false };
             await using var connection = new NpgsqlConnection(maintenance.ConnectionString);

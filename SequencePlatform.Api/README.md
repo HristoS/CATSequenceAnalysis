@@ -25,7 +25,9 @@ and no 24-letter piece of it is stored or logged either.
 3. `dotnet run --project SequencePlatform.Api` listens on http://localhost:5080. The OpenAPI document is at `/openapi/v1.json`
    (Development only, no key needed).
 
-Every other request needs `Authorization: Bearer <key>`. **Localhost only** until S6.4: the key is a plain bearer token over HTTP.
+Every other request needs `Authorization: Bearer <key>`. Run locally, the key is a plain bearer token over HTTP. Hosted, Caddy holds
+the TLS in front of Kestrel, which listens on localhost only, and the API connects to PostgreSQL as the least-privilege role `sequence_app`
+(migration 0021; `hosting/tencent/README.md`). The API tests connect as that role too, so a write it isn't granted fails a test.
 Revoke a key with `dotnet run --project SequencePlatform.Ingest -- disable-user alice`.
 
 ## Run it with Aspire

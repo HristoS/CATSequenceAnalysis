@@ -10,6 +10,9 @@ namespace SequencePlatform.Core
     /// </summary>
     public static class Database
     {
+        /// <summary>The least-privilege role the API and the worker connect as when hosted (migration 0021).</summary>
+        public const string AppRole = "sequence_app";
+        public const string AppPasswordVariable = "SEQUENCE_APP_PASSWORD";
         private const string defaultDatabaseName = "sequence_platform";
 
         public static NpgsqlConnectionStringBuilder ConnectionSettings(string connectionString)
@@ -78,6 +81,21 @@ namespace SequencePlatform.Core
                 await transaction.CommitAsync();
                 Console.WriteLine($"Applied migration {version}.");
             }
+        }
+
+        /// <summary>
+        /// Lets <see cref="AppRole"/> (migration 0021, created without login) log in with this password: the hosted stack's API and worker
+        /// connect as it, never as the owner. The password comes from the environment (<see cref="AppPasswordVariable"/>), never the repo.
+        /// </summary>
+        public static async Task SetAppPasswordAsync(NpgsqlDataSource dataSource, string password)
+        {
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException($"{AppPasswordVariable} is empty.");
+            await using var connection = await dataSource.OpenConnectionAsync();
+            // A password can't be a statement parameter; format's %L quotes it as a literal on the server.
+            await using var build = new NpgsqlCommand($"select format('alter role {AppRole} login password %L', $1::text)", connection);
+            build.Parameters.AddWithValue(password);
+            await using var alter = new NpgsqlCommand((string)(await build.ExecuteScalarAsync())!, connection);
+            await alter.ExecuteNonQueryAsync();
         }
     }
 }

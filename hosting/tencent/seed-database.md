@@ -111,7 +111,11 @@ $c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" pg_restore -U postgre
   < /opt/cat/incoming/sequence_platform.dump
 
 $c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -U postgres -d sequence_platform -c "vacuum analyze"'   # pg_restore doesn't analyze
-$c run --rm --no-deps -T migrate migrate                 # schema up to the deployed commit
+# The API's role and its grants (S6.4): a dump carries no roles and --no-privileges drops the grants, while the restored schema_migration
+# already lists 0021, so migrate wouldn't run it again. The file is safe to rerun. Before migrate, which sets the role's password.
+$c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -U postgres -d sequence_platform -v ON_ERROR_STOP=1 -f -' \
+  < ../../../SequencePlatform.Core/Migrations/0021_sequence_app.sql
+$c run --rm --no-deps -T migrate migrate                 # schema up to the deployed commit; sequence_app's password
 $c run --rm --no-deps -T migrate stats                   # compare with stats.txt
 $c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -U postgres -d sequence_platform -Atc "select name from app_user"'
 $c run --rm --no-deps -T migrate disable-user NAME       # for each imported user

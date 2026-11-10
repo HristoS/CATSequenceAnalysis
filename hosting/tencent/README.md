@@ -52,6 +52,13 @@ fails with an internal-error alert (`openssl s_client -servername IP` still work
 
 This is the S6.4 step the API's README waits for: bearer keys now travel only over TLS, and Kestrel stays on localhost.
 
+**The API's database role (S6.4, since 2026-11-10).** The `api` and `worker` containers connect as `sequence_app`, not `postgres`. Migration
+0021 gives that role read access to every table and write access only to what uploads and search jobs write. It can't change the schema,
+write the computed layers or the users, or run programs on the server (`COPY ... PROGRAM`). The deploy generates its password as
+`SEQUENCE_APP_PASSWORD` in `.env.Production`, beside `POSTGRES_PASSWORD`, and `migrate` (still `postgres`) gives the role its login on
+every start. Admin commands through the `migrate` image keep running as `postgres`. If the API logs `permission denied for table ...`, a
+migration added a table the API writes without granting it: grant it in a new migration, not by hand.
+
 **Compression is Caddy's job** (`encode zstd gzip`, since 2026-11-06). The API's container sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`,
 so a request Caddy forwards with `X-Forwarded-Proto: https` counts as HTTPS, and ASP.NET Core's response compression is off for HTTPS by
 default: until then every API response left the server uncompressed (E. coli K-12's gene list: 760 KB; with `encode`, 157 KB zstd or
@@ -112,7 +119,8 @@ docker compose -p COMPOSE_PROJECT -f docker-compose.yaml --env-file .env.Product
 **Upgrading:**
 1. Take a Lighthouse snapshot.
 2. `git pull`.
-3. Re-run the deploy command from step 6. `migrate` applies the new migrations, which are append-only.
+3. Re-run the deploy command from step 6. `migrate` applies the new migrations, which are append-only. The first deploy with migration
+   0021 adds `SEQUENCE_APP_PASSWORD` to `.env.Production`: run the `chmod 600` from step 6 again.
 4. Run `systemctl restart cat-platform`.
 
 **Derived tables after a deploy that adds them:** migration 0019 (protein p and E) needs one run of

@@ -11,7 +11,7 @@ using SequencePlatform.Core;
 
 namespace SequencePlatform.Tests
 {
-    /// <summary>The API in process over the throwaway database, and clients holding a new user's key.</summary>
+    /// <summary>The API in process over the throwaway database, connected as <see cref="Database.AppRole"/>, and clients holding a new user's key.</summary>
     internal static class ApiHost
     {
         /// <param name="workerMethodVersion">Runs the search worker over the profiles stored under this method version; null: no worker,
@@ -26,7 +26,8 @@ namespace SequencePlatform.Tests
                 host.ConfigureTestServices(services =>
                 {
                     services.RemoveAll<NpgsqlDataSource>();
-                    services.AddSingleton(ThrowawayDatabase.DataSource);
+                    // As the hosted stack connects: the least-privilege role, not the owner the tests seed with.
+                    services.AddSingleton(ThrowawayDatabase.AppDataSource);
                     services.Configure<SearchWorkerOptions>(worker =>
                     {
                         worker.Enabled = workerMethodVersion is not null;
