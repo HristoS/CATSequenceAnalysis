@@ -38,6 +38,8 @@ namespace SequenceAnalyses
         private const ushort singleSequenceVersion = 2;
         private const ushort splicedVersion = 3;
         private const int binaryHeaderSize = 16;
+        // Every float16 bit pattern as the double it equals (Half to double is exact), so reading a stored feature is one load (ScoreRow).
+        private static readonly double[] halfValues = Enumerable.Range(0, 1 << 16).Select(bits => (double)BitConverter.UInt16BitsToHalf((ushort)bits)).ToArray();
 
         private readonly Gene[] genes;
         // Structure of arrays over every gene's windows in gene order: features[f][window], f = 3 * order + axis.
@@ -285,19 +287,79 @@ namespace SequenceAnalyses
         /// <summary>Inverse of <see cref="ToBinary"/>.</summary>
         public static ZCurveGeneProfile FromBinary(ReadOnlySpan<byte> bytes)
         {
+            var genes = new Gene[GeneCountOf(bytes)];
+            var (offset, n) = ReadGenes(bytes, genes);
+            var features = new Half[FeatureCount][];
+            for (int f = 0; f < FeatureCount; f++)
+            {
+                features[f] = new Half[n];
+                for (int w = 0; w < n; w++)
+                    features[f][w] = BinaryPrimitives.ReadHalfLittleEndian(bytes[(offset + 2 * (f * n + w))..]);
+            }
+            return new ZCurveGeneProfile(genes, features);
+        }
+
+        /// <summary>
+        /// <see cref="Score"/> for every gene of a stored row (<see cref="ToBinary"/> bytes) that <paramref name="candidate"/> accepts, read in
+        /// place: no profile is built and only the candidates' windows are read, so a search scanning many rows decodes what it compares and
+        /// nothing else. Scores equal <see cref="FromBinary"/> then <see cref="Score"/> bit for bit (same values, same order of operations).
+        /// </summary>
+        /// <param name="genes">Scratch for the row's genes, at least <see cref="GeneCountOf"/> long; reused across rows by the caller.</param>
+        /// <param name="hit">Called with each candidate gene and its score.</param>
+        public static void ScoreRow(ReadOnlySpan<byte> bytes, double[] query, Gene[] genes, Func<Gene, bool> candidate, Action<Gene, double> hit)
+        {
+            int geneCount = GeneCountOf(bytes);
+            var (offset, n) = ReadGenes(bytes, genes.AsSpan(0, geneCount));
+            int queryWindows = query.Length / FeatureCount;
+            for (int g = 0; g < geneCount; g++)
+            {
+                var gene = genes[g];
+                if (!candidate(gene)) continue;
+                int count = Math.Min(queryWindows, gene.WindowCount);
+                if (count == 0)
+                {
+                    hit(gene, double.NaN);
+                    continue;
+                }
+                double sum = 0;
+                for (int w = 0; w < count; w++)
+                {
+                    double squared = 0;
+                    for (int f = 0; f < FeatureCount; f++)
+                    {
+                        double difference = query[w * FeatureCount + f] -
+                            halfValues[BinaryPrimitives.ReadUInt16LittleEndian(bytes[(offset + 2 * (f * n + gene.FirstWindow + w))..])];
+                        squared += difference * difference;
+                    }
+                    sum += Math.Sqrt(squared);
+                }
+                hit(gene, 1 - sum / count);
+            }
+        }
+
+        /// <summary>How many genes a stored row holds: the size <see cref="ScoreRow"/>'s scratch needs.</summary>
+        public static int GeneCountOf(ReadOnlySpan<byte> bytes)
+        {
             if (bytes.Length < binaryHeaderSize || BinaryPrimitives.ReadUInt32LittleEndian(bytes) != binaryMagic)
                 throw new FormatException("Not a ZCGP profile.");
+            int geneCount = BinaryPrimitives.ReadInt32LittleEndian(bytes[8..]);
+            if (geneCount < 0) throw new FormatException("ZCGP header does not match the payload length.");
+            return geneCount;
+        }
+
+        // The gene list of a stored row into genes (exactly its gene count long), checked against the window count and payload length.
+        // Returns where the feature blocks start and the window count.
+        private static (int FeatureOffset, int WindowCount) ReadGenes(ReadOnlySpan<byte> bytes, Span<Gene> genes)
+        {
             var version = BinaryPrimitives.ReadUInt16LittleEndian(bytes[4..]);
             if (version != singleSequenceVersion && version != splicedVersion)
                 throw new FormatException($"Unsupported ZCGP format version {version}.");
             bool spliced = version == splicedVersion;
-            int geneCount = BinaryPrimitives.ReadInt32LittleEndian(bytes[8..]);
             int n = BinaryPrimitives.ReadInt32LittleEndian(bytes[12..]);
-            if (geneCount < 0 || n < 0) throw new FormatException("ZCGP header does not match the payload length.");
+            if (n < 0) throw new FormatException("ZCGP header does not match the payload length.");
 
-            var genes = new Gene[geneCount];
             int offset = binaryHeaderSize, firstWindow = 0, start = 0, chromosome = 0;
-            for (int g = 0; g < geneCount; g++)
+            for (int g = 0; g < genes.Length; g++)
             {
                 int nextChromosome = spliced ? checked(chromosome + (int)ReadVarint(bytes, ref offset)) : 0;
                 if (nextChromosome != chromosome) (start, chromosome) = (0, nextChromosome);
@@ -315,15 +377,7 @@ namespace SequenceAnalyses
             }
             if (firstWindow != n) throw new FormatException("ZCGP gene windows do not add up to the window count.");
             if (bytes.Length != offset + 2L * FeatureCount * n) throw new FormatException("ZCGP header does not match the payload length.");
-
-            var features = new Half[FeatureCount][];
-            for (int f = 0; f < FeatureCount; f++)
-            {
-                features[f] = new Half[n];
-                for (int w = 0; w < n; w++)
-                    features[f][w] = BinaryPrimitives.ReadHalfLittleEndian(bytes[(offset + 2 * (f * n + w))..]);
-            }
-            return new ZCurveGeneProfile(genes, features);
+            return (offset, n);
         }
 
         private static void WriteVarint(List<byte> destination, ulong value)

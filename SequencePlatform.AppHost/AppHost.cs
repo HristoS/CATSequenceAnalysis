@@ -46,9 +46,12 @@ builder.AddProject<SequencePlatform_Api>("api")
     .PublishAsDockerComposeService((_, service) => service.Ports = ["127.0.0.1:5080:${API_PORT}"]);
 
 // The same project with the worker on and no port anyone calls. Exactly one: at startup it requeues every running job as its own.
-builder.AddProject<SequencePlatform_Api>("worker", launchProfileName: null)
+var worker = builder.AddProject<SequencePlatform_Api>("worker", launchProfileName: null)
     .WithEnvironment("ConnectionStrings__SequencePlatform", database)
     .WaitForCompletion(migrate)
     .WithEnvironment("ASPNETCORE_URLS", "http://127.0.0.1:0");
+// Locally, localization keeps its levels in memory: 1.4-9.6x faster for about 0.8 GB (results/SearchBreakdown_Before.csv). The published
+// set (the 8 GB server) keeps streaming.
+if (builder.ExecutionContext.IsRunMode) worker.WithEnvironment("SearchWorker__CacheLocalization", "true");
 
 builder.Build().Run();

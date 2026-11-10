@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
@@ -104,6 +105,8 @@ namespace SequencePlatform.Core
         public const int MaxLengthAa = 40_000;
         public const double LengthBand = 0.1;
         private const int sharpWindows = 3;
+        // Row buffers shared by every search: up to gene rows' size limit, enough per size for the rows a search holds in flight.
+        private static readonly ArrayPool<byte> payloads = ArrayPool<byte>.Create(GeneProfiles.MaxRowBytes, 128);
 
         // Ascending from the worst hit: lower score, then (on a tie) the later record and gene, so the kept top is the same whichever
         // worker scored what.
@@ -123,10 +126,12 @@ namespace SequencePlatform.Core
             ArgumentOutOfRangeException.ThrowIfLessThan(top, 1);
             var visible = await Catalogue.IdsAsync(dataSource, filter ?? new CatalogueFilter(), cancellationToken);
             var candidate = CandidateRule(query);
-            var rows = Channel.CreateBounded<(long Id, byte[] Payload, byte[] Sha256)>(256);
+            int workerCount = Environment.ProcessorCount;
+            // Few rows in flight, so the pool's buffers are reused rather than a new array allocated per row.
+            var rows = Channel.CreateBounded<(long Id, byte[] Payload, int Length)>(4 * workerCount);
             // A worker that fails stops the reader, which would otherwise wait on a full channel; its own error is what's thrown.
             using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var workers = Enumerable.Range(0, Environment.ProcessorCount).Select(_ => Task.Run(async () =>
+            var workers = Enumerable.Range(0, workerCount).Select(_ => Task.Run(async () =>
             {
                 try { return await ScoreAsync(rows.Reader, query.Axes, candidate, top, stop.Token); }
                 catch { stop.Cancel(); throw; }
@@ -134,15 +139,20 @@ namespace SequencePlatform.Core
 
             try
             {
+                // No per-row SHA-256 here: rows are hashed when written and checked by GeneProfiles.ReadAsync and the Ingest's
+                // verify-genes; hashing every row of every search cost as much as decoding it (results/SearchBreakdown_Before.csv).
                 await using var command = dataSource.CreateCommand(
-                    "select sequence_id, payload, sha256 from gene_profile where bucket = any($1) and window_count > 0");
+                    "select sequence_id, payload from gene_profile where bucket = any($1) and window_count > 0");
                 command.Parameters.AddWithValue(GeneProfiles.BucketsFor(query.LengthAa, LengthBand).Select(b => (short)b).ToArray());
-                await using var reader = await command.ExecuteReaderAsync(stop.Token);
+                await using var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.SequentialAccess, stop.Token);
                 while (await reader.ReadAsync(stop.Token))
                 {
                     long id = reader.GetInt64(0);
-                    if (visible.Contains(id))
-                        await rows.Writer.WriteAsync((id, reader.GetFieldValue<byte[]>(1), reader.GetFieldValue<byte[]>(2)), stop.Token);
+                    if (!visible.Contains(id)) continue;
+                    int length = checked((int)reader.GetBytes(1, 0, null, 0, 0));
+                    var payload = payloads.Rent(length);
+                    reader.GetBytes(1, 0, payload, 0, length);
+                    await rows.Writer.WriteAsync((id, payload, length), stop.Token);
                 }
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -169,24 +179,34 @@ namespace SequencePlatform.Core
             : gene => Math.Abs(gene.Residues - query.LengthAa) <= LengthBand * query.LengthAa;
 
         private static async Task<(PriorityQueue<ProteinHit, ProteinHit> Best, long Scored)> ScoreAsync(
-            ChannelReader<(long Id, byte[] Payload, byte[] Sha256)> rows, double[] axes, Func<ZCurveGeneProfile.Gene, bool> candidate, int top,
+            ChannelReader<(long Id, byte[] Payload, int Length)> rows, double[] axes, Func<ZCurveGeneProfile.Gene, bool> candidate, int top,
             CancellationToken cancellationToken)
         {
             var best = new PriorityQueue<ProteinHit, ProteinHit>(top + 1, worseFirst);
             long scored = 0;
-            await foreach (var (id, payload, sha256) in rows.ReadAllAsync(cancellationToken))
+            var genes = Array.Empty<ZCurveGeneProfile.Gene>();
+            long id = 0;
+            // One delegate for the worker's lifetime; it reads the current row's id.
+            Action<ZCurveGeneProfile.Gene, double> keep = (gene, score) =>
             {
-                if (!SHA256.HashData(payload).AsSpan().SequenceEqual(sha256))
-                    throw new InvalidDataException($"Gene profile of record {id} doesn't match its SHA-256.");
-                var profile = ZCurveGeneProfile.FromBinary(payload);
-                for (int g = 0; g < profile.Genes.Count; g++)
+                scored++;
+                var hit = new ProteinHit(id, gene.Start, gene.End, gene.Reverse, gene.Family, score, GeneSequence: gene.Chromosome);
+                if (best.Count < top) best.Enqueue(hit, hit);
+                else if (worseFirst.Compare(hit, best.Peek()) > 0) best.EnqueueDequeue(hit, hit);
+            };
+            await foreach (var (rowId, payload, length) in rows.ReadAllAsync(cancellationToken))
+            {
+                try
                 {
-                    var gene = profile.Genes[g];
-                    if (!candidate(gene)) continue;
-                    scored++;
-                    var hit = new ProteinHit(id, gene.Start, gene.End, gene.Reverse, gene.Family, profile.Score(axes, g), GeneSequence: gene.Chromosome);
-                    if (best.Count < top) best.Enqueue(hit, hit);
-                    else if (worseFirst.Compare(hit, best.Peek()) > 0) best.EnqueueDequeue(hit, hit);
+                    var bytes = payload.AsSpan(0, length);
+                    int geneCount = ZCurveGeneProfile.GeneCountOf(bytes);
+                    if (genes.Length < geneCount) genes = new ZCurveGeneProfile.Gene[geneCount];
+                    id = rowId;
+                    ZCurveGeneProfile.ScoreRow(bytes, axes, genes, candidate, keep);
+                }
+                finally
+                {
+                    payloads.Return(payload);
                 }
             }
             return (best, scored);

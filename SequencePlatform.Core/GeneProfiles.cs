@@ -116,6 +116,29 @@ namespace SequencePlatform.Core
             return names;
         }
 
+        /// <summary>
+        /// Every gene row checked against its stored SHA-256, the check <see cref="ProteinSearch"/> no longer makes on each search
+        /// (it cost as much as decoding, results/SearchBreakdown_Before.csv). <see cref="ReadAsync"/> still checks the rows it reads.
+        /// </summary>
+        /// <returns>Rows checked, and the (record, bucket) of every row that doesn't match.</returns>
+        public static async Task<(long Rows, List<(long SequenceId, int Bucket)> Mismatches)> VerifyAsync(NpgsqlDataSource dataSource,
+            Action<long>? progress = null, CancellationToken cancellationToken = default)
+        {
+            var mismatches = new List<(long, int)>();
+            long rows = 0;
+            await using var command = dataSource.CreateCommand("select sequence_id, bucket, sha256, payload from gene_profile");
+            await using var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                long sequenceId = reader.GetInt64(0);
+                int bucket = reader.GetInt16(1);
+                var sha256 = reader.GetFieldValue<byte[]>(2);
+                if (!SHA256.HashData(reader.GetFieldValue<byte[]>(3)).AsSpan().SequenceEqual(sha256)) mismatches.Add((sequenceId, bucket));
+                if (++rows % 100_000 == 0) progress?.Invoke(rows);
+            }
+            return (rows, mismatches);
+        }
+
         /// <summary>The record's whole gene profile, its buckets combined; null when it has none.</summary>
         public static async Task<ZCurveGeneProfile?> ReadAsync(NpgsqlDataSource dataSource, long sequenceId)
         {

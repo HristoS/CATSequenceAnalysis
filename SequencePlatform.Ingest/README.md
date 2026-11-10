@@ -137,6 +137,10 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   seeded order), each scored as a protein search scores it against the genes of other families; the cumulative counts go to
   `protein_score_null`. The proteins are fetched for the build and never stored. Rebuild after a large ingest. The check behind it:
   `results/ProteinNull_Check.csv`.
+- `verify-genes` checks every `gene_profile` row against its stored SHA-256 and lists the rows that don't match (exit 2 if any). Protein
+  search stopped hashing the rows it reads on 2026-11-09, since that cost as much as decoding them (`results/SearchBreakdown_Before.csv`);
+  rows are still hashed when written, and `GeneProfiles.ReadAsync` (a record's gene view) still checks what it reads. Run it after a
+  restore or a disk problem, or before a measurement that must trust the layer.
 - `profile --fasta X --out X.zcwp` writes the query-side profile without touching the database: `X.zcwp` and the reverse strand
   `X.rc.zcwp`, both from the DNA. `search-similar --profile X.zcwp` picks up `X.rc.zcwp` when it's there and otherwise searches the
   forward strand only. A file with several records writes `X.<record id>.zcwp` per record.

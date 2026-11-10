@@ -21,6 +21,7 @@ using SequencePlatform.Ingest;
 //   backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]   the gene layer (S7.R, S7.S): gene_profile rows, amino-acid 4-mers, missing 6-mers
 //   backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]   the gene layer for NCBI eukaryotes (S7.T), from each annotated assembly's CDS file; no genome download
 //   build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]   p and E for protein hits: real BV-BRC proteins (not stored) scored against other families
+//   verify-genes                              every gene row against its stored SHA-256 (protein search doesn't hash rows); exit 2 on a mismatch
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
@@ -34,7 +35,7 @@ const string usage =
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins | convert-levels-half\n" +
     "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL] | backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]\n" +
     "       | backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]\n" +
-    "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]\n" +
+    "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL] | verify-genes\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
     "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | rotate-key NAME | disable-user NAME";
 
@@ -153,6 +154,14 @@ switch (args[0])
                 args.Contains("--dry-run"), int.Parse(Option("--check-search") ?? "0"));
         }
 
+    case "verify-genes":
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var (checkedRows, mismatches) = await GeneProfiles.VerifyAsync(dataSource, rows => Console.WriteLine($"  {rows:N0} rows checked"));
+        foreach (var (sequenceId, bucket) in mismatches) Console.WriteLine($"  MISMATCH: record {sequenceId}, bucket {bucket}");
+        Console.WriteLine($"{checkedRows:N0} gene rows checked, {mismatches.Count} mismatches, {watch.Elapsed.TotalSeconds:F0} s.");
+        return mismatches.Count == 0 ? 0 : 2;
+    }
     case "build-protein-null":
         return await BuildProteinNullAsync(dataSource, int.Parse(Option("--per-bucket") ?? "30"), int.Parse(Option("--seed") ?? "20261106"), Option("--contact"));
 

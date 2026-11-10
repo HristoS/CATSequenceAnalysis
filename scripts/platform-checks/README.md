@@ -22,6 +22,7 @@ dotnet run -c Release scripts/platform-checks/bandsearch.cs
 | `neighbour_eval.cs` | `S34b_NeighbourRanking.csv` | The same evaluation through `SearchRecordAsync`, with and without the stored graph (`build-neighbours` first) |
 | `composition.cs` | `S34b_PlasmidComposition.csv` | Mean Z-curve axes of the Vibrio fischeri plasmid, coronaviruses and others of their length and GC |
 | `localize_check.cs` | `S35_LocalizeCheck*.csv` | Coarse-to-fine localization of bundled-genome fragments over the whole catalogue (needs the bundled FASTA files in `data/genomes/`); pass the output CSV path, the summary goes to the console |
+| `search_breakdown.cs` | `SearchBreakdown_*.csv` | Protein search and streamed localization stage by stage (read, hash, decode, score, scan, refine) and end to end; pass the output CSV and a hits file, which a later run compares against for equality |
 | `localize_eval.cs` | `S35_LocalizeEval*.csv` | The same fragments through `Localization.LocalizeAsync` (cached, and a few streamed), for comparison with the check and timing |
 | `origin_catalogue.cs` | `S32_OriginCatalogue*.csv` | Replication origin of every stored bacterial chromosome from its profile's cumulative GC skew, against where the record starts |
 | `rotated_twins.cs` | `S32_RotatedTwins.csv` | Records that are the same molecule from another start or strand (same length, dinucleotide counts within 2) |

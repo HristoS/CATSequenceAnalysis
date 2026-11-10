@@ -14,8 +14,9 @@ namespace SequencePlatform.Api
         public string MethodVersion { get; set; } = RecordStore.MethodVersion;
 
         /// <summary>
-        /// false (the default): localization streams its level from the database, 0.5-2.4 s per fragment and 7.4 s at 4 kbp. true:
-        /// every level in memory, 0.17-1.14 s, but about 823 MB and 11 s to load on the local catalogue (results/S35_LocalizeEval_Summary.csv).
+        /// false (the default, and the server's): localization streams its level from the database, 0.85-9.6 s per fragment from 128
+        /// down to 4 kbp. true (local runs: the API's http launch profile and the AppHost in run mode): every level in memory, 0.52-1.4 s,
+        /// for about 0.8 GB and a load on first use (results/SearchBreakdown_Before.csv).
         /// </summary>
         public bool CacheLocalization { get; set; }
 

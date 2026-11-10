@@ -198,6 +198,38 @@ namespace SequenceAnaliseTests
             Assert.That(copy.Score(query, 0), Is.EqualTo(profile.Score(query, 0)));
         }
 
+        // ScoreRow is what protein search runs on stored rows; it must give FromBinary + Score's numbers exactly, for both formats, every
+        // query shape (long windows, split short windows) and with the candidate rule applied.
+        [Test]
+        public void ScoreRowEqualsDecodingThenScoringBitForBit()
+        {
+            var genes = new[] { RandomGene(700, 20), RandomGene(120, 21), RandomGene(1200, 22), RandomGene(60, 23), RandomGene(130, 24) };
+            var unspliced = ZCurveGeneProfile.FromCodingSequences(genes.Select((g, i) => (0, 10_000 * i, 10_000 * i + g.Length, i % 2 == 1, i, g)));
+            var spliced = ZCurveGeneProfile.FromCodingSequences(genes.Select((g, i) => (i % 3, 7_000 * i, 7_000 * i + g.Length + 100 * i, i % 2 == 0, i, g)));
+            var queries = new[]
+            {
+                ZCurveGeneProfile.QueryFromGene(genes[2]), ZCurveGeneProfile.QueryFromProtein(Translate(genes[0])),
+                ZCurveGeneProfile.QueryFromProtein(Translate(genes[1])), ZCurveGeneProfile.QueryFromGene(genes[3]),
+            };
+            foreach (var profile in new[] { unspliced, spliced })
+            {
+                var bytes = profile.ToBinary();
+                var decoded = ZCurveGeneProfile.FromBinary(bytes);
+                foreach (var query in queries)
+                {
+                    var expected = Enumerable.Range(0, decoded.Genes.Count).Where(g => decoded.Genes[g].Residues >= 100)
+                        .Select(g => (decoded.Genes[g], decoded.Score(query, g))).ToList();
+                    var actual = new List<(ZCurveGeneProfile.Gene, double)>();
+                    ZCurveGeneProfile.ScoreRow(bytes, query, new ZCurveGeneProfile.Gene[ZCurveGeneProfile.GeneCountOf(bytes)],
+                        g => g.Residues >= 100, (g, score) => actual.Add((g, score)));
+
+                    Assert.That(actual.Select(a => a.Item1), Is.EqualTo(expected.Select(e => e.Item1)));
+                    Assert.That(actual.Select(a => BitConverter.DoubleToInt64Bits(a.Item2)), Is.EqualTo(expected.Select(e => BitConverter.DoubleToInt64Bits(e.Item2))));
+                }
+            }
+            Assert.That(BitConverter.ToUInt16(spliced.ToBinary(), 4), Is.EqualTo(3));
+        }
+
         [Test]
         public void GenesOfTheRecordItselfStayFormatVersion2()
         {

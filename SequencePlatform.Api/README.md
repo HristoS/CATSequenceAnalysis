@@ -204,9 +204,11 @@ it is failed instead. Every 10 minutes it applies D7's expiry and reloads the sc
 rebuilds; the cached profiles are refreshed before every search, so a record stored a moment ago is a candidate.
 
 Find-similar keeps its band levels in memory (24 MB at ratio 0.5). Localization streams from the database by default
-(`SearchWorker:CacheLocalization=false`): about 1-2.3 s per fragment instead of 0.2-1 s, without 823 MB in the process. Protein
-search streams the 2.7 GB of gene rows from the database for every query (about 21 s on 8 threads), so it holds the worker that
-long and other searches queue behind it. Other
+(`SearchWorker:CacheLocalization=false`, the server's setting): 0.85-9.6 s per fragment from 128 down to 4 kbp. Local runs (the `http`
+launch profile and the AppHost in run mode) set it to true: every level in memory, 0.5-1.6 s, for about 0.8 GB
+(`results/SearchBreakdown_*.csv`). Protein search streams the gene rows its length band needs (0.25-1.05 GB) from the database for
+every query, 2.8-7.8 s locally, so it holds the worker that long and other searches queue behind it. It scores them in place without
+hashing them (`verify-genes` in the Ingest checks the hashes), so most of that time is PostgreSQL's transfer. Other
 settings in the `SearchWorker` section: `Enabled`, `PollInterval`, `StuckAfter`, `MaintenanceInterval`.
 
 On the local catalogue (`results/S43_WorkerTiming.csv`, Release): warm find-similar takes 150-650 ms from POST to Done (the
