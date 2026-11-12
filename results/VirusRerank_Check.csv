@@ -1,0 +1,7 @@
+kind,queries,ranking,precision_at_10,mean_reciprocal_rank,top1,reciprocal_rank_gain_vs_neighbours,ci95_low,ci95_high,queries_rule_skips
+virus,600,score,0.6395,0.8673,0.8283,0.0407,0.0210,0.0614,579
+virus,600,neighbours,0.6318,0.8266,0.7733,0.0000,0.0000,0.0000,579
+virus,600,rule,0.6428,0.8690,0.8283,0.0423,0.0230,0.0623,579
+bacterium,300,score,0.2127,0.4314,0.3633,-0.0675,-0.1058,-0.0294,16
+bacterium,300,neighbours,0.2783,0.4989,0.4333,0.0000,0.0000,0.0000,16
+bacterium,300,rule,0.2800,0.5054,0.4367,0.0065,0.0003,0.0156,16

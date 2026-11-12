@@ -83,6 +83,28 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task AVirusDepositedFromAnotherStartIsScoredWrappedAroundItsEnd()
+        {
+            const string provider = "search-wrap";
+            var dna = Generator.GetRandomDNA(40_000, seed: 21);
+            var permuted = dna[16_000..] + dna[..16_000];   // the same genome from 16 kbp on: 8 of its 20 windows of 2 kbp
+            var virus = await StoreAsync(provider, "virus", permuted, kind: "virus");
+            var bacterium = await StoreAsync(provider, "bacterium", permuted);
+            var query = QueryProfile.FromSequence(dna);
+
+            var wrapped = await NewSearch().SearchAsync(query, new CatalogueFilter(Provider: provider));
+            var plain = await new SimilaritySearch(ThrowawayDatabase.DataSource, method: method, methodVersion: methodVersion) { WrapViruses = false }
+                .SearchAsync(query, new CatalogueFilter(Provider: provider));
+
+            Assert.That(wrapped.QueryWindowSize, Is.EqualTo(2_000));
+            Assert.That(wrapped.Ranked[0].SequenceId, Is.EqualTo(virus));
+            Assert.That(wrapped.Ranked[0].Score, Is.EqualTo(1).Within(1e-3), "from its 9th window on, the virus is the query");
+            double unwrapped = wrapped.Ranked.Single(h => h.SequenceId == bacterium).Score;
+            Assert.That(unwrapped, Is.LessThan(0.99), "a bacterium isn't wrapped: same windows, only as deposited");
+            Assert.That(plain.Ranked.Single(h => h.SequenceId == virus).Score, Is.EqualTo(unwrapped), "with wrapping off the virus scores as the bacterium");
+        }
+
+        [Test]
         public async Task FilterAndRatioNarrowTheCandidates()
         {
             const string provider = "search-filter";

@@ -1,0 +1,5 @@
+date,mode,setting,ranking,queries,precision_at_10_same_genus,mean_reciprocal_rank,ms_per_search
+2026-11-12,score,plain,score,300,0.5707,0.8226,140.3
+2026-11-12,score,wrapped,score,300,0.6680,0.9079,161.3
+2026-11-12,production,plain,neighbours,300,0.5973,0.8287,71.0
+2026-11-12,production,wrapped,neighbours,300,0.6700,0.8685,56.6

@@ -1,0 +1,12 @@
+measure,plain,wrapped,note
+queries,400,400,viruses with a same-genus record in the length band; 10559 in the pool
+median_candidates,6248,,
+mean_auc_genus_vs_other_family,0.9035,0.9336,253 queries with both classes
+queries_auc_better,,167,
+queries_auc_worse,,49,
+mean_same_genus_in_top10,6.275,7.138,
+mean_reciprocal_rank_first_same_genus,0.8701,0.9245,
+top10_hits_changed,,0.4032,share of top-10 hits not in the plain top 10
+same_genus_pairs_gaining_over_0.03,,0.2281,of 19047 pairs
+other_family_pairs_gaining_over_0.03,,0.0123,of 581948 pairs
+verdict,,go,rule: stop if AUC gain < 0.005 and top-10 change < 2%

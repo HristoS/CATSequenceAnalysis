@@ -159,6 +159,8 @@ namespace SequencePlatform.Core
     /// Once <see cref="OriginRotation.BuildAsync"/> has stored circular chromosomes laid out from their replication origin, each such
     /// record is scored both as stored and rotated, and so is a query that has a rotated form; the best score counts. Rotating only
     /// one side would cost the queries that can't be rotated (results/S32_RotationRanking_Summary.csv).
+    ///
+    /// Virus candidates are scored wrapped around their end (<see cref="WrapAround"/>), since their deposited start is often arbitrary.
     /// </summary>
     public sealed class SimilaritySearch
     {
@@ -178,9 +180,13 @@ namespace SequencePlatform.Core
         private ScoreNull? scoreNull;
         private bool nullLoaded;
         private readonly Dictionary<double, IReadOnlyDictionary<long, long[]>> graphs = new();
+        private readonly WrapAround.Ids viruses;
 
         /// <summary>The smallest length ratio a search may ask for; the cached length ranges are sized for it.</summary>
         public double MinLengthRatio { get; }
+
+        /// <summary>Score virus candidates wrapped around their end (<see cref="WrapAround"/>); false only to measure the difference.</summary>
+        public bool WrapViruses { get; init; } = true;
 
         /// <summary>Bytes of window data held over every loaded level; 0 without a cache.</summary>
         public long WindowBytes => caches is null ? 0 : caches.Concat(rotatedCaches!).Where((_, i) => loaded[i % loaded.Length]).Sum(c => c.WindowBytes);
@@ -194,6 +200,7 @@ namespace SequencePlatform.Core
             this.method = method;
             this.methodVersion = methodVersion;
             MinLengthRatio = minLengthRatio;
+            viruses = new WrapAround.Ids(dataSource);
             loaded = new bool[factors.Length];
             if (useCache)
             {
@@ -332,10 +339,11 @@ namespace SequencePlatform.Core
 
             var comparable = candidates.Where(profiles.ContainsKey).ToArray();
             var notComparable = candidates.Where(id => !profiles.ContainsKey(id)).Order().ToList();
+            var wrapped = WrapViruses ? await viruses.CurrentAsync(cancellationToken) : new HashSet<long>();
             var hits = new SimilarityHit[comparable.Length];
             Parallel.For(0, comparable.Length, new ParallelOptions { CancellationToken = cancellationToken }, i =>
             {
-                var candidate = profiles[comparable[i]];
+                var candidate = wrapped.Contains(comparable[i]) ? WrapAround.Of(profiles[comparable[i]]) : profiles[comparable[i]];
                 var (score, strand, rotated) = Best(queryLevels, candidate, false, (double.NegativeInfinity, Strand.Forward, false));
                 if (rotatedProfiles.TryGetValue(comparable[i], out var turned))
                     (score, strand, rotated) = Best(queryLevels, turned, true, (score, strand, rotated));

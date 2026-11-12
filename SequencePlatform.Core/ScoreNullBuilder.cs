@@ -21,7 +21,8 @@ namespace SequencePlatform.Core
     /// phyla; for two viruses, different families. NCBI's current lineage (taxon) where known, else the record's own.
     /// Plasmids are left out (they carry their host's taxonomy and can cross phyla), and so are records with no
     /// name at the deciding rank. Where <see cref="OriginRotation.BuildAsync"/> has stored a record's rotated levels, the genome null
-    /// scores both versions of either side and keeps the best, as find-similar does.
+    /// scores both versions of either side and keeps the best, as find-similar does; a virus candidate is scored wrapped around its end
+    /// (<see cref="WrapAround"/>), also as find-similar does, so its cell is the one with the wrapped number of offsets.
     /// </summary>
     public static class ScoreNullBuilder
     {
@@ -133,13 +134,17 @@ namespace SequencePlatform.Core
                     noPartner++;
                     continue;
                 }
+                // A virus partner is scored wrapped (the permuted control shuffles its windows first, then wraps them).
+                bool wrap = WrapAround.AppliesTo(partner.Kind);
+                var plain = c;
+                if (wrap) c = WrapAround.Of(c);
 
                 var (shorter, offsets) = ScoreNull.Shape(q.WindowCount, c.WindowCount);
                 var cell = (q.WindowSize, ScoreNull.Bucket(shorter), ScoreNull.Bucket(offsets));
                 if (planned.GetValueOrDefault(cell) >= options.SamplesPerCell) continue;
                 planned[cell] = planned.GetValueOrDefault(cell) + 1;
                 work.Add(permuted
-                    ? new Pair(cell, q, Permute(c, rng))
+                    ? new Pair(cell, q, wrap ? WrapAround.Of(Permute(plain, rng)) : Permute(c, rng))
                     : new Pair(cell, q, c, rotated[level].GetValueOrDefault(query.Id), rotated[level].GetValueOrDefault(partner.Id)));
             }
 
