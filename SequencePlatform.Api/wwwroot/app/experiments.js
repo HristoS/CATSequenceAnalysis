@@ -1,5 +1,5 @@
 import { get } from "./api.js";
-import { FilterBox, Help, Message, PageHeader, Pager, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
+import { FilterBox, Help, HowTo, Message, PageHeader, Pager, PanelBar, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
 
 const kingdoms = [["Metazoa", "Animals", "p1"], ["Fungi", "Fungi", "p2"], ["Viridiplantae", "Plants", "p3"]];
 const swatchOf = kingdom => kingdoms.find(([k]) => k === kingdom)?.[2] ?? "p0";
@@ -45,15 +45,18 @@ function RunHeader({ run }) {
     </section>`;
 }
 
+// Each experiment's own view, and how many findings the page needs up front (a view that loads its own asks for one).
+const views = { "e4-cpg": [() => CpgView, 1000], "e1-outliers": [() => OutlierView, 1000], "e2b-phage-host": [() => PhageHostView, 1] };
+
 export function ExperimentPage({ name }) {
   const [page, setPage] = useState(null);
   const [error, setError] = useState(null);
-  useEffect(() => { get(`/api/experiments/${encodeURIComponent(name)}?order=-score&limit=1000`).then(setPage).catch(e => setError(e.message)); }, [name]);
+  const [view, limit] = views[name] ?? [() => null, 1000];
+  useEffect(() => { get(`/api/experiments/${encodeURIComponent(name)}?order=-score&limit=${limit}`).then(setPage).catch(e => setError(e.message)); }, [name]);
 
   if (error) return html`<${Message} error>${error}<//>`;
   if (!page) return html`<${Message}>Loading…<//>`;
-  const views = { "e4-cpg": CpgView, "e1-outliers": OutlierView };
-  const View = views[name];
+  const View = view();
   return html`<${RunHeader} run=${page.experiment} />
     ${View ? html`<${View} page=${page} />` : html`<${Message}>${page.total.toLocaleString()} findings; this experiment has no page of its own yet.<//>`}`;
 }
@@ -61,10 +64,10 @@ export function ExperimentPage({ name }) {
 // The findings, already in the order wanted, paged and filtered in the page by genome name, accession or any text in the finding
 // (family, class, ...); columns are [header, cell(finding), numeric?].
 const findingText = f => [f.sequence.name, f.sequence.recordId, ...Object.values(f.payload ?? {}).filter(v => typeof v === "string")].join(" ");
-function FindingsTable({ findings, columns, pageSize = 50 }) {
-  const paged = usePaged(findings, { size: pageSize, text: findingText });
+function FindingsTable({ findings, columns, pageSize = 50, text = findingText, placeholder = "genome, accession or family" }) {
+  const paged = usePaged(findings, { size: pageSize, text });
   const shown = paged.rows;
-  return html`<${FilterBox} paged=${paged} label="Filter these findings" placeholder="genome, accession or family" />
+  return html`<${FilterBox} paged=${paged} label="Filter these findings" placeholder=${placeholder} />
     <div class="tablewrap"><table>
       <thead><tr>${columns.map(([header, , numeric]) => html`<th key=${header} class=${numeric ? "num" : undefined}>${header}</th>`)}</tr></thead>
       <tbody>${shown.map(f => html`<tr key=${`${f.kind}-${f.sequence.id}`}>
@@ -196,4 +199,110 @@ function GroupTable({ groups, measure }) {
       ${g[key].map((v, i) => html`<td class="num mono" key=${i}>${v.toFixed(3)}</td>`)}
     </tr>`)}</tbody>
   </table></div>`;
+}
+
+// E2b: a phage's host genus from 6-mer composition. The accuracy against the round-1 method and the plain baselines, then every phage's
+// guesses, loaded a page at a time because there are thousands.
+const predictorNames = { a6: "6-mer composition", signature: "log ρ* (round 1)", gc: "GC alone", mostCommon: "always the commonest host" };
+const guessText = f => [f.sequence.name, f.sequence.recordId, f.payload.host, f.payload.class, ...f.payload.guesses.map(g => g.genus)].join(" ");
+const firstGuessRate = f => `${f.payload.firstGuess.right.toLocaleString()} of ${f.payload.firstGuess.guessed.toLocaleString()}`;
+
+function PhageHostView({ page }) {
+  const s = page.experiment.summary;
+  const [scope, setScope] = useState("all");
+  const [kind, setKind] = useState("recorded");
+  const counts = Object.fromEntries((s.classes ?? []).filter(c => c.qualifies).map(c => [c.name, c.unrecorded]));
+  return html`<section class="panel stack">
+      <${PanelBar} title="How often is the recorded host found?"
+        help="For each phage with a recorded host, the stored genera are ranked by their genome nearest to the phage; a hit is the recorded genus first (top 1) or among the first five (top 5)." />
+      <${Segmented} label="Phages counted" value=${scope} onChange=${setScope}
+        help=${`"Averaged over host genera" gives each of the ${s.macroGenera} host genera with at least 5 phages the same weight, so the many Escherichia phages don't decide it.`}
+        options=${[["all", `All ${s.analysed.toLocaleString()} phages`], ["macro", "Averaged over host genera"]]} />
+      <div class="accuracypair">
+        <${AccuracyBars} title="Top 1" predictors=${s.predictors} value=${p => (scope === "all" ? p.top1 : p.macroTop1)} reference=${scope === "all" ? s.shuffled : null} />
+        <${AccuracyBars} title="Top 5" predictors=${s.predictors} value=${p => (scope === "all" ? p.top5 : p.macroTop5)} />
+      </div>
+      <${HowTo}>
+        <p>${s.reading}</p>
+        <p>6-mers against log ρ*: ${differenceText(s.differences, "signature", scope)}; against always guessing the commonest host: ${differenceText(s.differences, "mostCommon", scope)}
+          (difference in top-1, 95 % interval). ${scope === "all" ? `With host labels shuffled across phages, 6-mers reach at most ${(s.shuffled * 100).toFixed(1)} % (the grey line).` : ""}</p>
+        <p>${s.classRule} Qualifying: ${Object.entries(counts).map(([name, n]) => `${name} (${n.toLocaleString()} without a host)`).join(", ")}.</p>
+      <//>
+    </section>
+    <section class="panel stack">
+      <${PanelBar} title="Every phage's five nearest host genera"
+        help="Ordered by the distance to the nearest genus, closest first. A guess is composition, not evidence of infection: check how often the same first guess was right." />
+      <${Segmented} label="Phages" value=${kind} onChange=${setKind}
+        options=${[["recorded", "With a recorded host"], ["unrecorded", "Without a recorded host"]]} />
+      <${GuessList} key=${kind} name=${page.experiment.name} kind=${kind} />
+    </section>`;
+}
+
+function differenceText(differences, baseline, scope) {
+  const d = differences.find(x => x.baseline === baseline);
+  const [value, low, high] = scope === "all" ? [d.overall, d.overallLow, d.overallHigh] : [d.macro, d.macroLow, d.macroHigh];
+  const points = v => `${v >= 0 ? "+" : ""}${(v * 100).toFixed(1)}`;
+  return `${points(value)} points (${points(low)} to ${points(high)})`;
+}
+
+// One bar per predictor from 0, the 6-mer bar in the series colour and the baselines grey; each value printed beside its bar.
+function AccuracyBars({ title, predictors, value, reference = null }) {
+  const max = Math.max(...predictors.map(value), reference ?? 0, 0.05);
+  const scale = v => `${(v / max) * 100}%`;
+  return html`<figure class="accuracy">
+    <figcaption>${title}</figcaption>
+    ${predictors.map(p => html`<div class="bar" key=${p.predictor} title=${`${predictorNames[p.predictor] ?? p.predictor}: ${(value(p) * 100).toFixed(1)} %`}>
+      <span>${predictorNames[p.predictor] ?? p.predictor}</span>
+      <div class="track from0">
+        <i class=${p.predictor === "a6" ? "lead" : "base"} style=${{ width: scale(value(p)) }}></i>
+        ${reference != null && html`<b class="reference" style=${{ left: scale(reference) }}></b>`}
+      </div>
+      <span class="mono num">${(value(p) * 100).toFixed(1)} %</span>
+    </div>`)}
+  </figure>`;
+}
+
+// All findings of one kind, fetched 1,000 at a time and shown as they arrive.
+function GuessList({ name, kind }) {
+  const [findings, setFindings] = useState([]);
+  const [total, setTotal] = useState(null);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const loaded = [];
+      for (let offset = 0; ; offset += 1000) {
+        const page = await get(`/api/experiments/${encodeURIComponent(name)}?kind=${kind}&order=score&offset=${offset}&limit=1000`);
+        if (cancelled) return;
+        loaded.push(...page.items);
+        setTotal(page.total);
+        setFindings([...loaded]);
+        if (loaded.length >= page.total || page.items.length === 0) break;
+      }
+    })().catch(e => setError(e.message));
+    return () => { cancelled = true; };
+  }, [name, kind]);
+
+  if (error) return html`<${Message} error>${error}<//>`;
+  if (total == null) return html`<${Message}>Loading…<//>`;
+  const first = f => f.payload.guesses[0];
+  const columns = kind === "recorded"
+    ? [
+        ["Phage", genomeLink],
+        ["Recorded host", f => f.payload.host],
+        ["First guess", f => html`${first(f).genus}${first(f).genus === f.payload.host ? html` <span class="ok">✓</span>` : ""}`],
+        ["Recorded host's rank", f => f.payload.rank.toLocaleString(), true],
+        ["First guess right for", f => firstGuessRate(f), true],
+        ["Distance", f => first(f).distance.toFixed(4), true],
+      ]
+    : [
+        ["Phage", genomeLink],
+        ["Class", f => f.payload.class],
+        ["First guess", f => `${first(f).genus} (${first(f).family ?? "–"})`],
+        ["First guess right for", f => firstGuessRate(f), true],
+        ["Next guesses", f => f.payload.guesses.slice(1).map(g => g.genus).join(", ")],
+        ["Distance", f => first(f).distance.toFixed(4), true],
+      ];
+  return html`${findings.length < total && html`<p class="hint">Loaded ${findings.length.toLocaleString()} of ${total.toLocaleString()}…</p>`}
+    <${FindingsTable} findings=${findings} columns=${columns} text=${guessText} placeholder="phage, host or guessed genus" />`;
 }

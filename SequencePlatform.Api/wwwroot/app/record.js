@@ -69,6 +69,33 @@ function Signature({ id }) {
       <p class="hint">The same 16 numbers in two coordinate systems: the complete second-order Z-curve is a rotation of log ρ*.</p>`}`;
 }
 
+// E2b's host guess for a phage, from the published findings (a panel only when there is one): the five nearest stored genera by 6-mer
+// composition, the recorded host beside them, and how often the same first guess was right among phages with a recorded host.
+function useHostGuess(id, kind) {
+  const [finding, setFinding] = useState(null);
+  useEffect(() => {
+    setFinding(null);
+    if (kind !== "virus") return;
+    get(`/api/sequences/${id}/findings`).then(r => setFinding(r.items.find(f => f.experiment === "e2b-phage-host") ?? null)).catch(() => setFinding(null));
+  }, [id, kind]);
+  return finding;
+}
+
+function HostGuess({ finding }) {
+  const p = finding.payload;
+  const first = p.guesses[0];
+  return html`<ol class="relatives">${p.guesses.map(g => html`<li key=${g.genus}>
+      <span>${g.genus}${g.family && html` <span class="hint">${g.family}</span>`}${g.genus === p.host ? html` <span class="ok">✓ recorded host</span>` : ""}</span>
+      <span class="mono">${g.distance.toFixed(4)}</span>
+    </li>`)}</ol>
+    ${p.host
+      ? html`<p>Recorded host: <b>${p.host}</b>${p.hostFamily ? ` (${p.hostFamily})` : ""}, ranked ${p.rank.toLocaleString()} by 6-mers.</p>`
+      : html`<p>No host is recorded for this ${p.class ?? "virus"}: these are guesses.</p>`}
+    <p class="hint">When ${first.genus} came first for a phage with a recorded host, it was right ${p.firstGuess.right.toLocaleString()} of
+      ${p.firstGuess.guessed.toLocaleString()} times${p.firstGuess.guessed === 0 ? " (never guessed first before)" : ""}.
+      <a href="#/experiments/${finding.experiment}">How these guesses do overall</a>.</p>`;
+}
+
 export function RecordPage({ id }) {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
@@ -77,6 +104,7 @@ export function RecordPage({ id }) {
   useEffect(() => {
     get(`/api/sequences/${id}`).then(setDetail).catch(e => setError(e.message));
   }, [id]);
+  const hostGuess = useHostGuess(id, detail?.sequence.kind);
 
   if (error) return html`<${Message} error>${error}<//>`;
   if (!detail) return html`<${Message}>Loading…<//>`;
@@ -117,6 +145,10 @@ export function RecordPage({ id }) {
         ${hasSignature ? html`<${Relatives} id=${s.id} kind=${s.kind} />` : html`<${Message}>Plasmids aren't compared by genome signature.<//>`}
       </section>
       ${hasSignature && html`<section class="panel"><${PanelBar} title="Dinucleotide signature" /><${Signature} id=${s.id} /></section>`}
+      ${hostGuess && html`<section class="panel"><${PanelBar} title="Host guess" help=${"The five stored bacterial or archaeal genera whose genomes " +
+          "are closest to this phage by 6-mer composition (both strands), closest first; the number is the distance. Composition points to a " +
+          "host only loosely: on phages with a recorded host, the right genus comes first about one time in five."} />
+        <${HostGuess} finding=${hostGuess} /></section>`}
     </div>
     ${hasGenes
       ? html`<${Workspace} list=${genesList} views=${html`<${PlotPair} toolbar=${plots.toolbar} left=${pathSlot || geneSlot} right=${pathSlot ? geneSlot : null} />`} />`

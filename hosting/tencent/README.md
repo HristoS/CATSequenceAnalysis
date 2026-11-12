@@ -95,9 +95,9 @@ reason compression over TLS needs thought, takes a secret and attacker-controlle
      `chmod 600 .env* ~/.aspire/deployments/*/production.json*`. Aspire also keeps the password in that deployment state.
    - `docker compose ls` shows the project name the service file needs.
 7. **Start at boot.** The generated services have no restart policy. Install
-   [`cat-platform.service`](cat-platform.service) with the project name filled in, then `systemctl enable --now cat-platform`.
+   [`cat-platform.service`](cat-platform.service) with the project name filled in, then `sudo systemctl enable --now cat-platform`.
 8. **HTTPS.** Install Caddy from Caddy's apt repository (<https://caddyserver.com/docs/install#debian-ubuntu-raspbian>), then
-   install the [`Caddyfile`](Caddyfile) with the IP filled in and run `systemctl reload caddy`.
+   install the [`Caddyfile`](Caddyfile) with the IP filled in and run `sudo systemctl reload caddy`.
 9. **Check.**
    - `curl https://SERVER_IP/health` should return `Healthy`.
    - Run `python3 -I scripts/platform-checks/e2e_scenario.py prepare`, then `run https://SERVER_IP KEY_FILE`, against an
@@ -121,7 +121,7 @@ docker compose -p COMPOSE_PROJECT -f docker-compose.yaml --env-file .env.Product
 2. `git pull`.
 3. Re-run the deploy command from step 6. `migrate` applies the new migrations, which are append-only. The first deploy with migration
    0021 adds `SEQUENCE_APP_PASSWORD` to `.env.Production`: run the `chmod 600` from step 6 again.
-4. Run `systemctl restart cat-platform`.
+4. Run `sudo systemctl restart cat-platform`.
 
 **Derived tables after a deploy that adds them:** migration 0019 (protein p and E) needs one run of
 `<command>` = `build-protein-null` (6 min on a 4-core workstation over the 2026-11 catalogue; expect several times that on 2 vCPU). It

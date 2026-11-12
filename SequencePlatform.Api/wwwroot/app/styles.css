@@ -338,3 +338,15 @@ th .help { margin-left: 4px; }
 td.clip { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .striprow .heatlabel { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wslist .dot { margin-right: 0; }
+
+/* E2b accuracy bars: from 0, one bar per predictor, the lead series coloured and the baselines grey (no legend: each row is labelled). */
+.accuracypair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.accuracy { margin: 0; display: grid; gap: 4px; }
+.accuracy figcaption { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.accuracy .bar { grid-template-columns: 180px minmax(0, 1fr) 60px; }
+.track.from0 { height: 14px; background: linear-gradient(var(--rule), var(--rule)) left / 1px 100% no-repeat; }
+.track.from0 i { left: 0; border-radius: 0 4px 4px 0; }
+.track.from0 i.lead { background: var(--p1); }
+.track.from0 i.base { background: var(--p0); }
+.track.from0 .reference { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--ink-2); }
+.ok { color: var(--p3); font-weight: 600; }
