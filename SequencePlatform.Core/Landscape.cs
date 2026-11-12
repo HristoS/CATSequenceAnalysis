@@ -4,7 +4,9 @@ using SequenceAnalyses;
 namespace SequencePlatform.Core
 {
     /// <param name="Domain">Bacteria, Archaea, Viruses or Eukaryota, from the record's kind.</param>
-    public sealed record LandscapePoint(long Id, string Name, long LengthBp, double Gc, string Domain, string? Phylum, string? Family, string? Genus, double X, double Y);
+    /// <param name="X">The first principal component; <paramref name="Y"/> the second and <paramref name="Z"/> the third.</param>
+    public sealed record LandscapePoint(long Id, string Name, long LengthBp, double Gc, string Domain, string? Phylum, string? Family, string? Genus, double X, double Y,
+        double Z);
 
     public sealed record LandscapeLoading(string Dinucleotide, double Weight);
 
@@ -15,7 +17,8 @@ namespace SequencePlatform.Core
     public sealed record LandscapeMap(string Group, IReadOnlyList<LandscapePoint> Points, IReadOnlyList<LandscapeAxis> Axes);
 
     /// <summary>
-    /// A two-dimensional map of the public catalogue: PCA of the dinucleotide signature (<see cref="SignatureIndex"/>'s log rho*). The
+    /// A map of the public catalogue: the first three principal components of the dinucleotide signature (<see cref="SignatureIndex"/>'s
+    /// log rho*), drawn two at a time. On 2026-11-12 the third added about 9 points of variance to the first two's 69-75%. The
     /// cellular and viral maps hold one genome per species: cellular genomes need a GTDB assignment, whose lineage labels them, and viruses of
     /// at least 1 kbp carry NCBI's; selection follows scripts/platform-checks/r4_map.cs, so the same seed picks the same genomes. The
     /// <see cref="All"/> map holds every public genome <see cref="SignatureIndex"/> would, on one set of axes, labelled by GTDB where
@@ -128,8 +131,9 @@ namespace SequencePlatform.Core
         {
             if (genomes.Count == 0) return new LandscapeMap(group, [], []);
 
-            var pca = Ordination.Pca(genomes.Select(g => SignatureIndex.Signature(g.Dinucleotides)).ToArray(), 2);
-            var points = genomes.Select((g, i) => new LandscapePoint(g.Id, g.Name, g.LengthBp, g.Gc, g.Domain, g.Phylum, g.Family, g.Genus, pca.Scores[i][0], pca.Scores[i][1])).ToList();
+            var pca = Ordination.Pca(genomes.Select(g => SignatureIndex.Signature(g.Dinucleotides)).ToArray(), 3);
+            var points = genomes.Select((g, i) => new LandscapePoint(g.Id, g.Name, g.LengthBp, g.Gc, g.Domain, g.Phylum, g.Family, g.Genus,
+                pca.Scores[i][0], pca.Scores[i][1], pca.Scores[i][2])).ToList();
             var axes = pca.Loadings.Select((loading, c) => new LandscapeAxis(pca.ExplainedVariance[c], loading
                 .Select((weight, i) => new LandscapeLoading($"{"ACGT"[i / 4]}{"ACGT"[i % 4]}", weight))
                 .OrderByDescending(l => Math.Abs(l.Weight)).Take(topLoadings).ToList())).ToList();

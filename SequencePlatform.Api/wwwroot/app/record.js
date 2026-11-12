@@ -82,6 +82,11 @@ export function RecordPage({ id }) {
   const s = detail.sequence;
   const hasSignature = s.kind !== "plasmid";
   const hasWindows = detail.levels.some(l => l.windowSize === 500 && l.methodVersion === "1");
+  const geneLayer = detail.annotations?.ncbi?.gene_layer;
+  const hasGenes = s.provider === "BV-BRC" || geneLayer != null;
+  const eukaryote = s.kind === "eukaryote";
+  const chromosomeLevels = detail.annotations?.ncbi?.chromosome_levels;
+  const hasChromosomes = chromosomeLevels?.status === "stored" && chromosomeLevels.sequences > 0;
 
   return html`<h1>${s.name || s.recordId}</h1>
     <p class="lede">${s.kind} · ${formatBp(s.lengthBp)} · GC ${formatGc(s.gcFraction)}${s.accession ? ` · ${s.accession}` : ""}${detail.owned ? " · your upload" : ""} · <a href=${compareHref([s.id])}>Compare with other records</a></p>
@@ -91,16 +96,29 @@ export function RecordPage({ id }) {
         ${hasSignature ? html`<${Relatives} id=${s.id} kind=${s.kind} />` : html`<${Message}>Plasmids aren't compared by genome signature.<//>`}
       </section>
       ${hasSignature && html`<section class="panel"><h2>Dinucleotide signature</h2><${Signature} id=${s.id} /></section>`}
-      ${hasWindows && html`<section class="panel"><h2>Z-curve path</h2>
-        <${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} hasGenes=${s.provider === "BV-BRC"} gene=${gene} /></section>`}
-      ${s.provider === "BV-BRC" && html`<section class="panel"><h2>Genes</h2><${GenesPanel} id=${s.id} onSelect=${setGene} /></section>`}
+      ${(hasWindows || eukaryote) && html`<section class="panel"><h2>Z-curve path</h2>
+        <${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} hasWindows=${hasWindows}
+          hasChromosomes=${hasChromosomes} hasGenes=${hasGenes} sequences=${geneLayer?.sequences ?? []} gene=${gene} /></section>`}
+      ${hasGenes && html`<section class="panel"><h2>Genes</h2><${GenesPanel} id=${s.id} onSelect=${setGene} /></section>`}
+      ${eukaryote && !hasGenes && html`<section class="panel"><h2>Genes</h2>
+        <${Message}>No genes are stored for this genome: NCBI publishes no gene annotation for this assembly, and the platform doesn't predict genes.<//></section>`}
       <section class="panel"><h2>Stored profile levels</h2>
-        <div class="tablewrap"><table>
+        ${eukaryote && html`<p class="hint">${chromosomeLevels?.status === "stored"
+          ? `Chromosome levels: ${chromosomeLevels.sequences.toLocaleString()} nuclear sequences of at least ${formatBp(chromosomeLevels.min_length_bp)} ` +
+            `(${formatBp(chromosomeLevels.sequences_bp)}), each at 500 bp and 32 kbp windows, drawn one at a time.` +
+            (chromosomeLevels.left_out > 0 ? ` ${chromosomeLevels.left_out.toLocaleString()} shorter sequences (${formatBp(chromosomeLevels.left_out_bp)}) aren't kept.` : "")
+          : chromosomeLevels?.status === "mismatch"
+            ? "No chromosome levels: the genome file NCBI serves now isn't the one this record was made from, so nothing was stored from it."
+            : "No chromosome levels yet: this genome hasn't been backfilled."}</p>`}
+        ${detail.levels.length === 0
+          ? html`<${Message}>${eukaryote ? "No whole-record levels: a eukaryote is one record per assembly with its nuclear dinucleotide counts " +
+              "(the signature, relatives, map and trees); its windows are kept per chromosome instead, and it isn't searched as one genome." : "None are stored for this record."}<//>`
+          : html`<div class="tablewrap"><table>
           <thead><tr><th class="num">Window</th><th class="num">Windows</th><th>Version</th></tr></thead>
           <tbody>${detail.levels.map(l => html`<tr key=${`${l.methodVersion}-${l.windowSize}`}>
             <td class="num">${formatBp(l.windowSize)}</td><td class="num">${l.windowCount.toLocaleString()}</td><td class="mono">${l.methodVersion}</td>
           </tr>`)}</tbody>
-        </table></div>
+        </table></div>`}
         <p class="hint">Source ${detail.provenance.url ?? "upload"}, retrieved ${new Date(detail.provenance.retrievedAt).toLocaleDateString()}. The DNA itself was deleted after profiling.</p>
       </section>
     </div>`;

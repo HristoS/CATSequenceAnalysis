@@ -99,7 +99,7 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   `Catalogue` (keyset-paged record listing with kind/rank/length/provider/name filters), `ConnectionString`, `ProfileCache`
   (one level, optionally one length range, in memory, refreshed incrementally), `SimilaritySearch` (find-similar: only records
   of length [rL, L/r], default r = 0.5, at one level, both query strands; unbanded scores measure containment, not
-  similarity; each hit carries an empirical p and E from `score_null`, built by `ScoreNullBuilder` / `build-null`; the top
+  similarity; virus candidates are scored wrapped around their end (`WrapAround`: circularly permuted phages, `results/CircularPermutation_Check.csv`), and the null scores them so too; each hit carries an empirical p and E from `score_null`, built by `ScoreNullBuilder` / `build-null`; the top
   100 are re-ranked by shared top-20 neighbours from `neighbour_list` (`NeighbourGraph` / `build-neighbours`), else by score), `Localization` (localize a fragment ≥ 4 kbp over all records at least as long: coarsest level leaving it 4 windows,
   every query phase, both strands, top 100 refined at 500 bp; shorter fragments only inside a named record), `OriginRotation`
   (circular bacterial chromosomes ≥ 500 kbp laid out from their replication origin, found from the stored profile's cumulative GC
@@ -113,7 +113,7 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   sequences genes lie on listed in `annotations.ncbi.gene_layer` and kept on protein hits as `search_hit.gene_sequence`, migration 0020),
   `ProteinSearch` (P7, migrations 0015 and 0017: a protein ≥ 50 aa, never stored, as expected Z-curve windows, compared with the long
   genes or with the genes within ±10% of its length, reading only those buckets from the database and scoring them in place (`ZCurveGeneProfile.ScoreRow`, no decode and no
-  per-query hash: `verify-genes` checks the rows; since then PostgreSQL's transfer is most of a query, `results/SearchBreakdown_*.csv`, and `cluster-genes` keeps each bucket's rows together); each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`).
+  per-query hash: `verify-genes` checks the rows; since then PostgreSQL's transfer is most of a query, `results/SearchBreakdown_*.csv`, and `cluster-genes` keeps each bucket's rows together); each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`). `GeneMatching` pairs a gene with its reciprocal best hit in another record by the same score, for genes without a family (NCBI eukaryotes; `results/GeneMatch_Check.csv`), served on demand, nothing stored.
 - `SequencePlatform.Api/`: ASP.NET Core minimal API on localhost:5080 (P4; see its README). Per-user API keys (`Users` in Core,
   only the SHA-256 stored); `CatalogueFilter.ViewerId` makes an upload visible to its owner only, and no viewer means public records
   only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw
@@ -139,9 +139,13 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. `ingest-bvbrc --per-species` adds one genome per species not yet stored;
   `ingest-ncbi` is the eukaryote pilot: one record per assembly with summed nuclear dinucleotide counts and no profile levels, streamed
-  with no temp file, human refused in code; annotated assemblies also get the gene layer (no 6-mers: those would need the genome again). Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
+  with no temp file, human refused in code; annotated assemblies also get the gene layer (no 6-mers: those would need the genome again).
+  Since migration 0022 (2026-11-11) each nuclear sequence of at least 100 kbp keeps its own 500 bp and 32 kbp levels in `chromosome_level`
+  (`ChromosomeLevels` in Core), built in the same pass, for drawing one chromosome at a time; nothing searches them, and a eukaryote's
+  chromosomes are never joined. `backfill-chromosomes` re-downloads older genomes and keeps levels only if length and dinucleotide counts match. Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
   `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `convert-levels-half`, `backfill-kmers`,
-  `backfill-genes`, `backfill-genes-ncbi`, `build-protein-null`, `verify-genes`, `cluster-genes`, `add-user`, `disable-user`; see its README.
+  `backfill-genes`, `backfill-genes-ncbi`, `backfill-chromosomes`, `build-protein-null`, `verify-genes`, `cluster-genes`, `add-user`,
+  `disable-user`; see its README.
   6-mer counts per record (`record_kmer`, migration 0013, D8 widened 2026-11-04) are stored at ingest; `backfill-kmers` re-downloads older
   records and stores counts only where the SHA-256 matches. Measurement scripts for the platform's
   `results/` rows: `scripts/platform-checks/` (run from the repo root with `SEQUENCE_PLATFORM_DB` set).

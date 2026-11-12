@@ -105,6 +105,10 @@ function nearest(marker, plot, clientX, clientY) {
 }
 
 const taxonName = (list, k) => (k >= 0 ? list[k] : "unclassified");
+// Which two of the three principal components the map shows: the server sends x, y and z for PC1, PC2 and PC3.
+const pairs = [["12", "PC1 × PC2"], ["13", "PC1 × PC3"], ["23", "PC2 × PC3"]];
+const component = (map, c) => [map.x, map.y, map.z ?? map.y][c];
+const shownAs = (map, pair) => ({ ...map, x: component(map, Number(pair[0]) - 1), y: component(map, Number(pair[1]) - 1) });
 const axisNote = (axis, i) =>
   `PC${i + 1} (${Math.round(axis.explainedVariance * 100)} %): ${axis.topLoadings.map(l => `${l.dinucleotide} ${l.weight < 0 ? "−" : "+"}`).join(", ")}`;
 
@@ -116,6 +120,7 @@ export function MapPage({ params }) {
   const [selected, setSelected] = useState(-1);
   const [text, setText] = useState("");
   const [notice, setNotice] = useState(null);
+  const [pair, setPair] = useState(pairs.some(([p]) => p === params.get("axes")) ? params.get("axes") : "12");
   const base = useRef(null), marker = useRef(null), tip = useRef(null), plot = useRef(null), hovered = useRef(-1), selectedRef = useRef(-1);
   const wanted = params.get("id");
 
@@ -140,8 +145,9 @@ export function MapPage({ params }) {
 
   useEffect(() => {
     if (!map) return undefined;
+    const shown = shownAs(map, pair);
     const redraw = () => {
-      plot.current = drawPoints(base.current, marker.current, map, highlight);
+      plot.current = drawPoints(base.current, marker.current, shown, highlight);
       drawMarkers(marker.current, plot.current, [hovered.current, selectedRef.current]);
     };
     redraw();
@@ -150,7 +156,7 @@ export function MapPage({ params }) {
     const theme = window.matchMedia("(prefers-color-scheme: dark)");
     theme.addEventListener("change", redraw);
     return () => { resize.disconnect(); theme.removeEventListener("change", redraw); };
-  }, [map, highlight]);
+  }, [map, highlight, pair]);
 
   useEffect(() => {
     if (map) drawMarkers(marker.current, plot.current, [hovered.current, selected]);
@@ -196,10 +202,11 @@ export function MapPage({ params }) {
   const treeable = highlightedIds.length >= minTreeLeaves && highlightedIds.length <= maxTreeLeaves;
 
   return html`<h1>Map of the catalogue</h1>
-    <p class="lede">${group === "all" ? "Every genome" : "Every species once"}, placed by the first two principal components of its dinucleotide signature (log ρ*). This is a picture of composition:
+    <p class="lede">${group === "all" ? "Every genome" : "Every species once"}, placed by two of the first three principal components of its dinucleotide signature (log ρ*). This is a picture of composition:
       two axes keep phyla apart but not genera, so use a genome's relatives, not its neighbours here, to find what it resembles.</p>
     <div class="controls">
       <${Segmented} label="Genomes" value=${group} onChange=${setGroup} options=${groups} />
+      ${map?.axes.length > 2 && html`<${Segmented} label="Axes" value=${pair} onChange=${setPair} options=${pairs} />`}
       <form class="find field" onSubmit=${find}>
         <label htmlFor="taxon">Highlight a phylum, family or genus</label>
         <div>
@@ -238,7 +245,7 @@ export function MapPage({ params }) {
             : html`${tops.map((t, k) => html`<span key=${t.i}><i class="swatch p${k + 1}"></i>${t.name} (${t.n.toLocaleString()})</span>`)}
                 ${group !== "all" && html`<span><i class="swatch p0"></i>other phyla${group === "viral" ? " or none" : ""}</span>`}`}
         </div>
-        <p class="hint">${map.axes.map(axisNote).join(" · ")}</p>
+        <p class="hint">${map.axes.map(axisNote).join(" · ")}. Shown: ${pairs.find(([p]) => p === pair)[1]}, horizontal × vertical.</p>
         <p class="hint">Each axis lists its heaviest dinucleotides; + and − show which way they pull.</p>
       </aside>
     </div>`}

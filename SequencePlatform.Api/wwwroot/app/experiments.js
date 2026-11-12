@@ -1,5 +1,5 @@
 import { get } from "./api.js";
-import { Message, Segmented, html, useEffect, useMemo, useState } from "./html.js";
+import { FilterBox, Message, Pager, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
 
 const kingdoms = [["Metazoa", "Animals", "p1"], ["Fungi", "Fungi", "p2"], ["Viridiplantae", "Plants", "p3"]];
 const swatchOf = kingdom => kingdoms.find(([k]) => k === kingdom)?.[2] ?? "p0";
@@ -58,22 +58,21 @@ export function ExperimentPage({ name }) {
     ${View ? html`<${View} page=${page} />` : html`<${Message}>${page.total.toLocaleString()} findings; this experiment has no page of its own yet.<//>`}`;
 }
 
-// A page of findings, already in the order wanted; columns are [header, cell(finding), numeric?].
+// The findings, already in the order wanted, paged and filtered in the page by genome name, accession or any text in the finding
+// (family, class, ...); columns are [header, cell(finding), numeric?].
+const findingText = f => [f.sequence.name, f.sequence.recordId, ...Object.values(f.payload ?? {}).filter(v => typeof v === "string")].join(" ");
 function FindingsTable({ findings, columns, pageSize = 50 }) {
-  const [at, setAt] = useState(0);
-  useEffect(() => setAt(0), [findings]);
-  const shown = findings.slice(at, at + pageSize);
-  return html`<div class="tablewrap"><table>
+  const paged = usePaged(findings, { size: pageSize, text: findingText });
+  const shown = paged.rows;
+  return html`<${FilterBox} paged=${paged} label="Filter these findings" placeholder="genome, accession or family" />
+    <div class="tablewrap"><table>
       <thead><tr>${columns.map(([header, , numeric]) => html`<th key=${header} class=${numeric ? "num" : undefined}>${header}</th>`)}</tr></thead>
       <tbody>${shown.map(f => html`<tr key=${`${f.kind}-${f.sequence.id}`}>
         ${columns.map(([header, cell, numeric]) => html`<td key=${header} class=${numeric ? "num mono" : undefined}>${cell(f)}</td>`)}
       </tr>`)}</tbody>
     </table></div>
-    <p class="pager">
-      <button type="button" disabled=${at === 0} onClick=${() => setAt(Math.max(0, at - pageSize))}>Previous</button>
-      <span class="hint">${findings.length === 0 ? "none" : `${at + 1}–${Math.min(at + pageSize, findings.length)} of ${findings.length}`}</span>
-      <button type="button" disabled=${at + pageSize >= findings.length} onClick=${() => setAt(at + pageSize)}>Next</button>
-    </p>`;
+    ${paged.filtered.length === 0 && html`<${Message}>${findings.length ? "No finding matches the filter." : "None."}<//>`}
+    <${Pager} paged=${paged} noun="findings" />`;
 }
 
 const genomeLink = f => html`<a href="#/sequences/${f.sequence.id}">${f.sequence.name || f.sequence.recordId}</a>`;

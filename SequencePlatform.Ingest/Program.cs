@@ -20,6 +20,7 @@ using SequencePlatform.Ingest;
 //   backfill-kmers [--limit N] [--sample SEED] [--contact you@example.org]   6-mer counts for BV-BRC records stored before migration 0013, by re-downloading
 //   backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]   the gene layer (S7.R, S7.S): gene_profile rows, amino-acid 4-mers, missing 6-mers
 //   backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]   the gene layer for NCBI eukaryotes (S7.T), from each annotated assembly's CDS file; no genome download
+//   backfill-chromosomes [--limit N] [--accession A] [--parallel P] [--contact EMAIL]   500 bp and 32 kbp levels per eukaryote chromosome (0022), by re-downloading; smallest genomes first
 //   build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]   p and E for protein hits: real BV-BRC proteins (not stored) scored against other families
 //   verify-genes                              every gene row against its stored SHA-256 (protein search doesn't hash rows); exit 2 on a mismatch
 //   cluster-genes                             gene_profile rewritten in bucket order, so protein search reads less scattered rows; rerun after a large ingest
@@ -36,6 +37,7 @@ const string usage =
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins | convert-levels-half\n" +
     "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL] | backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]\n" +
     "       | backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]\n" +
+    "       | backfill-chromosomes [--limit N] [--accession A] [--parallel P] [--contact EMAIL]\n" +
     "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL] | verify-genes | cluster-genes\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
     "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | rotate-key NAME | disable-user NAME";
@@ -159,6 +161,10 @@ switch (args[0])
             return await NcbiGenePassAsync(dataSource, geneLayer, await geneLayer.PendingAsync(int.Parse(Option("--limit") ?? "1000"), Option("--accession")),
                 args.Contains("--dry-run"), int.Parse(Option("--check-search") ?? "0"));
         }
+
+    case "backfill-chromosomes":
+        return await BackfillChromosomesAsync(dataSource, int.Parse(Option("--limit") ?? "1000"), Option("--accession"),
+            int.Parse(Option("--parallel") ?? "1"), Option("--contact"));
 
     case "verify-genes":
     {
@@ -666,6 +672,28 @@ static async Task PrintListAsync(NpgsqlDataSource dataSource, CatalogueFilter fi
     foreach (var r in page.Records)
         Console.WriteLine($"{r.Id,6} {r.Kind,-10} {r.LengthBp,12:N0} {r.GcFraction,6:F3} {r.Lineage.Genus,-20} {r.RecordId,-14} {r.Name}");
     Console.WriteLine(page.NextAfter is { } next ? $"{page.Records.Count} shown; next page: --after {next}" : $"{page.Records.Count} shown; last page");
+}
+
+// chromosome_level for eukaryotes stored before migration 0022 (see ChromosomeBackfill). A failed download leaves the genome pending.
+static async Task<int> BackfillChromosomesAsync(NpgsqlDataSource dataSource, int limit, string? accession, int parallel, string? contact)
+{
+    using var client = new NcbiGenomeClient(contact);
+    var backfill = new ChromosomeBackfill(dataSource, client);
+    var genomes = await backfill.PendingAsync(limit, accession);
+    Console.WriteLine($"{genomes.Count} genomes to backfill, {genomes.Sum(g => g.LengthBp) / 1e9:F1} Gbp.");
+    int failed = 0, done = 0;
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    await Parallel.ForEachAsync(genomes, new ParallelOptions { MaxDegreeOfParallelism = parallel }, async (genome, _) =>
+    {
+        var started = watch.Elapsed;
+        string outcome;
+        try { outcome = await backfill.BackfillAsync(genome); }
+        catch (Exception e) { Interlocked.Increment(ref failed); outcome = $"FAILED, still pending: {e.GetType().Name}: {e.Message}"; }
+        Console.WriteLine($"  {Interlocked.Increment(ref done),4}/{genomes.Count} {genome.Accession,-18} {genome.LengthBp / 1e6,9:F1} Mbp  {outcome}  " +
+            $"{(watch.Elapsed - started).TotalSeconds,6:F0} s");
+    });
+    Console.WriteLine($"Done in {watch.Elapsed.TotalHours:F1} h: {failed} failed.");
+    return failed == 0 ? 0 : 1;
 }
 
 static async Task<int> BackfillKmersAsync(NpgsqlDataSource dataSource, int limit, int? seed, string? contact)

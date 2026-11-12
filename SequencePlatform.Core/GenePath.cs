@@ -4,7 +4,7 @@ namespace SequencePlatform.Core
 {
     /// <summary>
     /// A record's Z-curve path built from its gene layer alone: its stored genes in chromosome order (from the replication origin when
-    /// asked), each window adding its window positions times its means of x, y and z over codon positions 1 and 2, a reverse-strand gene
+    /// asked; a eukaryote's sequences one after another, or one sequence alone), each window adding its window positions times its means of x, y and z over codon positions 1 and 2, a reverse-strand gene
     /// flipped onto the forward strand (its windows in reverse order, x and y negated). Intergenic DNA and third codon positions are left
     /// out. On K-12 against two relatives and B. subtilis it lines relatives up a little less well than the genome-window path and
     /// separates the unrelated genome a little more (results/GenePath_Check.csv), so it's a view of the coding strand, not a better path.
@@ -19,11 +19,14 @@ namespace SequencePlatform.Core
         /// <param name="StartBp">Where the path starts on the record: its replication origin, or 0.</param>
         public sealed record Result(IReadOnlyList<(double X, double Y, double Z)> Points, IReadOnlyList<Span> Genes, long StartBp);
 
-        public static Result Build(ZCurveGeneProfile profile, long lengthBp, long startBp = 0)
+        /// <param name="sequence">Only the genes on this sequence of the record (<see cref="ZCurveGeneProfile.Gene.Chromosome"/>), the way a
+        /// eukaryote's chromosomes are drawn one at a time; null for all of them, sequence by sequence.</param>
+        public static Result Build(ZCurveGeneProfile profile, long lengthBp, long startBp = 0, int? sequence = null)
         {
             long Offset(int g) => ((profile.Genes[g].Start - startBp) % lengthBp + lengthBp) % lengthBp;
-            var order = Enumerable.Range(0, profile.Genes.Count).OrderBy(Offset).ThenBy(g => g).ToList();
-            var points = new List<(double X, double Y, double Z)>(profile.WindowCount + 1) { (0, 0, 0) };
+            var order = Enumerable.Range(0, profile.Genes.Count).Where(g => sequence is null || profile.Genes[g].Chromosome == sequence)
+                .OrderBy(g => profile.Genes[g].Chromosome).ThenBy(Offset).ThenBy(g => g).ToList();
+            var points = new List<(double X, double Y, double Z)>(order.Sum(g => profile.Genes[g].WindowCount) + 1) { (0, 0, 0) };
             var spans = new List<Span>(order.Count);
             foreach (int g in order)
             {

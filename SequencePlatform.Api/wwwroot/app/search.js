@@ -1,10 +1,11 @@
 import { get, queryString, send } from "./api.js";
 import { CurveCanvas, compareHref, maxCompared } from "./compare.js";
 import { HeatStrip, genePath, loadGenes } from "./genes.js";
-import { Message, Segmented, formatBp, html, useEffect, useMemo, useState } from "./html.js";
+import { FilterBox, Message, Pager, Segmented, formatBp, html, useEffect, useMemo, usePaged, useState } from "./html.js";
 
 const pollMilliseconds = 500;
 const hitsPerPage = 50;
+const maxHits = 1000;   // a search keeps at most 1,000 ranked hits (MaxTop), and one page may hold them all
 const lists = [["Ranked", "Ranked"], ["Identical", "Identical"], ["NotComparable", "Not comparable"]];
 // Eukaryotes are left out: they're stored without profile levels or genes, so no search can reach them.
 const searchKinds = [["", "any"], ["prokaryote", "prokaryotes: bacteria and archaea"], ["bacterium", "bacterium"], ["archaeon", "archaeon"],
@@ -86,11 +87,11 @@ const expected = log10 => {
   return value >= 0.01 && value < 1000 ? value.toPrecision(2) : `1e${Math.round(log10)}`;
 };
 
-function GeneHits({ id, run }) {
+function GeneHits({ id, run, items }) {
   const [picked, setPicked] = useState(null);
   return html`<div class="tablewrap"><table>
     <thead><tr><th class="num">#</th><th>Record</th><th>Gene</th><th>Family</th><th class="num">Score</th><th class="num">E</th></tr></thead>
-    <tbody>${run.hits.items.map(h => html`<tr key=${h.position} class=${picked?.position === h.position ? "row picked" : "row"} tabIndex="0"
+    <tbody>${items.map(h => html`<tr key=${h.position} class=${picked?.position === h.position ? "row picked" : "row"} tabIndex="0"
         onClick=${() => setPicked(h)} onKeyDown=${e => { if (e.key === "Enter") setPicked(h); }}>
       <td class="num">${h.position}</td>
       <td>${h.sequence ? html`<a href="#/sequences/${h.sequenceId}" onClick=${e => e.stopPropagation()}>${h.sequence.name || h.sequence.recordId}</a>` : `deleted record ${h.sequenceId}`}</td>
@@ -160,14 +161,25 @@ function CompareTop({ run }) {
   return ids.length >= 2 && html`<p class="actions"><a class="button" href=${compareHref(ids)}>Compare the top ${ids.length}</a></p>`;
 }
 
-function Hits({ id, run }) {
-  if (run.kind === "Protein") return html`<${GeneHits} id=${id} run=${run} />`;
+// One list's hits, all loaded, paged and filtered in the page: by record name or accession, and for proteins by product, family or sequence.
+function HitList({ id, run }) {
+  const text = h => [h.sequence?.name, h.sequence?.recordId, h.product, h.familyId, h.geneSequence].filter(Boolean).join(" ");
+  const paged = usePaged(run.hits.items, { size: hitsPerPage, text });
+  return html`<${FilterBox} paged=${paged} label="Filter these hits"
+      placeholder=${run.kind === "Protein" ? "record, product, family or sequence" : "record name or accession"} />
+    <${Hits} id=${id} run=${run} items=${paged.rows} />
+    ${paged.filtered.length === 0 && html`<${Message}>No hit matches the filter.<//>`}
+    <${Pager} paged=${paged} noun="hits" />`;
+}
+
+function Hits({ id, run, items }) {
+  if (run.kind === "Protein") return html`<${GeneHits} id=${id} run=${run} items=${items} />`;
   const isSimilar = run.kind === "Similar";
   return html`<div class="tablewrap"><table>
     <thead><tr><th class="num">#</th><th>Record</th><th class="num">Length</th><th class="num">Score</th>
       ${isSimilar ? html`<th class="num">Shared</th>` : html`<th class="num">Offset</th><th>Strand</th>`}
       <th class="num">E</th></tr></thead>
-    <tbody>${run.hits.items.map(h => html`<tr key=${h.position}>
+    <tbody>${items.map(h => html`<tr key=${h.position}>
       <td class="num">${h.position}</td>
       <td>${h.sequence ? html`<a href="#/sequences/${h.sequenceId}">${h.sequence.name || h.sequence.recordId}</a>` : `deleted record ${h.sequenceId}`}</td>
       <td class="num">${h.sequence ? formatBp(h.sequence.lengthBp) : "–"}</td>
@@ -196,7 +208,6 @@ function Summary({ run }) {
 
 export function SearchRunPage({ id }) {
   const [list, setList] = useState("Ranked");
-  const [after, setAfter] = useState(0);
   const [run, setRun] = useState(null);
   const [error, setError] = useState(null);
   const [version, setVersion] = useState(0);
@@ -206,7 +217,7 @@ export function SearchRunPage({ id }) {
     let timer;
     async function poll() {
       try {
-        const result = await get(`/api/searches/${id}${queryString({ list, after: after || "", limit: hitsPerPage })}`);
+        const result = await get(`/api/searches/${id}${queryString({ list, limit: maxHits })}`);
         if (!live) return;
         setRun(result);
         if (result.status === "Queued" || result.status === "Running") timer = setTimeout(poll, pollMilliseconds);
@@ -216,7 +227,7 @@ export function SearchRunPage({ id }) {
     }
     poll();
     return () => { live = false; clearTimeout(timer); };
-  }, [id, list, after, version]);
+  }, [id, list, version]);
 
   async function drop() {
     try {
@@ -239,11 +250,7 @@ export function SearchRunPage({ id }) {
     ${run.status === "Expired" && html`<${Message}>The results of this search were dropped. Its parameters and summary remain.<//>`}
     <${Summary} run=${run} />
     ${run.hits && html`
-      ${run.kind !== "Protein" && html`<${Segmented} label="List" value=${list} options=${lists} onChange=${v => { setList(v); setAfter(0); }} />`}
-      ${run.hits.items.length ? html`<${CompareTop} run=${run} /><${Hits} id=${id} run=${run} />` : html`<${Message}>This list is empty.<//>`}
-      <div class="pager">
-        <button type="button" disabled=${after === 0} onClick=${() => setAfter(Math.max(0, after - hitsPerPage))}>Previous</button>
-        <button type="button" disabled=${run.hits.nextAfter == null} onClick=${() => setAfter(run.hits.nextAfter)}>Next</button>
-      </div>`}
+      ${run.kind !== "Protein" && html`<${Segmented} label="List" value=${list} options=${lists} onChange=${setList} />`}
+      ${run.hits.items.length ? html`<${CompareTop} run=${run} /><${HitList} key=${list} id=${id} run=${run} />` : html`<${Message}>This list is empty.<//>`}`}
     ${run.status === "Done" && html`<p class="actions"><button type="button" onClick=${drop}>Delete results now</button></p>`}`;
 }

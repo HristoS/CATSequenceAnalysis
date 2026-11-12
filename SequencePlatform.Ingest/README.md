@@ -63,7 +63,8 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   fetched, by class. The FASTA streams from NCBI's FTP tree through hash, gzip and `SequenceFeatureReader` with no temp file, so the DNA never
   reaches the disk. A genome becomes one record, `kind = 'eukaryote'`, `data_class = 'public_eukaryote'`, holding its nuclear dinucleotide counts
   summed and no profile levels: it has relatives and is on the map and in trees, but find-similar and localize can't score it, and in a
-  length band it appears in the Not comparable list. Organelles are left out by their FASTA description. Human assemblies are refused in
+  length band it appears in the Not comparable list. Since migration 0022 the same pass also stores each nuclear sequence of at least
+  100 kbp as chromosome levels (see `backfill-chromosomes`). Organelles are left out by their FASTA description. Human assemblies are refused in
   code. `--limit` and `--max-bp` decide what is picked, so resume a run with the same values. NCBI's FTP gave about 0.5 MB/s
   (1.6 Mbp/s) per connection on 2026-10-30, so size a run by bases rather than genomes. Since S7.T, each genome stored also gets its
   gene layer, as `backfill-genes-ncbi` builds it.
@@ -79,6 +80,15 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   `--dry-run` builds and reports without writing (the largest bucket row against gene rows' 4 MB limit, `GeneProfiles.MaxRowBytes`; genome levels keep 1 MB); `--check-search N` then searches
   N proteins of each assembly through `ProteinSearch` over the whole catalogue. On 2026-11-06, 131 of the 587 stored eukaryotes
   were annotated: 4–38 s per assembly; a 3 Gbp mammal kept 20,457 genes of 47,953 coding sequences (26,268 other isoforms).
+- `backfill-chromosomes [--limit N] [--accession A] [--parallel P]` (migration 0022, 2026-11-11) stores each eukaryote's chromosome levels:
+  every nuclear sequence of at least 100 kbp at 500 bp and 32 kbp windows (`chromosome_level`, ZCWP version 2), for drawing one
+  chromosome's path. Since 0022 `ingest-ncbi` builds them in the same pass that counts dinucleotides; this re-downloads genomes stored
+  before, smallest first. It keeps them only when the file gives the record's nuclear length and dinucleotide counts again, and records
+  the outcome under `annotations.ncbi.chromosome_levels` (`stored` with sequences kept and the shorter ones left out, or `mismatch`), so a
+  finished genome isn't picked again and a stopped run resumes. A failed download leaves the genome pending. The 587 genomes are 256 Gbp
+  (about 77 GB of gzip from NCBI) and 3.1 GB of levels: the first four (1.7 Gbp, 2026-11-11) took 21 MB, and a 0.8 Gbp plant 20 min
+  over one connection. Nothing reads these rows but the chromosome endpoints: a eukaryote is still not
+  searched as one genome.
 - `search-similar --fasta X | --profile X.zcwp` (P3 S3.4) ranks the records of comparable length, [r × L, L / r] for a query
   of length L, by `ZCurveWindowedProfile` similarity at one ladder level, the better of the query's two strands. `--ratio` is
   0.25–1, default 0.5; `list`'s filters narrow the candidates further; `--top` defaults to 20. Records with the same
@@ -97,7 +107,8 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   (another strain; `results/S35_LocalizeCheckMin4_Summary.csv`). Not found: a fragment across the origin of a circular record.
 - `build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH]` (P3 S3.6,
   migration 0007) samples best-alignment scores between unrelated records (different superkingdom or phylum; viruses of
-  different families) from the stored profiles, as find-similar and localization would score them, and replaces the
+  different families) from the stored profiles, as find-similar and localization would score them (a virus candidate wrapped around
+  its end, as find-similar scores it since 2026-11-12: rerun it and `build-neighbours` after deploying that), and replaces the
   `score_null` rows. Defaults take about 2 minutes on the 2026-10 catalogue; rerun it after large ingests. `--csv` also
   writes every cell's scores to a file.
 - `build-neighbours [--ratio R]` (P3 S3.4b, migration 0008) runs find-similar for every stored record against the other

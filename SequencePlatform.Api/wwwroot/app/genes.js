@@ -1,6 +1,6 @@
 import { get, loadGenes } from "./api.js";
-import { Message, Segmented, formatBp, html, useEffect, useMemo, useRef, useState } from "./html.js";
-import { drawCurve, views } from "./zcurve3d.js";
+import { FilterBox, Message, Pager, Segmented, formatBp, html, useEffect, useMemo, usePaged, useRef, useState } from "./html.js";
+import { drawCurve, useZoom, views } from "./zcurve3d.js";
 
 const rowsPerPage = 25;
 const samplesPerWindow = 24;
@@ -24,7 +24,7 @@ export function GeneLayerSignature({ id }) {
   const { list, error } = useGenes(id);
   if (error) return html`<${Message}>${error}<//>`;
   if (!list) return html`<${Message}>Loading the gene layer…<//>`;
-  if (list.geneCount === 0) return html`<${Message}>No genes are stored for this record: the gene layer covers BV-BRC genomes only.<//>`;
+  if (list.geneCount === 0) return html`<${Message}>No genes are stored for this record: the gene layer covers BV-BRC genomes and NCBI-annotated eukaryotes.<//>`;
   const peak = Math.max(...list.meanWindow.map(v => Math.abs(v.value)), 1e-9);
   return html`<div class="bars">${list.meanWindow.map(v => html`<div class="bar" key=${v.name} title=${v.meaning}>
       <span class="mono">${v.name}</span>
@@ -39,43 +39,34 @@ export function GeneLayerSignature({ id }) {
 // onSelect(gene) tells the page which gene is picked (null when none), so its path panel can highlight it.
 export function GenesPanel({ id, onSelect = () => {} }) {
   const { list, error } = useGenes(id);
-  const [text, setText] = useState("");
-  const [page, setPage] = useState(0);
   const [selected, setSelected] = useState(null);
-  useEffect(() => { setSelected(null); setPage(0); setText(""); onSelect(null); }, [id]);
+  const sequences = list?.sequences ?? [];
+  const genes = useMemo(() => list?.genes ?? [], [list]);
+  const paged = usePaged(genes, { size: rowsPerPage, text: g => `${g.product ?? ""} ${g.familyId ?? ""} ${sequences[g.sequence] ?? ""}` });
+  useEffect(() => { setSelected(null); paged.setNeedle(""); onSelect(null); }, [id]);
   const pick = g => { setSelected(g.index); onSelect(g); };
-
-  const shown = useMemo(() => {
-    if (!list) return [];
-    const needle = text.trim().toLowerCase();
-    return needle ? list.genes.filter(g => (g.product ?? "").toLowerCase().includes(needle) || (g.familyId ?? "").toLowerCase().includes(needle)) : list.genes;
-  }, [list, text]);
 
   if (error) return html`<${Message}>${error}<//>`;
   if (!list) return html`<${Message}>Loading the genes…<//>`;
-  if (list.geneCount === 0) return html`<${Message}>No genes are stored for this record: the gene layer covers BV-BRC genomes, genes of 50 aa and up.<//>`;
-  const pages = Math.max(1, Math.ceil(shown.length / rowsPerPage)), current = Math.min(page, pages - 1);
+  if (list.geneCount === 0) return html`<${Message}>No genes are stored for this record: the gene layer covers BV-BRC genomes and NCBI-annotated eukaryotes, genes of 50 aa and up.<//>`;
 
-  return html`<label class="field"><span>Product or family contains</span>
-      <input value=${text} onInput=${e => { setText(e.target.value); setPage(0); }} placeholder="e.g. gyrase" /></label>
+  return html`<${FilterBox} paged=${paged} label=${sequences.length ? "Product or sequence contains" : "Product or family contains"}
+      placeholder=${sequences.length ? "e.g. NC_ or kinase" : "e.g. gyrase"} />
     <div class="tablewrap"><table>
-      <thead><tr><th class="num">#</th><th class="num">Position</th><th>Strand</th><th class="num">aa</th><th>Product</th></tr></thead>
-      <tbody>${shown.slice(current * rowsPerPage, (current + 1) * rowsPerPage).map(g => html`<tr key=${g.index}
+      <thead><tr><th class="num">#</th>${sequences.length > 0 && html`<th>Sequence</th>`}<th class="num">Position</th><th>Strand</th><th class="num">aa</th><th>Product</th></tr></thead>
+      <tbody>${paged.rows.map(g => html`<tr key=${g.index}
           class=${selected === g.index ? "row picked" : "row"} tabIndex="0" onClick=${() => pick(g)}
           onKeyDown=${e => { if (e.key === "Enter") pick(g); }}>
         <td class="num">${g.index + 1}</td>
+        ${sequences.length > 0 && html`<td class="mono">${sequences[g.sequence] ?? "–"}</td>`}
         <td class="num">${formatBp(g.startBp)}</td>
         <td>${g.strand === "Reverse" ? "−" : "+"}</td>
         <td class="num">${g.residues.toLocaleString()}</td>
         <td title=${g.familyId ?? ""}>${g.product ?? g.familyId ?? "–"}</td>
       </tr>`)}</tbody>
     </table></div>
-    ${shown.length === 0 && html`<${Message}>No gene matches.<//>`}
-    <div class="pager">
-      <button type="button" disabled=${current === 0} onClick=${() => setPage(current - 1)}>Previous</button>
-      <span>${shown.length.toLocaleString()} of ${list.geneCount.toLocaleString()} genes · page ${current + 1} of ${pages}</span>
-      <button type="button" disabled=${current >= pages - 1} onClick=${() => setPage(current + 1)}>Next</button>
-    </div>
+    ${paged.filtered.length === 0 && html`<${Message}>No gene matches.<//>`}
+    <${Pager} paged=${paged} noun="genes" />
     ${selected == null ? html`<p class="hint">Pick a gene to draw its Z-curve.</p>` : html`<${GeneView} id=${id} index=${selected} />`}`;
 }
 
@@ -122,8 +113,9 @@ function GeneView({ id, index }) {
   const redraw = () => {
     if (!shape || !canvas.current) return;
     const points = drift === "kept" ? shape.points : shape.points.map((p, i) => p.map((v, a) => v - (shape.fits[a][0] + shape.fits[a][1] * shape.at[i])));
-    screen.current = drawCurve(canvas.current, points, { yaw: angles.current[0], pitch: angles.current[1], marks: shape.marks }).screen;
+    screen.current = drawCurve(canvas.current, points, { yaw: angles.current[0], pitch: angles.current[1], zoom: zoomer.zoom.current, marks: shape.marks }).screen;
   };
+  const zoomer = useZoom(canvas, redraw, [shape, drift]);
   useEffect(() => { if (view !== "free") angles.current = views[view]; redraw(); }, [shape, drift, view]);
   useEffect(() => {
     if (!canvas.current) return;
@@ -132,9 +124,14 @@ function GeneView({ id, index }) {
     return () => observer.disconnect();
   });
 
-  const down = e => { drag.current = { x: e.clientX, y: e.clientY, angles: angles.current }; e.currentTarget.setPointerCapture(e.pointerId); tip.current.hidden = true; };
-  const up = () => { drag.current = null; };
+  const down = e => {
+    tip.current.hidden = true;
+    if (zoomer.down(e)) return;
+    drag.current = { x: e.clientX, y: e.clientY, angles: angles.current }; e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const up = () => { drag.current = null; zoomer.up(); };
   const move = e => {
+    if (zoomer.move(e)) return;
     if (drag.current) {
       const d = drag.current;
       angles.current = [d.angles[0] + (e.clientX - d.x) * 0.01, Math.max(-1.55, Math.min(1.55, d.angles[1] + (e.clientY - d.y) * 0.01))];

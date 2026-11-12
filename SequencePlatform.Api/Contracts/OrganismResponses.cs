@@ -42,7 +42,7 @@ namespace SequencePlatform.Api
     /// </summary>
     /// <param name="Group">all, cellular (bacteria and archaea) or viral.</param>
     /// <param name="Signature">What was mapped.</param>
-    public sealed record LandscapeResponse(string Group, string Signature, long[] Ids, string[] Names, double[] X, double[] Y, double[] Gc, long[] LengthBp,
+    public sealed record LandscapeResponse(string Group, string Signature, long[] Ids, string[] Names, double[] X, double[] Y, double[] Z, double[] Gc, long[] LengthBp,
         string[] Domains, int[] Domain, string[] Phyla, int[] Phylum, string[] Families, int[] Family, string[] Genera, int[] Genus,
         IReadOnlyList<LandscapeAxisResponse> Axes)
     {
@@ -59,6 +59,7 @@ namespace SequencePlatform.Api
             return new LandscapeResponse(map.Group, SignatureIndex.Description,
                 points.Select(p => p.Id).ToArray(), points.Select(p => p.Name).ToArray(),
                 points.Select(p => Math.Round(p.X, coordinateDecimals)).ToArray(), points.Select(p => Math.Round(p.Y, coordinateDecimals)).ToArray(),
+                points.Select(p => Math.Round(p.Z, coordinateDecimals)).ToArray(),
                 points.Select(p => Math.Round(p.Gc, gcDecimals)).ToArray(), points.Select(p => p.LengthBp).ToArray(),
                 domains, domain, phyla, phylum, families, family, genera, genus,
                 map.Axes.Select(a => new LandscapeAxisResponse(a.ExplainedVariance,

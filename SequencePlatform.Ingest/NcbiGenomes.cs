@@ -15,7 +15,14 @@ namespace SequencePlatform.Ingest
 
     /// <summary>What a genome's nuclear records add up to.</summary>
     /// <param name="Counts">Dinucleotide counts summed over the nuclear records; a pair spanning two records isn't counted.</param>
-    internal sealed record NuclearCounts(long[] Counts, long LengthBp, int Records, int OrganellesLeftOut);
+    /// <param name="Chromosomes">The nuclear records of at least <see cref="ChromosomeLevels.MinLengthBp"/>, each with its 500 bp level, in
+    /// file order; null when not asked for.</param>
+    /// <param name="ShortLeftOut">Nuclear records too short to keep a level, and their bases.</param>
+    internal sealed record NuclearCounts(long[] Counts, long LengthBp, int Records, int OrganellesLeftOut,
+        IReadOnlyList<ChromosomeLevels.Chromosome>? Chromosomes = null, int ShortLeftOut = 0, long ShortLeftOutBp = 0)
+    {
+        public ChromosomeLevels.Summary Summary() => new(Chromosomes?.Count ?? 0, Chromosomes?.Sum(c => c.LengthBp) ?? 0, ShortLeftOut, ShortLeftOutBp);
+    }
 
     /// <summary>
     /// Reference eukaryote assemblies from NCBI: the assembly list and lineages from the Datasets API, the genome from its FTP tree over
@@ -149,8 +156,9 @@ namespace SequencePlatform.Ingest
 
     /// <summary>
     /// The eukaryote pilot: a genome becomes one record holding its nuclear dinucleotide counts and no profile levels, which is enough for
-    /// relatives, the map and trees. A genome would need 32 MB per Gbp of levels and object storage above 43 Mbp per chromosome, and whether the
-    /// signature organizes eukaryotes at all is what the pilot is for. The DNA passes through memory only. Organelles are left out because
+    /// relatives, the map and trees; whether the signature organizes eukaryotes at all is what the pilot is for. Since migration 0022 each
+    /// nuclear sequence of at least 100 kbp also keeps its own 500 bp and 32 kbp levels in chromosome_level, for drawing it (12 MB per Gbp),
+    /// built in the same pass; they are never compared as one genome. The DNA passes through memory only. Organelles are left out because
     /// their composition is bacterial in origin, and D9 already leaves plasmids out the same way. The human genome stays out until
     /// the consent and GDPR decision is made (decision log, 2026-10-30).
     /// </summary>
@@ -196,36 +204,43 @@ namespace SequencePlatform.Ingest
                 .ToList();
         }
 
-        internal static NuclearCounts CountNuclear(TextReader fasta)
+        /// <param name="levels">Also each kept nuclear record's 500 bp level (chromosome_level), from the same pass.</param>
+        internal static NuclearCounts CountNuclear(TextReader fasta, bool levels = true)
         {
             var counts = new long[16];
             var buffer = new char[bufferChars];
-            long lengthBp = 0;
-            int records = 0, leftOut = 0;
-            foreach (var (_, description, sequence) in FastaReader.ReadRecordStreams(fasta))
+            var chromosomes = new List<ChromosomeLevels.Chromosome>();
+            long lengthBp = 0, shortBp = 0;
+            int records = 0, leftOut = 0, tooShort = 0;
+            foreach (var (id, description, sequence) in FastaReader.ReadRecordStreams(fasta))
             {
                 // Moving on skips what's left of a record, so an organelle costs nothing.
                 if (organelle.IsMatch(description)) { leftOut++; continue; }
 
                 using var features = new SequenceFeatureReader(sequence);
-                while (features.Read(buffer, 0, buffer.Length) > 0) { }
+                ZCurveWindowedProfile? fine = null;
+                if (levels) fine = ZCurveWindowedProfile.FromStream(features);
+                else while (features.Read(buffer, 0, buffer.Length) > 0) { }
                 var (_, recordCounts) = features.Finish();
                 for (int i = 0; i < counts.Length; i++) counts[i] += recordCounts[i];
                 lengthBp += features.CharactersRead;
                 records++;
+                if (fine is null) continue;
+                if (features.CharactersRead >= ChromosomeLevels.MinLengthBp) chromosomes.Add(new(id, features.CharactersRead, fine));
+                else { tooShort++; shortBp += features.CharactersRead; }
             }
-            return new NuclearCounts(counts, lengthBp, records, leftOut);
+            return new NuclearCounts(counts, lengthBp, records, leftOut, levels ? chromosomes : null, tooShort, shortBp);
         }
 
         /// <returns>The counts and the SHA-256 of the gzip file as it came.</returns>
-        internal static (NuclearCounts Counts, byte[] Sha256) Read(Stream gzipFasta)
+        internal static (NuclearCounts Counts, byte[] Sha256) Read(Stream gzipFasta, bool levels = true)
         {
             using var sha256 = SHA256.Create();
             using var hashing = new CryptoStream(gzipFasta, sha256, CryptoStreamMode.Read, leaveOpen: true);
             NuclearCounts counts;
             using (var gzip = new GZipStream(hashing, CompressionMode.Decompress, leaveOpen: true))
             using (var reader = new StreamReader(gzip, bufferSize: bufferChars))
-                counts = CountNuclear(reader);
+                counts = CountNuclear(reader, levels);
             hashing.CopyTo(Stream.Null);    // the hash covers the whole file, whatever the decompressor left unread
             return (counts, sha256.Hash!);
         }
@@ -273,6 +288,11 @@ namespace SequencePlatform.Ingest
             await using var transaction = await connection.BeginTransactionAsync();
             var stored = await RecordStore.StoreAsync(connection, transaction,
                 new SourceRow(Provider, url, assembly.Accession, sha256, byteSize, license), [(profile, row)]);
+            if (counts.Chromosomes is { } chromosomes)
+            {
+                await ChromosomeLevels.InsertAsync(connection, transaction, stored.SequenceIds[0], chromosomes);
+                await ChromosomeLevels.AnnotateAsync(connection, transaction, stored.SequenceIds[0], counts.Summary());
+            }
             await CrawlState.MarkStoredAsync(connection, transaction, Provider, assembly.Accession, stored.SourceId, false);
             await transaction.CommitAsync();
         }

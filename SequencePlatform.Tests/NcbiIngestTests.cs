@@ -126,6 +126,63 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task ChromosomesOfAtLeast100KbpKeepTheirOwnLevelsFromTheSamePass()
+        {
+            var chromosome = Generator.GetRandomDNA(130_000, seed: 78);
+            var scaffold = Generator.GetRandomDNA(40_000, seed: 79);
+            var accession = $"GCF_{Guid.NewGuid():N}";
+            await CrawlState.RegisterAsync(ThrowawayDatabase.DataSource, NcbiIngestor.Provider, "fungi", [accession]);
+            var file = Gzip($">NC_7.1 chromosome I\n{chromosome}\n>NW_8.1 unplaced scaffold\n{scaffold}\n>NC_9.1 mitochondrion, complete genome\n{chromosome}\n");
+            var (counts, sha256) = NcbiIngestor.Read(new MemoryStream(file));
+
+            Assert.That(counts.Chromosomes!.Select(c => (c.Name, c.LengthBp)), Is.EqualTo(new[] { ("NC_7.1", 130_000L) }));
+            Assert.That((counts.ShortLeftOut, counts.ShortLeftOutBp), Is.EqualTo((1, 40_000L)));
+            var expected = new ZCurveWindowedProfile(chromosome);
+            Assert.That(counts.Chromosomes![0].Fine.WindowCount, Is.EqualTo(expected.WindowCount));
+
+            await new NcbiIngestor(ThrowawayDatabase.DataSource, null).StoreAsync(Assembly(accession), fungus, "test://genome", sha256, file.Length, counts);
+            long id;
+            await using (var find = ThrowawayDatabase.DataSource.CreateCommand("select id from sequence_record where record_id = $1"))
+            {
+                find.Parameters.AddWithValue(accession);
+                id = (long)(await find.ExecuteScalarAsync())!;
+            }
+
+            var levels = await ChromosomeLevels.ListAsync(ThrowawayDatabase.DataSource, id);
+            Assert.That(levels.Select(l => (l.Index, l.Name, l.LengthBp, l.WindowSize, l.WindowCount)),
+                Is.EqualTo(new[] { (0, "NC_7.1", 130_000L, 500, 260), (0, "NC_7.1", 130_000L, 32_000, 4) }));
+            var fine = await ChromosomeLevels.ReadAsync(ThrowawayDatabase.DataSource, id, 0, 500);
+            var coarse = await ChromosomeLevels.ReadAsync(ThrowawayDatabase.DataSource, id, 0, 32_000);
+            for (int w = 0; w < fine!.WindowCount; w++)
+                Assert.That(fine.Windows[w].Z, Is.EqualTo(expected.Windows[w].Z).Within(1e-3), "float16 of the 500 bp windows");
+            Assert.That(coarse!.Windows[3].Z, Is.EqualTo(expected.Downsample(64).Windows[3].Z).Within(1e-3));
+            Assert.That(await ChromosomeLevels.ReadAsync(ThrowawayDatabase.DataSource, id, 1, 500), Is.Null, "the scaffold is left out");
+        }
+
+        [Test]
+        public async Task TheBackfillStoresLevelsOnlyForTheGenomeTheRecordWasMadeFrom()
+        {
+            var chromosome = Generator.GetRandomDNA(120_000, seed: 80);
+            var (counts, _) = NcbiIngestor.Read(new MemoryStream(Gzip($">NC_1.1 chromosome I\n{chromosome}\n")));
+            var (other, _) = NcbiIngestor.Read(new MemoryStream(Gzip($">NC_1.1 chromosome I\n{Generator.GetRandomDNA(120_000, seed: 81)}\n")));
+            var backfill = new ChromosomeBackfill(ThrowawayDatabase.DataSource, null!);
+            var same = await ThrowawayDatabase.InsertRecordAsync("NCBI", $"same-{Guid.NewGuid():N}", 120_000, kind: "eukaryote");
+            var changed = await ThrowawayDatabase.InsertRecordAsync("NCBI", $"changed-{Guid.NewGuid():N}", 120_000, kind: "eukaryote");
+
+            Assert.That(await backfill.StoreAsync(new PendingGenome(same, "GCF_s.1", "test://s", 120_000, counts.Counts), counts), Does.Contain("1 sequences"));
+            Assert.That(await backfill.StoreAsync(new PendingGenome(changed, "GCF_c.1", "test://c", 120_000, counts.Counts), other), Does.StartWith("MISMATCH"));
+
+            Assert.That((await ChromosomeLevels.ListAsync(ThrowawayDatabase.DataSource, same)).Count, Is.EqualTo(2));
+            Assert.That(await ChromosomeLevels.ListAsync(ThrowawayDatabase.DataSource, changed), Is.Empty);
+            await using var status = ThrowawayDatabase.DataSource.CreateCommand(
+                "select annotations #>> '{ncbi,chromosome_levels,status}' from sequence_record where id = any($1) order by id");
+            status.Parameters.AddWithValue(new[] { same, changed });
+            var statuses = new List<string>();
+            await using (var reader = await status.ExecuteReaderAsync()) while (await reader.ReadAsync()) statuses.Add(reader.GetString(0));
+            Assert.That(statuses, Is.EqualTo(new[] { ChromosomeLevels.Stored, ChromosomeLevels.Mismatch }), "neither is pending again");
+        }
+
+        [Test]
         public async Task GenomesStoredInParallelAreAllKept()
         {
             var accessions = Enumerable.Range(0, 8).Select(_ => $"GCF_{Guid.NewGuid():N}").ToList();

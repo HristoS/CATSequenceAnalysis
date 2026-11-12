@@ -668,3 +668,7 @@ SequencePlatform.Api/scenario/
 
 # Generated Docker Compose output; its .env holds a database password
 deploy/
+
+# Eukaryote genomes kept on this machine for the cheap checks (hundreds of MB): scripts/platform-checks/fetch_eukaryotes.cs
+data/genomes/eukaryotes/*
+!data/genomes/eukaryotes/README.md

@@ -61,7 +61,7 @@ namespace SequencePlatform.Tests
             Assert.That(ids, Does.Contain(unnamed), "a genome without a species stands for itself");
             Assert.That(ids, Does.Not.Contain(tooShort).And.Not.Contain(upload));
 
-            foreach (var parallel in new[] { "names", "x", "y", "gc", "lengthBp", "phylum", "family", "genus" })
+            foreach (var parallel in new[] { "names", "x", "y", "z", "gc", "lengthBp", "phylum", "family", "genus" })
                 Assert.That(map.GetProperty(parallel).GetArrayLength(), Is.EqualTo(ids.Length), parallel);
 
             int at = Array.FindIndex(ids, id => id == first || id == second);
@@ -70,8 +70,8 @@ namespace SequencePlatform.Tests
             Assert.That(map.GetProperty("genus")[Array.IndexOf(ids, unnamed)].GetInt32(), Is.EqualTo(-1), "no lineage: index -1");
 
             var axes = map.GetProperty("axes");
-            Assert.That(axes.GetArrayLength(), Is.EqualTo(2));
-            Assert.That(axes[0].GetProperty("explainedVariance").GetDouble(), Is.GreaterThanOrEqualTo(axes[1].GetProperty("explainedVariance").GetDouble()));
+            Assert.That(axes.GetArrayLength(), Is.EqualTo(3), "three components, drawn two at a time");
+            Assert.That(axes.EnumerateArray().Select(a => a.GetProperty("explainedVariance").GetDouble()), Is.Ordered.Descending);
             Assert.That(axes[0].GetProperty("topLoadings")[0].GetProperty("dinucleotide").GetString(), Has.Length.EqualTo(2));
         }
 

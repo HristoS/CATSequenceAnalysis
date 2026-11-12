@@ -176,6 +176,122 @@ namespace SequencePlatform.Tests
         }
 
         [Test]
+        public async Task EukaryoteGenePathIsDrawnOneSequenceAtATime()
+        {
+            var (_, client) = await NewClientAsync("alice");
+            string Gene(int aa, int seed) => "ATG" + Generator.GetRandomDNA(3 * (aa - 1), seed).Replace("TAA", "TAC").Replace("TAG", "TAC")
+                .Replace("TGA", "TGC") + "TAA";
+            // Sequence 1's gene starts before sequence 0's second one: joined, the path still goes sequence by sequence.
+            var genes = new[] { (0, 1_000, Gene(80, 61)), (0, 9_000, Gene(120, 62)), (1, 500, Gene(200, 63)) };
+            var profile = ZCurveGeneProfile.FromCodingSequences(genes.Select(g => (g.Item1, g.Item2, g.Item2 + g.Item3.Length, false, ZCurveGeneProfile.NoFamily, g.Item3)));
+            var id = await ThrowawayDatabase.InsertRecordAsync("api-genes", "eukaryote-1", 50_000, kind: "eukaryote");
+            await using (var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync())
+            await using (var transaction = await connection.BeginTransactionAsync())
+            {
+                Assert.That(await GeneProfiles.WriteAsync(connection, transaction, id, profile), Is.True);
+                await GeneProfiles.AnnotateLayerAsync(connection, transaction, id, "{\"sequences\": [\"NC_1.1\", \"NC_2.1\"]}");
+                await transaction.CommitAsync();
+            }
+
+            var list = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes"))!;
+            Assert.That(list.GetProperty("sequences").EnumerateArray().Select(s => s.GetString()), Is.EqualTo(new[] { "NC_1.1", "NC_2.1" }));
+            Assert.That(list.GetProperty("genes").EnumerateArray().Select(g => g.GetProperty("sequence").GetInt32()), Is.EqualTo(new[] { 0, 0, 1 }));
+
+            var joined = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes/path"))!;
+            Assert.That(joined.GetProperty("geneIndex").EnumerateArray().Select(v => v.GetInt32()), Is.EqualTo(new[] { 0, 1, 2 }));
+            Assert.That(joined.TryGetProperty("sequence", out _), Is.False);
+
+            var second = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes/path?sequence=1"))!;
+            Assert.That(second.GetProperty("geneIndex").EnumerateArray().Select(v => v.GetInt32()), Is.EqualTo(new[] { 2 }));
+            Assert.That((second.GetProperty("geneCount").GetInt32(), second.GetProperty("sequence").GetInt32()), Is.EqualTo((1, 1)));
+            var expected = GenePath.Build(profile, 50_000, sequence: 1).Points.SelectMany(p => new[] { p.X, p.Y, p.Z }).ToArray();
+            Assert.That(second.GetProperty("coordinates").EnumerateArray().Select(v => v.GetDouble()), Is.EqualTo(expected).Within(0.051));
+            Assert.That(expected.Length, Is.EqualTo(3 * (profile.Genes[2].WindowCount + 1)), "only sequence 1's gene, from the axes' origin");
+
+            Assert.That((await client.GetAsync($"/api/sequences/{id}/genes/path?sequence=2")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [Test]
+        public async Task AGenesMatchInAnotherRecordIsItsReciprocalBestHit()
+        {
+            var (_, client) = await NewClientAsync("bob");
+            var (carol, _) = await NewClientAsync("carol");
+            string Gene(int aa, int seed) => "ATG" + Generator.GetRandomDNA(3 * (aa - 1), seed).Replace("TAA", "TAC").Replace("TAG", "TAC")
+                .Replace("TGA", "TGC") + "TAA";
+            // Every 50th base changed: the relative's copy of each gene, plus a decoy of about the same length as the first.
+            string Mutate(string gene) => string.Concat(gene.Select((b, i) => i % 50 == 25 ? (b == 'A' ? 'C' : 'A') : b));
+            var genes = new[] { Gene(80, 71), Gene(120, 72), Gene(600, 73) };
+            var copies = new[] { Gene(82, 74), Mutate(genes[0]), Mutate(genes[1]), Mutate(genes[2]) };
+            ZCurveGeneProfile Profile(string[] dna) => ZCurveGeneProfile.FromCodingSequences(
+                dna.Select((g, i) => (0, 10_000 * i, 10_000 * i + g.Length, false, ZCurveGeneProfile.NoFamily, g)));
+            var a = await ThrowawayDatabase.InsertRecordAsync("api-genes", "match-a", 50_000, kind: "eukaryote");
+            var b = await ThrowawayDatabase.InsertRecordAsync("api-genes", "match-b", 50_000, kind: "eukaryote");
+            var hidden = await ThrowawayDatabase.InsertUploadAsync(carol.Id, "match-hidden", 50_000);
+            await using (var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync())
+            await using (var transaction = await connection.BeginTransactionAsync())
+            {
+                Assert.That(await GeneProfiles.WriteAsync(connection, transaction, a, Profile(genes)), Is.True);
+                Assert.That(await GeneProfiles.WriteAsync(connection, transaction, b, Profile(copies)), Is.True);
+                await transaction.CommitAsync();
+            }
+
+            var first = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{a}/genes/0/matches?in={b}"))!;
+            var matches = first.GetProperty("matches").EnumerateArray().ToList();
+            Assert.That(first.GetProperty("compared").GetInt32(), Is.EqualTo(2), "80 aa: the decoy (82 aa) and the copy, not 120 or 600 aa");
+            Assert.That(matches.Select(m => m.GetProperty("gene").GetProperty("index").GetInt32()), Is.EqualTo(new[] { 1, 0 }), "the copy first");
+            Assert.That(matches.Select(m => m.GetProperty("reciprocal").GetBoolean()), Is.EqualTo(new[] { true, false }),
+                "the decoy's best match back is gene 0 too, but gene 0's best is the copy");
+            Assert.That(matches[0].GetProperty("score").GetDouble(), Is.GreaterThan(matches[1].GetProperty("score").GetDouble()));
+
+            var longGene = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{a}/genes/2/matches?in={b}&top=1"))!;
+            Assert.That(longGene.GetProperty("compared").GetInt32(), Is.EqualTo(1), "600 aa: long genes only");
+            Assert.That(longGene.GetProperty("matches")[0].GetProperty("gene").GetProperty("index").GetInt32(), Is.EqualTo(3));
+
+            var paralogs = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{b}/genes/1/matches?in={b}"))!;
+            Assert.That(paralogs.GetProperty("matches").EnumerateArray().Select(m => m.GetProperty("gene").GetProperty("index").GetInt32()),
+                Is.EqualTo(new[] { 0 }), "within one record the gene itself is left out");
+
+            Assert.That((await client.GetAsync($"/api/sequences/{a}/genes/0/matches")).StatusCode, Is.EqualTo(HttpStatusCode.BadRequest), "no in=");
+            Assert.That((await client.GetAsync($"/api/sequences/{a}/genes/0/matches?in={b}&top=0")).StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That((await client.GetAsync($"/api/sequences/{a}/genes/3/matches?in={b}")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            Assert.That((await client.GetAsync($"/api/sequences/{a}/genes/0/matches?in={hidden}")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound),
+                "someone else's upload");
+        }
+
+        [Test]
+        public async Task AEukaryotesChromosomesListAndServeTheirOwnLevels()
+        {
+            var (_, client) = await NewClientAsync("alice");
+            var dna = new[] { Generator.GetRandomDNA(140_000, 91), Generator.GetRandomDNA(100_000, 92) };
+            var id = await ThrowawayDatabase.InsertRecordAsync("api-chromosomes", "eukaryote-2", 240_000, kind: "eukaryote");
+            await using (var connection = await ThrowawayDatabase.DataSource.OpenConnectionAsync())
+            await using (var transaction = await connection.BeginTransactionAsync())
+            {
+                await ChromosomeLevels.InsertAsync(connection, transaction, id,
+                    [new("NC_10.1", dna[0].Length, new ZCurveWindowedProfile(dna[0])), new("NC_11.1", dna[1].Length, new ZCurveWindowedProfile(dna[1]))]);
+                await transaction.CommitAsync();
+            }
+
+            var list = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/chromosomes"))!;
+            var chromosomes = list.GetProperty("chromosomes").EnumerateArray().ToList();
+            Assert.That(chromosomes.Select(c => (c.GetProperty("index").GetInt32(), c.GetProperty("name").GetString(), c.GetProperty("lengthBp").GetInt64())),
+                Is.EqualTo(new[] { (0, "NC_10.1", 140_000L), (1, "NC_11.1", 100_000L) }));
+            Assert.That(chromosomes[1].GetProperty("levels").EnumerateArray().Select(l => (l.GetProperty("windowSize").GetInt32(), l.GetProperty("windowCount").GetInt32())),
+                Is.EqualTo(new[] { (500, 200), (32_000, 3) }));
+
+            var bytes = await client.GetByteArrayAsync(chromosomes[1].GetProperty("levels")[0].GetProperty("href").GetString());
+            var served = ZCurveWindowedProfile.FromBinary(bytes);
+            var expected = new ZCurveWindowedProfile(dna[1]);
+            Assert.That((served.WindowSize, served.WindowCount), Is.EqualTo((500, 200)));
+            Assert.That(served.Windows.Select(w => w.X), Is.EqualTo(expected.Windows.Select(w => w.X)).Within(1e-3));
+
+            Assert.That((await client.GetAsync($"/api/sequences/{id}/chromosomes/2/profile")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            var none = (await client.GetFromJsonAsync<JsonElement>(
+                $"/api/sequences/{await ThrowawayDatabase.InsertRecordAsync("api-chromosomes", "virus-1", 5_000)}/chromosomes"))!;
+            Assert.That(none.GetProperty("chromosomes").GetArrayLength(), Is.Zero);
+        }
+
+        [Test]
         public async Task DetailCarriesLineagesLevelsAndProvenanceButNoOneElsesUpload()
         {
             var (alice, client) = await NewClientAsync("alice");

@@ -62,6 +62,7 @@ app.MapSequences();
 app.MapSearches();
 app.MapOrganisms();
 app.MapGenes();
+app.MapChromosomes();
 app.MapExperiments();
 
 app.Run();
