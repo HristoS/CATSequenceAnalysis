@@ -20,7 +20,8 @@ namespace SequencePlatform.Api
                 .WithSummary("List the catalogue")
                 .WithDescription("Keyset-paged in id order: pass the previous page's nextAfter as after. Filters combine with AND; " +
                     "rank and taxon go together (rank: superkingdom, realm, kingdom, phylum, class, order, family, genus, species). " +
-                    "kind is a stored kind or a group from /api/sequences/facets (prokaryote: bacterium and archaeon).")
+                    "kind is a stored kind or a group from /api/sequences/facets (prokaryote: bacterium and archaeon), or several of " +
+                    "either separated by commas (virus,plasmid).")
                 .ProducesValidationProblem();
 
             sequences.MapGet("/facets", FacetsAsync)

@@ -1,5 +1,5 @@
 import { get, queryString } from "./api.js";
-import { Message, Segmented, formatBp, formatGc, html, useEffect, useRef, useState } from "./html.js";
+import { Help, HowTo, Message, PageHeader, PlotLayout, Segmented, formatBp, formatGc, html, useEffect, useRef, useState } from "./html.js";
 
 const svgNamespace = "http://www.w3.org/2000/svg";
 const ranks = ["phylum", "class", "order", "family", "genus", "species"];
@@ -232,26 +232,26 @@ export function TreePage({ params }) {
     if (draftTaxon.trim()) location.hash = `#/tree${queryString({ rank: draftRank, taxon: draftTaxon.trim() })}`;
   };
 
-  return html`<h1>Tree of genomes</h1>
-    <p class="lede">Built from dinucleotide signatures (log ρ*, the complete second-order Z-curve). This is a composition tree: it tracks relatedness
-      within families well and says little across phyla, so read it as similarity, not as phylogeny.</p>
-    <form class="filters" onSubmit=${submit}>
-      <label class="field"><span>Rank</span>
+  const side = html`<form class="panel stack" onSubmit=${submit}>
+      <h2>Build a tree</h2>
+      <label class="field"><span>Rank<${Help}>The lineage level the taxon is matched at.<//></span>
         <select value=${draftRank} onChange=${e => setDraftRank(e.target.value)}>${ranks.map(r => html`<option key=${r}>${r}</option>`)}</select>
       </label>
-      <label class="field"><span>Taxon</span><input value=${draftTaxon} onInput=${e => setDraftTaxon(e.target.value)} placeholder="e.g. Bacillus" /></label>
+      <label class="field"><span>Taxon<${Help}>Every genome of this taxon goes into the tree, from 3 to 500 of them.<//></span><input value=${draftTaxon} onInput=${e => setDraftTaxon(e.target.value)} placeholder="e.g. Bacillus" /></label>
       <button class="primary" type="submit">Build</button>
+      <p class="hint">Or pick genomes on the map, or from a record's nearest relatives.</p>
     </form>
-    <div class="controls">
+    <section class="panel controls">
       <${Segmented} label="View" value=${compare ? "compare" : "single"} onChange=${v => setCompare(v === "compare")}
+        help="UPGMA against NJ draws both trees facing each other with a line joining each genome, and says what share of their splits differ."
         options=${[["single", "One tree"], ["compare", "UPGMA against NJ"]]} />
-      ${!compare && html`<${Segmented} label="Method" value=${method} onChange=${setMethod} options=${[["upgma", "UPGMA"], ["nj", "Neighbour-joining"]]} />`}
+      ${!compare && html`<${Segmented} label="Method" value=${method} onChange=${setMethod}
+        help="UPGMA joins the closest groups step by step, assuming every lineage changes at the same rate. Neighbour-joining drops that assumption; it's drawn rooted at its midpoint."
+        options=${[["upgma", "UPGMA"], ["nj", "Neighbour-joining"]]} />`}
       <${Segmented} label="Branches" value=${toScale ? "lengths" : "topology"} onChange=${v => setToScale(v === "lengths")}
+        help="Topology only lines the leaves up to show the grouping; to scale draws each branch as long as its signature distance."
         options=${[["topology", "Topology only"], ["lengths", "To scale"]]} />
-    </div>
-    ${!ids && !taxon && html`<${Message}>Name a taxon, or pick genomes on the map or a record's relatives. A tree holds 3 to 500 genomes.<//>`}
-    ${error && html`<${Message} error>${error}<//>`}
-    ${(ids || taxon) && !trees && !error && html`<${Message}>Building the trees…<//>`}
+    </section>
     ${trees && !error && scores && html`<div class="scores">
       <${Score} title=${compare ? "UPGMA" : method === "nj" ? "Neighbour-joining" : "UPGMA"} result=${scores.left} higherName=${scores.higherName} />
       ${scores.right && html`<section class="panel"><h2>Disagreement</h2>
@@ -259,12 +259,23 @@ export function TreePage({ params }) {
       </section>
       <${Score} title="Neighbour-joining" result=${scores.right} higherName=${scores.higherName} />`}
     </div>`}
+    <${HowTo}><p>Built from dinucleotide signatures (log ρ*, the complete second-order Z-curve). This is a composition tree: it tracks
+      relatedness within families well and says little across phyla, so read it as similarity, not as phylogeny.</p>
+      <p>"Kept together" counts the genera (and phyla, or families for viruses) whose genomes some branch separates from all the others.</p><//>`;
+
+  const plot = html`${!ids && !taxon && html`<${Message}>Name a taxon to build a tree, or pick genomes on the map or a record's relatives. A tree holds 3 to 500 genomes.<//>`}
+    ${error && html`<${Message} error>${error}<//>`}
+    ${(ids || taxon) && !trees && !error && html`<${Message}>Building the trees…<//>`}
     <figure class="treewrap" hidden=${!trees || !!error}>
       <div class="scroll"><svg ref=${svg} role="img" aria-label="Tree of genomes"></svg></div>
       <div class="legend">
         ${legend.map(l => html`<span key=${l.name}><i class="swatch ${l.swatch}"></i>${l.name} (${l.count})</span>`)}
         <span>Hover a genome to follow its genus; click to open it.</span>
       </div>
-    </figure>
+    </figure>`;
+
+  return html`<${PageHeader} title="Tree of genomes"
+      lede="Genomes grouped by how alike their dinucleotide composition is. Read it as similarity, not as phylogeny." />
+    <${PlotLayout} plot=${plot} side=${side} />
     <div class="tip" ref=${tip} hidden><b></b><span></span></div>`;
 }

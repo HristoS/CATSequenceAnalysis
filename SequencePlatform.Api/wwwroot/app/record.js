@@ -1,8 +1,8 @@
 import { get } from "./api.js";
 import { ZCurvePath } from "./zcurve3d.js";
-import { GeneLayerSignature, GenesPanel } from "./genes.js";
+import { GeneLayerSignature, GeneView, GenesPanel } from "./genes.js";
 import { compareHref } from "./compare.js";
-import { Message, Segmented, formatBp, formatGc, html, useEffect, useState } from "./html.js";
+import { Help, Message, PageHeader, PanelBar, PlotCaption, PlotPair, Segmented, Workspace, usePlotSettings, formatBp, formatGc, helpText, html, useEffect, useState } from "./html.js";
 
 const lineageRanks = ["superkingdom", "realm", "kingdom", "phylum", "class", "order", "family", "genus", "species"];
 
@@ -41,7 +41,7 @@ function Relatives({ id, kind }) {
       <a class="button" href=${compareHref(ids.slice(0, 3))}>Compare with the nearest two</a>
       <a class="button" href="#/map?group=${kind === "virus" ? "viral" : kind === "eukaryote" ? "eukaryotic" : "cellular"}&id=${id}">Show on the map</a>
     </p>
-    <p class="hint">Nearest by ${result.signature}.</p>`;
+    <p class="hint">Nearest by ${result.signature}; the number is the distance, smaller is closer.</p>`;
 }
 
 function Signature({ id }) {
@@ -55,7 +55,7 @@ function Signature({ id }) {
   }, [id, view]);
 
   const peak = result ? Math.max(...result.values.map(v => Math.abs(v.value)), 1e-9) : 1;
-  const views = html`<${Segmented} label="View" value=${view} onChange=${setView}
+  const views = html`<${Segmented} label="View" value=${view} onChange=${setView} help=${helpText.signature}
       options=${[["karlin", "Karlin ρ*"], ["zcurve", "Z-curve coefficients"], ["genes", "Gene layer"]]} />`;
   if (view === "genes") return html`${views}<${GeneLayerSignature} id=${id} />`;
   return html`${views}
@@ -73,6 +73,7 @@ export function RecordPage({ id }) {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   const [gene, setGene] = useState(null);   // picked in the genes panel, highlighted on the path
+  const plots = usePlotSettings("removed");   // View and Drift, shared by the path and the gene plot
   useEffect(() => {
     get(`/api/sequences/${id}`).then(setDetail).catch(e => setError(e.message));
   }, [id]);
@@ -88,22 +89,44 @@ export function RecordPage({ id }) {
   const chromosomeLevels = detail.annotations?.ncbi?.chromosome_levels;
   const hasChromosomes = chromosomeLevels?.status === "stored" && chromosomeLevels.sequences > 0;
 
-  return html`<h1>${s.name || s.recordId}</h1>
-    <p class="lede">${s.kind} · ${formatBp(s.lengthBp)} · GC ${formatGc(s.gcFraction)}${s.accession ? ` · ${s.accession}` : ""}${detail.owned ? " · your upload" : ""} · <a href=${compareHref([s.id])}>Compare with other records</a></p>
-    <div class="columns">
-      <section class="panel"><h2>Lineage</h2><${Lineages} detail=${detail} /></section>
-      <section class="panel"><h2>Nearest relatives</h2>
+  const lede = `${s.kind} · ${formatBp(s.lengthBp)} · GC ${formatGc(s.gcFraction)}${s.accession ? ` · ${s.accession}` : ""}${detail.owned ? " · your upload" : ""}`;
+  const mapGroup = s.kind === "virus" ? "viral" : eukaryote ? "eukaryotic" : "cellular";
+  const actions = html`<a class="button" href=${compareHref([s.id])}>Compare with other records</a>
+    ${hasSignature && html`<a class="button" href="#/map?group=${mapGroup}&id=${s.id}">Show on the map</a>`}`;
+
+  // The genome's path and the picked gene are the two plots of one card beside the gene list (UI-LAYOUT.md G5): picking a gene marks it on
+  // the path and draws it, both in view, under one View and Drift.
+  const hasPath = hasWindows || eukaryote;
+  const pathSlot = hasPath && html`<${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} hasWindows=${hasWindows}
+    hasChromosomes=${hasChromosomes} hasGenes=${hasGenes} sequences=${geneLayer?.sequences ?? []} gene=${gene}
+    viewSet=${plots.viewSet} drift=${plots.drift} />`;
+  const geneSlot = gene
+    ? html`<${PlotCaption} title=${`Gene #${gene.index + 1}: ${gene.product ?? gene.familyId ?? "no family"}`}>
+        <button type="button" class="quiet" onClick=${() => setGene(null)}>Clear</button><//>
+      <${GeneView} key=${gene.index} id=${s.id} index=${gene.index} viewSet=${plots.viewSet} drift=${plots.drift} />`
+    : html`<${PlotCaption} title="Gene" /><div class="zpath empty">Click a gene in the list to draw its Z-curve here and mark it on the path.</div>`;
+  const genesList = html`<section class="panel"><${PanelBar} title="Genes"
+      help="The genes stored for this record (50 aa and up), each as Z-curve windows over codon positions 1 and 2." />
+    <${GenesPanel} id=${s.id} selected=${gene?.index ?? null} onSelect=${setGene} /></section>`;
+
+  return html`<${PageHeader} title=${s.name || s.recordId} lede=${lede} actions=${actions} />
+    <div class="summarygrid">
+      <section class="panel"><${PanelBar} title="Lineage" /><${Lineages} detail=${detail} /></section>
+      <section class="panel"><${PanelBar} title="Nearest relatives" help=${"The 10 records whose whole-genome dinucleotide signature is closest to " +
+          "this one's. That reflects composition, so close relatives come first, but distant ones can look alike."} />
         ${hasSignature ? html`<${Relatives} id=${s.id} kind=${s.kind} />` : html`<${Message}>Plasmids aren't compared by genome signature.<//>`}
       </section>
-      ${hasSignature && html`<section class="panel"><h2>Dinucleotide signature</h2><${Signature} id=${s.id} /></section>`}
-      ${(hasWindows || eukaryote) && html`<section class="panel"><h2>Z-curve path</h2>
-        <${ZCurvePath} id=${s.id} chromosome=${s.kind === "bacterium" || s.kind === "archaeon"} hasWindows=${hasWindows}
-          hasChromosomes=${hasChromosomes} hasGenes=${hasGenes} sequences=${geneLayer?.sequences ?? []} gene=${gene} /></section>`}
-      ${hasGenes && html`<section class="panel"><h2>Genes</h2><${GenesPanel} id=${s.id} onSelect=${setGene} /></section>`}
-      ${eukaryote && !hasGenes && html`<section class="panel"><h2>Genes</h2>
-        <${Message}>No genes are stored for this genome: NCBI publishes no gene annotation for this assembly, and the platform doesn't predict genes.<//></section>`}
-      <section class="panel"><h2>Stored profile levels</h2>
-        ${eukaryote && html`<p class="hint">${chromosomeLevels?.status === "stored"
+      ${hasSignature && html`<section class="panel"><${PanelBar} title="Dinucleotide signature" /><${Signature} id=${s.id} /></section>`}
+    </div>
+    ${hasGenes
+      ? html`<${Workspace} list=${genesList} views=${html`<${PlotPair} toolbar=${plots.toolbar} left=${pathSlot || geneSlot} right=${pathSlot ? geneSlot : null} />`} />`
+      : html`${pathSlot && html`<${PlotPair} title="Z-curve path" toolbar=${plots.toolbar} left=${pathSlot} />`}
+        ${eukaryote && html`<section class="panel"><${PanelBar} title="Genes" />
+          <${Message}>${detail.owned ? "No genes are stored for an upload: it carries no gene annotation, and the platform doesn't predict genes."
+            : "No genes are stored for this genome: NCBI publishes no gene annotation for this assembly, and the platform doesn't predict genes."}<//></section>`}`}
+    <section class="panel"><${PanelBar} title="Stored profile levels" help=${"The Z-curve profiles kept for this record, one per window " +
+          "size: what searches compare. The DNA itself isn't kept."} />
+        ${eukaryote && !detail.owned && html`<p class="hint">${chromosomeLevels?.status === "stored"
           ? `Chromosome levels: ${chromosomeLevels.sequences.toLocaleString()} nuclear sequences of at least ${formatBp(chromosomeLevels.min_length_bp)} ` +
             `(${formatBp(chromosomeLevels.sequences_bp)}), each at 500 bp and 32 kbp windows, drawn one at a time.` +
             (chromosomeLevels.left_out > 0 ? ` ${chromosomeLevels.left_out.toLocaleString()} shorter sequences (${formatBp(chromosomeLevels.left_out_bp)}) aren't kept.` : "")
@@ -120,6 +143,5 @@ export function RecordPage({ id }) {
           </tr>`)}</tbody>
         </table></div>`}
         <p class="hint">Source ${detail.provenance.url ?? "upload"}, retrieved ${new Date(detail.provenance.retrievedAt).toLocaleDateString()}. The DNA itself was deleted after profiling.</p>
-      </section>
-    </div>`;
+      </section>`;
 }

@@ -1,5 +1,5 @@
 import { get, getBytes, loadGenes } from "./api.js";
-import { Message, Segmented, formatBp, html, useEffect, useRef, useState } from "./html.js";
+import { HowTo, Message, PlotCaption, Popover, Segmented, formatBp, helpText, html, useEffect, useRef, useState } from "./html.js";
 
 // The record's Z-curve as a 3-D path, rebuilt from its stored 500 bp level: each window's mean step times its size is an exact
 // count of bases, so the running sums are the classic Z-curve at window resolution, with no DNA involved.
@@ -228,7 +228,9 @@ const withoutDrift = (points, fits) => points.map((p, k) => p.map((v, a) => v - 
 // `gene`, the gene picked in the genes panel, is highlighted on either source, and picking one moves to its sequence.
 const chromosomeOverviewBp = 20_000_000;   // longer chromosomes open at 32 kbp windows, a few thousand points
 
-export function ZCurvePath({ id, chromosome, hasWindows = true, hasChromosomes = false, hasGenes, sequences = [], gene }) {
+// One plot of the record's PlotPair (UI-LAYOUT.md G5): the page owns View and Drift (viewSet, drift from usePlotSettings); this path's own
+// options (source, sequence, window size) sit behind its caption's popover.
+export function ZCurvePath({ id, chromosome, hasWindows = true, hasChromosomes = false, hasGenes, sequences = [], gene, viewSet, drift }) {
   const [profile, setProfile] = useState(null);
   const [genePath, setGenePath] = useState(null);
   const [geneList, setGeneList] = useState(null);
@@ -238,8 +240,8 @@ export function ZCurvePath({ id, chromosome, hasWindows = true, hasChromosomes =
   const [source, setSource] = useState(windowed ? "windows" : "genes");
   const [name, setName] = useState(null);           // the sequence drawn, by name, when the record has several
   const [resolution, setResolution] = useState(null);
-  const [drift, setDrift] = useState("removed");
-  const [view, setView] = useState("3d");
+  const [view, setView] = useState(viewSet?.view ?? "3d");
+  useEffect(() => { if (viewSet) setView(viewSet.view); }, [viewSet]);
   const canvas = useRef(null), tip = useRef(null), shape = useRef(null), screen = useRef(null), angles = useRef(views["3d"]), drag = useRef(null);
   const fromGenes = source === "genes";
 
@@ -350,27 +352,28 @@ export function ZCurvePath({ id, chromosome, hasWindows = true, hasChromosomes =
 
   const noWindows = "No genome windows are stored for this record yet: eukaryote genomes were ingested with their dinucleotide counts only, " +
     "and its chromosome levels haven't been backfilled.";
-  if (error) return html`<${Message}>${error}<//>`;
+  const caption = options => html`<${PlotCaption} title=${current ? `Z-curve path: ${current}` : "Z-curve path"}>${options}<//>`;
+  if (error) return html`${caption()}<div class="zpath empty">${error}</div>`;
   if (!windowed && !hasGenes)
-    return html`<${Message}>${noWindows} It has no gene annotation either (NCBI publishes none for this assembly), so there's no path to draw yet.<//>`;
-  if (hasChromosomes && !chromosomes) return html`<${Message}>Loading the chromosomes…<//>`;
+    return html`${caption()}<div class="zpath empty">${noWindows} It has no gene annotation either (NCBI publishes none for this assembly), so there's no path to draw yet.</div>`;
+  if (hasChromosomes && !chromosomes) return html`${caption()}<div class="zpath empty">Loading the chromosomes…</div>`;
   const picked = gene && geneHere && (!fromGenes || genePath?.spans.has(gene.index)) &&
     `Highlighted: gene #${gene.index + 1}, ${gene.product ?? gene.familyId ?? "no family"}` + (fromGenes ? "." : `, ${formatBp(gene.startBp)}–${formatBp(gene.endBp)}.`);
   const elsewhere = gene && !picked && sequences.length > 0 && `The picked gene is on ${sequences[gene.sequence]}` +
     (fromGenes || chromosomes?.some(c => c.name === sequences[gene.sequence]) ? "." : ", which has no stored windows (shorter than 100 kbp).");
-  return html`<div class="toolbar">
-      ${windowed && hasGenes && html`<${Segmented} label="Source" value=${source} onChange=${setSource}
+  const options = html`
+      ${windowed && hasGenes && html`<${Segmented} label="Source" value=${source} onChange=${setSource} help=${helpText.source}
         options=${[["windows", hasChromosomes ? "Chromosome windows" : "Genome windows"], ["genes", "Genes"]]} />`}
       ${names.length > 1 && html`<label class="field"><span>Sequence</span>
         <select value=${current} onChange=${e => setName(e.target.value)}>
           ${names.map((n, i) => html`<option key=${n} value=${n}>${`${i + 1}. ${n}${!fromGenes && chromosomes ? ` · ${formatBp(chromosomes[i].lengthBp)}` : ""}`}</option>`)}
         </select></label>`}
       ${shownChromosome && html`<${Segmented} label="Windows" value=${String(size)} onChange=${v => setResolution(Number(v))}
-        options=${[["500", "500 bp"], ["32000", "32 kbp"]]} />`}
-      <${Segmented} label="Drift" value=${drift} onChange=${setDrift} options=${[["removed", "Removed"], ["kept", "Kept"]]} />
-      <${Segmented} label="View" value=${view} onChange=${setView} options=${[["3d", "3-D"], ["xy", "x–y"], ["xz", "x–z"], ["yz", "y–z"]]} />
-    </div>
-    ${!ready && html`<${Message}>${fromGenes ? "Building the path from the stored genes…" : "Loading the stored windows…"}<//>`}
+        help="The window size drawn: 500 bp shows detail, 32 kbp the chromosome's overall shape."
+        options=${[["500", "500 bp"], ["32000", "32 kbp"]]} />`}`;
+  const hasOptions = (windowed && hasGenes) || names.length > 1 || shownChromosome;
+  const summary = [fromGenes ? "genes" : "windows", shownChromosome ? formatBp(size) : null].filter(Boolean).join(" · ");
+  return html`${caption(hasOptions && html`<${Popover} label=${summary} title="Path options">${options}<//>`)}
     <div class="zpath">
       <canvas ref=${canvas} role="img" aria-label=${fromGenes ? "Z-curve path built from the stored genes; drag to rotate"
         : `Z-curve path of ${profile?.n?.toLocaleString() ?? ""} windows; drag to rotate`}
@@ -378,19 +381,20 @@ export function ZCurvePath({ id, chromosome, hasWindows = true, hasChromosomes =
         onPointerLeave=${() => { if (!drag.current) tip.current.hidden = true; }}></canvas>
       <div class="ztip" ref=${tip} hidden></div>
     </div>
+    ${!ready && html`<${Message}>${fromGenes ? "Building the path from the stored genes…" : "Loading the stored windows…"}<//>`}
     ${picked && html`<p class="hint">${picked}</p>`}
     ${elsewhere && html`<p class="hint">${elsewhere}</p>`}
     ${!windowed && html`<p class="hint">${noWindows} Only the path built from its genes can be drawn.</p>`}
-    ${fromGenes
-      ? html`<p class="hint">${`Built from the gene layer alone: the ${genePath?.count?.toLocaleString() ?? ""} stored genes ` +
+    <${HowTo}>${fromGenes
+      ? html`<p>${`Built from the gene layer alone: the ${genePath?.count?.toLocaleString() ?? ""} stored genes ` +
           (sequences.length ? `on ${current ?? "this sequence"}, one chromosome at a time (never joined), in order of start` : "in chromosome order") +
           ", each window one step of its means over codon positions 1 and 2, reverse-strand genes flipped onto the forward strand; the DNA " +
           "between genes and every third codon position are left out. " +
           (sequences.length ? "On a eukaryote the path follows which strand each gene is on, so between relatives it shows gene order (synteny) " +
             "rather than composition. " : "Relatives line up a little less well on it than on the genome windows (results/GenePath_Check.csv); ") +
           "A picked gene is an exact stretch of it. Hover a point to see its gene."}</p>`
-      : html`<p class="hint">x purine − pyrimidine, y amino − keto, z strong − weak (GC). Running sums of the ${profile?.n?.toLocaleString() ?? ""} stored ${formatBp(size)} windows
+      : html`<p>x purine − pyrimidine, y amino − keto, z strong − weak (GC). Running sums of the ${profile?.n?.toLocaleString() ?? ""} stored ${formatBp(size)} windows
           ${shownChromosome ? `of ${shownChromosome.name} (${formatBp(shownChromosome.lengthBp)}), one chromosome at a time; nuclear sequences under 100 kbp aren't kept,` : ""}
           light at the start and dark at the end; drag to rotate, scroll to zoom, shift-drag to pan, double-click to reset.${chromosome ? " The running GC skew (x − y) is lowest at the replication origin and highest at the terminus." : ""}${" "}
-          Removing the drift subtracts each axis's best-fit line, which is the ${shownChromosome ? "chromosome" : "genome"}'s overall composition.</p>`}`;
+          Removing the drift subtracts each axis's best-fit line, which is the ${shownChromosome ? "chromosome" : "genome"}'s overall composition.</p>`}<//>`;
 }

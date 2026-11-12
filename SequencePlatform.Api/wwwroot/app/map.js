@@ -1,5 +1,5 @@
 import { get } from "./api.js";
-import { Message, Segmented, formatBp, formatGc, html, useEffect, useMemo, useRef, useState } from "./html.js";
+import { Help, HowTo, Message, PageHeader, PlotLayout, Segmented, formatBp, formatGc, html, useEffect, useMemo, useRef, useState } from "./html.js";
 
 const maxTreeLeaves = 500;
 const minTreeLeaves = 3;
@@ -201,14 +201,17 @@ export function MapPage({ params }) {
   const treeHref = `#/tree?ids=${highlightedIds.join(",")}`;
   const treeable = highlightedIds.length >= minTreeLeaves && highlightedIds.length <= maxTreeLeaves;
 
-  return html`<h1>Map of the catalogue</h1>
-    <p class="lede">${group === "all" ? "Every genome" : "Every species once"}, placed by two of the first three principal components of its dinucleotide signature (log ρ*). This is a picture of composition:
-      two axes keep phyla apart but not genera, so use a genome's relatives, not its neighbours here, to find what it resembles.</p>
+  return html`<${PageHeader} title="Map of the catalogue"
+      lede=${`${group === "all" ? "Every genome" : "Every species once"}, placed by its dinucleotide composition: nearby points have similar ` +
+        "composition, which keeps phyla apart but not genera."} />
     <div class="controls">
-      <${Segmented} label="Genomes" value=${group} onChange=${setGroup} options=${groups} />
-      ${map?.axes.length > 2 && html`<${Segmented} label="Axes" value=${pair} onChange=${setPair} options=${pairs} />`}
+      <${Segmented} label="Genomes" value=${group} onChange=${setGroup} options=${groups}
+        help="Which genomes the map holds. Each group is its own map, with its own axes." />
+      ${map?.axes.length > 2 && html`<${Segmented} label="Axes" value=${pair} onChange=${setPair} options=${pairs}
+        help="Which two of the three main directions of variation (principal components) are drawn. What each one weighs is listed beside the map." />`}
       <form class="find field" onSubmit=${find}>
-        <label htmlFor="taxon">Highlight a phylum, family or genus</label>
+        <label htmlFor="taxon">Highlight a phylum, family or genus<${Help}>Start typing for suggestions; only taxa with two or more genomes
+          on this map are listed. A highlighted taxon of 3 to 500 genomes can be opened as a tree.<//></label>
         <div>
           <input id="taxon" list="taxa" autoComplete="off" placeholder="e.g. Streptomyces" value=${text} onInput=${e => setText(e.target.value)} />
           <button type="submit">Show</button>
@@ -220,16 +223,25 @@ export function MapPage({ params }) {
     ${error && html`<${Message} error>${error}<//>`}
     ${notice && html`<${Message}>${notice}<//>`}
     ${!map && !error && html`<${Message}>Loading the map…<//>`}
-    ${map && html`<p class="status">${map.ids.length.toLocaleString()} genomes.${highlight ? ` ${highlight.name} (${highlight.rank}): ${highlightedIds.length.toLocaleString()} genomes.` : group === "all" ? " Colours show domains." : " Colours show the three largest phyla."}
-      ${highlight && (treeable ? html` <a href=${treeHref}>Tree of these genomes</a>` : ` A tree needs ${minTreeLeaves} to ${maxTreeLeaves} genomes.`)}</p>
-    <div class="mapgrid">
-      <figure class="canvaswrap">
+    ${map && html`<${PlotLayout}
+      plot=${html`<figure class="canvaswrap">
         <canvas ref=${base}></canvas>
         <canvas ref=${marker} class="over" role="img" aria-label="Map of genomes" onMouseMove=${hover} onMouseLeave=${leave}
           onClick=${e => { const i = nearest(marker.current, plot.current, e.clientX, e.clientY); if (i >= 0) setSelected(i); }}></canvas>
-      </figure>
-      <aside class="stack">
-        ${selected >= 0 ? html`<section class="panel">
+      </figure>`}
+      side=${html`<section class="panel stack">
+          <p class="status">${map.ids.length.toLocaleString()} genomes.${highlight ? ` ${highlight.name} (${highlight.rank}): ${highlightedIds.length.toLocaleString()} genomes.`
+            : group === "all" ? " Colours show domains." : " Colours show the three largest phyla."}</p>
+          ${highlight && (treeable ? html`<p class="actions"><a class="button" href=${treeHref}>Tree of these genomes</a></p>`
+            : html`<p class="hint">A tree needs ${minTreeLeaves} to ${maxTreeLeaves} genomes.</p>`)}
+          <div class="legend">
+            ${highlight
+              ? html`<span><i class="swatch hi"></i>${highlight.name}</span><span><i class="swatch p0"></i>all other genomes</span>`
+              : html`${tops.map((t, k) => html`<span key=${t.i}><i class="swatch p${k + 1}"></i>${t.name} (${t.n.toLocaleString()})</span>`)}
+                  ${group !== "all" && html`<span><i class="swatch p0"></i>other phyla${group === "viral" ? " or none" : ""}</span>`}`}
+          </div>
+        </section>
+        ${selected >= 0 ? html`<section class="panel stack">
           <h2>${map.names[selected] || "(no name)"}</h2>
           <p>${taxonName(map.genera, map.genus[selected])} · ${taxonName(map.families, map.family[selected])} · ${taxonName(map.phyla, map.phylum[selected])}</p>
           <p>GC ${formatGc(map.gc[selected])} · ${formatBp(map.lengthBp[selected])}</p>
@@ -239,15 +251,10 @@ export function MapPage({ params }) {
               onClick=${() => setHighlight({ rank: "genus", index: map.genus[selected], name: map.genera[map.genus[selected]] })}>Highlight genus</button>`}
           </p>
         </section>` : html`<p class="hint">Hover a point to see the genome; click to select it.</p>`}
-        <div class="legend">
-          ${highlight
-            ? html`<span><i class="swatch hi"></i>${highlight.name}</span><span><i class="swatch p0"></i>all other genomes</span>`
-            : html`${tops.map((t, k) => html`<span key=${t.i}><i class="swatch p${k + 1}"></i>${t.name} (${t.n.toLocaleString()})</span>`)}
-                ${group !== "all" && html`<span><i class="swatch p0"></i>other phyla${group === "viral" ? " or none" : ""}</span>`}`}
-        </div>
-        <p class="hint">${map.axes.map(axisNote).join(" · ")}. Shown: ${pairs.find(([p]) => p === pair)[1]}, horizontal × vertical.</p>
-        <p class="hint">Each axis lists its heaviest dinucleotides; + and − show which way they pull.</p>
-      </aside>
-    </div>`}
+        <${HowTo}><p>Each point is placed by two of the first three principal components of its dinucleotide signature (log ρ*). This is a
+          picture of composition: two axes keep phyla apart but not genera, so use a genome's relatives, not its neighbours here, to find what
+          it resembles.</p>
+          <p>${map.axes.map(axisNote).join(" · ")}. Shown: ${pairs.find(([p]) => p === pair)[1]}, horizontal × vertical. Each axis lists its
+          heaviest dinucleotides; + and − show which way they pull.</p><//>`} />`}
     <div class="tip" ref=${tip} hidden><b></b><span></span></div>`;
 }

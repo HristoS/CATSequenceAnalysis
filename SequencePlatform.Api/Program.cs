@@ -52,7 +52,9 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseResponseCompression();
 app.UseDefaultFiles();
-app.UseStaticFiles();   // the web UI, before authentication: it holds no data, and every call it makes carries the user's key
+// The web UI, before authentication: it holds no data, and every call it makes carries the user's key. no-cache makes the browser
+// revalidate each file by its ETag (a 304 when unchanged), so it never runs new modules against stale cached ones after an update.
+app.UseStaticFiles(new StaticFileOptions { OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-cache" });
 app.UseAuthentication();
 app.UseAuthorization();
 

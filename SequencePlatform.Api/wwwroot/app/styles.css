@@ -20,6 +20,9 @@
   --danger: #b3261e;
   --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --control-h: 34px;
+  --page-max: 1440px;
+  --gutter: 24px;
   color-scheme: light;
 }
 
@@ -41,14 +44,16 @@ p { margin: 0 0 8px; }
 code, .mono { font-family: var(--mono); font-size: 13px; }
 [hidden] { display: none !important; }
 
-.topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--rule); }
+/* The bar's content lines up with the page's: the same maximum width and side gutter. */
+.topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; background: var(--panel); border-bottom: 1px solid var(--rule);
+  padding: 10px max(var(--gutter), calc((100% - var(--page-max)) / 2 + var(--gutter))); }
 .brand { font-weight: 600; color: var(--ink); text-decoration: none; }
 .topbar nav { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
 .topbar nav a { color: var(--ink-2); text-decoration: none; padding: 4px 10px; border-radius: 6px; }
 .topbar nav a:hover { background: var(--hover); }
 .topbar nav a[aria-current="page"] { background: var(--ink); color: var(--panel); }
 
-.page { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 14px; }
+.page { max-width: var(--page-max); margin: 0 auto; padding: 24px var(--gutter) 48px; display: grid; gap: 16px; }
 .page > * { min-width: 0; }
 .lede { color: var(--ink-2); max-width: 80ch; margin: 0; }
 .hint { color: var(--muted); font-size: 13px; }
@@ -59,34 +64,39 @@ code, .mono { font-family: var(--mono); font-size: 13px; }
 .signin { max-width: 420px; margin: 12vh auto 0; padding: 0 16px; display: grid; gap: 12px; }
 
 button, .button, input, select, textarea { font: inherit; font-size: 14px; color: var(--ink); }
-button, .button { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 5px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+button, .button { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 0 12px; min-height: var(--control-h); cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
 button:hover:not(:disabled), .button:hover { background: var(--hover); }
 button:disabled { opacity: .5; cursor: default; }
 button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 button.primary:hover:not(:disabled) { background: var(--accent); filter: brightness(1.08); }
 button.quiet { border-color: transparent; background: transparent; color: var(--ink-2); }
 input, select, textarea { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px; width: 100%; min-width: 0; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select { height: var(--control-h); padding-top: 0; padding-bottom: 0; }
+input[type="checkbox"], input[type="radio"] { width: auto; }
 textarea { font-family: var(--mono); font-size: 13px; resize: vertical; }
 input[type="file"] { padding: 4px; }
 button:focus-visible, .button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .field { display: grid; gap: 4px; min-width: 0; }
-.field > span, .field > label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.field > span, .field > label { display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 18px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.labeltext { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .stack { display: grid; gap: 12px; align-content: start; min-width: 0; }
 .narrow { max-width: 560px; }
 .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; align-items: end; }
-.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; }
 .find > div { display: flex; flex-wrap: wrap; gap: 6px; }
 .find input { width: 240px; max-width: 100%; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
-.toolbar { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 10px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 10px; align-items: flex-end; }
+.toolbar select { width: auto; max-width: 100%; }
 .zpath { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 70vh; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
 .zpath canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
 .zpath canvas:active { cursor: grabbing; }
 .ztip { position: absolute; pointer-events: none; background: var(--ink); color: var(--panel); font: 12px/1.4 var(--mono); padding: 5px 8px; border-radius: 4px; white-space: nowrap; }
 
-.segmented { display: inline-flex; justify-self: start; flex-wrap: wrap; gap: 3px; padding: 3px; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; }
-.segmented button { border: 0; border-radius: 6px; background: transparent; color: var(--ink-2); padding: 4px 10px; }
+.segmented { display: inline-flex; justify-self: start; flex-wrap: wrap; gap: 2px; padding: 2px; min-height: var(--control-h); background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; }
+.segmented button { border: 0; border-radius: 6px; background: transparent; color: var(--ink-2); padding: 0 10px; min-height: 28px; }
 .segmented button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
 
 .panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; min-width: 0; }
@@ -99,7 +109,11 @@ th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: u
 th, td { padding: 6px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
 tbody tr:last-child td { border-bottom: 0; }
 .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.pager { display: flex; gap: 10px; align-items: center; }
+.pager { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pager .hint { margin-left: 4px; }
+.pagelabel { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
+.pagechoice { width: auto; min-width: 4.5em; }
+input.pagechoice { width: 6em; }
 .plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 
 .relatives { margin: 0; padding-left: 22px; display: grid; gap: 3px; font-size: 14px; }
@@ -122,7 +136,7 @@ tr.row.picked td { background: var(--hover); font-weight: 600; }
 
 .compare-legend { margin-bottom: 14px; align-items: center; }
 .compare-legend .chip { display: inline-flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px; }
-.compare-legend .swatch { width: 18px; height: 18px; padding: 0; border-radius: 4px; border: 2px solid var(--swatch); background: var(--swatch); cursor: pointer; }
+.compare-legend .swatch { width: 18px; height: 18px; min-height: 0; padding: 0; border-radius: 4px; border: 2px solid var(--swatch); background: var(--swatch); cursor: pointer; }
 .compare-legend .swatch[aria-pressed="false"] { background: transparent; }
 .compare-legend form.inline { display: inline-flex; gap: 6px; }
 .compare-legend form.inline input { width: 9em; }
@@ -130,15 +144,16 @@ tr.row.picked td { background: var(--hover); font-weight: 600; }
 .bar.gbar { grid-template-columns: 110px minmax(0, 1fr); }
 .gtracks { display: grid; gap: 1px; }
 .gtracks .track { height: 6px; }
-.genepicks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 10px; margin: 12px 0; }
-.genepicks select { width: 100%; }
+.genepicks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 10px 14px; margin: 12px 0; align-items: start; }
+.genepick { align-content: start; }
+.pickrow { display: flex; gap: 6px; min-width: 0; }
+.pickrow select { flex: 1; width: auto; }
 .heatgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 14px; }
 .heatlabel { margin: 10px 0 0; font-size: 13px; }
 .compare-genes .zpath, .hitview .zpath { max-width: 760px; }
 
-.mapgrid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 14px; align-items: start; }
 figure { margin: 0; }
-.canvaswrap { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 78vh; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.canvaswrap { position: relative; width: 100%; height: clamp(360px, calc(100vh - 300px), 1000px); background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
 .canvaswrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .canvaswrap canvas.over { cursor: crosshair; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); }
@@ -189,11 +204,33 @@ figure { margin: 0; }
 .strip .legend { margin-top: 8px; }
 .legend .tick { width: 2px; height: 12px; background: var(--ink); display: inline-block; border-radius: 1px; }
 
-@media (max-width: 860px) {
-  .mapgrid { grid-template-columns: minmax(0, 1fr); }
+/* The page shell: header, then full-width panels, FormLayout or PlotLayout. */
+.pagehead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule); }
+.pagetitle { flex: 1 1 480px; min-width: 0; display: grid; gap: 6px; }
+.pagetitle h1 { margin: 0; }
+.pageactions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.formlayout { display: grid; grid-template-columns: minmax(0, 600px) minmax(260px, 480px); gap: 24px 48px; align-items: start; }
+.formcol { display: grid; gap: 12px; min-width: 0; }
+.guide { display: grid; gap: 12px; align-content: start; min-width: 0; font-size: 14px; color: var(--ink-2); }
+.guide .panel { display: grid; gap: 8px; }
+.guide h2 { margin: 0; }
+.guide p, .guide ul { margin: 0; }
+.guide ul { padding-left: 18px; display: grid; gap: 4px; }
+.plotlayout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.plotcol { display: grid; gap: 10px; min-width: 0; }
+.sidecol { position: sticky; top: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.sidecol .controls { display: grid; gap: 12px; }
+.sidecol .segmented { justify-self: stretch; }
+.sidecol .find input { width: auto; flex: 1; }
+
+@media (max-width: 960px) {
+  .formlayout, .plotlayout { grid-template-columns: minmax(0, 1fr); }
+  .sidecol { position: static; }
 }
 
 @media (max-width: 600px) {
+  :root { --gutter: 16px; }
   .brand { flex: 1; }
   .topbar nav { order: 3; flex-basis: 100%; }
 }
@@ -203,4 +240,101 @@ figure { margin: 0; }
 .button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ztip { max-width: calc(100% - 12px); white-space: normal; }
 .filterbox { margin: 8px 0; max-width: 360px; }
+.formbuttons { margin: 0; flex-wrap: nowrap; }
 .filterbox input { width: 100%; }
+
+/* A "?" beside a label or a column header, and the popover it opens (fixed to the viewport, so scrolling tables don't clip it). */
+.help { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: none; border-radius: 50%;
+  border: 1px solid var(--muted); color: var(--muted); font: 600 10px/1 var(--body); letter-spacing: 0; text-transform: none; cursor: help;
+  vertical-align: middle; user-select: none; }
+.help:hover, .help:focus-visible, .help[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); outline: none; }
+.help .helptip { position: fixed; width: max-content; max-width: min(320px, calc(100vw - 16px)); z-index: 20; color: var(--ink); font: 400 13px/1.45 var(--body);
+  letter-spacing: normal; text-transform: none; white-space: normal; text-align: left; }
+.help .helptip.above { transform: translateY(-100%); }
+th .help { margin-left: 4px; }
+
+/* The longer explanation of a plot or table, folded away. */
+.howto { margin: 6px 0 0; }
+.howto summary { cursor: pointer; color: var(--accent); font-size: 13px; width: max-content; max-width: 100%; }
+.howto summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.howto > div { margin-top: 6px; padding: 8px 12px; border-left: 2px solid var(--rule); display: grid; gap: 6px; max-width: 90ch; }
+.howto p { margin: 0; }
+
+/* What is drawn when its row isn't on the page shown. */
+.showing { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 12px 0 0; font-size: 14px; color: var(--ink-2); }
+.showing button { min-height: 28px; padding: 0 10px; font-size: 13px; }
+.lede + .howto { margin-top: -6px; }
+
+/* The catalogue's kind checkboxes, as toggles. */
+.kindpicks { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.kindpicks legend { float: left; display: flex; align-items: center; gap: 6px; margin-right: 6px; font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted); }
+.kindpick { display: inline-flex; align-items: center; gap: 6px; min-height: var(--control-h); padding: 0 12px; border: 1px solid var(--rule);
+  border-radius: 999px; background: var(--panel); cursor: pointer; font-size: 14px; }
+.kindpick:hover { background: var(--hover); }
+.kindpick:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
+.kindpick input { margin: 0; accent-color: var(--accent); }
+.kindpick:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* docs/ui-layout.md G4: a filter bar keeps each control at its natural width instead of stretching it across the row. */
+.filterbar { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
+.filterbar .field input:not([type="checkbox"]) { width: 16em; }
+.filterbar .field select { width: auto; min-width: 9em; }
+.filterbar .pair { display: flex; gap: 8px; align-items: flex-end; }
+.range { display: flex; align-items: center; gap: 6px; }
+.range input { width: 8em; }
+.filterbar .field .range input { width: 8em; }
+
+/* G5: a list beside the views it drives; the views stay in view while the list scrolls. */
+.workspace { display: grid; grid-template-columns: minmax(340px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.workspace.even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.wslist, .wsviews { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.wsviews { position: sticky; top: 12px; }
+.wsviews .heat i { height: 12px; }
+.placeholder { display: grid; place-items: center; min-height: 160px; border: 1px dashed var(--rule); border-radius: 8px; padding: 16px;
+  color: var(--muted); font-size: 14px; text-align: center; }
+@media (max-width: 1100px) {
+  .workspace, .workspace.even { grid-template-columns: minmax(0, 1fr); }
+  .wsviews { position: static; max-height: none; overflow: visible; order: -1; }
+}
+
+/* A panel's title row, and the detail page's summary grid. */
+.panelbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; }
+.panelbar h2 { margin: 0; display: flex; align-items: center; gap: 6px; }
+.panelactions { display: flex; flex-wrap: wrap; gap: 8px; }
+.summarygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 16px; align-items: start; }
+
+/* The records chosen for comparison stay at the bottom of the screen while the list scrolls. */
+.chosen.tray { position: sticky; bottom: 12px; z-index: 4; margin: 0; box-shadow: 0 6px 20px rgba(0, 0, 0, .14); }
+
+/* Linked plots in one card (UI-LAYOUT.md G5): one toolbar, two plots of the same size side by side, strips beneath; never an inner scroll. */
+.plotpair .panelbar { margin-bottom: 12px; }
+.plotpair .panelactions { align-items: flex-end; gap: 12px 18px; }
+.plotrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.plotrow.single { grid-template-columns: minmax(0, 1fr); }
+.plotslot { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.plotslot .hint, .plotslot .message { margin: 0; }
+.plotcap { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: var(--control-h); min-width: 0; }
+.plotcap h3 { margin: 0; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plotcap .quiet { min-height: 28px; padding: 0 8px; font-size: 13px; }
+.plotpair .zpath { aspect-ratio: 4 / 3; max-height: min(46vh, 460px); }
+.plotpair .zpath.empty { display: grid; place-items: center; padding: 16px; border-style: dashed; color: var(--muted); font-size: 14px; text-align: center; }
+.striprow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px 16px; margin-top: 12px; align-items: end; }
+.striprow .heat { margin-top: 4px; }
+.striprow .heat i { height: 10px; }
+.striprow .heat { grid-auto-rows: auto; font-size: 11px; }
+.striprow .heatlabel { margin: 0; }
+
+/* A button opening a small panel of less-used options. */
+.popover { position: relative; flex: none; }
+.popbutton { min-height: 28px; padding: 0 10px; font-size: 13px; color: var(--ink-2); gap: 6px; max-width: 100%; }
+.popbutton span { font-size: 10px; color: var(--muted); }
+.poppanel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 15; display: grid; gap: 12px; width: max-content; max-width: min(460px, 80vw);
+  padding: 12px 14px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .16); }
+.poppanel .segmented { justify-self: start; }
+.poppanel select { width: auto; max-width: 100%; }
+
+/* Narrow lists: long text keeps to one line, cut with an ellipsis (the full text on hover). */
+td.clip { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.striprow .heatlabel { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wslist .dot { margin-right: 0; }

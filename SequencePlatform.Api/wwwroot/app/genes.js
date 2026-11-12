@@ -1,5 +1,5 @@
 import { get, loadGenes } from "./api.js";
-import { FilterBox, Message, Pager, Segmented, formatBp, html, useEffect, useMemo, usePaged, useRef, useState } from "./html.js";
+import { FilterBox, HowTo, Message, Pager, Segmented, formatBp, helpText, html, useEffect, useMemo, usePaged, useRef, useState } from "./html.js";
 import { drawCurve, useZoom, views } from "./zcurve3d.js";
 
 const rowsPerPage = 25;
@@ -7,6 +7,12 @@ const samplesPerWindow = 24;
 const featureNames = ["x mean", "y mean", "z mean", "x trend", "y trend", "z trend", "x curvature", "y curvature", "z curvature"];
 
 export { loadGenes };
+
+// A gene's GC over codon positions 1 and 2, from its stored windows: each window's z mean (its third number) is (S − W) per position on
+// −1…1, so its GC is (1 + z) / 2; a gene's windows are all one size, so they're averaged equally. This is what sends a gene's curve one
+// way or another with the drift kept.
+export const gc12 = windows => windows.reduce((sum, m) => sum + (1 + m[2]) / 2, 0) / Math.max(1, windows.length);
+export const formatGc12 = windows => `GC₁₂ ${(gc12(windows) * 100).toFixed(1)} %`;
 
 function useGenes(id) {
   const [state, setState] = useState({ list: null, error: null });
@@ -36,15 +42,17 @@ export function GeneLayerSignature({ id }) {
       which is what lets a protein find its gene.</p>`;
 }
 
-// onSelect(gene) tells the page which gene is picked (null when none), so its path panel can highlight it.
-export function GenesPanel({ id, onSelect = () => {} }) {
+// The record's gene list, the list side of its genes workspace (docs/ui-layout.md G5). The page holds the pick: selected is the picked
+// gene's index (null when none), onSelect(gene) changes it, and the page draws that gene's GeneView and highlights it on the path.
+export function GenesPanel({ id, selected = null, onSelect = () => {} }) {
   const { list, error } = useGenes(id);
-  const [selected, setSelected] = useState(null);
   const sequences = list?.sequences ?? [];
   const genes = useMemo(() => list?.genes ?? [], [list]);
   const paged = usePaged(genes, { size: rowsPerPage, text: g => `${g.product ?? ""} ${g.familyId ?? ""} ${sequences[g.sequence] ?? ""}` });
-  useEffect(() => { setSelected(null); paged.setNeedle(""); onSelect(null); }, [id]);
-  const pick = g => { setSelected(g.index); onSelect(g); };
+  useEffect(() => { paged.setNeedle(""); }, [id]);
+  const pick = g => onSelect(g);
+  const clear = () => onSelect(null);
+  const onPage = selected != null && paged.rows.some(g => g.index === selected);
 
   if (error) return html`<${Message}>${error}<//>`;
   if (!list) return html`<${Message}>Loading the genes…<//>`;
@@ -67,7 +75,9 @@ export function GenesPanel({ id, onSelect = () => {} }) {
     </table></div>
     ${paged.filtered.length === 0 && html`<${Message}>No gene matches.<//>`}
     <${Pager} paged=${paged} noun="genes" />
-    ${selected == null ? html`<p class="hint">Pick a gene to draw its Z-curve.</p>` : html`<${GeneView} id=${id} index=${selected} />`}`;
+    ${selected != null && !onPage && html`<p class="showing">Drawn: gene #${selected + 1}, which isn't on this page.
+      <button type="button" onClick=${() => paged.locate(g => g.index === selected)}>Show it in the table</button>
+      <button type="button" class="quiet" onClick=${clear}>Clear</button></p>`}`;
 }
 
 // The running sums inside window k of W positions at t in [-1, 1], from its scaled Legendre moments m0, m1, m2 (one axis):
@@ -94,12 +104,14 @@ export function genePath(windows, positions) {
   return { points, at, marks, fits };
 }
 
-function GeneView({ id, index }) {
+// One plot of the record's PlotPair: the page owns View and Drift (viewSet, drift from usePlotSettings), so this draws no toolbar.
+export function GeneView({ id, index, viewSet, drift }) {
   const [gene, setGene] = useState(null);
   const [error, setError] = useState(null);
-  // Kept by default: removing the drift leaves a shape about as large as the rebuilt curve's error (gene_curve_check.cs).
-  const [drift, setDrift] = useState("kept");
-  const [view, setView] = useState("3d");
+  // Removing the drift leaves a shape about as large as the rebuilt curve's error (gene_curve_check.cs), so the help on the shared Drift
+  // switch says to read a drift-removed gene as a sketch.
+  const [view, setView] = useState(viewSet?.view ?? "3d");
+  useEffect(() => { if (viewSet) setView(viewSet.view); }, [viewSet]);
   const canvas = useRef(null), tip = useRef(null), screen = useRef(null), angles = useRef(views["3d"]), drag = useRef(null);
 
   useEffect(() => {
@@ -148,30 +160,26 @@ function GeneView({ id, index }) {
     tip.current.style.top = `${Math.max(6, screen.current[best][1] - 14)}px`;
   };
 
-  if (error) return html`<${Message}>${error}<//>`;
-  if (!gene) return html`<${Message}>Loading the gene's windows…<//>`;
+  if (error) return html`<div class="zpath empty">${error}</div>`;
+  if (!gene) return html`<div class="zpath empty">Loading the gene's windows…</div>`;
   const g = gene.gene;
   const peak = Math.max(...gene.windows.flat().map(Math.abs), 1e-9);
-  return html`<h3 class="genetitle">${g.product ?? "Gene"} <span class="mono">${g.familyId ?? ""}</span></h3>
-    <p class="hint">${`${formatBp(g.startBp)}–${formatBp(g.endBp)} on the ${g.strand === "Reverse" ? "reverse" : "forward"} strand · ` +
-      `${g.residues.toLocaleString()} aa · ${g.windows} windows of ${gene.windowPositions} codon positions 1 and 2`}</p>
-    <div class="toolbar">
-      <${Segmented} label="Drift" value=${drift} onChange=${setDrift} options=${[["removed", "Removed"], ["kept", "Kept"]]} />
-      <${Segmented} label="View" value=${view} onChange=${setView} options=${[["3d", "3-D"], ["xy", "x–y"], ["xz", "x–z"], ["yz", "y–z"]]} />
-    </div>
-    <div class="zpath">
+  return html`<div class="zpath">
       <canvas ref=${canvas} role="img" aria-label=${`Z-curve of gene ${index + 1} over codon positions 1 and 2; drag to rotate`}
         onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}
         onPointerLeave=${() => { if (!drag.current) tip.current.hidden = true; }}></canvas>
       <div class="ztip" ref=${tip} hidden></div>
     </div>
-    <p class="hint">The gene's Z-curve over codon positions 1 and 2, redrawn from its stored windows alone (no bases): each window's mean,
-      trend and curvature give a smooth piece that ends exactly where the true curve does; small rings mark the window ends. Between them
-      it's an approximation: on E. coli genes the worst gap is about 11–13% of the whole path, but about 40% of what's left once the
-      drift (the gene's overall coding composition) is removed, so read the drift-removed bends as a sketch.</p>
+    <p class="hint">${`${formatBp(g.startBp)}–${formatBp(g.endBp)} on the ${g.strand === "Reverse" ? "reverse" : "forward"} strand · ` +
+      `${g.residues.toLocaleString()} aa · ${formatGc12(gene.windows)} · ${g.windows} windows; rings mark window ends`}</p>
     <${HeatStrip} windows=${gene.windows} peak=${peak} />
-    <p class="hint">The 9 stored numbers per window, blue positive and orange negative, darker further from zero. x purine − pyrimidine,
-      y amino − keto, z strong − weak (GC).</p>`;
+    <${HowTo}><p>The gene's Z-curve over codon positions 1 and 2, redrawn from its stored windows alone (no bases): each window's mean,
+      trend and curvature give a smooth piece that ends exactly where the true curve does. Between window ends it's an approximation: on
+      E. coli genes the worst gap is about 11–13% of the whole path, but about 40% of what's left once the drift (the gene's overall coding
+      composition) is removed, so read the drift-removed bends as a sketch.</p>
+      <p>x is purine − pyrimidine, y amino − keto, z strong − weak (GC). The strip shows the 9 stored numbers per window over codon
+      positions 1 and 2: blue positive, orange negative, darker further from zero. Mean is the window's average, trend how it changes along
+      the window, curvature how that change bends.</p><//>`;
 }
 
 // One gene's windows as a heat strip: a row per stored feature, a column per window; peak sets full colour, so strips shown side by

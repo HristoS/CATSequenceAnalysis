@@ -77,6 +77,12 @@ namespace SequencePlatform.Core
 
         public static IReadOnlyDictionary<string, string[]> KindGroups => kindGroups;
 
+        /// <summary>The stored kinds a kind filter value stands for: one kind, a group, or several of either separated by commas
+        /// ("virus,plasmid", "prokaryote,virus").</summary>
+        public static string[] KindsOf(string kind) =>
+            kind.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .SelectMany(k => kindGroups.GetValueOrDefault(k) ?? [k]).Distinct().ToArray();
+
         private const string recordSelect =
             "select r.id, s.provider, s.accession, r.record_id, r.name, r.kind, r.length_bp, r.gc_fraction, r.ncbi_taxid, " +
             "r.tax_superkingdom, r.tax_realm, r.tax_kingdom, r.tax_phylum, r.tax_class, r.tax_order, r.tax_family, r.tax_genus, r.tax_species";
@@ -266,7 +272,7 @@ namespace SequencePlatform.Core
                 sql.Append(" and ").Append(condition.Replace("@", "$" + command.Parameters.Count));
             }
 
-            if (filter.Kind is not null) Where("r.kind = any(@)", kindGroups.GetValueOrDefault(filter.Kind) ?? [filter.Kind]);
+            if (filter.Kind is not null) Where("r.kind = any(@)", KindsOf(filter.Kind));
             if (filter.Rank is not null) Where($"r.{rankColumns[filter.Rank]} = @", filter.Taxon!);
             if (filter.MinLengthBp is not null) Where("r.length_bp >= @", filter.MinLengthBp.Value);
             if (filter.MaxLengthBp is not null) Where("r.length_bp <= @", filter.MaxLengthBp.Value);

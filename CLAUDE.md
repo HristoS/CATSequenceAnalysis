@@ -131,7 +131,9 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   (exactly what `SignatureIndex` holds), one map per group because the Z-curve and Karlin views are a rotation. `ExperimentStore` (Core,
   migration 0012) holds P9 experiment results that `scripts/platform-checks/p9_*.cs --publish` computed on the frozen snapshot
   `sequence_platform_p9` (shared loader `scripts/platform-checks/shared/ExperimentCorpus.cs`, via `#:include`); `/api/experiments` reads them. The web UI is `SequencePlatform.Api/wwwroot/`: static files in front of the API, React 18.3.1
-  and htm vendored with no build step and no Node (React 19 has no UMD builds), hash routes, `default-src 'self'`.
+  and htm vendored with no build step and no Node (React 19 has no UMD builds), hash routes, `default-src 'self'`, served `no-cache`
+  (revalidated by ETag) so an update never mixes old and new modules. Every page follows `SequencePlatform.Api/UI-LAYOUT.md` (page shell,
+  five templates, controls beside what they control, lists beside the views they drive); its components are in `wwwroot/app/html.js`.
 - `SequencePlatform.AppHost/` and `SequencePlatform.ServiceDefaults/` (P6): Aspire. Run mode starts `migrate`, then `api` and `worker` as two
   processes of the API project on the local database; publish mode writes Docker Compose with its own empty `postgres:17`, where the API and
   worker connect as the least-privilege role `sequence_app` (migration 0021: reads all, writes only uploads and search jobs; `migrate` sets its

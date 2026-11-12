@@ -112,6 +112,9 @@ namespace SequencePlatform.Tests
             var prokaryotes = (await client.GetFromJsonAsync<JsonElement>("/api/sequences?provider=api-facets&kind=prokaryote"))!;
             Assert.That(prokaryotes.GetProperty("items").EnumerateArray().Select(r => r.GetProperty("kind").GetString()),
                 Is.EquivalentTo(new[] { "bacterium", "archaeon" }));
+            var several = (await client.GetFromJsonAsync<JsonElement>("/api/sequences?provider=api-facets&kind=archaeon,eukaryote"))!;
+            Assert.That(several.GetProperty("items").EnumerateArray().Select(r => r.GetProperty("kind").GetString()),
+                Is.EquivalentTo(new[] { "archaeon", "eukaryote" }), "several kinds, comma-separated");
         }
 
         [Test]

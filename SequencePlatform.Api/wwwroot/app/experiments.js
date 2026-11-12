@@ -1,5 +1,5 @@
 import { get } from "./api.js";
-import { FilterBox, Message, Pager, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
+import { FilterBox, Help, Message, PageHeader, Pager, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
 
 const kingdoms = [["Metazoa", "Animals", "p1"], ["Fungi", "Fungi", "p2"], ["Viridiplantae", "Plants", "p3"]];
 const swatchOf = kingdom => kingdoms.find(([k]) => k === kingdom)?.[2] ?? "p0";
@@ -22,8 +22,9 @@ export function ExperimentsPage() {
 
   if (error) return html`<${Message} error>${error}<//>`;
   if (!runs) return html`<${Message}>Loading…<//>`;
-  return html`<h1>Experiments</h1>
-    <p class="lede">What the catalogue shows beyond "related genomes look alike". Each experiment runs offline on a frozen copy of the catalogue, against a rule fixed before the run.</p>
+  return html`<${PageHeader} title="Experiments"
+      lede=${"What the catalogue shows beyond \"related genomes look alike\". Each experiment runs offline on a frozen copy of the catalogue, " +
+        "against a rule fixed before the run."} />
     ${runs.length === 0 && html`<${Message}>No experiment has been published yet.<//>`}
     <div class="scores">${runs.map(run => html`<a class="panel card" key=${run.name} href="#/experiments/${run.name}">
       <h2>${run.title}</h2>
@@ -35,8 +36,7 @@ export function ExperimentsPage() {
 
 function RunHeader({ run }) {
   const s = run.summary;
-  return html`<h1>${run.title}</h1>
-    <p class="lede">${run.question}</p>
+  return html`<${PageHeader} title=${run.title} lede=${run.question} actions=${html`<a class="button" href="#/experiments">All experiments</a>`} />
     <section class="panel stack">
       <p><${VerdictBadge} verdict=${run.verdict} /> ${s.rule && html`<span class="hint">${s.rule}</span>`}</p>
       ${s.keyNumbers && html`<div class="numbers">${s.keyNumbers.map(k => html`<div key=${k.label}><b>${k.value.toFixed(3)}</b><small>${k.label}</small></div>`)}</div>`}
@@ -95,7 +95,10 @@ function OutlierView({ page }) {
   return html`<section class="panel stack">
       <h2>Does the score find mislabels better than GC and length?</h2>
       <div class="tablewrap"><table>
-        <thead><tr><th>Group</th><th>Answer key</th><th>Space</th><th class="num">Genomes</th><th class="num">Base rate</th><th class="num">AUC (95 %)</th><th class="num">Top 1 % rate</th></tr></thead>
+        <thead><tr><th>Group</th><th>Answer key<${Help}>The outside evidence a flagged genome is checked against.<//></th><th>Space</th>
+          <th class="num">Genomes</th><th class="num">Base rate<${Help}>The share of all genomes the answer key flags: what picking at random would find.<//></th>
+          <th class="num">AUC (95 %)<${Help}>How well the score ranks flagged genomes above the others: 0.5 is chance, 1 perfect.<//></th>
+          <th class="num">Top 1 % rate<${Help}>The share flagged by the answer key among the 1 % highest scores; compare it with the base rate.<//></th></tr></thead>
         <tbody>${s.results.map(r => html`<tr key=${`${r.group}-${r.key}-${r.space}`}>
           <td>${groupNames[r.group] ?? r.group}</td><td>${keyNames[r.key] ?? r.key}</td><td>${r.space === "signature" ? "signature" : "GC + length"}</td>
           <td class="num">${r.withKey.toLocaleString()}</td><td class="num mono">${(r.baseRate * 100).toFixed(1)} %</td>
