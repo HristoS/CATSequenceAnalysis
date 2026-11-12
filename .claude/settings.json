@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh cat-deploy help)",
+      "Bash(ssh cat-deploy status)",
+      "Bash(ssh cat-deploy logs *)",
+      "Bash(ssh cat-deploy admin stats)",
+      "Bash(ssh cat-deploy admin users)",
+      "Bash(ssh cat-deploy admin list *)",
+      "Bash(ssh cat-deploy job status)",
+      "Bash(ssh cat-deploy job log *)"
+    ],
+    "ask": [
+      "Bash(ssh cat-deploy deploy *)",
+      "Bash(ssh cat-deploy rollback)",
+      "Bash(ssh cat-deploy job start *)",
+      "Bash(ssh cat-deploy job clean *)",
+      "Bash(ssh cat-deploy user *)"
+    ]
+  }
+}

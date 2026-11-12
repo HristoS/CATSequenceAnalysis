@@ -1,0 +1,3 @@
+# /etc/sudoers.d/cat-deploy (root-owned, 440; install with `visudo -cf` first). Only needed if `sudo -n true` fails for ubuntu:
+# Lighthouse's default ubuntu account usually has passwordless sudo already. Lets the deploy script restart the stack and nothing else.
+ubuntu ALL=(root) NOPASSWD: /usr/bin/systemctl restart cat-platform

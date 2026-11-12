@@ -1,0 +1,11 @@
+# /etc/cat-deploy.conf (root-owned, 644): settings for /usr/local/bin/cat-deploy. Sourced by bash, so plain NAME=value lines only.
+REPO=/opt/cat/CATSequenceAnalysis
+BRANCH=feature/localPlatfromBuild
+# From `docker compose ls` on the server: the same name cat-platform.service uses.
+COMPOSE_PROJECT=COMPOSE_PROJECT
+# Where `user add` / `user rotate` write API keys (mode 600). Fetch them with your own login.
+KEY_DIR=/home/ubuntu/api-keys
+# Lock file and the previous commit for `rollback`.
+STATE_DIR=/home/ubuntu/.cat-deploy
+# Optional: contact address for BV-BRC/NCBI User-Agents in build-protein-null and load-taxonomy.
+CONTACT=

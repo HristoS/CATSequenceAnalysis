@@ -1,0 +1,3 @@
+# Files that run or get installed on the Linux server keep LF endings, whatever core.autocrlf says on Windows.
+*.sh text eol=lf
+hosting/** text eol=lf

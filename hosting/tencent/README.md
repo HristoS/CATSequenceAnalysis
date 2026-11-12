@@ -153,6 +153,43 @@ existing records can be rebuilt on the server by the same command from the same 
 New records created locally are a different matter: their ids can collide with uploads made on the server, so they go to the server by
 ingesting there, not by copying rows.
 
+**The restricted deploy key (since 2026-11-11).** Claude Code deploys through a separate key that can only run
+[`cat-deploy.sh`](cat-deploy.sh): `status`, `deploy <commit>`, `rollback`, `logs`, read-only `admin` queries, the maintenance
+`job`s, and `user add|rotate|disable` (API keys go to a mode-600 file and are never printed). Arguments are split on whitespace,
+matched against fixed patterns and never evaluated. Every call is logged to `journalctl -t cat-deploy`. Locally, the
+`deploy-platform` skill drives it, and a Claude Code hook stops sessions from reading SSH keys, `docs/tencent` or transcripts.
+
+On your machine (PowerShell):
+
+```powershell
+ssh-keygen -t ed25519 -f $HOME\.ssh\cat_deploy_ed25519 -C claude-deploy        # set a passphrase
+Get-Service ssh-agent | Set-Service -StartupType Automatic; Start-Service ssh-agent   # once, as administrator
+ssh-add $HOME\.ssh\cat_deploy_ed25519
+```
+
+and in `~/.ssh/config`:
+
+```
+Host cat-deploy
+    HostName SERVER_IP
+    User ubuntu
+    IdentityFile ~/.ssh/cat_deploy_ed25519
+    IdentitiesOnly yes
+```
+
+On the server, with your own login, from the checkout once it contains these files:
+
+```bash
+sudo install -o root -g root -m 755 hosting/tencent/cat-deploy.sh /usr/local/bin/cat-deploy
+sudo install -o root -g root -m 644 hosting/tencent/cat-deploy.conf.example /etc/cat-deploy.conf
+sudo nano /etc/cat-deploy.conf          # COMPOSE_PROJECT from `docker compose ls`; CONTACT optional
+sudo -n true || { sudo install -o root -g root -m 440 hosting/tencent/sudoers-cat-deploy /etc/sudoers.d/cat-deploy && sudo visudo -c; }
+echo 'command="/usr/local/bin/cat-deploy",restrict ssh-ed25519 AAAA...PUBLIC-KEY... claude-deploy' >> ~/.ssh/authorized_keys
+```
+
+The script is installed by copy, so a `git pull` can't change what the key may do: reinstall it by hand after reviewing a change.
+To revoke the key, delete its `authorized_keys` line. Check it from your machine with `ssh cat-deploy status`. `ssh cat-deploy bash` must answer `refused`.
+
 **Adding an admin's SSH key.** The Lighthouse key pair bound to the instance (`cat_platform`) is the only one `ubuntu` accepts at
 first. To let another admin in without a restart, log in through the console (instance → **Log in**, the browser terminal) and
 append their public key:
