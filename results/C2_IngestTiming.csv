@@ -1,8 +1,0 @@
-Group, BatchGenomes, BatchSeconds, MeanSecondsPerGenome, MaxSecondsPerGenome, MeanGenomeBp, CorpusGenomes, ExtrapolatedHours, Note
-viruses, 50, 103, 2.06, 4.5, 53935, 15536, 8.9, measured 2026-10-15 offset 300
-bacteria, 50, 196, 3.91, 69.1, 4680041, 6036, 6.6, measured 2026-10-15 offset 200; one 69 s genome was slow server-side (no retry) and is kept in the mean
-archaea, 20, 48, 2.38, 2.8, 2817600, 374, 0.25, measured 2026-10-19 offset 0 after S2.3 added --group archaea (with S2.2 features and 0005 duplicate checks)
-total, , , , , , 21946, 15.7, extrapolation: sequential at the 1 s request spacing; viruses and bacteria measured before S2.2's hash and dinucleotide work
-viruses-batched, 50, 42, 0.85, , , 15536, 3.7, measured 2026-10-19 offset 1000 after batching contig listings (50 per request); 40 stored and 10 duplicates skipped by md5
-bacteria-batched, 50, 78, 1.56, , , 6036, 2.6, measured 2026-10-19 offset 1000 after batching contig listings
-total-batched, , , , , , 21946, 6.5, extrapolation: batched viruses and bacteria plus the archaea row; sequential at the 1 s request spacing

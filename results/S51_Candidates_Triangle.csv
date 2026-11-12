@@ -1,7 +1,0 @@
-WindowSize, Candidate, Genomes, InequalitiesChecked, InequalitiesViolated, MaxViolation
-32000, compare, 437, 41440710, 890569, 0.2026
-32000, strandOrigin, 437, 41440710, 1236506, 0.2032
-32000, coverage, 437, 41440710, 0, 0
-32000, summary, 437, 41440710, 0, 0
-32000, gc, 437, 41440710, 0, 0
-32000, gcLength, 437, 41440710, 0, 0

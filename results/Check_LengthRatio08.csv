@@ -1,9 +1,0 @@
-Query, Target, LengthRatio, Candidates, TargetsInBand, FirstRanks
-E. coli K-12 NC_000913.3, Escherichia, 0.5, 4804, 6, "1; 12; 29; 58; 126; 220"
-E. coli K-12 NC_000913.3, Escherichia, 0.8, 2030, 6, "1; 5; 18; 33; 67; 117"
-E. coli K-12 NC_000913.3, Shigella, 0.5, 4804, 4, "2; 6; 52; 109"
-E. coli K-12 NC_000913.3, Shigella, 0.8, 2030, 4, "2; 3; 30; 58"
-SARS-CoV-2 NC_045512.2, Betacoronavirus, 0.5, 4240, 21, "1; 2; 3; 4; 5; 7"
-SARS-CoV-2 NC_045512.2, Betacoronavirus, 0.8, 1107, 21, "1; 2; 4; 6; 7; 8"
-HPV16 NC_001526.4, any papillomavirus, 0.5, 4759, 328, "256; 258; 346; 352; 368; 369"
-HPV16 NC_001526.4, any papillomavirus, 0.8, 2323, 327, "39; 40; 56; 59; 65; 66"

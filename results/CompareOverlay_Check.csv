@@ -1,7 +1,0 @@
-Pair,Level,Gap (forward),Gap (reverse strand),Best
-K-12 vs same genus: Escherichia sp. TC-EC600-tetX4,1,0.84,1.78,0.84
-K-12 vs other genus: Salmonella sp. S13,1,0.84,1.80,0.84
-K-12 vs control: B. subtilis 168,1,1.29,1.79,1.29
-K-12 vs same genus: Escherichia sp. TC-EC600-tetX4,1-origin,0.30,2.00,0.30
-K-12 vs other genus: Salmonella sp. S13,1-origin,0.17,1.96,0.17
-K-12 vs control: B. subtilis 168,1-origin,0.98,1.89,0.98

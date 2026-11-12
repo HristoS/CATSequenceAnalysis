@@ -1,8 +1,0 @@
-Band,Proteins,Done,Exact top-1,With PGfam,Family top-1,Flagged weak,Median s,Max s
-50-99 aa,12,12,75.0%,5,100.0%,0.0%,6.6,17.2
-100-166 aa,12,12,66.7%,5,100.0%,0.0%,9.2,23.2
-167-332 aa,12,12,91.7%,8,100.0%,0.0%,12.5,28.6
-333-499 aa,12,12,83.3%,8,100.0%,0.0%,7.5,18.4
-500+ aa,12,12,58.3%,8,100.0%,0.0%,4.5,16.8
-
-Rule (every job done; family top-1 >= 90% per band; median <= 60 s; none weak; 49 aa refused),lowest band 100.0%, median 7.4 s, 49 aa HTTP 400: pass

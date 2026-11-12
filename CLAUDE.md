@@ -33,8 +33,9 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   `ZCurveProfileTests`, `ZCurveWindowedProfileTests`, `ZCurveGeneProfileTests`, `WindowedProfileTests`, `FastaReaderTests`,
   `GeneratorTests`, `PhylogenyTests`, `GenomeSignaturesTests`, `OrdinationTests`, and `RealGenomeProfileTests`.
 - `--filter "Name=Foo(123)"` does not work for parameterized cases with this adapter; use `NUnit.Where` as above.
-- All experiment output (`.csv`) is written to `SequenceAnaliseTests/bin/Debug/net10.0/`; committed snapshots live
-  in `results/` — see `results/README.md` for which file backs which manuscript section.
+- All experiment output (`.csv`) is written to `SequenceAnaliseTests/bin/Debug/net10.0/`. `results/README.md` summarizes every
+  result; only CSVs a paper or this file cites are committed in `results/`. The rest were removed on 2026-11-12 and are at commit
+  `f5cb655` (`git show f5cb655:results/<name>.csv`), which is what older code comments citing a CSV refer to.
 - Target framework is net10.0 for every project. The library (`SequenceAnalise`) has no NuGet dependencies; the
   platform projects use Npgsql.
 
@@ -154,7 +155,8 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   (`ConnectionStrings:SequencePlatform`; the test project links the same file); never commit it. Local development DB:
   `sequence_platform` on the local PostgreSQL 17. A repo-level `nuget.config` restricts restore to nuget.org, because the
   machine-wide config has an unreachable private feed.
-- Platform work is planned in phases P0–P7: tracker `docs/platform/README.md` (git-ignored, local only); start sessions with `/platform-session`.
+- Platform work is planned in one file, `docs/platform/README.md` (git-ignored, local only): status, rules, open work, decisions in
+  force; start sessions with `/platform-session`. Article plans and paper material are in `docs/article/` (also local only).
 
 **`SequenceAnaliseTests/`** — NUnit 4. Besides the correctness tests listed above: `Trilateration*` (build/compare
 /localization timing, NW-ground-truth accuracy grid, known-mutation reliability at scale), `GenomeScaleStreaming`

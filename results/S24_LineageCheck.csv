@@ -1,5 +1,0 @@
-Check, Sample, Result, Note
-missing ranks (records), 24365 records, viruses: family 2042 (15.1%) genus 975 (7.2%) order 3416 (25%) phylum 652 (4.8%); bacteria: family 112 (1.1%) genus 99 (1.0%); archaea: family 6 genus 1, every record has a taxid (16370 distinct)
-NCBI fills missing virus family, 20 random virus taxids without family, 2/20, mostly tailed phages left without a family by ICTV in 2022 (Siphoviridae/Myoviridae abolished); NCBI has the genus for 18/20
-BV-BRC vs NCBI disagreement, 200 random taxids (127 viruses / 69 bacteria / 4 archaea), family 6/200 (3%) genus 5/200 (2.5%) phylum 0, all stale BV-BRC names after ICTV splits or renames (Flaviviridae to Pestiviridae/Hepaciviridae; Microviridae to Betagokushoviridae/Mazaviridae; Pestivirus to Orthopestivirus) plus one bacterium (Rhizobium to Martinezella)
-NCBI fills on the same 200, 200, genus 4 phylum 2 family 1, small

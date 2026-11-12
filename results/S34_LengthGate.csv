@@ -1,5 +1,0 @@
-Query, LengthRatioAtLeast, RankedKept, EscherichiaRanks, Top10Genera
-E. coli K-12 NC_000913.3, 0, 7541, "1; 61; 93; 141; 259; 375", "Escherichia; Agricanvirus x6; Spirosoma x2; Pantoea"
-E. coli K-12 NC_000913.3, 0.25, 6361, "1; 21; 45; 86; 185; 295", "Escherichia; Shigella; Corynebacterium; Rhodoluna; Salinivibrio; Rhodoluna; Leptothermofonsia; Arcanobacterium; Salinivibrio; Acidaminococcus"
-E. coli K-12 NC_000913.3, 0.5, 4804, "1; 12; 29; 58; 126; 220", "Escherichia; Shigella; Salinivibrio; Leptothermofonsia; Salinivibrio; Shigella; Polystyrenella; Salmonella; Desulfomonile; Salinivibrio"
-E. coli K-12 NC_000913.3, 0.75, 2549, "1; 6; 20; 37; 77; 131", "Escherichia; Shigella; Shigella; Polystyrenella; Salmonella; Escherichia; Leptodesmis; Salmonella; Citrobacter; Bdellovibrio"

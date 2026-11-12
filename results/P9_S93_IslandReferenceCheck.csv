@@ -1,5 +1,0 @@
-Source, Basis, Sequences, MatchedByName, UsableChromosomes, UsableAssemblies, Regions, MedianRegionBp, Use
-"IslandPick (IV4 bulk)", "comparative genomics; positives only", 18852, 2504, 2167, 2077, 50071, 6714, "primary candidate"
-"IslandViewer integrated (IV4 bulk)", "union incl. SIGI-HMM and IslandPath-DIMOB (composition-based)", 30038, 6488, 5913, 5766, 156516, 8106, "not a fair key: contains composition predictors"
-"Curated reference positives (Sup_tables 1)", "comparative genomics + literature; with negatives", 104, 18, 15, 15, 312, 10228, "secondary; NC_ only, mapping to GenBank needed"
-"Curated reference negatives (Sup_tables 2)", "conserved regions", 104, 18, 15, 15, 361, 11232, "secondary"

@@ -1,7 +1,0 @@
-Queries, Subset, Variant, MeanPrecisionAt10Stored, MeanPrecisionAt10Variant, MrrStored, MrrVariant, Better, Worse, SignTestP
-150, all, rotated, 0.131, 0.163, 0.260, 0.337, 33, 15, 0.0133
-150, all, best of, 0.131, 0.169, 0.260, 0.343, 34, 10, 0.0004
-100, query rotated, rotated, 0.141, 0.196, 0.263, 0.382, 33, 10, 0.0006
-100, query rotated, best of, 0.141, 0.197, 0.263, 0.389, 33, 9, 0.0003
-50, query not rotated, rotated, 0.112, 0.098, 0.254, 0.247, 0, 5, 0.0625
-50, query not rotated, best of, 0.112, 0.112, 0.254, 0.250, 1, 1, 1.0000

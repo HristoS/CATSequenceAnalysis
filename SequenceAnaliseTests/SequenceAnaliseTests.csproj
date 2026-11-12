@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SequenceAnalise\SequenceAnalise.csproj" />
-    <ProjectReference Include="..\SequenceAnalise.Benchmarks\SequenceAnalise.Benchmarks.csproj" />
   </ItemGroup>
 
 </Project>

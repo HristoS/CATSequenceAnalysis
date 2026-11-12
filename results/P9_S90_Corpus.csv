@@ -1,4 +1,0 @@
-Group, Genomes, Excluded, WithNcbiLineage, WithGtdbLineage, WithProviderGenus, WithHostName, WithCheckm, WithIsolationSource, MedianLengthBp
-cellular, 15314, 2, 15314, 11453, 14492, 4867, 15130, 11522, 3901011
-eukaryotic, 326, 0, 326, 0, 326, 0, 0, 0, 306989521
-viral, 19903, 77, 19903, 0, 15440, 14009, 0, 9166, 8938
