@@ -40,4 +40,7 @@ dotnet run -c Release scripts/platform-checks/localize_eval.cs
 | `fetch_eukaryotes.cs` | — | Downloads the eukaryote pairs the splice and gene checks use into `data/genomes/eukaryotes/` (git-ignored), checked against the stored SHA-256 |
 | `splice_join_check.cs`, `splice_twist_check.cs` | — | Current work (2026-11-12): splice sites from Z-curve and DNA shape; no database |
 | `p9_corpus.cs`, `p9_e1_outliers.cs` … `p9_e5_habitat.cs` | `P9_*.csv` | P9 experiments on the frozen corpus (`shared/ExperimentCorpus.cs`); `--publish` writes them to `ExperimentStore` |
+| `p9_corpus.cs` (round 2, default) | `P9_S99_Corpus.csv` | Round-2 corpus on the live database, records ≤ 61,841, eight table hashes checked against `ExperimentCorpus` (D-P9d); `--fingerprint` prints them, `--round1` reruns S9.0 on the snapshot |
+| `p9_e1b_check.cs`, `p9_e1b_cvtree.cs` | `P9_E1b_*.csv` | S9.10: E1's keys checked for wholesale renames and the run timed; then E1b on hashed amino-acid CVTree neighbours (round 2) |
+| `contrast_check.cs` | `ContrastCheck_*.csv` | Group-contrast runner for visitors (E5 replay, random-halves control, timing, coverage); stopped, kept for its result line |
 | `p9_kmer_check.cs`, `insert_check.cs` | `P9_KmerCheck.csv`, `P9_InsertCheck.csv` | P9 follow-ups: longer k-mers for phage host; inserts between two genomes |

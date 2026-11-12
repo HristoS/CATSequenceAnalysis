@@ -144,6 +144,7 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
 | Question | Result | File |
 |---|---|---|
 | E1: flag mislabelled or contaminated genomes | **Fail.** AUC 0.476–0.545, no better than GC + length; flags are endosymbionts and extreme GC | — |
+| E1b: the same on amino-acid CVTree, keys fixed (round 2) | **Pass, mostly thanks to the key.** GTDB family differs, minority families only (388 / 7,788): CVTree AUC 0.759 (0.730–0.785), log ρ\* 0.727, GC + length 0.667; top-1% precision 60% vs 19% vs 1% (enrichment 12.0 / 3.9 / 0.3). CheckM poor fails for all arms (0.536–0.553). Genus-isolated positives (102, context): 0.826 / 0.835 / 0.746, enrichment 37 / 7.9 / 0. 74 of the top 200 still have GC < 0.35 or > 0.65 | `p9_e1b_cvtree.cs` |
 | E2: a phage's host genus | **Weak pass.** Top-1 0.057 vs GC 0.024, but always guessing Escherichia gives 0.110. Shared-sequence localization: 0/200 | `P9_E2_*.csv` |
 | E2 follow-up: longer k-mers | 6-mers lift host top-1 from 0.150 to 0.256; 6-mer counts are now stored | `P9_KmerCheck.csv` |
 | E3: genomic islands | **Fail.** Window detector F1 0.128 vs 0.153 for GC alone; x and y dilute GC | `P9_E3_Islands.csv` |
@@ -154,3 +155,23 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
 | Protein search by back-translation | No-go (section 2) | `R6b_*`, `R6d_*` |
 
 Summary: 500 bp windows give identity only over many windows (≥ 10 kbp, localization). Below that they give composition.
+
+Round 2 corpus (S9.9, 2026-11-12): live database, records ≤ 61,841, fingerprint `9a0baea856543d97f121ba45900d82c5` (eight table
+hashes, checked by every round-2 script, about 40 s; archive `sequence_platform_2026-11-12_P9b.dump`). 47,306 genomes, 170 excluded
+as partial: cellular 15,314 (all with 6-mers, amino-acid 4-mers and gene profiles), viral 31,405 (all 6-mers; 28,570 with genes),
+eukaryotic 587 (no 6-mers; 131 with genes). `p9_corpus.cs` writes `P9_S99_Corpus.csv` (not committed).
+
+E1b checks (`p9_e1b_check.cs`, 2026-11-12, round-2 corpus, provider families with ≥ 5 genomes). **E1's GTDB key was mostly
+renames**: 87.0% of its 3,030 positives sit in provider families where most genomes are positive (Lysobacteraceae vs Xanthomonadaceae,
+Corynebacteriaceae vs Mycobacteriaceae, ...), which no neighbour score can flag; 388 positives in 68 families are a minority in
+theirs, and 102 in 33 families are a minority in their genus too (genus-wide moves such as Bacillaceae splits drop out). CheckM poor:
+3.9% wholesale, 1,161 minority positives in 203 families. Viral NCBI family differs: 322 positives, 202 minority but in 11 families
+(Pestivirus out of Flaviviridae alone is 152), 33 isolated: not testable. Timing at 2,000 genomes (hashed CVTree 8,192, k = 10 cosine,
+4 threads): cellular 0.9 s read / 9.8 s build / 9.8 s kNN, viral 0.5 / 8.3 / 9.8 s; extrapolated 10.9 min cellular, 35.3 min viral.
+
+Group-contrast runner for visitors ("can log ρ\* tell A from B?", kNN share AUC with bootstrap CI, shuffle null, GC + length
+baseline; `contrast_check.cs`, 2026-11-12): **stopped.** Statistics sound: E5 replay passes (46 genera, excess > 0 in 40, < 0 in 6,
+p 1.6·10⁻⁷) and random halves of 121 genera never "separate" (0 %; "beyond GC" alone fires in 5 %, so it must require "separates").
+But 2,000 vs 2,000 takes 4.4 s at 4 and at 2 threads (limit 2 s; the sequential bootstrap and shuffles dominate, not the kNN), and only
+about 7 real contrasts reach 50 genomes per side: 3 within-genus habitat pairs, 3 phage host-genus pairs; the other 22 counted are
+Microviridae sample animals and a common name ("Tomato"). Per-contrast power is low: 6 of 46 replay genera separate on their own.

@@ -3,7 +3,8 @@ using System.Text.RegularExpressions;
 using Npgsql;
 using SequencePlatform.Core;
 
-// The genomes every P9 experiment reads (S9.0), from the frozen snapshot so the catalogue growing can't move a result. The selection
+// The genomes every P9 experiment reads. Round 1 (S9.0) reads the frozen snapshot database; round 2 (S9.9, D-P9d) reads the live one
+// cut off at RoundTwoMaxId and refuses to run unless the fingerprint of everything round 2 reads still matches. The selection
 // is SignatureIndex's, over public records only: the largest chromosome of each bacterium or archaeon, every virus and every eukaryote;
 // no plasmids, no uploads. A record described as partial is marked Excluded and left out of every experiment. Most viral records
 // under 1 kbp are complete segments or viroids, and "gene, complete cds" usually covers a whole small genome, so neither is excluded.
@@ -18,8 +19,75 @@ internal static class ExperimentCorpus
 {
     public const string SnapshotDatabase = "sequence_platform_p9";
     public const string SnapshotFile = "sequence_platform_2026-11-03_P9.dump";
+    public const long RoundTwoMaxId = 61_841;
+    public const string RoundTwoArchiveFile = "sequence_platform_2026-11-12_P9b.dump";
+
+    // Per-table hashes taken on 2026-11-12 (D-P9d). A mismatch means something wrote to data round 2 reads: stop, don't update these.
+    private static readonly (string Table, string Hash)[] roundTwoExpected =
+    [
+        ("gene_profile", "1eb6e9538996100b8639bb1ea578e86e"),
+        ("gtdb_taxon", "98f21921effdcb4289d36ec411e20f6f"),
+        ("profile_level", "0b01cead1a7fb7016e22ca3d8011f62c"),
+        ("protein_family", "7037cb9f7574bc6400b11ba1c097bf0a"),
+        ("protein_kmer", "022b7e620f27714664a80ea082e8904c"),
+        ("record_kmer", "cfbf87d97682469d3ef96e0be152177c"),
+        ("sequence_record", "a4f60ef121ff51013df843db7ec21b7f"),
+        ("taxon", "2468728558554be561b61a310b50b884"),
+    ];
+
+    // Every row round 2 can read, cut off by record id where the table is per record. Arrays and payloads are hashed in binary form
+    // (6-mer counts are about 1 GB; text rendering doubled the time). Rows with nothing stored still count, through coalesce.
+    private const string fingerprintSql =
+        "select 'sequence_record', md5(string_agg(md5(row(r.id, r.source_id, r.record_id, r.name, r.kind, r.data_class, r.length_bp, " +
+        "  r.gc_fraction, r.ncbi_taxid, r.tax_superkingdom, r.tax_realm, r.tax_kingdom, r.tax_phylum, r.tax_class, r.tax_order, r.tax_family, " +
+        "  r.tax_genus, r.tax_species, r.annotations, r.sequence_sha256, r.dinucleotide_counts, s.owner_id)::text), '' order by r.id)) " +
+        "  from sequence_record r join sequence_source s on s.id = r.source_id where r.id <= $1 " +
+        "union all select 'record_kmer', md5(string_agg(md5(row(sequence_id, k, status)::text || coalesce(md5(array_send(counts)), '-')), '' " +
+        "  order by sequence_id, k)) from record_kmer where sequence_id <= $1 " +
+        "union all select 'protein_kmer', md5(string_agg(md5(row(sequence_id, k, format_version, gene_count, status, md5(payload))::text), '' " +
+        "  order by sequence_id, k)) from protein_kmer where sequence_id <= $1 " +
+        "union all select 'gene_profile', md5(string_agg(md5(row(sequence_id, bucket, format_version, gene_count, window_count, sha256)::text), '' " +
+        "  order by sequence_id, bucket)) from gene_profile where sequence_id <= $1 " +
+        "union all select 'profile_level', md5(string_agg(md5(row(sequence_id, method, method_version, fine_window_size, factor, window_count, " +
+        "  format_version, sha256)::text), '' order by sequence_id, method, method_version, fine_window_size, factor)) " +
+        "  from profile_level where sequence_id <= $1 " +
+        "union all select 'protein_family', md5(string_agg(md5(row(id, product)::text), '' order by id)) from protein_family " +
+        "union all select 'taxon', md5(string_agg(md5(t::text), '' order by taxid)) from taxon t " +
+        "union all select 'gtdb_taxon', md5(string_agg(md5(g::text), '' order by assembly_key)) from gtdb_taxon g";
 
     private static readonly Regex partial = new(@"\bpartial\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>The fingerprint every round-2 CSV carries: one hash over the expected table hashes.</summary>
+    public static string RoundTwoFingerprint => Combine(roundTwoExpected);
+
+    /// <summary>The live database (connection settings unchanged), for round 2.</summary>
+    public static NpgsqlDataSource OpenLive() => NpgsqlDataSource.Create(ConnectionString.Resolve());
+
+    /// <summary>Throws unless every table round 2 reads still hashes as on 2026-11-12. Takes about 40 s; start it beside <see cref="LoadAsync"/>.</summary>
+    public static async Task<string> VerifyRoundTwoAsync(NpgsqlDataSource dataSource)
+    {
+        var actual = await FingerprintAsync(dataSource, RoundTwoMaxId);
+        var moved = actual.Where(a => !roundTwoExpected.Contains(a)).Select(a => $"{a.Table} {a.Hash}").ToList();
+        if (moved.Count > 0 || actual.Count != roundTwoExpected.Length)
+            throw new InvalidOperationException($"Round-2 corpus moved (D-P9d). Tables now: {string.Join(", ", moved)}. " +
+                $"Restore {RoundTwoArchiveFile} and run there, or start a new round.");
+        return RoundTwoFingerprint;
+    }
+
+    public static async Task<List<(string Table, string Hash)>> FingerprintAsync(NpgsqlDataSource dataSource, long maxId)
+    {
+        var tables = new List<(string Table, string Hash)>();
+        await using var command = dataSource.CreateCommand(fingerprintSql);
+        command.Parameters.AddWithValue(maxId);
+        command.CommandTimeout = 600;
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync()) tables.Add((reader.GetString(0), reader.IsDBNull(1) ? "empty" : reader.GetString(1)));
+        return tables.OrderBy(t => t.Table, StringComparer.Ordinal).ToList();
+    }
+
+    public static string Combine(IEnumerable<(string Table, string Hash)> tables) =>
+        Convert.ToHexStringLower(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(
+            string.Join(",", tables.OrderBy(t => t.Table, StringComparer.Ordinal).Select(t => t.Table + t.Hash)))));
 
     /// <summary>The usual connection settings pointed at the snapshot database; it must have been restored from <see cref="SnapshotFile"/>.</summary>
     public static NpgsqlDataSource OpenSnapshot()
@@ -28,7 +96,8 @@ internal static class ExperimentCorpus
         return NpgsqlDataSource.Create(builder.ConnectionString);
     }
 
-    public static async Task<List<CorpusGenome>> LoadAsync(NpgsqlDataSource dataSource)
+    /// <summary>Round 1 reads the snapshot with no cut-off; round 2 passes <see cref="RoundTwoMaxId"/>.</summary>
+    public static async Task<List<CorpusGenome>> LoadAsync(NpgsqlDataSource dataSource, long maxId = long.MaxValue)
     {
         var genomes = new List<CorpusGenome>();
         await using var command = dataSource.CreateCommand(
@@ -38,11 +107,12 @@ internal static class ExperimentCorpus
             "g.assembly_key is not null, g.tax_domain, g.tax_phylum, g.tax_class, g.tax_order, g.tax_family, g.tax_genus, g.tax_species " +
             "from (select r.*, row_number() over (partition by r.source_id, r.kind in ('bacterium', 'archaeon') order by r.length_bp desc, r.id) as n " +
             "      from sequence_record r join sequence_source s on s.id = r.source_id" +
-            "      where s.owner_id is null and r.dinucleotide_counts is not null and r.kind in ('bacterium', 'archaeon', 'virus', 'eukaryote')) r " +
+            "      where r.id <= $1 and s.owner_id is null and r.dinucleotide_counts is not null and r.kind in ('bacterium', 'archaeon', 'virus', 'eukaryote')) r " +
             "left join taxon t on t.taxid = r.ncbi_taxid " +
             "left join gtdb_taxon g on r.annotations->'bvbrc'->>'assembly_accession' ~ '^GC[AF]_' " +
             "  and g.assembly_key = substr(r.annotations->'bvbrc'->>'assembly_accession', 5) " +
             "where r.kind = 'virus' or r.n = 1 order by r.id");
+        command.Parameters.AddWithValue(maxId);
         await using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
