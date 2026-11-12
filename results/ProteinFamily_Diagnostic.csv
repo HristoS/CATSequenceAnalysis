@@ -1,0 +1,560 @@
+Half,Band,Weighting,Choice,Reachable,Family top-1,Proteins,Exact top-1
+tuning,all,unweighted,best hit,576,62.8%,659,82.7%
+tuning,all,unweighted,best with family,576,66.0%,659,82.7%
+tuning,all,unweighted,vote 3,576,65.3%,659,82.7%
+tuning,all,unweighted,vote 5,576,62.7%,659,82.7%
+tuning,all,unweighted,vote 10,576,60.4%,659,82.7%
+tuning,all,P0,best hit,576,22.0%,659,41.1%
+tuning,all,P0,best with family,576,24.0%,659,41.1%
+tuning,all,P0,vote 3,576,25.0%,659,41.1%
+tuning,all,P0,vote 5,576,25.0%,659,41.1%
+tuning,all,P0,vote 10,576,25.0%,659,41.1%
+tuning,all,P0+P1,best hit,576,53.3%,659,73.3%
+tuning,all,P0+P1,best with family,576,55.6%,659,73.3%
+tuning,all,P0+P1,vote 3,576,55.4%,659,73.3%
+tuning,all,P0+P1,vote 5,576,53.5%,659,73.3%
+tuning,all,P0+P1,vote 10,576,51.7%,659,73.3%
+tuning,all,1/variance,best hit,576,62.3%,659,85.9%
+tuning,all,1/variance,best with family,576,64.8%,659,85.9%
+tuning,all,1/variance,vote 3,576,62.8%,659,85.9%
+tuning,all,1/variance,vote 5,576,62.3%,659,85.9%
+tuning,all,1/variance,vote 10,576,60.2%,659,85.9%
+tuning,all,1/within,best hit,576,62.2%,659,86.0%
+tuning,all,1/within,best with family,576,64.4%,659,86.0%
+tuning,all,1/within,vote 3,576,62.2%,659,86.0%
+tuning,all,1/within,vote 5,576,62.3%,659,86.0%
+tuning,all,1/within,vote 10,576,59.9%,659,86.0%
+tuning,all,between/within,best hit,576,63.2%,659,82.5%
+tuning,all,between/within,best with family,576,66.0%,659,82.5%
+tuning,all,between/within,vote 3,576,65.1%,659,82.5%
+tuning,all,between/within,vote 5,576,62.7%,659,82.5%
+tuning,all,between/within,vote 10,576,60.1%,659,82.5%
+tuning,50-99 aa,unweighted,best hit,64,75.0%,96,89.6%
+tuning,50-99 aa,unweighted,best with family,64,78.1%,96,89.6%
+tuning,50-99 aa,unweighted,vote 3,64,73.4%,96,89.6%
+tuning,50-99 aa,unweighted,vote 5,64,62.5%,96,89.6%
+tuning,50-99 aa,unweighted,vote 10,64,60.9%,96,89.6%
+tuning,50-99 aa,P0,best hit,64,40.6%,96,81.2%
+tuning,50-99 aa,P0,best with family,64,43.8%,96,81.2%
+tuning,50-99 aa,P0,vote 3,64,45.3%,96,81.2%
+tuning,50-99 aa,P0,vote 5,64,43.8%,96,81.2%
+tuning,50-99 aa,P0,vote 10,64,43.8%,96,81.2%
+tuning,50-99 aa,P0+P1,best hit,64,64.1%,96,88.5%
+tuning,50-99 aa,P0+P1,best with family,64,67.2%,96,88.5%
+tuning,50-99 aa,P0+P1,vote 3,64,65.6%,96,88.5%
+tuning,50-99 aa,P0+P1,vote 5,64,57.8%,96,88.5%
+tuning,50-99 aa,P0+P1,vote 10,64,54.7%,96,88.5%
+tuning,50-99 aa,1/variance,best hit,64,70.3%,96,88.5%
+tuning,50-99 aa,1/variance,best with family,64,75.0%,96,88.5%
+tuning,50-99 aa,1/variance,vote 3,64,67.2%,96,88.5%
+tuning,50-99 aa,1/variance,vote 5,64,60.9%,96,88.5%
+tuning,50-99 aa,1/variance,vote 10,64,60.9%,96,88.5%
+tuning,50-99 aa,1/within,best hit,64,68.8%,96,89.6%
+tuning,50-99 aa,1/within,best with family,64,73.4%,96,89.6%
+tuning,50-99 aa,1/within,vote 3,64,65.6%,96,89.6%
+tuning,50-99 aa,1/within,vote 5,64,60.9%,96,89.6%
+tuning,50-99 aa,1/within,vote 10,64,59.4%,96,89.6%
+tuning,50-99 aa,between/within,best hit,64,75.0%,96,89.6%
+tuning,50-99 aa,between/within,best with family,64,78.1%,96,89.6%
+tuning,50-99 aa,between/within,vote 3,64,73.4%,96,89.6%
+tuning,50-99 aa,between/within,vote 5,64,64.1%,96,89.6%
+tuning,50-99 aa,between/within,vote 10,64,59.4%,96,89.6%
+tuning,100-166 aa,unweighted,best hit,113,61.1%,131,86.3%
+tuning,100-166 aa,unweighted,best with family,113,64.6%,131,86.3%
+tuning,100-166 aa,unweighted,vote 3,113,65.5%,131,86.3%
+tuning,100-166 aa,unweighted,vote 5,113,62.8%,131,86.3%
+tuning,100-166 aa,unweighted,vote 10,113,62.8%,131,86.3%
+tuning,100-166 aa,P0,best hit,113,28.3%,131,53.4%
+tuning,100-166 aa,P0,best with family,113,32.7%,131,53.4%
+tuning,100-166 aa,P0,vote 3,113,32.7%,131,53.4%
+tuning,100-166 aa,P0,vote 5,113,31.9%,131,53.4%
+tuning,100-166 aa,P0,vote 10,113,31.9%,131,53.4%
+tuning,100-166 aa,P0+P1,best hit,113,54.9%,131,79.4%
+tuning,100-166 aa,P0+P1,best with family,113,60.2%,131,79.4%
+tuning,100-166 aa,P0+P1,vote 3,113,60.2%,131,79.4%
+tuning,100-166 aa,P0+P1,vote 5,113,56.6%,131,79.4%
+tuning,100-166 aa,P0+P1,vote 10,113,57.5%,131,79.4%
+tuning,100-166 aa,1/variance,best hit,113,58.4%,131,87.8%
+tuning,100-166 aa,1/variance,best with family,113,64.6%,131,87.8%
+tuning,100-166 aa,1/variance,vote 3,113,64.6%,131,87.8%
+tuning,100-166 aa,1/variance,vote 5,113,63.7%,131,87.8%
+tuning,100-166 aa,1/variance,vote 10,113,61.9%,131,87.8%
+tuning,100-166 aa,1/within,best hit,113,58.4%,131,87.8%
+tuning,100-166 aa,1/within,best with family,113,63.7%,131,87.8%
+tuning,100-166 aa,1/within,vote 3,113,63.7%,131,87.8%
+tuning,100-166 aa,1/within,vote 5,113,63.7%,131,87.8%
+tuning,100-166 aa,1/within,vote 10,113,60.2%,131,87.8%
+tuning,100-166 aa,between/within,best hit,113,61.1%,131,85.5%
+tuning,100-166 aa,between/within,best with family,113,64.6%,131,85.5%
+tuning,100-166 aa,between/within,vote 3,113,64.6%,131,85.5%
+tuning,100-166 aa,between/within,vote 5,113,62.8%,131,85.5%
+tuning,100-166 aa,between/within,vote 10,113,61.9%,131,85.5%
+tuning,167-332 aa,unweighted,best hit,116,66.4%,136,86.8%
+tuning,167-332 aa,unweighted,best with family,116,68.1%,136,86.8%
+tuning,167-332 aa,unweighted,vote 3,116,69.0%,136,86.8%
+tuning,167-332 aa,unweighted,vote 5,116,66.4%,136,86.8%
+tuning,167-332 aa,unweighted,vote 10,116,61.2%,136,86.8%
+tuning,167-332 aa,P0,best hit,116,23.3%,136,46.3%
+tuning,167-332 aa,P0,best with family,116,24.1%,136,46.3%
+tuning,167-332 aa,P0,vote 3,116,25.0%,136,46.3%
+tuning,167-332 aa,P0,vote 5,116,24.1%,136,46.3%
+tuning,167-332 aa,P0,vote 10,116,23.3%,136,46.3%
+tuning,167-332 aa,P0+P1,best hit,116,56.9%,136,83.8%
+tuning,167-332 aa,P0+P1,best with family,116,59.5%,136,83.8%
+tuning,167-332 aa,P0+P1,vote 3,116,61.2%,136,83.8%
+tuning,167-332 aa,P0+P1,vote 5,116,56.9%,136,83.8%
+tuning,167-332 aa,P0+P1,vote 10,116,53.4%,136,83.8%
+tuning,167-332 aa,1/variance,best hit,116,66.4%,136,90.4%
+tuning,167-332 aa,1/variance,best with family,116,67.2%,136,90.4%
+tuning,167-332 aa,1/variance,vote 3,116,68.1%,136,90.4%
+tuning,167-332 aa,1/variance,vote 5,116,66.4%,136,90.4%
+tuning,167-332 aa,1/variance,vote 10,116,61.2%,136,90.4%
+tuning,167-332 aa,1/within,best hit,116,64.7%,136,89.7%
+tuning,167-332 aa,1/within,best with family,116,66.4%,136,89.7%
+tuning,167-332 aa,1/within,vote 3,116,65.5%,136,89.7%
+tuning,167-332 aa,1/within,vote 5,116,66.4%,136,89.7%
+tuning,167-332 aa,1/within,vote 10,116,60.3%,136,89.7%
+tuning,167-332 aa,between/within,best hit,116,66.4%,136,86.8%
+tuning,167-332 aa,between/within,best with family,116,68.1%,136,86.8%
+tuning,167-332 aa,between/within,vote 3,116,69.0%,136,86.8%
+tuning,167-332 aa,between/within,vote 5,116,66.4%,136,86.8%
+tuning,167-332 aa,between/within,vote 10,116,61.2%,136,86.8%
+tuning,333-499 aa,unweighted,best hit,135,70.4%,145,85.5%
+tuning,333-499 aa,unweighted,best with family,135,73.3%,145,85.5%
+tuning,333-499 aa,unweighted,vote 3,135,69.6%,145,85.5%
+tuning,333-499 aa,unweighted,vote 5,135,67.4%,145,85.5%
+tuning,333-499 aa,unweighted,vote 10,135,64.4%,145,85.5%
+tuning,333-499 aa,P0,best hit,135,20.0%,145,33.8%
+tuning,333-499 aa,P0,best with family,135,20.7%,145,33.8%
+tuning,333-499 aa,P0,vote 3,135,23.0%,145,33.8%
+tuning,333-499 aa,P0,vote 5,135,23.7%,145,33.8%
+tuning,333-499 aa,P0,vote 10,135,23.0%,145,33.8%
+tuning,333-499 aa,P0+P1,best hit,135,59.3%,145,75.2%
+tuning,333-499 aa,P0+P1,best with family,135,60.0%,145,75.2%
+tuning,333-499 aa,P0+P1,vote 3,135,58.5%,145,75.2%
+tuning,333-499 aa,P0+P1,vote 5,135,57.8%,145,75.2%
+tuning,333-499 aa,P0+P1,vote 10,135,56.3%,145,75.2%
+tuning,333-499 aa,1/variance,best hit,135,71.1%,145,86.2%
+tuning,333-499 aa,1/variance,best with family,135,71.9%,145,86.2%
+tuning,333-499 aa,1/variance,vote 3,135,66.7%,145,86.2%
+tuning,333-499 aa,1/variance,vote 5,135,67.4%,145,86.2%
+tuning,333-499 aa,1/variance,vote 10,135,64.4%,145,86.2%
+tuning,333-499 aa,1/within,best hit,135,71.9%,145,86.2%
+tuning,333-499 aa,1/within,best with family,135,72.6%,145,86.2%
+tuning,333-499 aa,1/within,vote 3,135,68.1%,145,86.2%
+tuning,333-499 aa,1/within,vote 5,135,67.4%,145,86.2%
+tuning,333-499 aa,1/within,vote 10,135,65.9%,145,86.2%
+tuning,333-499 aa,between/within,best hit,135,71.1%,145,84.8%
+tuning,333-499 aa,between/within,best with family,135,73.3%,145,84.8%
+tuning,333-499 aa,between/within,vote 3,135,69.6%,145,84.8%
+tuning,333-499 aa,between/within,vote 5,135,67.4%,145,84.8%
+tuning,333-499 aa,between/within,vote 10,135,65.2%,145,84.8%
+tuning,500+ aa,unweighted,best hit,148,49.3%,151,68.9%
+tuning,500+ aa,unweighted,best with family,148,53.4%,151,68.9%
+tuning,500+ aa,unweighted,vote 3,148,54.7%,151,68.9%
+tuning,500+ aa,unweighted,vote 5,148,55.4%,151,68.9%
+tuning,500+ aa,unweighted,vote 10,148,54.1%,151,68.9%
+tuning,500+ aa,P0,best hit,148,10.1%,151,7.3%
+tuning,500+ aa,P0,best with family,148,11.5%,151,7.3%
+tuning,500+ aa,P0,vote 3,148,12.2%,151,7.3%
+tuning,500+ aa,P0,vote 5,148,13.5%,151,7.3%
+tuning,500+ aa,P0,vote 10,148,14.9%,151,7.3%
+tuning,500+ aa,P0+P1,best hit,148,39.2%,151,47.0%
+tuning,500+ aa,P0+P1,best with family,148,39.9%,151,47.0%
+tuning,500+ aa,P0+P1,vote 3,148,39.9%,151,47.0%
+tuning,500+ aa,P0+P1,vote 5,148,42.6%,151,47.0%
+tuning,500+ aa,P0+P1,vote 10,148,40.5%,151,47.0%
+tuning,500+ aa,1/variance,best hit,148,50.7%,151,78.1%
+tuning,500+ aa,1/variance,best with family,148,52.0%,151,78.1%
+tuning,500+ aa,1/variance,vote 3,148,52.0%,151,78.1%
+tuning,500+ aa,1/variance,vote 5,148,54.1%,151,78.1%
+tuning,500+ aa,1/variance,vote 10,148,54.1%,151,78.1%
+tuning,500+ aa,1/within,best hit,148,51.4%,151,78.8%
+tuning,500+ aa,1/within,best with family,148,52.0%,151,78.8%
+tuning,500+ aa,1/within,vote 3,148,51.4%,151,78.8%
+tuning,500+ aa,1/within,vote 5,148,54.1%,151,78.8%
+tuning,500+ aa,1/within,vote 10,148,54.1%,151,78.8%
+tuning,500+ aa,between/within,best hit,148,50.0%,151,69.5%
+tuning,500+ aa,between/within,best with family,148,53.4%,151,69.5%
+tuning,500+ aa,between/within,vote 3,148,54.7%,151,69.5%
+tuning,500+ aa,between/within,vote 5,148,54.7%,151,69.5%
+tuning,500+ aa,between/within,vote 10,148,53.4%,151,69.5%
+test,all,unweighted,best hit,413,65.9%,484,83.7%
+test,all,unweighted,best with family,413,69.0%,484,83.7%
+test,all,unweighted,vote 3,413,70.2%,484,83.7%
+test,all,unweighted,vote 5,413,69.5%,484,83.7%
+test,all,unweighted,vote 10,413,66.3%,484,83.7%
+test,all,P0,best hit,413,21.5%,484,42.1%
+test,all,P0,best with family,413,24.5%,484,42.1%
+test,all,P0,vote 3,413,24.2%,484,42.1%
+test,all,P0,vote 5,413,24.9%,484,42.1%
+test,all,P0,vote 10,413,25.9%,484,42.1%
+test,all,P0+P1,best hit,413,52.1%,484,76.9%
+test,all,P0+P1,best with family,413,54.2%,484,76.9%
+test,all,P0+P1,vote 3,413,55.4%,484,76.9%
+test,all,P0+P1,vote 5,413,53.3%,484,76.9%
+test,all,P0+P1,vote 10,413,52.3%,484,76.9%
+test,all,1/variance,best hit,413,66.8%,484,87.8%
+test,all,1/variance,best with family,413,69.5%,484,87.8%
+test,all,1/variance,vote 3,413,69.0%,484,87.8%
+test,all,1/variance,vote 5,413,68.3%,484,87.8%
+test,all,1/variance,vote 10,413,67.3%,484,87.8%
+test,all,1/within,best hit,413,66.6%,484,88.4%
+test,all,1/within,best with family,413,69.2%,484,88.4%
+test,all,1/within,vote 3,413,69.2%,484,88.4%
+test,all,1/within,vote 5,413,68.3%,484,88.4%
+test,all,1/within,vote 10,413,68.0%,484,88.4%
+test,all,between/within,best hit,413,66.1%,484,84.1%
+test,all,between/within,best with family,413,69.5%,484,84.1%
+test,all,between/within,vote 3,413,70.5%,484,84.1%
+test,all,between/within,vote 5,413,69.7%,484,84.1%
+test,all,between/within,vote 10,413,67.3%,484,84.1%
+test,50-99 aa,unweighted,best hit,46,76.1%,76,85.5%
+test,50-99 aa,unweighted,best with family,46,78.3%,76,85.5%
+test,50-99 aa,unweighted,vote 3,46,76.1%,76,85.5%
+test,50-99 aa,unweighted,vote 5,46,78.3%,76,85.5%
+test,50-99 aa,unweighted,vote 10,46,73.9%,76,85.5%
+test,50-99 aa,P0,best hit,46,45.7%,76,71.1%
+test,50-99 aa,P0,best with family,46,50.0%,76,71.1%
+test,50-99 aa,P0,vote 3,46,43.5%,76,71.1%
+test,50-99 aa,P0,vote 5,46,43.5%,76,71.1%
+test,50-99 aa,P0,vote 10,46,45.7%,76,71.1%
+test,50-99 aa,P0+P1,best hit,46,73.9%,76,85.5%
+test,50-99 aa,P0+P1,best with family,46,73.9%,76,85.5%
+test,50-99 aa,P0+P1,vote 3,46,73.9%,76,85.5%
+test,50-99 aa,P0+P1,vote 5,46,67.4%,76,85.5%
+test,50-99 aa,P0+P1,vote 10,46,69.6%,76,85.5%
+test,50-99 aa,1/variance,best hit,46,76.1%,76,88.2%
+test,50-99 aa,1/variance,best with family,46,78.3%,76,88.2%
+test,50-99 aa,1/variance,vote 3,46,76.1%,76,88.2%
+test,50-99 aa,1/variance,vote 5,46,78.3%,76,88.2%
+test,50-99 aa,1/variance,vote 10,46,76.1%,76,88.2%
+test,50-99 aa,1/within,best hit,46,78.3%,76,88.2%
+test,50-99 aa,1/within,best with family,46,78.3%,76,88.2%
+test,50-99 aa,1/within,vote 3,46,76.1%,76,88.2%
+test,50-99 aa,1/within,vote 5,46,73.9%,76,88.2%
+test,50-99 aa,1/within,vote 10,46,76.1%,76,88.2%
+test,50-99 aa,between/within,best hit,46,76.1%,76,85.5%
+test,50-99 aa,between/within,best with family,46,78.3%,76,85.5%
+test,50-99 aa,between/within,vote 3,46,78.3%,76,85.5%
+test,50-99 aa,between/within,vote 5,46,78.3%,76,85.5%
+test,50-99 aa,between/within,vote 10,46,76.1%,76,85.5%
+test,100-166 aa,unweighted,best hit,74,64.9%,91,92.3%
+test,100-166 aa,unweighted,best with family,74,68.9%,91,92.3%
+test,100-166 aa,unweighted,vote 3,74,68.9%,91,92.3%
+test,100-166 aa,unweighted,vote 5,74,67.6%,91,92.3%
+test,100-166 aa,unweighted,vote 10,74,62.2%,91,92.3%
+test,100-166 aa,P0,best hit,74,27.0%,91,67.0%
+test,100-166 aa,P0,best with family,74,32.4%,91,67.0%
+test,100-166 aa,P0,vote 3,74,32.4%,91,67.0%
+test,100-166 aa,P0,vote 5,74,33.8%,91,67.0%
+test,100-166 aa,P0,vote 10,74,31.1%,91,67.0%
+test,100-166 aa,P0+P1,best hit,74,55.4%,91,91.2%
+test,100-166 aa,P0+P1,best with family,74,58.1%,91,91.2%
+test,100-166 aa,P0+P1,vote 3,74,59.5%,91,91.2%
+test,100-166 aa,P0+P1,vote 5,74,52.7%,91,91.2%
+test,100-166 aa,P0+P1,vote 10,74,50.0%,91,91.2%
+test,100-166 aa,1/variance,best hit,74,62.2%,91,93.4%
+test,100-166 aa,1/variance,best with family,74,66.2%,91,93.4%
+test,100-166 aa,1/variance,vote 3,74,66.2%,91,93.4%
+test,100-166 aa,1/variance,vote 5,74,64.9%,91,93.4%
+test,100-166 aa,1/variance,vote 10,74,60.8%,91,93.4%
+test,100-166 aa,1/within,best hit,74,62.2%,91,94.5%
+test,100-166 aa,1/within,best with family,74,66.2%,91,94.5%
+test,100-166 aa,1/within,vote 3,74,66.2%,91,94.5%
+test,100-166 aa,1/within,vote 5,74,64.9%,91,94.5%
+test,100-166 aa,1/within,vote 10,74,60.8%,91,94.5%
+test,100-166 aa,between/within,best hit,74,64.9%,91,92.3%
+test,100-166 aa,between/within,best with family,74,68.9%,91,92.3%
+test,100-166 aa,between/within,vote 3,74,68.9%,91,92.3%
+test,100-166 aa,between/within,vote 5,74,67.6%,91,92.3%
+test,100-166 aa,between/within,vote 10,74,64.9%,91,92.3%
+test,167-332 aa,unweighted,best hit,89,69.7%,102,91.2%
+test,167-332 aa,unweighted,best with family,89,73.0%,102,91.2%
+test,167-332 aa,unweighted,vote 3,89,73.0%,102,91.2%
+test,167-332 aa,unweighted,vote 5,89,71.9%,102,91.2%
+test,167-332 aa,unweighted,vote 10,89,68.5%,102,91.2%
+test,167-332 aa,P0,best hit,89,21.3%,102,48.0%
+test,167-332 aa,P0,best with family,89,25.8%,102,48.0%
+test,167-332 aa,P0,vote 3,89,25.8%,102,48.0%
+test,167-332 aa,P0,vote 5,89,27.0%,102,48.0%
+test,167-332 aa,P0,vote 10,89,28.1%,102,48.0%
+test,167-332 aa,P0+P1,best hit,89,56.2%,102,85.3%
+test,167-332 aa,P0+P1,best with family,89,59.6%,102,85.3%
+test,167-332 aa,P0+P1,vote 3,89,58.4%,102,85.3%
+test,167-332 aa,P0+P1,vote 5,89,57.3%,102,85.3%
+test,167-332 aa,P0+P1,vote 10,89,53.9%,102,85.3%
+test,167-332 aa,1/variance,best hit,89,74.2%,102,89.2%
+test,167-332 aa,1/variance,best with family,89,78.7%,102,89.2%
+test,167-332 aa,1/variance,vote 3,89,76.4%,102,89.2%
+test,167-332 aa,1/variance,vote 5,89,70.8%,102,89.2%
+test,167-332 aa,1/variance,vote 10,89,70.8%,102,89.2%
+test,167-332 aa,1/within,best hit,89,73.0%,102,89.2%
+test,167-332 aa,1/within,best with family,89,77.5%,102,89.2%
+test,167-332 aa,1/within,vote 3,89,75.3%,102,89.2%
+test,167-332 aa,1/within,vote 5,89,70.8%,102,89.2%
+test,167-332 aa,1/within,vote 10,89,71.9%,102,89.2%
+test,167-332 aa,between/within,best hit,89,70.8%,102,92.2%
+test,167-332 aa,between/within,best with family,89,75.3%,102,92.2%
+test,167-332 aa,between/within,vote 3,89,73.0%,102,92.2%
+test,167-332 aa,between/within,vote 5,89,71.9%,102,92.2%
+test,167-332 aa,between/within,vote 10,89,69.7%,102,92.2%
+test,333-499 aa,unweighted,best hit,103,68.0%,109,89.0%
+test,333-499 aa,unweighted,best with family,103,71.8%,109,89.0%
+test,333-499 aa,unweighted,vote 3,103,73.8%,109,89.0%
+test,333-499 aa,unweighted,vote 5,103,71.8%,109,89.0%
+test,333-499 aa,unweighted,vote 10,103,67.0%,109,89.0%
+test,333-499 aa,P0,best hit,103,20.4%,109,34.9%
+test,333-499 aa,P0,best with family,103,21.4%,109,34.9%
+test,333-499 aa,P0,vote 3,103,24.3%,109,34.9%
+test,333-499 aa,P0,vote 5,103,24.3%,109,34.9%
+test,333-499 aa,P0,vote 10,103,25.2%,109,34.9%
+test,333-499 aa,P0+P1,best hit,103,56.3%,109,81.7%
+test,333-499 aa,P0+P1,best with family,103,58.3%,109,81.7%
+test,333-499 aa,P0+P1,vote 3,103,61.2%,109,81.7%
+test,333-499 aa,P0+P1,vote 5,103,58.3%,109,81.7%
+test,333-499 aa,P0+P1,vote 10,103,57.3%,109,81.7%
+test,333-499 aa,1/variance,best hit,103,67.0%,109,90.8%
+test,333-499 aa,1/variance,best with family,103,68.9%,109,90.8%
+test,333-499 aa,1/variance,vote 3,103,68.9%,109,90.8%
+test,333-499 aa,1/variance,vote 5,103,68.9%,109,90.8%
+test,333-499 aa,1/variance,vote 10,103,68.0%,109,90.8%
+test,333-499 aa,1/within,best hit,103,67.0%,109,90.8%
+test,333-499 aa,1/within,best with family,103,68.9%,109,90.8%
+test,333-499 aa,1/within,vote 3,103,68.9%,109,90.8%
+test,333-499 aa,1/within,vote 5,103,69.9%,109,90.8%
+test,333-499 aa,1/within,vote 10,103,68.9%,109,90.8%
+test,333-499 aa,between/within,best hit,103,67.0%,109,89.0%
+test,333-499 aa,between/within,best with family,103,70.9%,109,89.0%
+test,333-499 aa,between/within,vote 3,103,73.8%,109,89.0%
+test,333-499 aa,between/within,vote 5,103,72.8%,109,89.0%
+test,333-499 aa,between/within,vote 10,103,68.0%,109,89.0%
+test,500+ aa,unweighted,best hit,101,56.4%,106,62.3%
+test,500+ aa,unweighted,best with family,101,58.4%,106,62.3%
+test,500+ aa,unweighted,vote 3,101,62.4%,106,62.3%
+test,500+ aa,unweighted,vote 5,101,62.4%,106,62.3%
+test,500+ aa,unweighted,vote 10,101,63.4%,106,62.3%
+test,500+ aa,P0,best hit,101,7.9%,106,1.9%
+test,500+ aa,P0,best with family,101,8.9%,106,1.9%
+test,500+ aa,P0,vote 3,101,7.9%,106,1.9%
+test,500+ aa,P0,vote 5,101,8.9%,106,1.9%
+test,500+ aa,P0,vote 10,101,11.9%,106,1.9%
+test,500+ aa,P0+P1,best hit,101,31.7%,106,45.3%
+test,500+ aa,P0+P1,best with family,101,33.7%,106,45.3%
+test,500+ aa,P0+P1,vote 3,101,35.6%,106,45.3%
+test,500+ aa,P0+P1,vote 5,101,38.6%,106,45.3%
+test,500+ aa,P0+P1,vote 10,101,39.6%,106,45.3%
+test,500+ aa,1/variance,best hit,101,59.4%,106,78.3%
+test,500+ aa,1/variance,best with family,101,60.4%,106,78.3%
+test,500+ aa,1/variance,vote 3,101,61.4%,106,78.3%
+test,500+ aa,1/variance,vote 5,101,63.4%,106,78.3%
+test,500+ aa,1/variance,vote 10,101,64.4%,106,78.3%
+test,500+ aa,1/within,best hit,101,58.4%,106,80.2%
+test,500+ aa,1/within,best with family,101,60.4%,106,80.2%
+test,500+ aa,1/within,vote 3,101,63.4%,106,80.2%
+test,500+ aa,1/within,vote 5,101,64.4%,106,80.2%
+test,500+ aa,1/within,vote 10,101,65.3%,106,80.2%
+test,500+ aa,between/within,best hit,101,57.4%,106,63.2%
+test,500+ aa,between/within,best with family,101,59.4%,106,63.2%
+test,500+ aa,between/within,vote 3,101,62.4%,106,63.2%
+test,500+ aa,between/within,vote 5,101,62.4%,106,63.2%
+test,500+ aa,between/within,vote 10,101,62.4%,106,63.2%
+all,all,unweighted,best hit,989,64.1%,1143,83.1%
+all,all,unweighted,best with family,989,67.2%,1143,83.1%
+all,all,unweighted,vote 3,989,67.3%,1143,83.1%
+all,all,unweighted,vote 5,989,65.5%,1143,83.1%
+all,all,unweighted,vote 10,989,62.9%,1143,83.1%
+all,all,P0,best hit,989,21.8%,1143,41.6%
+all,all,P0,best with family,989,24.2%,1143,41.6%
+all,all,P0,vote 3,989,24.7%,1143,41.6%
+all,all,P0,vote 5,989,25.0%,1143,41.6%
+all,all,P0,vote 10,989,25.4%,1143,41.6%
+all,all,P0+P1,best hit,989,52.8%,1143,74.8%
+all,all,P0+P1,best with family,989,55.0%,1143,74.8%
+all,all,P0+P1,vote 3,989,55.4%,1143,74.8%
+all,all,P0+P1,vote 5,989,53.4%,1143,74.8%
+all,all,P0+P1,vote 10,989,52.0%,1143,74.8%
+all,all,1/variance,best hit,989,64.2%,1143,86.7%
+all,all,1/variance,best with family,989,66.7%,1143,86.7%
+all,all,1/variance,vote 3,989,65.4%,1143,86.7%
+all,all,1/variance,vote 5,989,64.8%,1143,86.7%
+all,all,1/variance,vote 10,989,63.2%,1143,86.7%
+all,all,1/within,best hit,989,64.0%,1143,87.1%
+all,all,1/within,best with family,989,66.4%,1143,87.1%
+all,all,1/within,vote 3,989,65.1%,1143,87.1%
+all,all,1/within,vote 5,989,64.8%,1143,87.1%
+all,all,1/within,vote 10,989,63.3%,1143,87.1%
+all,all,between/within,best hit,989,64.4%,1143,83.2%
+all,all,between/within,best with family,989,67.4%,1143,83.2%
+all,all,between/within,vote 3,989,67.3%,1143,83.2%
+all,all,between/within,vote 5,989,65.6%,1143,83.2%
+all,all,between/within,vote 10,989,63.1%,1143,83.2%
+all,50-99 aa,unweighted,best hit,110,75.5%,172,87.8%
+all,50-99 aa,unweighted,best with family,110,78.2%,172,87.8%
+all,50-99 aa,unweighted,vote 3,110,74.5%,172,87.8%
+all,50-99 aa,unweighted,vote 5,110,69.1%,172,87.8%
+all,50-99 aa,unweighted,vote 10,110,66.4%,172,87.8%
+all,50-99 aa,P0,best hit,110,42.7%,172,76.7%
+all,50-99 aa,P0,best with family,110,46.4%,172,76.7%
+all,50-99 aa,P0,vote 3,110,44.5%,172,76.7%
+all,50-99 aa,P0,vote 5,110,43.6%,172,76.7%
+all,50-99 aa,P0,vote 10,110,44.5%,172,76.7%
+all,50-99 aa,P0+P1,best hit,110,68.2%,172,87.2%
+all,50-99 aa,P0+P1,best with family,110,70.0%,172,87.2%
+all,50-99 aa,P0+P1,vote 3,110,69.1%,172,87.2%
+all,50-99 aa,P0+P1,vote 5,110,61.8%,172,87.2%
+all,50-99 aa,P0+P1,vote 10,110,60.9%,172,87.2%
+all,50-99 aa,1/variance,best hit,110,72.7%,172,88.4%
+all,50-99 aa,1/variance,best with family,110,76.4%,172,88.4%
+all,50-99 aa,1/variance,vote 3,110,70.9%,172,88.4%
+all,50-99 aa,1/variance,vote 5,110,68.2%,172,88.4%
+all,50-99 aa,1/variance,vote 10,110,67.3%,172,88.4%
+all,50-99 aa,1/within,best hit,110,72.7%,172,89.0%
+all,50-99 aa,1/within,best with family,110,75.5%,172,89.0%
+all,50-99 aa,1/within,vote 3,110,70.0%,172,89.0%
+all,50-99 aa,1/within,vote 5,110,66.4%,172,89.0%
+all,50-99 aa,1/within,vote 10,110,66.4%,172,89.0%
+all,50-99 aa,between/within,best hit,110,75.5%,172,87.8%
+all,50-99 aa,between/within,best with family,110,78.2%,172,87.8%
+all,50-99 aa,between/within,vote 3,110,75.5%,172,87.8%
+all,50-99 aa,between/within,vote 5,110,70.0%,172,87.8%
+all,50-99 aa,between/within,vote 10,110,66.4%,172,87.8%
+all,100-166 aa,unweighted,best hit,187,62.6%,222,88.7%
+all,100-166 aa,unweighted,best with family,187,66.3%,222,88.7%
+all,100-166 aa,unweighted,vote 3,187,66.8%,222,88.7%
+all,100-166 aa,unweighted,vote 5,187,64.7%,222,88.7%
+all,100-166 aa,unweighted,vote 10,187,62.6%,222,88.7%
+all,100-166 aa,P0,best hit,187,27.8%,222,59.0%
+all,100-166 aa,P0,best with family,187,32.6%,222,59.0%
+all,100-166 aa,P0,vote 3,187,32.6%,222,59.0%
+all,100-166 aa,P0,vote 5,187,32.6%,222,59.0%
+all,100-166 aa,P0,vote 10,187,31.6%,222,59.0%
+all,100-166 aa,P0+P1,best hit,187,55.1%,222,84.2%
+all,100-166 aa,P0+P1,best with family,187,59.4%,222,84.2%
+all,100-166 aa,P0+P1,vote 3,187,59.9%,222,84.2%
+all,100-166 aa,P0+P1,vote 5,187,55.1%,222,84.2%
+all,100-166 aa,P0+P1,vote 10,187,54.5%,222,84.2%
+all,100-166 aa,1/variance,best hit,187,59.9%,222,90.1%
+all,100-166 aa,1/variance,best with family,187,65.2%,222,90.1%
+all,100-166 aa,1/variance,vote 3,187,65.2%,222,90.1%
+all,100-166 aa,1/variance,vote 5,187,64.2%,222,90.1%
+all,100-166 aa,1/variance,vote 10,187,61.5%,222,90.1%
+all,100-166 aa,1/within,best hit,187,59.9%,222,90.5%
+all,100-166 aa,1/within,best with family,187,64.7%,222,90.5%
+all,100-166 aa,1/within,vote 3,187,64.7%,222,90.5%
+all,100-166 aa,1/within,vote 5,187,64.2%,222,90.5%
+all,100-166 aa,1/within,vote 10,187,60.4%,222,90.5%
+all,100-166 aa,between/within,best hit,187,62.6%,222,88.3%
+all,100-166 aa,between/within,best with family,187,66.3%,222,88.3%
+all,100-166 aa,between/within,vote 3,187,66.3%,222,88.3%
+all,100-166 aa,between/within,vote 5,187,64.7%,222,88.3%
+all,100-166 aa,between/within,vote 10,187,63.1%,222,88.3%
+all,167-332 aa,unweighted,best hit,205,67.8%,238,88.7%
+all,167-332 aa,unweighted,best with family,205,70.2%,238,88.7%
+all,167-332 aa,unweighted,vote 3,205,70.7%,238,88.7%
+all,167-332 aa,unweighted,vote 5,205,68.8%,238,88.7%
+all,167-332 aa,unweighted,vote 10,205,64.4%,238,88.7%
+all,167-332 aa,P0,best hit,205,22.4%,238,47.1%
+all,167-332 aa,P0,best with family,205,24.9%,238,47.1%
+all,167-332 aa,P0,vote 3,205,25.4%,238,47.1%
+all,167-332 aa,P0,vote 5,205,25.4%,238,47.1%
+all,167-332 aa,P0,vote 10,205,25.4%,238,47.1%
+all,167-332 aa,P0+P1,best hit,205,56.6%,238,84.5%
+all,167-332 aa,P0+P1,best with family,205,59.5%,238,84.5%
+all,167-332 aa,P0+P1,vote 3,205,60.0%,238,84.5%
+all,167-332 aa,P0+P1,vote 5,205,57.1%,238,84.5%
+all,167-332 aa,P0+P1,vote 10,205,53.7%,238,84.5%
+all,167-332 aa,1/variance,best hit,205,69.8%,238,89.9%
+all,167-332 aa,1/variance,best with family,205,72.2%,238,89.9%
+all,167-332 aa,1/variance,vote 3,205,71.7%,238,89.9%
+all,167-332 aa,1/variance,vote 5,205,68.3%,238,89.9%
+all,167-332 aa,1/variance,vote 10,205,65.4%,238,89.9%
+all,167-332 aa,1/within,best hit,205,68.3%,238,89.5%
+all,167-332 aa,1/within,best with family,205,71.2%,238,89.5%
+all,167-332 aa,1/within,vote 3,205,69.8%,238,89.5%
+all,167-332 aa,1/within,vote 5,205,68.3%,238,89.5%
+all,167-332 aa,1/within,vote 10,205,65.4%,238,89.5%
+all,167-332 aa,between/within,best hit,205,68.3%,238,89.1%
+all,167-332 aa,between/within,best with family,205,71.2%,238,89.1%
+all,167-332 aa,between/within,vote 3,205,70.7%,238,89.1%
+all,167-332 aa,between/within,vote 5,205,68.8%,238,89.1%
+all,167-332 aa,between/within,vote 10,205,64.9%,238,89.1%
+all,333-499 aa,unweighted,best hit,238,69.3%,254,87.0%
+all,333-499 aa,unweighted,best with family,238,72.7%,254,87.0%
+all,333-499 aa,unweighted,vote 3,238,71.4%,254,87.0%
+all,333-499 aa,unweighted,vote 5,238,69.3%,254,87.0%
+all,333-499 aa,unweighted,vote 10,238,65.5%,254,87.0%
+all,333-499 aa,P0,best hit,238,20.2%,254,34.3%
+all,333-499 aa,P0,best with family,238,21.0%,254,34.3%
+all,333-499 aa,P0,vote 3,238,23.5%,254,34.3%
+all,333-499 aa,P0,vote 5,238,23.9%,254,34.3%
+all,333-499 aa,P0,vote 10,238,23.9%,254,34.3%
+all,333-499 aa,P0+P1,best hit,238,58.0%,254,78.0%
+all,333-499 aa,P0+P1,best with family,238,59.2%,254,78.0%
+all,333-499 aa,P0+P1,vote 3,238,59.7%,254,78.0%
+all,333-499 aa,P0+P1,vote 5,238,58.0%,254,78.0%
+all,333-499 aa,P0+P1,vote 10,238,56.7%,254,78.0%
+all,333-499 aa,1/variance,best hit,238,69.3%,254,88.2%
+all,333-499 aa,1/variance,best with family,238,70.6%,254,88.2%
+all,333-499 aa,1/variance,vote 3,238,67.6%,254,88.2%
+all,333-499 aa,1/variance,vote 5,238,68.1%,254,88.2%
+all,333-499 aa,1/variance,vote 10,238,66.0%,254,88.2%
+all,333-499 aa,1/within,best hit,238,69.7%,254,88.2%
+all,333-499 aa,1/within,best with family,238,71.0%,254,88.2%
+all,333-499 aa,1/within,vote 3,238,68.5%,254,88.2%
+all,333-499 aa,1/within,vote 5,238,68.5%,254,88.2%
+all,333-499 aa,1/within,vote 10,238,67.2%,254,88.2%
+all,333-499 aa,between/within,best hit,238,69.3%,254,86.6%
+all,333-499 aa,between/within,best with family,238,72.3%,254,86.6%
+all,333-499 aa,between/within,vote 3,238,71.4%,254,86.6%
+all,333-499 aa,between/within,vote 5,238,69.7%,254,86.6%
+all,333-499 aa,between/within,vote 10,238,66.4%,254,86.6%
+all,500+ aa,unweighted,best hit,249,52.2%,257,66.1%
+all,500+ aa,unweighted,best with family,249,55.4%,257,66.1%
+all,500+ aa,unweighted,vote 3,249,57.8%,257,66.1%
+all,500+ aa,unweighted,vote 5,249,58.2%,257,66.1%
+all,500+ aa,unweighted,vote 10,249,57.8%,257,66.1%
+all,500+ aa,P0,best hit,249,9.2%,257,5.1%
+all,500+ aa,P0,best with family,249,10.4%,257,5.1%
+all,500+ aa,P0,vote 3,249,10.4%,257,5.1%
+all,500+ aa,P0,vote 5,249,11.6%,257,5.1%
+all,500+ aa,P0,vote 10,249,13.7%,257,5.1%
+all,500+ aa,P0+P1,best hit,249,36.1%,257,46.3%
+all,500+ aa,P0+P1,best with family,249,37.3%,257,46.3%
+all,500+ aa,P0+P1,vote 3,249,38.2%,257,46.3%
+all,500+ aa,P0+P1,vote 5,249,41.0%,257,46.3%
+all,500+ aa,P0+P1,vote 10,249,40.2%,257,46.3%
+all,500+ aa,1/variance,best hit,249,54.2%,257,78.2%
+all,500+ aa,1/variance,best with family,249,55.4%,257,78.2%
+all,500+ aa,1/variance,vote 3,249,55.8%,257,78.2%
+all,500+ aa,1/variance,vote 5,249,57.8%,257,78.2%
+all,500+ aa,1/variance,vote 10,249,58.2%,257,78.2%
+all,500+ aa,1/within,best hit,249,54.2%,257,79.4%
+all,500+ aa,1/within,best with family,249,55.4%,257,79.4%
+all,500+ aa,1/within,vote 3,249,56.2%,257,79.4%
+all,500+ aa,1/within,vote 5,249,58.2%,257,79.4%
+all,500+ aa,1/within,vote 10,249,58.6%,257,79.4%
+all,500+ aa,between/within,best hit,249,53.0%,257,66.9%
+all,500+ aa,between/within,best with family,249,55.8%,257,66.9%
+all,500+ aa,between/within,vote 3,249,57.8%,257,66.9%
+all,500+ aa,between/within,vote 5,249,57.8%,257,66.9%
+all,500+ aa,between/within,vote 10,249,57.0%,257,66.9%
+
+Weights 1/variance,0.741 0.838 0.333 1.17 1.16 1.15 1.19 1.21 1.2
+Weights 1/within,0.69 0.733 0.277 1.25 1.11 1.23 1.17 1.3 1.25
+Weights between/within,0.981 1 0.953 1.03 0.979 1.01 0.977 1.1 0.967
+Best on tuning half,unweighted / best with family
+Test half vs unweighted / best hit,family top-1 +3.1 points (95% CI -8.7 to +15.3; 413 proteins in 23 genomes); exact top-1 +0.0 points
+Rule (>= +5 points, CI excludes 0, exact >= -1 point),stop: report today's number
+
+Today's misses,355 of 989 reachable
+  first same-family gene at rank 2-10,139
+  at rank 11-200,150
+  below rank 200,66
+  top hit has no family,93
+  50-99 aa,misses 27: median length ratio of best same-family gene 1.000 (hits 1.000); off by > 10% 0; median score gap 0.069
+  100-166 aa,misses 70: median length ratio of best same-family gene 1.000 (hits 1.000); off by > 10% 0; median score gap 0.036
+  167-332 aa,misses 66: median length ratio of best same-family gene 1.000 (hits 1.000); off by > 10% 0; median score gap 0.026
+  333-499 aa,misses 73: median length ratio of best same-family gene 0.998 (hits 1.000); off by > 10% 0; median score gap 0.021
+  500+ aa,misses 119: median length ratio of best same-family gene 0.998 (hits 1.000); off by > 10% 29; median score gap 0.019
+Total,34.6 min

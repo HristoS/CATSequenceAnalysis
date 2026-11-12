@@ -27,6 +27,7 @@ using SequencePlatform.Ingest;
 //   profile --fasta X --out X.zcwp            the query-side profile of each record, both strands (X.zcwp and X.rc.zcwp); no database
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
+//   publish-experiments [--registry results/experiments.json] [--name N]   every experiment an article states, with its CSVs, for the experiments page (0023)
 //   add-user NAME                             an API user (D3); prints their key once, only its hash is stored
 //   rotate-key NAME                           a new key for an enabled user, printed once; the old key stops working
 //   disable-user NAME                         revokes that user's key; their uploads stay
@@ -40,7 +41,8 @@ const string usage =
     "       | backfill-chromosomes [--limit N] [--accession A] [--parallel P] [--contact EMAIL]\n" +
     "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL] | verify-genes | cluster-genes\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
-    "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N] | add-user NAME | rotate-key NAME | disable-user NAME";
+    "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]\n" +
+    "       | publish-experiments [--registry results/experiments.json] [--name N] | add-user NAME | rotate-key NAME | disable-user NAME";
 
 if (args.Length == 0)
 {
@@ -193,6 +195,9 @@ switch (args[0])
     case "localize":
         return await LocalizeAsync(dataSource, Option("--fasta"), Option("--profile"), Option("--record") is { } record ? long.Parse(record) : null,
             Filter(), int.Parse(Option("--top") ?? "20"));
+
+    case "publish-experiments":
+        return await ExperimentPublisher.PublishAsync(dataSource, Option("--registry") ?? Path.Combine("results", "experiments.json"), Option("--name"));
 
     case "add-user" when args.Length > 1:
         var (user, apiKey) = await Users.CreateAsync(dataSource, args[1]);

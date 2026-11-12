@@ -40,6 +40,16 @@ export async function send(path, { method = "GET", body, contentType, bytes = fa
 export const get = path => send(path);
 export const getBytes = path => send(path, { bytes: true });
 
+// A file download needs the key too, so a plain link won't do: fetch it, then hand the browser the bytes under the file's name.
+export async function download(path, fileName, type = "text/csv") {
+  const url = URL.createObjectURL(new Blob([await getBytes(path)], { type }));
+  const link = Object.assign(document.createElement("a"), { href: url, download: fileName });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
 // One request per record however many panels ask: the genes panel, the signature's gene-layer view, paths and the compare page share it.
 const geneLists = new Map();
 export function loadGenes(id) {

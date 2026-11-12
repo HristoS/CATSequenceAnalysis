@@ -1,0 +1,343 @@
+{
+  "about": "Every experiment the articles state, for the platform's experiments page (migration 0023). `SequencePlatform.Ingest publish-experiments` publishes each entry with its CSVs from this folder as an 'article' run. runnable: can be rerun from the database alone; experiments that need DNA never can. commit: the last commit that changed the CSVs. Numbers are those in README.md. The P9 runs with findings (e1-outliers, e1b-outliers-cvtree, e2b-phage-host, e4-cpg) are published by their own scripts with --publish and are not listed here.",
+  "defaults": { "machine": "i7-10510U, 4 cores / 8 threads", "libraryCommand": "dotnet test SequenceAnaliseTests --filter \"FullyQualifiedName~{0}\"", "scriptCommand": "dotnet run scripts/platform-checks/{0}" },
+  "experiments": [
+    {
+      "name": "build-time", "article": "A-genome", "section": "8.1", "verdict": "context", "runnable": false,
+      "title": "Profile build time", "question": "How fast is a windowed Z-curve profile built, from 20 kbp to 10.24 Mbp?",
+      "note": "Timed in a Debug build; A4 reruns it in Release.", "snapshot": "synthetic sequences (Generator, seeded)",
+      "test": "TrilaterationPerformanceBenchmarks", "commit": "e152aa4",
+      "keyNumbers": [ { "label": "M bases/s, slowest", "value": 39.6 }, { "label": "M bases/s, fastest", "value": 49.7 } ],
+      "files": [ "ReportTrilaterationBuildTime.csv" ]
+    },
+    {
+      "name": "compare-time", "article": "A-genome", "section": "8.2", "verdict": "context", "runnable": false,
+      "title": "Whole-sequence compare time", "question": "How long does comparing two whole profiles take?",
+      "note": "Debug build (A4).", "snapshot": "synthetic sequences (Generator, seeded)",
+      "test": "TrilaterationPerformanceBenchmarks", "commit": "e152aa4",
+      "keyNumbers": [ { "label": "ms per compare at 10.24 Mbp", "value": 0.064 } ],
+      "files": [ "ReportTrilaterationCompareTime_WholeSequence.csv" ]
+    },
+    {
+      "name": "localization-time", "article": "A-genome", "section": "8.2", "verdict": "context", "runnable": false,
+      "title": "Fragment localization time", "question": "How long does BestAlignment take to place a fragment in a long sequence?",
+      "note": "Debug build (A4).", "snapshot": "synthetic sequences (Generator, seeded)",
+      "test": "TrilaterationPerformanceBenchmarks", "commit": "e152aa4",
+      "keyNumbers": [ { "label": "ms at 10.24 Mbp", "value": 2.38 } ],
+      "files": [ "ReportTrilaterationLocalizationTime.csv" ]
+    },
+    {
+      "name": "reliability-at-scale", "article": "A-genome", "section": "8.3", "verdict": "context", "runnable": false,
+      "title": "Score against known mutation rate", "question": "Does the score fall steadily with the substitution rate, at every length?",
+      "note": "Substitutions only; indels are planned (A10). 5 seeds per length.", "snapshot": "synthetic sequences (Generator, seeded)",
+      "test": "TrilaterationReliabilityAtScaleBenchmarks", "commit": "e152aa4",
+      "files": [ "ReportReliabilityAtScale_Summary.csv", "ReportReliabilityAtScale_Raw.csv" ]
+    },
+    {
+      "name": "nw-accuracy", "article": "A-genome", "section": "8.4", "verdict": "context", "runnable": false,
+      "title": "Accuracy against Needleman–Wunsch", "question": "How does the score track global alignment identity from 500 bp to 20 kbp?",
+      "snapshot": "synthetic sequences (Generator, seeded)",
+      "test": "TrilaterationAccuracyBenchmarks", "commit": "e152aa4",
+      "files": [ "ReportTrilaterationAccuracy_Summary.csv", "ReportTrilaterationAccuracy_Raw.csv", "ReportNWCalibration.csv" ]
+    },
+    {
+      "name": "genome-scale", "article": "A-genome", "section": "8.2, 8.3, 8.5", "verdict": "context", "runnable": false,
+      "title": "A 3.1 Gbp genome, streamed", "question": "Can a human-sized genome be profiled, searched and stored without loading it as a string?",
+      "note": "The compare and reliability rows predate the SIMD rewrite (upper bounds).", "snapshot": "synthetic 3.1 Gbp sequence (Generator, seeded)",
+      "test": "GenomeScaleStreamingTests", "commit": "e152aa4",
+      "keyNumbers": [ { "label": "ms to find a planted fragment", "value": 141.7 }, { "label": "MB of profile", "value": 74.4 }, { "label": "sequence : profile size", "value": 83 } ],
+      "files": [ "GenomeScaleCompareTime_3100000000.csv", "GenomeScalePlantedGeneLocalization_3100000000.csv", "GenomeScaleReliability_3100000000.csv", "GenomeScaleStorageFootprint_3100000000.csv" ]
+    },
+    {
+      "name": "distance-matrix", "article": "A-genome", "section": "8.6", "verdict": "context", "runnable": false,
+      "title": "30 bacteria, all pairs", "question": "Do scores order pairs by relationship: same species, genus, phylum, different phylum?",
+      "snapshot": "bundled genomes (data/genomes)", "test": "RealGenomeDistanceMatrixBenchmark", "commit": "e152aa4",
+      "keyNumbers": [ { "label": "same species", "value": 0.8187 }, { "label": "same genus", "value": 0.7914 }, { "label": "same phylum", "value": 0.7573 }, { "label": "different phylum", "value": 0.6063 } ],
+      "files": [ "RealGenomeDistanceMatrix_Summary.csv", "RealGenomeDistanceMatrix_Raw.csv" ]
+    },
+    {
+      "name": "external-baseline", "article": "A-genome", "section": "8.7", "verdict": "context", "runnable": false,
+      "title": "Against Mash and FastANI", "question": "How do the scores relate to Mash and FastANI on the same 435 pairs?",
+      "note": "Mash saturates for distant pairs while the Z-curve stays graded; FastANI returns nothing for most pairs. Mash and FastANI outputs are in results/raw/.",
+      "snapshot": "bundled genomes (data/genomes)", "test": "ExternalBaselineComparisonBenchmark", "commit": "e152aa4",
+      "keyNumbers": [ { "label": "Pearson r with Mash, 22 pairs above its floor", "value": 0.39 } ],
+      "files": [ "ExternalBaseline_Summary.csv", "ExternalBaseline_Correlation.csv", "ExternalBaseline_Runtime.csv", "ExternalBaseline_Raw.csv" ]
+    },
+    {
+      "name": "retrieval-classification", "article": "A-genome", "section": "8.8", "verdict": "context", "runnable": false,
+      "title": "Retrieval against Mash", "question": "Ranking pairs by score, how well are same-genus and same-phylum pairs found, against Mash?",
+      "note": "Mash ranks better.", "snapshot": "bundled genomes (data/genomes)", "test": "RetrievalClassificationBenchmark", "commit": "e152aa4",
+      "keyNumbers": [ { "label": "Z-curve AUC, same genus", "value": 0.835 }, { "label": "Mash AUC, same genus", "value": 0.969 }, { "label": "Z-curve AUC, same phylum", "value": 0.789 }, { "label": "Mash AUC, same phylum", "value": 0.802 } ],
+      "files": [ "ReportRetrievalClassification.csv", "ReportRetrievalOperatingPoint.csv" ]
+    },
+    {
+      "name": "window-size", "article": "A-genome", "section": "8.9", "verdict": "context", "runnable": false,
+      "title": "Window size sensitivity", "question": "How do 250, 500, 1,000 and 2,000 bp windows change the relationship levels?",
+      "snapshot": "bundled genomes (data/genomes)", "test": "WindowSizeSensitivityBenchmark", "commit": "e152aa4",
+      "files": [ "WindowSizeSensitivity.csv" ]
+    },
+    {
+      "name": "single-point-ceiling", "article": "A-genome", "section": "2.3", "verdict": "context", "runnable": false,
+      "title": "The single-point ceiling (CAT)", "question": "Does a single-point profile tell phiX174 from lambda phage?",
+      "note": "CAT was removed from the code; it is at commit e152aa4.", "snapshot": "bundled genomes (data/genomes)",
+      "script": "CATProfile at commit e152aa4", "command": "git checkout e152aa4, then the phage motivating example in SequenceAnaliseTests", "commit": "7cc7648",
+      "keyNumbers": [ { "label": "CAT score, phiX174 vs lambda", "value": 0.9978 } ],
+      "files": [ "ReportPhageMotivatingExample.csv" ]
+    },
+    {
+      "name": "windowing-strategy", "article": "A-genome", "section": "5.1, 5.3", "verdict": "pass", "runnable": false,
+      "title": "Fixed window size, not fixed count", "question": "Does a fixed window size keep unrelated pairs from drifting together as sequences grow?",
+      "snapshot": "synthetic sequences (Generator, seeded)", "test": "WindowingStrategyBenchmark", "commit": "7cc7648",
+      "files": [ "ReportWindowingStrategy.csv", "ReportRegionalStructureDetection.csv" ]
+    },
+    {
+      "name": "window-count", "article": "A-genome", "verdict": "context", "runnable": false,
+      "title": "Window count decides quality", "question": "How few windows can the shorter genome keep before retrieval suffers?",
+      "note": "Bacteria lose no AUC down to a median of about 4 windows; with 0 windows Compare returns 0.",
+      "snapshot": "bundled genomes (data/genomes)", "test": "MultiResolutionBenchmark", "commit": "95518ec",
+      "keyNumbers": [ { "label": "bacteria AUC, 500 bp windows", "value": 0.835 }, { "label": "bacteria AUC, 512 kbp windows", "value": 0.851 }, { "label": "viral same-genus AUC, 18 windows", "value": 0.881 }, { "label": "viral same-genus AUC, 2 windows", "value": 0.85 } ],
+      "files": [ "MultiResolution_WindowCount.csv" ]
+    },
+    {
+      "name": "ladder", "article": "A-genome", "verdict": "pass", "runnable": false,
+      "title": "The multi-resolution ladder", "question": "Comparing at the coarsest level that keeps 8 windows: same accuracy, less time?",
+      "note": "All pairs in 8.6 ms instead of 23.5 s.", "snapshot": "bundled genomes (data/genomes)", "test": "MultiResolutionBenchmark", "commit": "95518ec",
+      "keyNumbers": [ { "label": "AUC same genus", "value": 0.853 }, { "label": "AUC same phylum", "value": 0.783 } ],
+      "files": [ "MultiResolution_LadderRule.csv" ]
+    },
+    {
+      "name": "gc-baseline", "article": "A-genome", "verdict": "context", "runnable": false,
+      "title": "GC alone as a baseline", "question": "How close does GC content alone get to the Z-curve's retrieval?",
+      "note": "The genus AUC rests on 8 positive pairs (CI about ±0.17).", "snapshot": "bundled genomes (data/genomes)",
+      "test": "GcBaselineAndTriangleInequalityBenchmark", "commit": "6cbe884",
+      "keyNumbers": [ { "label": "GC AUC, same genus", "value": 0.852 }, { "label": "Z-curve AUC, same genus", "value": 0.835 }, { "label": "GC AUC, same phylum", "value": 0.769 }, { "label": "Z-curve AUC, same phylum", "value": 0.789 } ],
+      "files": [ "GcBaseline_Retrieval.csv" ]
+    },
+    {
+      "name": "gc-stratum", "article": "A-genome", "verdict": "context", "runnable": true,
+      "title": "Beyond GC, on same-GC pairs", "question": "On pairs of nearly equal GC, does the score still separate taxa?",
+      "note": "437 catalogue genomes. All pairs: Spearman 0.993 between 1 − Compare and |ΔGC|. Same-GC pairs: ties GC at genus, beats it at family (+0.074) and phylum (+0.10 to +0.14).",
+      "snapshot": "local catalogue (BV-BRC), 2026-10-29", "script": "gc_stratum_check.cs", "commit": "ce53906",
+      "keyNumbers": [ { "label": "Spearman with |ΔGC|", "value": 0.993 }, { "label": "same-GC genus AUC, Z-curve", "value": 0.614 }, { "label": "same-GC genus AUC, GC", "value": 0.61 } ],
+      "files": [ "S51_GcStratumCheck.csv" ]
+    },
+    {
+      "name": "strand-rotation", "article": "A-genome", "verdict": "context", "runnable": false,
+      "title": "Strand and rotation", "question": "Does a genome against its own reverse complement or rotation still look identical?",
+      "note": "It scores like a different strain: the query is compared on both strands since.", "snapshot": "bundled genomes (data/genomes)",
+      "test": "StrandAndRotationBenchmark", "commit": "df5566e",
+      "keyNumbers": [ { "label": "K-12 vs its reverse complement", "value": 0.815 }, { "label": "K-12 vs itself rotated by half", "value": 0.814 }, { "label": "K-12 vs O157:H7", "value": 0.819 } ],
+      "files": [ "C3_StrandRotation.csv" ]
+    },
+    {
+      "name": "origin-rotation", "article": "A-genome", "verdict": "pass", "runnable": false,
+      "title": "Replication origin from the profile", "question": "Does the minimum of the cumulative GC skew find the origin, and does rotating there restore identity?",
+      "snapshot": "bundled genomes (data/genomes)", "test": "StrandAndRotationBenchmark", "commit": "c4ec4f6",
+      "keyNumbers": [ { "label": "K-12 vs itself rotated, as stored (32 kbp)", "value": 0.932 }, { "label": "after rotating to the origin", "value": 0.998 } ],
+      "files": [ "C3_OriginRotation.csv" ]
+    },
+    {
+      "name": "genome-moments", "article": "A-genome", "verdict": "fail", "runnable": false,
+      "title": "Moments on genome windows", "question": "Do Legendre moments help on the unanchored genome ladder, as they do on genes?",
+      "note": "Retrieval unchanged (0.830 / 0.794); arbitrary-phase localization drops. The genome ladder keeps means.",
+      "snapshot": "bundled genomes (data/genomes)", "test": "GenomeProfileMomentsBenchmark", "commit": "0bd3557",
+      "keyNumbers": [ { "label": "localization, means", "value": 0.945 }, { "label": "localization, moments", "value": 0.637 } ],
+      "files": [ "GenomeMoments_Retrieval.csv", "GenomeMoments_Localization.csv" ]
+    },
+    {
+      "name": "catalogue-localization", "article": "A-genome", "verdict": "pass", "runnable": true,
+      "title": "Localizing fragments over the catalogue", "question": "Is a fragment's source found among all records, at the coarsest level leaving 4 windows?",
+      "note": "Source in the top 100 in 30/30 at 10–200 kbp, 23–26/30 at 4 kbp. Cached 0.17–1.14 s per fragment.",
+      "snapshot": "local catalogue (BV-BRC), 2026-10-22", "script": "localize_check.cs", "command": "dotnet run scripts/platform-checks/localize_check.cs -- results/S35_LocalizeCheckMin4.csv min4", "commit": "aebc5de",
+      "files": [ "S35_LocalizeCheckMin4_Summary.csv", "S35_LocalizeEval_Summary.csv" ]
+    },
+    {
+      "name": "localization-validation", "article": "A-genome", "verdict": "pass", "runnable": false,
+      "title": "True start of real fragments", "question": "Are 2, 10 and 50 kbp fragments of real genomes placed at their true start, on both strands?",
+      "note": "40/40 at 10 and 50 kbp; 14/20 at 2 kbp inside a named record.", "snapshot": "bundled genomes (data/genomes)",
+      "test": "PlatformValidationTests", "commit": "d8c5843",
+      "keyNumbers": [ { "label": "10 and 50 kbp, true start", "value": 1.0 }, { "label": "2 kbp, true start", "value": 0.7 } ],
+      "files": [ "S37_LocalizationValidation.csv" ]
+    },
+    {
+      "name": "somatic-mutations", "article": "A-genome", "verdict": "fail", "runnable": false,
+      "title": "Somatic point mutations", "question": "Can the score see tumour-like point mutations between two copies of a genome?",
+      "note": "100 per Mbp move the score 9–620× less than the closest strain pair.", "snapshot": "bundled genomes (data/genomes)",
+      "test": "SomaticMutationRateBenchmark", "commit": "296095b",
+      "keyNumbers": [ { "label": "score change at 100 mutations per Mbp", "value": 0.00028 } ],
+      "files": [ "SomaticMutationRate.csv" ]
+    },
+    {
+      "name": "back-translation", "article": "A-gene", "verdict": "fail", "runnable": false,
+      "title": "Protein search by back-translation", "question": "Can a back-translated protein be localized in genome windows?",
+      "note": "No-go: genome windows reach at most 3.3% top-1; per-gene profiles pooled over 30 bacteria at most 42.5%.",
+      "snapshot": "bundled genomes (data/genomes)", "test": "ProteinBackTranslationFeasibility", "commit": "447f8fd",
+      "keyNumbers": [ { "label": "pooled top-1 at 1.5 kbp", "value": 0.425 }, { "label": "pooled top-1 at 999 bp", "value": 0.132 } ],
+      "files": [ "R6b_GeneAligned_Summary.csv", "R6d_Pooled_Summary.csv" ]
+    },
+    {
+      "name": "cds-sweep", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "The gene profile", "question": "Which per-gene profile finds a gene from its protein alone?",
+      "note": "Adopted: codon positions 1 and 2, windows of 500 bp of gene from the start codon, Legendre moments P0–P2 of x, y, z. Means alone reach 50.2%.",
+      "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "0bd3557",
+      "keyNumbers": [ { "label": "top-1 among 16k genes", "value": 0.915 }, { "label": "top-1, 300 species (225,827 genes)", "value": 0.97 }, { "label": "orthologs in O157:H7", "value": 0.978 }, { "label": "orthologs in Klebsiella", "value": 0.873 } ],
+      "files": [ "CdsSweep_Homolog.csv", "CdsFollowUp_Search.csv" ]
+    },
+    {
+      "name": "cds-precision", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "16-bit gene profiles", "question": "Can the gene profile be stored in 16 or 8 bits without losing search accuracy?",
+      "note": "16-bit halves change no number (largest difference 0.0001); 8-bit costs 1.8–5.9 points.",
+      "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "0bd3557",
+      "files": [ "CdsPrecision_Search.csv" ]
+    },
+    {
+      "name": "short-proteins", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "Proteins of 50–499 aa", "question": "Do 5 equal windows, compared within ±10% of the length, find short genes and their orthologs?",
+      "note": "Orthologs 84–90%.", "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "0bd3557",
+      "files": [ "ShortProtein_Windows.csv", "ShortProtein_Homologs.csv" ]
+    },
+    {
+      "name": "under-50-aa", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "Proteins under 50 aa", "question": "Does the short-gene rule work for 20–49 aa?",
+      "note": "Passes, not built (needs a BV-BRC re-download).", "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "b8b8e71",
+      "keyNumbers": [ { "label": "exact gene, 20–34 aa", "value": 0.972 }, { "label": "exact gene, 35–49 aa", "value": 0.97 }, { "label": "orthologs, 20–34 aa", "value": 0.811 }, { "label": "orthologs, 35–49 aa", "value": 0.704 } ],
+      "files": [ "ShortProtein_Under50.csv", "ShortProtein_Under50_Homologs.csv", "ShortProtein_Under50Bands.csv", "ShortProtein_Under50Bands_Homologs.csv" ]
+    },
+    {
+      "name": "protein-catalogue", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "Protein search over the catalogue", "question": "From the protein alone, is the right gene first among 64.3M genes?",
+      "note": "301 proteins. The file's 'family top-1 100%' counts the query's own gene; protein-homolog gives it without. Runnable once its query set is stored.",
+      "snapshot": "local catalogue (BV-BRC), 2026-11-05", "script": "protein_search_check_v2.cs", "commit": "0bd3557",
+      "keyNumbers": [ { "label": "exact gene first, 50–99 aa", "value": 0.95 }, { "label": "100–166 aa", "value": 0.952 }, { "label": "167–332 aa", "value": 0.9 }, { "label": "333–499 aa", "value": 0.881 }, { "label": "500+ aa", "value": 0.717 } ],
+      "files": [ "ProteinSearch_CatalogueV2.csv", "ProteinSearch_Catalogue.csv" ]
+    },
+    {
+      "name": "protein-homolog", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "Right family without the query's own gene", "question": "Is the right protein family first once the query's own gene, genome, species or genus is removed?",
+      "rule": "Under 50% family top-1 with the own species removed in any band reframes the claim as near-identical lookup. No band was under 50%.",
+      "note": "157 proteins with a PGfam. Runnable once its query set is stored.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
+      "script": "protein_homolog_check.cs", "commit": "uncommitted (2026-11-12)",
+      "keyNumbers": [ { "label": "own gene removed, top-1", "value": 0.845 }, { "label": "own genus removed, top-1", "value": 0.659 }, { "label": "own genus removed, top-10", "value": 0.793 } ],
+      "files": [ "ProteinHomolog_Check.csv" ]
+    },
+    {
+      "name": "protein-family-tuning", "article": "A-gene", "verdict": "fail", "runnable": false,
+      "title": "Raising the right family", "question": "Do feature weights or a vote over the top hits find the right family more often, with the own genus removed?",
+      "rule": "The combination best on the tuning half must gain ≥ 5 points on the test half, 95% genome-bootstrap CI excluding 0, losing ≤ 1 point of exact top-1. Best was 'best hit with a family': +3.1 points (CI −8.7 to +15.3). Tuning stops.",
+      "note": "1,143 proteins from 64 genomes. Not pre-registered: 1/variance weights raise exact-gene top-1 on the test half from 83.7% to 87.8%. Runnable once its query set is stored.",
+      "snapshot": "local catalogue (BV-BRC), 2026-11-12", "script": "protein_family_diagnostic.cs", "commit": "uncommitted (2026-11-12)",
+      "keyNumbers": [ { "label": "family top-1, own genus removed", "value": 0.641 }, { "label": "test-half gain, best with family", "value": 0.031 } ],
+      "files": [ "ProteinFamily_Diagnostic.csv", "ProteinFamily_Diagnostic_Queries.csv" ]
+    },
+    {
+      "name": "protein-null", "article": "A-gene", "verdict": "context", "runnable": false,
+      "title": "p and E for protein hits", "question": "How often does a gene of another family score this high against a protein of this length?",
+      "note": "From 411 real proteins scored against genes of other families.", "snapshot": "local catalogue (BV-BRC)",
+      "script": "protein_null_check.cs", "commit": "9f75afe",
+      "files": [ "ProteinNull_Check.csv" ]
+    },
+    {
+      "name": "eukaryote-genes", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "Eukaryote genes from CDS files", "question": "Does protein search find eukaryote genes built from their CDS files?",
+      "note": "131 annotated assemblies, 2.25M genes, 209 MB. Yeast 100%.", "snapshot": "local catalogue (NCBI eukaryotes), 2026-11-09",
+      "script": "SequencePlatform.Ingest backfill-genes-ncbi --check-search", "command": "dotnet run --project SequencePlatform.Ingest -- backfill-genes-ncbi --check-search 10", "commit": "b8b8e71",
+      "keyNumbers": [ { "label": "right gene first or tied", "value": 0.964 } ],
+      "files": [ "S7T_FullPass.csv" ]
+    },
+    {
+      "name": "gene-match", "article": "A-gene", "verdict": "pass", "runnable": true,
+      "title": "Reciprocal best genes without a family", "question": "Does the gene score alone pair genes with their counterparts in another genome?",
+      "note": "Against 0.5% and 0.2% by chance.", "snapshot": "local catalogue (NCBI eukaryotes)", "script": "gene_match_check.cs", "commit": "f5cb655",
+      "keyNumbers": [ { "label": "same-name agreement, Podospora", "value": 0.998 }, { "label": "same-name agreement, Nelumbo", "value": 0.929 } ],
+      "files": [ "GeneMatch_Check.csv" ]
+    },
+    {
+      "name": "search-breakdown", "article": "B", "verdict": "context", "runnable": false,
+      "title": "Where a protein search spends its time", "question": "Reading, decoding or scoring: what dominates a protein search, and what cut it?",
+      "note": "Pooled buffers and scoring in place cut the time above the transfer floor by 58%; PostgreSQL's transfer is now 74–92% of a query.",
+      "snapshot": "local catalogue (BV-BRC)", "script": "search_breakdown.cs", "commit": "04c3ca4",
+      "files": [ "SearchBreakdown_Before.csv", "SearchBreakdown_After.csv", "SearchBreakdown_Clustered.csv", "SearchBreakdown_EarlyStop.csv" ]
+    },
+    {
+      "name": "bulk-load", "article": "B", "verdict": "context", "runnable": false,
+      "title": "The bulk load", "question": "How long does filling the catalogue from BV-BRC take, and how many duplicates are there?",
+      "note": "19,964 stored, 1,982 duplicates skipped (12.6% of viruses), 0 failed; 8.6 h active.", "snapshot": "BV-BRC, 2026-10-19/20",
+      "script": "SequencePlatform.Ingest ingest-bvbrc", "command": "dotnet run --project SequencePlatform.Ingest -- ingest-bvbrc --group bacteria --limit N", "commit": "f1936ce",
+      "keyNumbers": [ { "label": "genomes handled", "value": 21946 }, { "label": "seconds per genome", "value": 1.46 } ],
+      "files": [ "S25_BulkLoad.csv" ]
+    },
+    {
+      "name": "neighbour-ranking", "article": "B", "verdict": "pass", "runnable": true,
+      "title": "Re-ranking by shared neighbours", "question": "Does re-ranking the top 100 by shared top-20 neighbours find more same-genus genomes?",
+      "note": "Bacteria p = 0.002; viruses 0.462 → 0.491.", "snapshot": "local catalogue (BV-BRC)", "script": "neighbour_eval.cs", "commit": "5297250",
+      "keyNumbers": [ { "label": "bacteria precision@10, by score", "value": 0.131 }, { "label": "bacteria precision@10, re-ranked", "value": 0.195 } ],
+      "files": [ "S34b_NeighbourRanking.csv" ]
+    },
+    {
+      "name": "rotation-production", "article": "B", "verdict": "pass", "runnable": true,
+      "title": "Origin rotation in find-similar", "question": "Does scoring circular chromosomes from their origin find more same-genus genomes?",
+      "note": "Warm E. coli search 76 → 382 ms.", "snapshot": "local catalogue (BV-BRC)", "script": "neighbour_eval.cs", "commit": "c4ec4f6",
+      "keyNumbers": [ { "label": "precision@10 by score, before", "value": 0.131 }, { "label": "after", "value": 0.169 }, { "label": "with neighbours, before", "value": 0.195 }, { "label": "after", "value": 0.231 } ],
+      "files": [ "S32_RotationProduction.csv" ]
+    },
+    {
+      "name": "wrap-around", "article": "B", "verdict": "pass", "runnable": true,
+      "title": "Circularly permuted viruses", "question": "Does scoring a virus candidate wrapped around its end find more same-genus viruses?",
+      "note": "1.15× the time. Skipping neighbour re-ranking for viruses was checked and not taken.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
+      "script": "circular_permutation_check.cs", "commit": "7d3da90",
+      "keyNumbers": [ { "label": "AUC same genus vs other family, before", "value": 0.904 }, { "label": "after", "value": 0.934 }, { "label": "precision@10, before", "value": 0.597 }, { "label": "after", "value": 0.67 } ],
+      "files": [ "CircularPermutation_Check.csv", "WrapAround_Search.csv", "VirusRerank_Check.csv" ]
+    },
+    {
+      "name": "second-order", "article": "B", "verdict": "pass", "runnable": true,
+      "title": "The second-order Z-curve equals Karlin ρ*", "question": "Do Z-curve means and lag-1 covariances rebuild the dinucleotide signature exactly?",
+      "note": "log ρ* in Z-curve axes is a rotation: same trees, map |r| = 1.000000. Dropping the 7 neighbour coefficients is what made the incomplete form trail.",
+      "snapshot": "local catalogue and bundled genomes", "script": "second_order_global.cs", "commit": "621d2a5",
+      "files": [ "S52e_GapDecomposition.csv", "S52c_SecondOrderGlobal.csv", "S52c_SecondOrderGlobal_Trees.csv", "S52c_SecondOrder_Bundled.csv" ]
+    },
+    {
+      "name": "relatives", "article": "B", "verdict": "pass", "runnable": true,
+      "title": "Nearest relatives", "question": "Are a genome's 10 nearest signatures its relatives?",
+      "note": "4–9 ms per query.", "snapshot": "local catalogue (BV-BRC)", "script": "relatives_check.cs", "commit": "6932c40",
+      "keyNumbers": [ { "label": "E. coli K-12: Escherichia/Shigella in its 10", "value": 0.9 }, { "label": "SARS-CoV-2: coronaviruses in its 10", "value": 1.0 } ],
+      "files": [ "S55_RelativesCheck.csv" ]
+    },
+    {
+      "name": "e2-phage-host", "article": "P9", "verdict": "fail", "runnable": true,
+      "title": "Phage host from the signature (round 1)", "question": "Does the dinucleotide signature or localization tell a phage's host genus?",
+      "note": "Weak pass against GC, but always guessing Escherichia gives 0.110. Localization: 0/200. Round 2 (e2b, 6-mers) passes.",
+      "snapshot": "sequence_platform_p9 (2026-11-03)", "script": "p9_e2_phage_host.cs", "commit": "8f4395e",
+      "keyNumbers": [ { "label": "top-1 host genus, signature", "value": 0.057 }, { "label": "GC", "value": 0.024 }, { "label": "always Escherichia", "value": 0.11 } ],
+      "files": [ "P9_E2_PhageHost.csv", "P9_E2_Sample_Localize.csv" ]
+    },
+    {
+      "name": "e3-islands", "article": "P9", "verdict": "fail", "runnable": true,
+      "title": "Genomic islands", "question": "Do windows that deviate from their genome mark genomic islands better than GC?",
+      "snapshot": "sequence_platform_p9 (2026-11-03)", "script": "p9_e3_islands.cs", "commit": "8f4395e",
+      "keyNumbers": [ { "label": "F1, window detector", "value": 0.128 }, { "label": "F1, GC alone", "value": 0.153 } ],
+      "files": [ "P9_E3_Islands.csv" ]
+    },
+    {
+      "name": "e5-habitat", "article": "P9", "verdict": "pass", "runnable": true,
+      "title": "Habitat beyond genus and GC", "question": "Do signature neighbours share a habitat more than a within-genus shuffle predicts?",
+      "note": "82 of 108 genera above the shuffle, p = 3·10⁻⁸.", "snapshot": "sequence_platform_p9 (2026-11-03)", "script": "p9_e5_habitat.cs", "commit": "8f4395e",
+      "files": [ "P9_E5_Habitat.csv" ]
+    },
+    {
+      "name": "insert-check", "article": "P9", "verdict": "fail", "runnable": false,
+      "title": "Inserts between two genomes", "question": "Can two genomes' profiles show what one has that the other lacks?",
+      "note": "Rule: ≥ 80% of inserts ≥ 10 kbp at ≤ 1 false call per Mbp. Same-GC donors are missed.", "snapshot": "bundled genomes (data/genomes)",
+      "script": "insert_check.cs", "commit": "8f4395e",
+      "keyNumbers": [ { "label": "inserts ≥ 10 kbp found", "value": 0.725 }, { "label": "false calls per Mbp", "value": 2.27 } ],
+      "files": [ "P9_InsertCheck.csv" ]
+    },
+    {
+      "name": "kmer-check", "article": "P9", "verdict": "pass", "runnable": false,
+      "title": "Longer k-mers for phage hosts", "question": "Do 3- to 6-mers tell a phage's host better than dinucleotides?",
+      "note": "207 phages and hosts streamed from NCBI and counted without keeping DNA. Led to storing 6-mer counts.",
+      "snapshot": "NCBI, streamed", "script": "p9_kmer_check.cs", "commit": "dc1bbc6",
+      "keyNumbers": [ { "label": "top-1 host genus, dinucleotides", "value": 0.15 }, { "label": "6-mers", "value": 0.256 } ],
+      "files": [ "P9_KmerCheck.csv" ]
+    }
+  ]
+}

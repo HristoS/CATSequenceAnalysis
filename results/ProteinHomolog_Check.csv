@@ -1,0 +1,27 @@
+Band,Tier,Proteins,Reachable,Family top-1,Family top-10
+50-99 aa,gene,21,20,85.0%,95.0%
+50-99 aa,genome,21,20,85.0%,95.0%
+50-99 aa,species,21,20,85.0%,95.0%
+50-99 aa,genus,19,11,63.6%,90.9%
+100-166 aa,gene,29,29,82.8%,86.2%
+100-166 aa,genome,29,29,82.8%,86.2%
+100-166 aa,species,29,29,82.8%,86.2%
+100-166 aa,genus,29,28,57.1%,67.9%
+167-332 aa,gene,32,31,87.1%,90.3%
+167-332 aa,genome,32,31,87.1%,90.3%
+167-332 aa,species,32,31,87.1%,90.3%
+167-332 aa,genus,32,30,66.7%,83.3%
+333-499 aa,gene,35,35,91.4%,94.3%
+333-499 aa,genome,35,35,91.4%,94.3%
+333-499 aa,species,35,35,91.4%,94.3%
+333-499 aa,genus,32,30,86.7%,90.0%
+500+ aa,gene,40,40,77.5%,85.0%
+500+ aa,genome,40,40,77.5%,85.0%
+500+ aa,species,40,40,77.5%,85.0%
+500+ aa,genus,37,36,55.6%,72.2%
+all,gene,157,155,84.5%,89.7%
+all,genome,157,155,84.5%,89.7%
+all,species,157,155,84.5%,89.7%
+all,genus,149,135,65.9%,79.3%
+
+Rule: species-removed family top-1 under 50% in any band reframes the claim,no band under 50%: identity curve goes ahead

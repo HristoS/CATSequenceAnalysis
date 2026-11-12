@@ -1,4 +1,4 @@
-import { get } from "./api.js";
+import { download, get } from "./api.js";
 import { FilterBox, Help, HowTo, Message, PageHeader, Pager, PanelBar, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
 
 const kingdoms = [["Metazoa", "Animals", "p1"], ["Fungi", "Fungi", "p2"], ["Viridiplantae", "Plants", "p3"]];
@@ -6,10 +6,21 @@ const swatchOf = kingdom => kingdoms.find(([k]) => k === kingdom)?.[2] ?? "p0";
 const verdicts = { pass: "✓ Pass", fail: "✗ Fail", context: "Context" };
 const minPerClass = 3;
 
-// How many genomes the experiment analysed, against how many findings it lists: the two are easy to confuse.
+// How many genomes the experiment analysed, against how many findings it lists: the two are easy to confuse. Null when it lists none
+// and says nothing about coverage (the article experiments published from their CSVs).
 const coverage = run => (run.summary.analysed != null
   ? `analysed ${run.summary.analysed.toLocaleString()} genomes · ${run.findings.toLocaleString()} listed`
-  : `${run.findings.toLocaleString()} listed`);
+  : run.findings > 0 ? `${run.findings.toLocaleString()} listed` : null);
+
+// The article sections, in the order the list shows them; runs without one are the P9 experiments that publish their own findings.
+const sections = [["A-genome", "Paper A: genomes"], ["A-gene", "Paper A: genes and proteins"], ["B", "Paper B: the catalogue"],
+  ["P9", "What the profile can't do (P9)"], [null, "Experiments with findings"]];
+const where = run => (run.runnable ? "Rerunnable from the database" : "Computed offline");
+
+// Shares and scores (|x| < 1) keep three decimals, as the P9 pages always showed them; counts and timings read as written.
+const formatKey = value => (Math.abs(value) < 1 && value !== 0 ? value.toFixed(Math.abs(value) < 0.01 ? 5 : 3)
+  : value.toLocaleString(undefined, { maximumFractionDigits: 2 }));
+const formatSize = bytes => (bytes >= 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${bytes} B`);
 
 function VerdictBadge({ verdict }) {
   return html`<span class=${`verdict ${verdict}`}>${verdicts[verdict] ?? verdict}</span>`;
@@ -22,27 +33,60 @@ export function ExperimentsPage() {
 
   if (error) return html`<${Message} error>${error}<//>`;
   if (!runs) return html`<${Message}>Loading…<//>`;
+  // Oldest first within a section: publish-experiments publishes in the registry's order.
+  const ordered = [...runs].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
   return html`<${PageHeader} title="Experiments"
-      lede=${"What the catalogue shows beyond \"related genomes look alike\". Each experiment runs offline on a frozen copy of the catalogue, " +
-        "against a rule fixed before the run."} />
+      lede=${"Every experiment the articles state, with its verdict, key numbers and result tables to download. Each was run offline, " +
+        "on a frozen copy of the catalogue or on the bundled genomes, against a rule fixed before the run."} />
     ${runs.length === 0 && html`<${Message}>No experiment has been published yet.<//>`}
-    <div class="scores">${runs.map(run => html`<a class="panel card" key=${run.name} href="#/experiments/${run.name}">
-      <h2>${run.title}</h2>
-      <p><${VerdictBadge} verdict=${run.verdict} /></p>
-      <p class="hint">${run.question}</p>
-      <p class="hint">${coverage(run)} · ${new Date(run.publishedAt).toLocaleDateString()}</p>
-    </a>`)}</div>`;
+    ${sections.map(([article, heading]) => {
+      const inSection = ordered.filter(run => (run.article ?? null) === article);
+      return inSection.length > 0 && html`<section class="stack" key=${heading}>
+        <h2>${heading} <span class="hint">${inSection.length}</span></h2>
+        <div class="scores">${inSection.map(run => html`<a class="panel card" key=${run.name} href="#/experiments/${encodeURIComponent(run.name)}">
+          <h3>${run.title}</h3>
+          <p><${VerdictBadge} verdict=${run.verdict} /></p>
+          <p class="hint">${run.question}</p>
+          <p class="hint">${[coverage(run), run.files.length > 0 && `${run.files.length} file${run.files.length > 1 ? "s" : ""}`, where(run)].filter(Boolean).join(" · ")}</p>
+        </a>`)}</div>
+      </section>`;
+    })}`;
+}
+
+function CopyCommand({ command }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => navigator.clipboard?.writeText(command).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
+  return html`<div class="actions"><code class="command">${command}</code>
+    <button type="button" onClick=${copy}>${copied ? "Copied" : "Copy"}</button></div>`;
+}
+
+function DownloadButton({ file }) {
+  const [state, setState] = useState(null);
+  const start = () => {
+    setState("…");
+    download(file.href, file.name).then(() => setState(null)).catch(e => setState(e.message));
+  };
+  return html`<button type="button" onClick=${start} disabled=${state === "…"} title=${state && state !== "…" ? state : undefined}>
+    Download ${file.name} <span class="hint">${state && state !== "…" ? "failed" : formatSize(file.byteSize)}</span></button>`;
 }
 
 function RunHeader({ run }) {
   const s = run.summary;
+  const covered = coverage(run);
   return html`<${PageHeader} title=${run.title} lede=${run.question} actions=${html`<a class="button" href="#/experiments">All experiments</a>`} />
     <section class="panel stack">
       <p><${VerdictBadge} verdict=${run.verdict} /> ${s.rule && html`<span class="hint">${s.rule}</span>`}</p>
-      ${s.keyNumbers && html`<div class="numbers">${s.keyNumbers.map(k => html`<div key=${k.label}><b>${k.value.toFixed(3)}</b><small>${k.label}</small></div>`)}</div>`}
-      <p><b>${coverage(run)}</b>${s.analysedNote && html`<span class="hint">: ${s.analysedNote}</span>`}</p>
-      <p class="hint">Computed on <code>${run.snapshot}</code> by <code>${run.script}</code>, published ${new Date(run.publishedAt).toLocaleString()}.</p>
-    </section>`;
+      ${s.keyNumbers && html`<div class="numbers">${s.keyNumbers.map(k => html`<div key=${k.label}><b>${formatKey(k.value)}</b><small>${k.label}</small></div>`)}</div>`}
+      ${s.note && html`<p>${s.note}</p>`}
+      ${covered && html`<p><b>${covered}</b>${s.analysedNote && html`<span class="hint">: ${s.analysedNote}</span>`}</p>`}
+      <p class="hint">Computed on <code>${run.snapshot}</code> by <code>${run.script}</code>${run.commit && html` at <code>${run.commit}</code>`}${run.machine && ` on ${run.machine}`}${s.section && `; article section ${s.section}`}. Published ${new Date(run.publishedAt).toLocaleString()}.</p>
+    </section>
+    ${(run.files.length > 0 || run.command) && html`<section class="panel stack">
+      <${PanelBar} title="Results" help=${"The tables behind the numbers above, as the experiment wrote them. " +
+        (run.runnable ? "This experiment needs only the database, so it can be rerun on it." : "This experiment needs DNA or outside data, so it is rerun offline only.")} />
+      ${run.files.length > 0 && html`<div class="actions">${run.files.map(f => html`<${DownloadButton} key=${f.name} file=${f} />`)}</div>`}
+      ${run.command && html`<p class="hint">Reproduce from the repository root (${where(run).toLowerCase()}):</p><${CopyCommand} command=${run.command} />`}
+    </section>`}`;
 }
 
 // Each experiment's own view, and how many findings the page needs up front (a view that loads its own asks for one).
@@ -58,7 +102,7 @@ export function ExperimentPage({ name }) {
   if (!page) return html`<${Message}>Loading…<//>`;
   const View = view();
   return html`<${RunHeader} run=${page.experiment} />
-    ${View ? html`<${View} page=${page} />` : html`<${Message}>${page.total.toLocaleString()} findings; this experiment has no page of its own yet.<//>`}`;
+    ${View ? html`<${View} page=${page} />` : page.total > 0 && html`<${Message}>${page.total.toLocaleString()} findings; this experiment has no page of its own yet.<//>`}`;
 }
 
 // The findings, already in the order wanted, paged and filtered in the page by genome name, accession or any text in the finding

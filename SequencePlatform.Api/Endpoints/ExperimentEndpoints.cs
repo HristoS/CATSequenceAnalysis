@@ -6,8 +6,9 @@ using SequencePlatform.Core;
 namespace SequencePlatform.Api
 {
     /// <summary>
-    /// The P9 experiments as published by their scripts (<see cref="ExperimentStore"/>): computed offline on a frozen snapshot of the
-    /// catalogue, read-only here. Findings are about public records only, so every caller sees the same results.
+    /// The experiments the articles state, as published by their scripts and the Ingest's publish-experiments (<see cref="ExperimentStore"/>):
+    /// computed offline (on a frozen snapshot of the catalogue, or on the bundled genomes for the library ones), read-only here, with their
+    /// result tables for download. Findings are about public records only, so every caller sees the same results.
     /// </summary>
     internal static class ExperimentEndpoints
     {
@@ -28,6 +29,14 @@ namespace SequencePlatform.Api
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
+            experiments.MapGet("/{name}/files/{file}", FileAsync)
+                .WithName("GetExperimentFile")
+                .WithSummary("Download one result table of an experiment")
+                .WithDescription("origin is article (default: the run an article cites) or server (the latest rerun on this database).")
+                .Produces(StatusCodes.Status200OK, contentType: "text/csv")
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound);
+
             app.MapGroup("/api/sequences").WithTags("Experiments").MapGet("/{id:long}/findings", RecordAsync)
                 .WithName("GetRecordFindings")
                 .WithSummary("What the published experiments say about one record")
@@ -35,14 +44,29 @@ namespace SequencePlatform.Api
         }
 
         private static async Task<Ok<ExperimentListResponse>> ListAsync(NpgsqlDataSource dataSource, CancellationToken cancellationToken) =>
-            TypedResults.Ok(new ExperimentListResponse((await ExperimentStore.ListAsync(dataSource, cancellationToken)).Select(ExperimentResponse.From).ToList()));
+            TypedResults.Ok(new ExperimentListResponse((await ExperimentStore.ListAsync(dataSource, cancellationToken: cancellationToken)).Select(ExperimentResponse.From).ToList()));
+
+        private static string CheckOrigin(string origin) => origin is ExperimentStore.ArticleOrigin or ExperimentStore.ServerOrigin
+            ? origin
+            : throw new ArgumentException($"origin is {ExperimentStore.ArticleOrigin} or {ExperimentStore.ServerOrigin}.");
+
+        private static async Task<Results<FileContentHttpResult, ProblemHttpResult>> FileAsync(NpgsqlDataSource dataSource, string name, string file,
+            string origin = ExperimentStore.ArticleOrigin, CancellationToken cancellationToken = default)
+        {
+            var run = await ExperimentStore.GetAsync(dataSource, name, CheckOrigin(origin), cancellationToken);
+            var content = run is null ? null : await ExperimentStore.FileAsync(dataSource, run.Id, file, cancellationToken);
+            if (content is null) return TypedResults.Problem($"No file '{file}' in experiment '{name}' ({origin}).", statusCode: StatusCodes.Status404NotFound);
+            var contentType = file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) ? "text/csv; charset=utf-8" : "text/plain; charset=utf-8";
+            return TypedResults.File(content, contentType, fileDownloadName: file);
+        }
 
         private static async Task<Results<Ok<ExperimentPageResponse>, ProblemHttpResult>> GetAsync(NpgsqlDataSource dataSource, string name,
-            string? kind, string order = "score", int offset = 0, int limit = 100, CancellationToken cancellationToken = default)
+            string? kind, string order = "score", int offset = 0, int limit = 100, string origin = ExperimentStore.ArticleOrigin,
+            CancellationToken cancellationToken = default)
         {
             if (order is not ("score" or "-score")) throw new ArgumentException("order is score or -score.");
             if (offset < 0 || limit < 1 || limit > MaxPage) throw new ArgumentException($"offset must be 0 or more and limit 1 to {MaxPage}.");
-            var run = await ExperimentStore.GetAsync(dataSource, name, cancellationToken);
+            var run = await ExperimentStore.GetAsync(dataSource, name, CheckOrigin(origin), cancellationToken);
             if (run is null) return TypedResults.Problem($"No experiment '{name}'.", statusCode: StatusCodes.Status404NotFound);
 
             var (findings, total) = await ExperimentStore.FindingsAsync(dataSource, run.Id, kind, order == "-score", offset, limit, cancellationToken);

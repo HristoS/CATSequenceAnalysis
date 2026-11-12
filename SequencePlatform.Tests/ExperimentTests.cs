@@ -6,7 +6,10 @@ using SequencePlatform.Core;
 
 namespace SequencePlatform.Tests
 {
-    /// <summary>P9 experiment results (U0): a publish replaces the run of its name, findings only about public records, served read-only.</summary>
+    /// <summary>
+    /// Experiment results (P9 U0, migration 0023): a publish replaces the run of its name and origin, findings only about public records,
+    /// result files served for download, all read-only.
+    /// </summary>
     public class ExperimentTests
     {
         private WebApplicationFactory<SequencePlatform.Api.SequencePageResponse> factory = null!;
@@ -66,6 +69,45 @@ namespace SequencePlatform.Tests
 
             var own = await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{ids[2]}/findings");
             Assert.That(own.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("kind").GetString()), Is.EquivalentTo(new[] { "cpg", "other" }));
+        }
+
+        [Test]
+        public async Task ServesResultFilesForDownloadAndKeepsArticleAndServerRunsApart()
+        {
+            var name = $"test-{Guid.NewGuid():N}";
+            var (_, client) = await factory.NewClientAsync("alice");
+            var csv = System.Text.Encoding.UTF8.GetBytes("Band,Top-1\n50-99 aa,0.85\n" + new string('x', 5000));
+            await ExperimentStore.PublishAsync(ThrowawayDatabase.DataSource, name, "Article run", "Does it work?", ExperimentStore.Pass, "frozen",
+                "test.cs", "{}", [], new ExperimentDetails("A-gene", ExperimentStore.ArticleOrigin, "abc1234", "laptop", "dotnet run test.cs", Runnable: true),
+                [new ExperimentFile("Result.csv", csv)]);
+            await ExperimentStore.PublishAsync(ThrowawayDatabase.DataSource, name, "Server run", "Does it work?", ExperimentStore.Fail, "live",
+                "test.cs", "{}", [], new ExperimentDetails("A-gene", ExperimentStore.ServerOrigin), [new ExperimentFile("Result.csv", "Band\n"u8.ToArray())]);
+
+            var page = await client.GetFromJsonAsync<JsonElement>($"/api/experiments/{name}");
+            var run = page.GetProperty("experiment");
+            Assert.That(run.GetProperty("title").GetString(), Is.EqualTo("Article run"), "the article run is the default");
+            Assert.That(run.GetProperty("article").GetString(), Is.EqualTo("A-gene"));
+            Assert.That(run.GetProperty("commit").GetString(), Is.EqualTo("abc1234"));
+            Assert.That(run.GetProperty("runnable").GetBoolean(), Is.True);
+            var file = run.GetProperty("files").EnumerateArray().Single();
+            Assert.That(file.GetProperty("byteSize").GetInt64(), Is.EqualTo(csv.Length));
+
+            var response = await client.GetAsync(file.GetProperty("href").GetString());
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.Content.Headers.ContentType!.MediaType, Is.EqualTo("text/csv"));
+            Assert.That(response.Content.Headers.ContentDisposition!.FileName?.Trim('"'), Is.EqualTo("Result.csv"));
+            Assert.That(await response.Content.ReadAsByteArrayAsync(), Is.EqualTo(csv), "stored compressed, served as written");
+
+            var server = await client.GetFromJsonAsync<JsonElement>($"/api/experiments/{name}?origin=server");
+            Assert.That(server.GetProperty("experiment").GetProperty("title").GetString(), Is.EqualTo("Server run"));
+            Assert.That(await client.GetStringAsync($"/api/experiments/{name}/files/Result.csv?origin=server"), Is.EqualTo("Band\n"));
+            var list = await client.GetFromJsonAsync<JsonElement>("/api/experiments");
+            Assert.That(list.GetProperty("items").EnumerateArray().Count(e => e.GetProperty("name").GetString() == name), Is.EqualTo(1),
+                "the list shows article runs only");
+
+            Assert.That((await client.GetAsync($"/api/experiments/{name}/files/Missing.csv")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            Assert.That((await client.GetAsync($"/api/experiments/{name}/files/Result.csv?origin=elsewhere")).StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That((await factory.CreateClient().GetAsync(file.GetProperty("href").GetString())).StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
 
         [Test]
