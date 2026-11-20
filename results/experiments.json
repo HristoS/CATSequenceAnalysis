@@ -178,7 +178,7 @@
     {
       "name": "cds-sweep", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "The gene profile", "question": "Which per-gene profile finds a gene from its protein alone?",
-      "note": "Adopted: codon positions 1 and 2, windows of 500 bp of gene from the start codon, Legendre moments P0–P2 of x, y, z. Means alone reach 50.2%.",
+      "note": "Adopted: codon positions 1 and 2, windows of 500 bp of gene from the start codon, Legendre moments P0–P2 of x, y, z. Means alone reach 50.2%. Unweighted score; whitened moments reached 93.3% here, and weights were adopted on 2026-11-20 (protein-weights).",
       "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "0bd3557",
       "keyNumbers": [ { "label": "top-1 among 16k genes", "value": 0.915 }, { "label": "top-1, 300 species (225,827 genes)", "value": 0.97 }, { "label": "orthologs in O157:H7", "value": 0.978 }, { "label": "orthologs in Klebsiella", "value": 0.873 } ],
       "files": [ "CdsSweep_Homolog.csv", "CdsFollowUp_Search.csv" ]
@@ -186,27 +186,27 @@
     {
       "name": "cds-precision", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "16-bit gene profiles", "question": "Can the gene profile be stored in 16 or 8 bits without losing search accuracy?",
-      "note": "16-bit halves change no number (largest difference 0.0001); 8-bit costs 1.8–5.9 points.",
+      "note": "16-bit halves change no number (largest difference 0.0001); 8-bit costs 1.8–5.9 points. Unweighted score.",
       "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "0bd3557",
       "files": [ "CdsPrecision_Search.csv" ]
     },
     {
       "name": "short-proteins", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "Proteins of 50–499 aa", "question": "Do 5 equal windows, compared within ±10% of the length, find short genes and their orthologs?",
-      "note": "Orthologs 84–90%.", "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "0bd3557",
+      "note": "Orthologs 84–90%. Unweighted score.", "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "0bd3557",
       "files": [ "ShortProtein_Windows.csv", "ShortProtein_Homologs.csv" ]
     },
     {
       "name": "under-50-aa", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "Proteins under 50 aa", "question": "Does the short-gene rule work for 20–49 aa?",
-      "note": "Passes, not built (needs a BV-BRC re-download).", "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "b8b8e71",
+      "note": "Passes, not built (needs a BV-BRC re-download). Unweighted score.", "snapshot": "bundled genomes (data/genomes)", "test": "CdsWindowSweepBenchmark", "commit": "b8b8e71",
       "keyNumbers": [ { "label": "exact gene, 20–34 aa", "value": 0.972 }, { "label": "exact gene, 35–49 aa", "value": 0.97 }, { "label": "orthologs, 20–34 aa", "value": 0.811 }, { "label": "orthologs, 35–49 aa", "value": 0.704 } ],
       "files": [ "ShortProtein_Under50.csv", "ShortProtein_Under50_Homologs.csv", "ShortProtein_Under50Bands.csv", "ShortProtein_Under50Bands_Homologs.csv" ]
     },
     {
       "name": "protein-catalogue", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "Protein search over the catalogue", "question": "From the protein alone, is the right gene first among 64.3M genes?",
-      "note": "301 proteins. The file's 'family top-1 100%' counts the query's own gene; protein-homolog gives it without. Runnable once its query set is stored.",
+      "note": "301 proteins, unweighted score. The file's 'family top-1 100%' counts the query's own gene; protein-homolog-key gives it without. Own gene first with both scores, on 1,143 proteins: protein-exact-miss. Runnable once its query set is stored.",
       "snapshot": "local catalogue (BV-BRC), 2026-11-05", "script": "protein_search_check_v2.cs", "commit": "0bd3557",
       "keyNumbers": [ { "label": "exact gene first, 50–99 aa", "value": 0.95 }, { "label": "100–166 aa", "value": 0.952 }, { "label": "167–332 aa", "value": 0.9 }, { "label": "333–499 aa", "value": 0.881 }, { "label": "500+ aa", "value": 0.717 } ],
       "files": [ "ProteinSearch_CatalogueV2.csv", "ProteinSearch_Catalogue.csv" ]
@@ -215,7 +215,7 @@
       "name": "protein-homolog", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "Right family without the query's own gene", "question": "Is the right protein family first once the query's own gene, genome, species or genus is removed?",
       "rule": "Under 50% family top-1 with the own species removed in any band reframes the claim as near-identical lookup. No band was under 50%.",
-      "note": "157 proteins with a PGfam. Runnable once its query set is stored.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
+      "note": "157 proteins with a PGfam, unweighted score. Superseded for the own-genus figure by protein-homolog-key (989 proteins, weighted). Runnable once its query set is stored.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
       "script": "protein_homolog_check.cs", "commit": "103f8c8",
       "keyNumbers": [ { "label": "own gene removed, top-1", "value": 0.845 }, { "label": "own genus removed, top-1", "value": 0.659 }, { "label": "own genus removed, top-10", "value": 0.793 } ],
       "files": [ "ProteinHomolog_Check.csv" ]
@@ -277,23 +277,25 @@
     {
       "name": "protein-null", "article": "A-gene", "verdict": "context", "runnable": false,
       "title": "p and E for protein hits", "question": "How often does a gene of another family score this high against a protein of this length?",
-      "note": "From 411 real proteins scored against genes of other families. Rebuilt for the weighted score on 2026-11-20 (version 2).", "snapshot": "local catalogue (BV-BRC)",
-      "script": "protein_null_check.cs", "commit": "9f75afe",
+      "rule": "No E if, at 167–332 aa, the median protein's E at its best same-family hit is above 0.01 or the spread between proteins is over 100x. Weighted score: median E 0, spread 27x (unweighted 37x): build.",
+      "note": "From 411 real proteins scored against genes of other families, weighted score (rerun 2026-11-20; the null itself rebuilt as version 2). The unweighted run is at commit 9f75afe.", "snapshot": "local catalogue (BV-BRC), 2026-11-20",
+      "script": "protein_null_check.cs", "commit": "a74d3f7",
+      "keyNumbers": [ { "label": "E < 0.01 at best same-family hit, 167–332 aa", "value": 0.637 }, { "label": "E < 0.01, 333–499 aa", "value": 0.463 }, { "label": "E < 0.01, 500+ aa", "value": 0.711 } ],
       "files": [ "ProteinNull_Check.csv" ]
     },
     {
       "name": "eukaryote-genes", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "Eukaryote genes from CDS files", "question": "Does protein search find eukaryote genes built from their CDS files?",
-      "note": "131 annotated assemblies, 2.25M genes, 209 MB. Yeast 100%.", "snapshot": "local catalogue (NCBI eukaryotes), 2026-11-09",
+      "note": "131 annotated assemblies, 2.25M genes, 209 MB. Yeast 100%. Unweighted score; rerunning needs the CDS files again.", "snapshot": "local catalogue (NCBI eukaryotes), 2026-11-09",
       "script": "SequencePlatform.Ingest backfill-genes-ncbi --check-search", "command": "dotnet run --project SequencePlatform.Ingest -- backfill-genes-ncbi --check-search 10", "commit": "b8b8e71",
       "keyNumbers": [ { "label": "right gene first or tied", "value": 0.964 } ],
       "files": [ "S7T_FullPass.csv" ]
     },
     {
-      "name": "gene-match", "article": "A-gene", "verdict": "pass", "runnable": true,
+      "name": "gene-match", "article": "A-gene", "verdict": "pass", "runnable": false,
       "title": "Reciprocal best genes without a family", "question": "Does the gene score alone pair genes with their counterparts in another genome?",
-      "note": "Against 0.5% and 0.2% by chance.", "snapshot": "local catalogue (NCBI eukaryotes)", "script": "gene_match_check.cs", "commit": "f5cb655",
-      "keyNumbers": [ { "label": "same-name agreement, Podospora", "value": 0.998 }, { "label": "same-name agreement, Nelumbo", "value": 0.929 } ],
+      "note": "Against 0.5% and 0.2% by chance. Weighted score (rerun 2026-11-20): agreement unchanged (unweighted 99.8% and 92.9%, commit f5cb655), 0.5–0.75% fewer reciprocal pairs. Reads the NCBI CDS files, so not runnable from the database.", "snapshot": "NCBI CDS files (data/genomes/eukaryotes)", "script": "gene_match_check.cs", "commit": "a74d3f7",
+      "keyNumbers": [ { "label": "same-name agreement, Podospora", "value": 0.997 }, { "label": "same-name agreement, Nelumbo", "value": 0.929 } ],
       "files": [ "GeneMatch_Check.csv" ]
     },
     {
