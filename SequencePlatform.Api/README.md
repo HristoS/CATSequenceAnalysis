@@ -93,7 +93,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/sequences/{id}/chromosomes` | A eukaryote's chromosome levels (migration 0022): each nuclear sequence of at least 100 kbp, in the genome file's order, with its accession, length and levels (500 bp and 32 kbp windows). Empty for any other record |
 | GET | `/api/sequences/{id}/chromosomes/{index}/profile?windowSize=` | One chromosome level as ZCWP bytes (float32), as `/profile` serves a record's |
 | GET | `/api/sequences/{id}/genes/{index}` | One gene's stored windows: mean, trend and curvature of x, y and z over codon positions 1 and 2, from which the page redraws the gene's Z-curve (`results/GeneCurve_Check.csv`) |
-| GET | `/api/sequences/{id}/genes/{index}/matches?in=&top=` | The gene's best matches among record `in`'s genes by the Z-curve gene score (`GeneMatching`; from 500 aa against its long genes, below against those within ±10% of the length), the first flagged `reciprocal` when it is a reciprocal best hit. For records without families, such as NCBI eukaryotes: between same-genus genomes 93–99.8% of reciprocal pairs share the protein name (`results/GeneMatch_Check.csv`). The compare page's "Find this gene" |
+| GET | `/api/sequences/{id}/genes/{index}/matches?in=&top=` | The gene's best matches among record `in`'s genes by the Z-curve gene score (`GeneMatching`; from 500 aa against its long genes, below against those within ±10% of the length), the first flagged `reciprocal` when it is a reciprocal best hit. For records without families, such as NCBI eukaryotes: between same-genus genomes 93–99.7% of reciprocal pairs share the protein name (`results/GeneMatch_Check.csv`). The compare page's "Find this gene" |
 | GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
 | GET | `/api/landscape?group=` | The public catalogue on three axes (`x`, `y`, `z`: PC1–PC3; the page draws two at a time): `cellular` (default), `viral` or `eukaryotic`, one genome per species, or `all`, every public genome on one set of axes. PCA of the signature as parallel arrays with domains, lineages and each axis's heaviest dinucleotides |
 | GET | `/api/experiments` | The published P9 experiments, newest first: question, verdict (`pass`, `fail`, `context`), snapshot, script, summary numbers |
@@ -195,7 +195,7 @@ same family. A search takes 2–8 s. `weakSignal` stays false for proteins.
 Each hit carries p and E (`log10P`, `pKind`, `log10E`) once `build-protein-null` has run: E is how many genes of other protein
 families would score this high in a search of this size, from real proteins scored against the gene layer. `pKind` Bound means fewer
 than 10 null pairs scored this high, so E is an upper bound (the page shows "< E"). On the check behind it (`results/ProteinNull_Check.csv`),
-60–66% of proteins have E < 0.01 at their best same-family hit and 75–81% have E < 1; E near 1 or above means the hit is unconfirmed.
+63–71% of proteins have E < 0.01 at their best same-family hit (46% at 333–499 aa) and 75–83% have E < 1; E near 1 or above means the hit is unconfirmed.
 
 ## The worker
 

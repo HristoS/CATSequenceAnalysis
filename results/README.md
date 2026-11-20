@@ -89,13 +89,16 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
   exact gene first 95.0 / 95.2 / 90.0 / 88.1 / 71.7% at 50–99 / 100–166 / 167–332 / 333–499 / 500+ aa. Through the API, median
   5.9 s; hosted (2 vCPU) median 7.4 s with the same accuracy. The first check (`ProteinSearch_Catalogue.csv`) spent 19.6 s of
   20.7 s reading and decoding.
-- `ProteinNull_Check.csv`: p and E per hit from 411 real proteins scored against genes of other families.
+- `ProteinNull_Check.csv`: p and E per hit from 411 real proteins scored against genes of other families. Rerun with the weighted
+  score (2026-11-20): rule still met (167–332 aa: median E 0, spread 27x, was 37x); E < 0.01 at the best same-family hit 63–71% per
+  band (333–499 aa 46%, was 40%). The unweighted run is at commit 9f75afe.
 - `S7T_FullPass.csv`: eukaryotes from their CDS files, 2.25M genes, 209 MB; self-search 96.4% first or tied (yeast 100%).
 - `SearchBreakdown_*.csv`: reading rows into pooled buffers and scoring in place cut the time above the transfer floor by 58%
   (end to end −12%, 2.8–7.8 s); PostgreSQL's transfer is now 74–92% of a query. Clustering rows by bucket: read −17–18%. Two exact
   CPU cuts (`_EarlyStop`) gave nothing and were reverted.
-- `GeneMatch_Check.csv`: reciprocal best hits by gene score alone, for genes without a family. Same-name agreement 99.8% (Podospora)
-  and 92.9% (Nelumbo) against 0.5% and 0.2% by chance.
+- `GeneMatch_Check.csv`: reciprocal best hits by gene score alone, for genes without a family. Same-name agreement 99.7% (Podospora)
+  and 92.9% (Nelumbo) against 0.5% and 0.2% by chance, with the weighted score (2026-11-20; unweighted 99.8% and 92.9%, at commit
+  f5cb655). The weights find 0.5–0.75% fewer reciprocal pairs.
 
 ## 3. The catalogue as a system (Paper B)
 
