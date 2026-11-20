@@ -216,23 +216,68 @@
       "title": "Right family without the query's own gene", "question": "Is the right protein family first once the query's own gene, genome, species or genus is removed?",
       "rule": "Under 50% family top-1 with the own species removed in any band reframes the claim as near-identical lookup. No band was under 50%.",
       "note": "157 proteins with a PGfam. Runnable once its query set is stored.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
-      "script": "protein_homolog_check.cs", "commit": "uncommitted (2026-11-12)",
+      "script": "protein_homolog_check.cs", "commit": "103f8c8",
       "keyNumbers": [ { "label": "own gene removed, top-1", "value": 0.845 }, { "label": "own genus removed, top-1", "value": 0.659 }, { "label": "own genus removed, top-10", "value": 0.793 } ],
       "files": [ "ProteinHomolog_Check.csv" ]
     },
     {
       "name": "protein-family-tuning", "article": "A-gene", "verdict": "fail", "runnable": false,
       "title": "Raising the right family", "question": "Do feature weights or a vote over the top hits find the right family more often, with the own genus removed?",
-      "rule": "The combination best on the tuning half must gain ≥ 5 points on the test half, 95% genome-bootstrap CI excluding 0, losing ≤ 1 point of exact top-1. Best was 'best hit with a family': +3.1 points (CI −8.7 to +15.3). Tuning stops.",
+      "rule": "The combination best on the tuning half must gain ≥ 5 points on the test half, 95% genome-bootstrap CI excluding 0, losing ≤ 1 point of exact top-1. Best was 'best hit with a family': +3.1 points (paired CI +1.6 to +5.0; the first run printed −8.7 to +15.3 from an unpaired-bootstrap bug, fixed 2026-11-20). Below +5, so tuning stops.",
       "note": "1,143 proteins from 64 genomes. Not pre-registered: 1/variance weights raise exact-gene top-1 on the test half from 83.7% to 87.8%. Runnable once its query set is stored.",
-      "snapshot": "local catalogue (BV-BRC), 2026-11-12", "script": "protein_family_diagnostic.cs", "commit": "uncommitted (2026-11-12)",
+      "snapshot": "local catalogue (BV-BRC), 2026-11-12", "script": "protein_family_diagnostic.cs", "commit": "35e15a1",
       "keyNumbers": [ { "label": "family top-1, own genus removed", "value": 0.641 }, { "label": "test-half gain, best with family", "value": 0.031 } ],
       "files": [ "ProteinFamily_Diagnostic.csv", "ProteinFamily_Diagnostic_Queries.csv" ]
     },
     {
+      "name": "protein-weights", "article": "A-gene", "verdict": "fail", "runnable": false,
+      "title": "Weighted gene-profile score", "question": "On genomes no earlier run used, do fixed 1/variance weights on the 9 numbers find the query's own gene first more often?",
+      "rule": "Exact-gene top-1 must gain ≥ 2 points with the 95% genome-bootstrap CI above 0, losing ≤ 1 point of family top-1. Gain +1.3 points (CI +0.4 to +2.3), family −0.5: below the bar.",
+      "note": "1,268 proteins from 57 new genomes (seed 20261113). Adopted anyway on 2026-11-20 by the author's decision, for accuracy: the gain is small but its CI is above 0, and the earlier run gave +4.1. The platform scores weighted since then (protein null version 2).",
+      "snapshot": "local catalogue (BV-BRC), 2026-11-20", "script": "protein_family_diagnostic.cs --confirm", "commit": "35e15a1",
+      "keyNumbers": [ { "label": "own gene first, unweighted", "value": 0.853 }, { "label": "own gene first, weighted", "value": 0.866 }, { "label": "family top-1, own genus removed, weighted", "value": 0.609 } ],
+      "files": [ "ProteinWeights_Confirm.csv", "ProteinWeights_Confirm_Queries.csv" ]
+    },
+    {
+      "name": "protein-exact-miss", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "Why the own gene is not first", "question": "When the query's own gene is not first, what is?",
+      "rule": "If identical or near-identical proteins are at least half of the misses, report 'right protein first' beside 'own gene first'. 164 of 193 (85%).",
+      "note": "1,143 proteins. The gene ranked above the own gene is mostly the same protein in a sister genome; partial genes explain 3 of 87 misses at 500+ aa. Ties are counted for the own gene; the API breaks them by record id.",
+      "snapshot": "local catalogue (BV-BRC), 2026-11-20", "script": "protein_exact_miss_check.cs", "commit": "35e15a1",
+      "keyNumbers": [ { "label": "own gene first, weighted", "value": 0.866 }, { "label": "own gene in top 10, weighted", "value": 0.976 }, { "label": "right protein first, unweighted", "value": 0.975 }, { "label": "right protein first, weighted", "value": 0.992 } ],
+      "files": [ "ProteinExactMiss_Summary.csv", "ProteinExactMiss_Misses.csv" ]
+    },
+    {
+      "name": "protein-homolog-key", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "title": "Family label or real homolog", "question": "Is the top hit a real homolog, and are the family 'misses' partly label noise?",
+      "rule": "If the same-family gene is not detectably homologous in ≥ 10 points more of misses than of hits, CI above 0, the paper may say misses are partly label noise. 17.8% vs 0.9%: +16.9 points (CI +12.1 to +21.4).",
+      "note": "989 proteins with a same-family gene outside their genus, weighted score. Homolog: Rost's HSSP curve + 5 points over ≥ 60% of the shorter protein (BLOSUM62, gap 11 + k). The low identity bins are optimistic by construction.",
+      "snapshot": "local catalogue (BV-BRC), 2026-11-20", "script": "protein_homolog_key_check.cs", "commit": "35e15a1",
+      "keyNumbers": [ { "label": "same PGfam first", "value": 0.642 }, { "label": "a homolog first", "value": 0.722 }, { "label": "homolog first, 60–80% identity", "value": 0.818 }, { "label": "homolog first, 80–95% identity", "value": 0.976 } ],
+      "files": [ "ProteinHomologKey_Summary.csv", "ProteinHomologKey_Queries.csv" ]
+    },
+    {
+      "name": "protein-offset", "article": "A-gene", "verdict": "context", "runnable": false,
+      "title": "Shifted same-family profiles", "question": "Are missed same-family genes the right profile at an offset?",
+      "rule": "Flips ≥ 30% with most within 10 aa of the alignment's offset leads to a ranking test (protein-homolog-ranking). 47.8%, 82% within 10 aa: tested there.",
+      "note": "341 misses with both proteins from BV-BRC. True pairs are distant homologs (median identity 48%, inner indels in 77%); a shift mostly repairs P1 and P2.",
+      "snapshot": "local catalogue (BV-BRC), 2026-11-20", "script": "protein_offset_check.cs", "commit": "35e15a1",
+      "keyNumbers": [ { "label": "true beats wrong at offset 0", "value": 0.457 }, { "label": "true beats wrong at best offsets", "value": 0.478 } ],
+      "files": [ "ProteinOffset_Summary.csv", "ProteinOffset_Features.csv", "ProteinOffset_Pairs.csv", "ProteinOffset_Dotplots.csv" ]
+    },
+    {
+      "name": "protein-homolog-ranking", "article": "A-gene", "verdict": "fail", "runnable": false,
+      "title": "Translation-built genes and offset search", "question": "Does profiling genes from their translation, or searching over shifts, rank homologs first more often?",
+      "rule": "Either arm must gain ≥ 3 points of homolog top-1 with the CI above 0. Translation +1.9 (CI −1.9 to +5.1); shifts −6.0 (CI −11.2 to −0.9). Neither: both dropped.",
+      "note": "300 proteins from the 30 bundled bacteria, 215 with a homolog in another genus. Homolog first by identity: 13% under 40%, 32% at 40–60%, 83% at 60–80%, 98% above.",
+      "snapshot": "bundled genomes (data/genomes)", "test": "ProteinHomologRankingBenchmark", "commit": "35e15a1",
+      "keyNumbers": [ { "label": "homolog first, today's profile", "value": 0.484 }, { "label": "from translation", "value": 0.502 }, { "label": "with shifts", "value": 0.479 } ],
+      "files": [ "ProteinHomologRanking.csv" ]
+    },
+    {
       "name": "protein-null", "article": "A-gene", "verdict": "context", "runnable": false,
       "title": "p and E for protein hits", "question": "How often does a gene of another family score this high against a protein of this length?",
-      "note": "From 411 real proteins scored against genes of other families.", "snapshot": "local catalogue (BV-BRC)",
+      "note": "From 411 real proteins scored against genes of other families. Rebuilt for the weighted score on 2026-11-20 (version 2).", "snapshot": "local catalogue (BV-BRC)",
       "script": "protein_null_check.cs", "commit": "9f75afe",
       "files": [ "ProteinNull_Check.csv" ]
     },
