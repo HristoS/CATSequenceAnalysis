@@ -215,10 +215,21 @@ namespace SequenceAnalyses
         }
 
         /// <summary>
-        /// 1 - the mean over the common windows of the per-window Euclidean distance between a query (from <see cref="QueryFromGene"/>
-        /// or <see cref="QueryFromProtein"/>) and gene <paramref name="gene"/>, the convention of <see cref="ZCurveWindowedProfile.BestAlignment"/>.
-        /// NaN when either has no window. A query split into <see cref="SplitWindows"/> means something only against genes of similar
-        /// length, which the caller chooses.
+        /// Each feature's weight in the per-window distance, in the stored order (3 * order + axis: P0 x, y, z, P1 x, y, z, P2 x, y, z):
+        /// 1 / the feature's variance over the catalogue's gene windows (a 2% row sample, 2026-11-12), scaled to sum to 9 so scores stay
+        /// on the unweighted scale. It mostly halves P0 z (GC-like), the feature that carries the least protein-family signal.
+        /// Adopted 2026-11-20 by the author's decision for accuracy, against the confirmation rule (>= +2 points), which it missed:
+        /// own gene first 85.3% -> 86.6% on 57 new genomes (+1.3, 95% CI +0.4 to +2.3), 83.1% -> 86.6% on G4's genomes; right protein
+        /// first 97.5% -> 99.2%; family top-1 unchanged within its CI (results/ProteinWeights_Confirm.csv, ProteinExactMiss_Summary.csv).
+        /// </summary>
+        public static readonly IReadOnlyList<double> FeatureWeights = Array.AsReadOnly(new[] { 0.741, 0.838, 0.333, 1.17, 1.16, 1.15, 1.19, 1.21, 1.2 });
+        private static readonly double[] weights = FeatureWeights.ToArray();
+
+        /// <summary>
+        /// 1 - the mean over the common windows of the per-window weighted Euclidean distance (<see cref="FeatureWeights"/>) between a
+        /// query (from <see cref="QueryFromGene"/> or <see cref="QueryFromProtein"/>) and gene <paramref name="gene"/>, the convention of
+        /// <see cref="ZCurveWindowedProfile.BestAlignment"/>. NaN when either has no window. A query split into <see cref="SplitWindows"/>
+        /// means something only against genes of similar length, which the caller chooses.
         /// </summary>
         public double Score(double[] query, int gene)
         {
@@ -232,7 +243,7 @@ namespace SequenceAnalyses
                 for (int f = 0; f < FeatureCount; f++)
                 {
                     double difference = query[w * FeatureCount + f] - (double)features[f][first + w];
-                    squared += difference * difference;
+                    squared += weights[f] * difference * difference;
                 }
                 sum += Math.Sqrt(squared);
             }
@@ -331,7 +342,7 @@ namespace SequenceAnalyses
                     {
                         double difference = query[queryStart + f] -
                             halfValues[BinaryPrimitives.ReadUInt16LittleEndian(bytes[(offset + 2 * (f * n + geneWindow))..])];
-                        squared += difference * difference;
+                        squared += weights[f] * difference * difference;
                     }
                     sum += Math.Sqrt(squared);
                 }

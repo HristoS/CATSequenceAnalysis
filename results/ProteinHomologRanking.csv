@@ -1,0 +1,65 @@
+Arm,Weighting,Band,Reachable,Top1,Top10
+A,unweighted,all,215,0.4837,0.6558
+A,1/variance,all,215,0.4744,0.6512
+B,unweighted,all,215,0.5023,0.6930
+B,1/variance,all,215,0.4977,0.6744
+B0,unweighted,all,215,0.4837,0.6558
+B0,1/variance,all,215,0.4884,0.6698
+C,unweighted,all,215,0.4791,0.6605
+C,1/variance,all,215,0.4512,0.6744
+A,unweighted,50-99 aa,13,0.5385,0.6923
+A,1/variance,50-99 aa,13,0.5385,0.7692
+B,unweighted,50-99 aa,13,0.6154,0.6923
+B,1/variance,50-99 aa,13,0.5385,0.6923
+B0,unweighted,50-99 aa,13,0.6154,0.6923
+B0,1/variance,50-99 aa,13,0.5385,0.7692
+C,unweighted,50-99 aa,13,0.6154,0.6923
+C,1/variance,50-99 aa,13,0.5385,0.7692
+A,unweighted,100-166 aa,22,0.5455,0.6364
+A,1/variance,100-166 aa,22,0.4545,0.6364
+B,unweighted,100-166 aa,22,0.5455,0.6364
+B,1/variance,100-166 aa,22,0.5000,0.6364
+B0,unweighted,100-166 aa,22,0.5000,0.6364
+B0,1/variance,100-166 aa,22,0.5000,0.6818
+C,unweighted,100-166 aa,22,0.5909,0.5909
+C,1/variance,100-166 aa,22,0.5455,0.6364
+A,unweighted,167-332 aa,88,0.3977,0.5909
+A,1/variance,167-332 aa,88,0.3636,0.5795
+B,unweighted,167-332 aa,88,0.4205,0.6250
+B,1/variance,167-332 aa,88,0.3977,0.6023
+B0,unweighted,167-332 aa,88,0.3523,0.5568
+B0,1/variance,167-332 aa,88,0.3977,0.5682
+C,unweighted,167-332 aa,88,0.3864,0.5909
+C,1/variance,167-332 aa,88,0.3523,0.6250
+A,unweighted,333-499 aa,57,0.5088,0.6842
+A,1/variance,333-499 aa,57,0.5439,0.6491
+B,unweighted,333-499 aa,57,0.5439,0.7544
+B,1/variance,333-499 aa,57,0.5614,0.7018
+B0,unweighted,333-499 aa,57,0.5965,0.7193
+B0,1/variance,333-499 aa,57,0.5263,0.7018
+C,unweighted,333-499 aa,57,0.5263,0.7193
+C,1/variance,333-499 aa,57,0.5439,0.6667
+A,unweighted,500+ aa,35,0.6000,0.7714
+A,1/variance,500+ aa,35,0.6286,0.8000
+B,unweighted,500+ aa,35,0.5714,0.8000
+B,1/variance,500+ aa,35,0.6286,0.8286
+B0,unweighted,500+ aa,35,0.5714,0.8000
+B0,1/variance,500+ aa,35,0.6286,0.8286
+C,unweighted,500+ aa,35,0.5143,0.7714
+C,1/variance,500+ aa,35,0.4571,0.8000
+
+Best homolog identity,Queries,A top-1 unweighted,C top-1 unweighted
+0.0-0.4,70,0.1286,0.0857
+0.4-0.6,62,0.3226,0.3548
+0.6-0.8,42,0.8333,0.8095
+0.8-1.0,41,0.9756,1.0000
+
+Queries with a homolog,215 of 300
+unweighted: B (translation) vs A (DNA),+1.9 points (95% CI -1.9 to +5.1)
+unweighted: B0 (common length) vs B,-1.9 points (95% CI -6.0 to +2.3)
+unweighted: C (shifts) vs the better of B and B0,-6.0 points (95% CI -11.2 to -0.9)
+1/variance: B (translation) vs A (DNA),+2.3 points (95% CI -0.9 to +5.6)
+1/variance: B0 (common length) vs B,-0.9 points (95% CI -5.6 to +3.7)
+1/variance: C (shifts) vs the better of B and B0,-10.7 points (95% CI -16.3 to -6.0)
+Weights: A 1/variance vs A unweighted,-0.9 points (95% CI -4.2 to +1.9)
+Rule (unweighted; >= 3 points with CI above 0),translation: no; shifts: no

@@ -22,8 +22,15 @@ using SequencePlatform.Core;
 // Rule fixed before the run: the combination best on the tuning half goes ahead if, on the test half, it gains >= 5 points of family
 // top-1 over today's (unweighted, best hit) with a 95% genome-bootstrap CI excluding 0, and loses <= 1 point of exact top-1. Otherwise
 // tuning stops and the paper reports today's number.
-// Args: summary path (default ProteinFamily_Diagnostic.csv), per-query path (default ProteinFamily_Diagnostic_Queries.csv).
-const int seed = 20261105, perBand = 5, topK = 20, diagnosticK = 200, bootstrapRounds = 2000;
+// --confirm (2026-11-20, card G7): confirmation of the 1/variance weights G4 printed, on new genomes (seed 20261113, G4's 64 skipped),
+// with the weights fixed and nothing tuned: two arms (unweighted, 1/variance), every query is a test query. Rule fixed before the run: go
+// if exact-gene top-1 gains >= 2 points with the 95% genome-bootstrap CI above 0, and family top-1 (own genus removed, best hit) loses
+// <= 1 point.
+// Args: summary path (default ProteinFamily_Diagnostic.csv), per-query path (default ProteinFamily_Diagnostic_Queries.csv), [--confirm].
+const int seed = 20261105, confirmSeed = 20261113, perBand = 5, topK = 20, diagnosticK = 200, bootstrapRounds = 2000;
+bool confirm = args.Contains("--confirm");
+args = args.Where(a => !a.StartsWith("--", StringComparison.Ordinal)).ToArray();
+int selectionSeed = confirm ? confirmSeed : seed;
 string[] bandNames = ["50-99 aa", "100-166 aa", "167-332 aa", "333-499 aa", "500+ aa"];
 static int BandOf(int residues) => residues < 100 ? 0 : residues < 167 ? 1 : residues < 333 ? 2 : residues < 500 ? 3 : 4;
 var genomesPerKind = new Dictionary<string, int> { ["bacterium"] = 48, ["archaeon"] = 8, ["plasmid"] = 8 };
@@ -54,28 +61,41 @@ await using (var reader = await command.ExecuteReaderAsync())
 
 // Query selection: protein_search_check_v2.cs's rule, more genomes, only proteins with a PGfam and an NCBI genus.
 var queries = new List<Query>();
+// The genomes of a seed, in md5 order: the same accessions G4's single query picked.
+async Task<List<string>> AccessionsAsync(string kind, int forSeed, int limit)
+{
+    var list = new List<string>();
+    await using var command = dataSource.CreateCommand(
+        "select s2.accession from sequence_source s2 join sequence_record r2 on r2.source_id = s2.id " +
+        "join gene_profile g on g.sequence_id = r2.id and g.bucket = 0 " +
+        "where r2.kind = $1 group by s2.accession order by md5(s2.accession || $2) limit $3");
+    command.Parameters.AddWithValue(kind);
+    command.Parameters.AddWithValue(forSeed.ToString(CultureInfo.InvariantCulture));
+    command.Parameters.AddWithValue(limit);
+    await using var reader = await command.ExecuteReaderAsync();
+    while (await reader.ReadAsync()) list.Add(reader.GetString(0));
+    return list;
+}
 foreach (var (kind, count) in genomesPerKind)
 {
+    var excluded = confirm ? (await AccessionsAsync(kind, seed, count)).ToHashSet() : [];
+    var accessions = (await AccessionsAsync(kind, selectionSeed, count + excluded.Count)).Where(a => !excluded.Contains(a)).Take(count).ToArray();
     var samples = new List<(string Genome, long Id, string Record, string? Order)>();
     await using (var command = dataSource.CreateCommand(
         "select s.accession, r.id, r.record_id, r.tax_order from sequence_record r join sequence_source s on s.id = r.source_id " +
-        "where r.kind = $1 and s.provider = 'BV-BRC' and s.owner_id is null and s.accession in (" +
-        "  select s2.accession from sequence_source s2 join sequence_record r2 on r2.source_id = s2.id " +
-        "  join gene_profile g on g.sequence_id = r2.id and g.bucket = 0 " +
-        "  where r2.kind = $1 group by s2.accession order by md5(s2.accession || $2) limit $3) and exists (" +
+        "where r.kind = $1 and s.provider = 'BV-BRC' and s.owner_id is null and s.accession = any($2) and exists (" +
         "  select 1 from gene_profile g where g.sequence_id = r.id)"))
     {
         command.Parameters.AddWithValue(kind);
-        command.Parameters.AddWithValue(seed.ToString(CultureInfo.InvariantCulture));
-        command.Parameters.AddWithValue(count);
+        command.Parameters.AddWithValue(accessions);
         await using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
             samples.Add((reader.GetString(0), reader.GetInt64(1), reader.GetString(2), reader.IsDBNull(3) ? null : reader.GetString(3)));
     }
 
-    foreach (var genome in samples.GroupBy(s => s.Genome))
+    foreach (var genome in samples.GroupBy(s => s.Genome).OrderBy(g => Array.IndexOf(accessions, g.Key)))
     {
-        bool tuning = (MD5.HashData(Encoding.ASCII.GetBytes(genome.Key))[0] & 1) == 0;
+        bool tuning = !confirm && (MD5.HashData(Encoding.ASCII.GetBytes(genome.Key))[0] & 1) == 0;
         var records = genome.ToDictionary(s => s.Record);
         JsonElement features;
         try
@@ -84,7 +104,7 @@ foreach (var (kind, count) in genomesPerKind)
                 $"eq(annotation,PATRIC),ge(aa_length,{ZCurveGeneProfile.MinResidues}))&select(accession,start,end,strand,aa_length,aa_sequence_md5)&sort(+feature_id)&limit(25000)");
         }
         catch (HttpRequestException e) { Console.WriteLine($"{kind} {genome.Key}: skipped ({e.Message})"); continue; }
-        var picker = new Random(seed);
+        var picker = new Random(selectionSeed);
         var picked = features.EnumerateArray()
             .Where(f => f.TryGetProperty("aa_sequence_md5", out _) && records.ContainsKey(f.GetProperty("accession").GetString()!))
             .GroupBy(f => BandOf(f.GetProperty("aa_length").GetInt32()))
@@ -176,6 +196,13 @@ async Task<T[]> PassAsync<T>(string sql, Func<T> start, Action<T, long, int, ZCu
     return await Task.WhenAll(workers);
 }
 
+string Vector(double[] v) => string.Join(" ", v.Select(x => x.ToString("G3", CultureInfo.InvariantCulture)));
+static double[] Normalized(double[] w) { double s = w.Sum(); return w.Select(x => F * x / s).ToArray(); }
+(string Name, double[] Weights)[] weightings;
+if (confirm)
+    weightings = [("unweighted", Enumerable.Repeat(1.0, F).ToArray()), ("1/variance (G4 fixed)", [0.741, 0.838, 0.333, 1.17, 1.16, 1.15, 1.19, 1.21, 1.2])];
+else
+{
 // Pre-pass on a 2% row sample: global feature variance over all windows, and within / between-family mean squared differences for
 // tuning queries against genes outside their genus.
 var sample = await PassAsync(
@@ -208,19 +235,18 @@ var within = Enumerable.Range(0, F).Select(f => pooled.Within[f] / pooled.Counts
 var between = Enumerable.Range(0, F).Select(f => pooled.Between[f] / pooled.Counts[1]).ToArray();
 Console.WriteLine($"Pre-pass: {pooled.Windows:N0} windows, {pooled.Counts[0]:N0} within / {pooled.Counts[1]:N0} between window pairs, " +
     $"{total.Elapsed.TotalMinutes:F1} min.");
-string Vector(double[] v) => string.Join(" ", v.Select(x => x.ToString("G3", CultureInfo.InvariantCulture)));
 Console.WriteLine($"  variance {Vector(variance)}\n  within {Vector(within)}\n  between {Vector(between)}");
 
-static double[] Normalized(double[] w) { double s = w.Sum(); return w.Select(x => F * x / s).ToArray(); }
-var weightings = new (string Name, double[] Weights)[]
-{
+weightings =
+[
     ("unweighted", Enumerable.Repeat(1.0, F).ToArray()),
     ("P0", [1, 1, 1, 0, 0, 0, 0, 0, 0]),
     ("P0+P1", [1, 1, 1, 1, 1, 1, 0, 0, 0]),
     ("1/variance", Normalized(variance.Select(v => v > 0 ? 1 / v : 0).ToArray())),
     ("1/within", Normalized(within.Select(v => v > 0 ? 1 / v : 0).ToArray())),
     ("between/within", Normalized(within.Select((v, f) => v > 0 ? between[f] / v : 0).ToArray())),
-};
+];
+}
 int W = weightings.Length;
 foreach (var query in queries)
 {
@@ -324,10 +350,11 @@ foreach (var half in new[] { "tuning", "test", "all" })
                     Percent(reach.Count(q => correct[q.Index, v, a]), reach.Count), cell.Count, Percent(cell.Count(q => exact[q.Index, v]), cell.Count)));
     }
 
-// Rule: best on the tuning half, judged on the test half against (unweighted, best hit), genome bootstrap.
+// Rule: best on the tuning half, judged on the test half against (unweighted, best hit), genome bootstrap. In --confirm, the fixed
+// weights (best hit) against unweighted (best hit) on every query.
 double Share(IEnumerable<Query> set, Func<Query, bool> hit) { var l = set.ToList(); return l.Count == 0 ? double.NaN : l.Count(hit) / (double)l.Count; }
 var tuningReach = queries.Where(q => q.Tuning && reachable[q.Index]).ToList();
-var (bestV, bestA) = (from v in Enumerable.Range(0, W) from a in Enumerable.Range(0, A) select (v, a))
+var (bestV, bestA) = confirm ? (1, 0) : (from v in Enumerable.Range(0, W) from a in Enumerable.Range(0, A) select (v, a))
     .MaxBy(c => Share(tuningReach, q => correct[q.Index, c.v, c.a]));
 var testGenomes = queries.Where(q => !q.Tuning).GroupBy(q => q.Genome).Select(g => g.ToList()).ToList();
 double Delta(IEnumerable<Query> set, Func<Query, bool> after, Func<Query, bool> before) =>
@@ -340,22 +367,47 @@ var rng = new Random(seed);
 var deltas = new List<double>();
 for (int r = 0; r < bootstrapRounds; r++)
 {
-    var resampled = Enumerable.Range(0, testGenomes.Count).SelectMany(_ => testGenomes[rng.Next(testGenomes.Count)]).Where(q => reachable[q.Index]);
+    // Materialized: a lazy sample would be drawn again for each side of the difference, which unpairs it (fixed 2026-11-20; G4's
+    // first CI, -8.7 to +15.3, came from that bug).
+    var resampled = Enumerable.Range(0, testGenomes.Count).SelectMany(_ => testGenomes[rng.Next(testGenomes.Count)]).Where(q => reachable[q.Index]).ToList();
     double d = Delta(resampled, q => correct[q.Index, bestV, bestA], q => correct[q.Index, 0, 0]);
     if (!double.IsNaN(d)) deltas.Add(d);
 }
 deltas.Sort();
 double low = deltas[(int)(0.025 * deltas.Count)], high = deltas[(int)(0.975 * deltas.Count) - 1];
-bool go = familyDelta >= 0.05 && low > 0 && exactDelta >= -0.01;
 string Points(double x) => (100 * x).ToString("+0.0;-0.0", CultureInfo.InvariantCulture);
 lines.Add("");
-lines.Add($"Weights 1/variance,{Vector(weightings[3].Weights)}");
-lines.Add($"Weights 1/within,{Vector(weightings[4].Weights)}");
-lines.Add($"Weights between/within,{Vector(weightings[5].Weights)}");
-lines.Add($"Best on tuning half,{weightings[bestV].Name} / {aggregators[bestA].Name}");
-lines.Add($"Test half vs unweighted / best hit,family top-1 {Points(familyDelta)} points (95% CI {Points(low)} to {Points(high)}; {testReach.Count} proteins in " +
-    $"{testGenomes.Count} genomes); exact top-1 {Points(exactDelta)} points");
-lines.Add("Rule (>= +5 points, CI excludes 0, exact >= -1 point)," + (go ? "go" : "stop: report today's number"));
+if (confirm)
+{
+    // Exact top-1 over every query, with the same genome bootstrap.
+    var exactDeltas = new List<double>();
+    var exactRng = new Random(confirmSeed);
+    for (int r = 0; r < bootstrapRounds; r++)
+    {
+        var resampled = Enumerable.Range(0, testGenomes.Count).SelectMany(_ => testGenomes[exactRng.Next(testGenomes.Count)]).ToList();
+        exactDeltas.Add(Delta(resampled, q => exact[q.Index, 1], q => exact[q.Index, 0]));
+    }
+    exactDeltas.Sort();
+    double exactLow = exactDeltas[(int)(0.025 * exactDeltas.Count)], exactHigh = exactDeltas[(int)(0.975 * exactDeltas.Count) - 1];
+    bool confirmed = exactDelta >= 0.02 && exactLow > 0 && familyDelta >= -0.01;
+    lines.Add($"Weights,{Vector(weightings[1].Weights)} (fixed from G4)");
+    lines.Add($"Exact top-1 unweighted -> weighted,{100 * Share(testAll, q => exact[q.Index, 0]):F1}% -> {100 * Share(testAll, q => exact[q.Index, 1]):F1}%: " +
+        $"{Points(exactDelta)} points (95% CI {Points(exactLow)} to {Points(exactHigh)}; {testAll.Count} proteins in {testGenomes.Count} genomes)");
+    lines.Add($"Family top-1 (own genus removed) unweighted -> weighted,{100 * Share(testReach, q => correct[q.Index, 0, 0]):F1}% -> " +
+        $"{100 * Share(testReach, q => correct[q.Index, 1, 0]):F1}%: {Points(familyDelta)} points (95% CI {Points(low)} to {Points(high)}; {testReach.Count} reachable)");
+    lines.Add("Rule (exact >= +2 points with CI above 0, family >= -1 point)," + (confirmed ? "go: weights confirmed" : "stop: keep unweighted"));
+}
+else
+{
+    bool go = familyDelta >= 0.05 && low > 0 && exactDelta >= -0.01;
+    lines.Add($"Weights 1/variance,{Vector(weightings[3].Weights)}");
+    lines.Add($"Weights 1/within,{Vector(weightings[4].Weights)}");
+    lines.Add($"Weights between/within,{Vector(weightings[5].Weights)}");
+    lines.Add($"Best on tuning half,{weightings[bestV].Name} / {aggregators[bestA].Name}");
+    lines.Add($"Test half vs unweighted / best hit,family top-1 {Points(familyDelta)} points (95% CI {Points(low)} to {Points(high)}; {testReach.Count} proteins in " +
+        $"{testGenomes.Count} genomes); exact top-1 {Points(exactDelta)} points");
+    lines.Add("Rule (>= +5 points, CI excludes 0, exact >= -1 point)," + (go ? "go" : "stop: report today's number"));
+}
 
 // Diagnostic of today's misses (unweighted, best hit), all queries.
 var misses = queries.Where(q => reachable[q.Index] && !correct[q.Index, 0, 0]).ToList();

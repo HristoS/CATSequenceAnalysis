@@ -17,7 +17,9 @@ namespace SequencePlatform.Core
     /// </summary>
     public sealed class ProteinScoreNull
     {
-        public const string MethodVersion = "1";
+        // "2" since 2026-11-20: the score is weighted (ZCurveGeneProfile.FeatureWeights), so a version-1 (unweighted) null no longer applies;
+        // until build-protein-null runs, hits carry no p or E.
+        public const string MethodVersion = "2";
         public const int Bins = 2000;   // score grid of 1 / Bins from 0 to 1
         private const int minEmpiricalExceedances = 10;
 

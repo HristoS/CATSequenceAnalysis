@@ -1,0 +1,17 @@
+Item,Value
+Queries,1143
+Misses under today's score (own genus removed),355
+Misses with both proteins from BV-BRC,341
+unweighted: true beats wrong over the common length at offset 0,45.7% (156)
+unweighted: true beats wrong at their best offsets (flip),47.8% (163)
+1/variance: true beats wrong over the common length at offset 0,45.7% (156)
+1/variance: true beats wrong at their best offsets (flip),49.9% (170)
+Flips whose best offset is within 10 aa of the alignment's,82.2% (134 of 163)
+True pairs' identity: quartiles,0.3333 / 0.4783 / 0.6207
+True pairs with alignment offset >= 10 aa,26.4%
+True pairs with inner indels,77.1%
+True pairs' mean d2 of P0: offset 0 -> best offset,0.0277 -> 0.0245
+True pairs' mean d2 of P1: offset 0 -> best offset,0.0305 -> 0.0221
+True pairs' mean d2 of P2: offset 0 -> best offset,0.0346 -> 0.0230
+Rule (unweighted: flips >= 30% and most within 10 aa -> ranking test; < 15% -> drop),go: an offset search is worth a ranking test (G6)
+Total,42.2 min
