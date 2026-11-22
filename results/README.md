@@ -29,12 +29,12 @@ Files behind the TCBB manuscript's tables (section numbers are the manuscript's)
 
 | File | § | Content |
 |---|---|---|
-| `ReportTrilaterationBuildTime.csv` | 8.1 | Profile build time, 20 kbp to 10.24 Mbp. Construction runs at 39.6–49.7 M bases/s |
-| `ReportTrilaterationCompareTime_WholeSequence.csv` | 8.2 | Whole-vs-whole compare: 0.064 ms at 10.24 Mbp |
-| `ReportTrilaterationLocalizationTime.csv` | 8.2 | `BestAlignment` fragment search: 2.38 ms at 10.24 Mbp |
+| `ReportTrilaterationBuildTime.csv` | 8.1 | Profile build time, 20 kbp to 10.24 Mbp: 23.2–40.9 M bases/s in this table (the manuscript quoted 39.6–49.7 from an earlier run) |
+| `ReportTrilaterationCompareTime_WholeSequence.csv` | 8.2 | Whole-vs-whole compare: 0.050 ms at 10.24 Mbp in this table (manuscript: 0.064, an earlier run) |
+| `ReportTrilaterationLocalizationTime.csv` | 8.2 | `BestAlignment` fragment search: 1.38 ms at 10.24 Mbp in this table (manuscript: 2.38, an earlier run) |
 | `ReportReliabilityAtScale_*.csv` | 8.3 | Score against known mutation rate, 5 seeds per length |
 | `ReportTrilaterationAccuracy_*.csv`, `ReportNWCalibration.csv` | 8.4 | Against Needleman–Wunsch, 500 bp to 20 kbp |
-| `GenomeScale*_3100000000.csv` | 8.2, 8.3, 8.5 | Synthetic 3.1 Gbp streaming build, planted-fragment search 141.7 ms, profile 74.4 MB (83:1 against the sequence) |
+| `GenomeScale*_3100000000.csv` | 8.2, 8.3, 8.5 | Synthetic 3.1 Gbp streaming build, planted-fragment search 141.4 ms (manuscript: 141.7), profile 74.4 MB (83:1 against the sequence) |
 | `RealGenomeDistanceMatrix_*.csv` | 8.6 | 435 pairs of the 30 bacteria; means 0.8187 / 0.7914 / 0.7573 / 0.6063 for same species / genus / phylum / different phylum |
 | `ExternalBaseline_*.csv` | 8.7 | Mash and FastANI on the same pairs. Mash saturates for distant pairs while the Z-curve stays graded; r = 0.39 on the 22 pairs above Mash's floor. FastANI returns nothing for most pairs |
 | `ReportRetrievalClassification.csv`, `ReportRetrievalOperatingPoint.csv` | 8.8 | **Mash ranks better**: AUC 0.969 vs 0.835 (same genus) and 0.802 vs 0.789 (same phylum); best F1 0.480 vs 0.229 |

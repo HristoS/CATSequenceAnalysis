@@ -44,7 +44,7 @@ namespace SequencePlatform.Ingest
                     ? string.Format(CultureInfo.InvariantCulture, (string)defaults["libraryCommand"]!, test)
                     : string.Format(CultureInfo.InvariantCulture, (string)defaults["scriptCommand"]!, script));
                 var summary = new JsonObject();
-                foreach (var key in new[] { "section", "rule", "note" })
+                foreach (var key in new[] { "section", "method", "rule", "note", "explain" })
                     if (entry[key] is { } value) summary[key] = value.DeepClone();
                 if (entry["keyNumbers"] is { } numbers) summary["keyNumbers"] = numbers.DeepClone();
                 var details = new ExperimentDetails((string?)entry["article"], ExperimentStore.ArticleOrigin, (string?)entry["commit"],
@@ -72,6 +72,10 @@ namespace SequencePlatform.Ingest
                 yield return $"{name}: every key number needs a numeric 'value'";
             foreach (var file in entry["files"]?.AsArray() ?? [])
                 if (!File.Exists(Path.Combine(folder, (string)file!))) yield return $"{name}: missing file {file}";
+            var published = entry["files"]?.AsArray().Select(f => (string?)f).ToHashSet() ?? [];
+            foreach (var chart in entry["explain"]?["charts"]?.AsArray() ?? [])
+                if ((string?)chart?["file"] is not { } chartFile || !published.Contains(chartFile))
+                    yield return $"{name}: chart '{chart?["title"]}' draws a file the entry doesn't publish";
         }
     }
 }

@@ -1,20 +1,47 @@
 import { download, get, send } from "./api.js";
+import { ChartPanel, ResultTables } from "./chart.js";
 import { FilterBox, Help, HowTo, Message, PageHeader, Pager, PanelBar, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
 
 const kingdoms = [["Metazoa", "Animals", "p1"], ["Fungi", "Fungi", "p2"], ["Viridiplantae", "Plants", "p3"]];
 const swatchOf = kingdom => kingdoms.find(([k]) => k === kingdom)?.[2] ?? "p0";
-const verdicts = { pass: "✓ Pass", fail: "✗ Fail", context: "Context" };
+const verdicts = { pass: "✓ Pass", fail: "✗ Fail", context: "Measurement" };
+const verdictHelp = "Pass and Fail are judged against a rule written down before the experiment was run, so the result can't be bent to fit " +
+  "it afterwards. A Measurement has no rule: it describes how the method behaves, it doesn't decide anything.";
 const minPerClass = 3;
 
-// How many genomes the experiment analysed, against how many findings it lists: the two are easy to confuse. Null when it lists none
-// and says nothing about coverage (the article experiments published from their CSVs).
-const coverage = run => (run.summary.analysed != null
-  ? `analysed ${run.summary.analysed.toLocaleString()} genomes · ${run.findings.toLocaleString()} listed`
-  : run.findings > 0 ? `${run.findings.toLocaleString()} listed` : null);
+// How many genomes the experiment analysed, against how many findings it lists: the two are easy to confuse. More listed than analysed
+// means some got a finding with no answer to check it against (e2b's phages without a recorded host). Null when it lists none and says
+// nothing about coverage (the article experiments published from their CSVs).
+function coverage(run) {
+  const analysed = run.summary.analysed, listed = run.findings;
+  if (analysed == null) return listed > 0 ? `${listed.toLocaleString()} listed` : null;
+  if (listed > analysed)
+    return `${listed.toLocaleString()} listed: ${analysed.toLocaleString()} checked against a known answer, ${(listed - analysed).toLocaleString()} more without one`;
+  return `analysed ${analysed.toLocaleString()} genomes · ${listed.toLocaleString()} listed`;
+}
 
-// The article sections, in the order the list shows them; runs without one are the P9 experiments that publish their own findings.
-const sections = [["A-genome", "Paper A: genomes"], ["A-gene", "Paper A: genes and proteins"], ["B", "Paper B: the catalogue"],
-  ["P9", "What the profile can't do (P9)"], [null, "Experiments with findings"]];
+// The registry's article groups, in the order the list shows them, under names that say what they're about (the article codes mean
+// nothing to a reader); runs without one are the experiments that publish their own findings.
+const sections = [["A-genome", "Comparing whole genomes"], ["A-gene", "Genes and proteins"], ["B", "Searching the catalogue"],
+  ["P9", "What composition says about biology"], [null, "Findings across the catalogue"]];
+
+// What an experiment tests (summary.method, from the registry): the platform's own Z-curve profiles, of genomes and of genes, are marked
+// so they stand out from tests of classic signatures the platform also stores. [badge, class, title of the panel on what the test
+// shows about the method]. The runs that publish themselves carry no method and count as other.
+const methods = {
+  zcurve: ["Our Z-curve method · genomes", "zcurve", "What it shows about the Z-curve method"],
+  "zcurve-gene": ["Our Z-curve method · genes", "zcurve", "What it shows about the Z-curve method"],
+  signature: ["Classic composition signature", "signature", "Which method this tests"],
+  cat: ["Earlier method (CAT)", "cat", "Which method this tests"],
+  platform: ["Platform infrastructure", "platform", "What this measures"],
+};
+const methodOf = run => run.summary.method ?? run.summary.explain?.method;
+const isZCurve = run => methods[methodOf(run)]?.[1] === "zcurve";
+function MethodBadge({ method }) {
+  const [label, kind] = methods[method] ?? [];
+  return label ? html`<span class=${`methodbadge ${kind}`}>${label}</span>` : null;
+}
+const paragraphs = text => (Array.isArray(text) ? text : [text]).map((p, i) => html`<p key=${i}>${p}</p>`);
 const where = run => (run.runnable ? "Rerunnable from the database" : "Computed offline");
 
 // Shares and scores (|x| < 1) keep three decimals, as the P9 pages always showed them; counts and timings read as written.
@@ -29,15 +56,21 @@ function VerdictBadge({ verdict }) {
 export function ExperimentsPage() {
   const [runs, setRuns] = useState(null);
   const [error, setError] = useState(null);
+  const [shown, setShown] = useState("all");
   useEffect(() => { get("/api/experiments").then(r => setRuns(r.items)).catch(e => setError(e.message)); }, []);
 
   if (error) return html`<${Message} error>${error}<//>`;
   if (!runs) return html`<${Message}>Loading…<//>`;
   // Oldest first within a section: publish-experiments publishes in the registry's order.
-  const ordered = [...runs].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+  const ordered = [...runs].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt))
+    .filter(run => shown === "all" || (shown === "zcurve") === isZCurve(run));
+  const zcurveCount = runs.filter(isZCurve).length;
   return html`<${PageHeader} title="Experiments"
-      lede=${"Every experiment the articles state, with its verdict, key numbers and result tables to download. Each was run offline, " +
-        "on a frozen copy of the catalogue or on the bundled genomes, against a rule fixed before the run."} />
+      lede="Every experiment behind the method: what it asks, how it was tested, and what came out." />
+    <p class="hint">Each was run offline, on a frozen copy of the catalogue or on the bundled genomes. ${verdictHelp}</p>
+    <div class="toolbar"><${Segmented} label="Method" value=${shown} onChange=${setShown}
+      help="Our Z-curve method: the platform's own profiles of genomes (windows along the genome) and of genes (windows from the start codon). Other: classic composition signatures, the earlier CAT method and the platform's infrastructure."
+      options=${[["all", `All (${runs.length})`], ["zcurve", `Our Z-curve method (${zcurveCount})`], ["other", `Other (${runs.length - zcurveCount})`]]} /></div>
     ${runs.length === 0 && html`<${Message}>No experiment has been published yet.<//>`}
     ${sections.map(([article, heading]) => {
       const inSection = ordered.filter(run => (run.article ?? null) === article);
@@ -45,7 +78,7 @@ export function ExperimentsPage() {
         <h2>${heading} <span class="hint">${inSection.length}</span></h2>
         <div class="scores">${inSection.map(run => html`<a class="panel card" key=${run.name} href="#/experiments/${encodeURIComponent(run.name)}">
           <h3>${run.title}</h3>
-          <p><${VerdictBadge} verdict=${run.verdict} /></p>
+          <p class="badges"><${VerdictBadge} verdict=${run.verdict} /><${MethodBadge} method=${methodOf(run)} /></p>
           <p class="hint">${run.question}</p>
           <p class="hint">${[coverage(run), run.files.length > 0 && `${run.files.length} file${run.files.length > 1 ? "s" : ""}`, where(run)].filter(Boolean).join(" · ")}</p>
         </a>`)}</div>
@@ -70,23 +103,68 @@ function DownloadButton({ file }) {
     Download ${file.name} <span class="hint">${state && state !== "…" ? "failed" : formatSize(file.byteSize)}</span></button>`;
 }
 
+const back = html`<a class="button" href="#/experiments">All experiments</a>`;
+const provenance = run => html`<p class="hint">Computed on <code>${run.snapshot}</code> by <code>${run.script}</code>${run.commit && html` at <code>${run.commit}</code>`}${run.machine && ` on ${run.machine}`}${run.summary.section && `; article section ${run.summary.section}`}. Published ${new Date(run.publishedAt).toLocaleString()}.</p>`;
+
+// An experiment the registry doesn't explain yet: its verdict, numbers and note as the article states them.
 function RunHeader({ run }) {
   const s = run.summary;
   const covered = coverage(run);
-  return html`<${PageHeader} title=${run.title} lede=${run.question} actions=${html`<a class="button" href="#/experiments">All experiments</a>`} />
+  return html`<${PageHeader} title=${run.title} lede=${run.question} actions=${back} />
     <section class="panel stack">
       <p><${VerdictBadge} verdict=${run.verdict} /> ${s.rule && html`<span class="hint">${s.rule}</span>`}</p>
-      ${s.keyNumbers && html`<div class="numbers">${s.keyNumbers.map(k => html`<div key=${k.label}><b>${formatKey(k.value)}</b><small>${k.label}</small></div>`)}</div>`}
+      ${s.keyNumbers && html`<${KeyNumbers} numbers=${s.keyNumbers} />`}
       ${s.note && html`<p>${s.note}</p>`}
       ${covered && html`<p><b>${covered}</b>${s.analysedNote && html`<span class="hint">: ${s.analysedNote}</span>`}</p>`}
-      <p class="hint">Computed on <code>${run.snapshot}</code> by <code>${run.script}</code>${run.commit && html` at <code>${run.commit}</code>`}${run.machine && ` on ${run.machine}`}${s.section && `; article section ${s.section}`}. Published ${new Date(run.publishedAt).toLocaleString()}.</p>
+      ${provenance(run)}
     </section>
-    ${(run.files.length > 0 || run.command) && html`<section class="panel stack">
-      <${PanelBar} title="Results" help=${"The tables behind the numbers above, as the experiment wrote them. " +
-        (run.runnable ? "This experiment needs only the database, so it can be rerun on it." : "This experiment needs DNA or outside data, so it is rerun offline only.")} />
-      ${run.files.length > 0 && html`<div class="actions">${run.files.map(f => html`<${DownloadButton} key=${f.name} file=${f} />`)}</div>`}
-      ${run.command && html`<p class="hint">Reproduce from the repository root (${where(run).toLowerCase()}):</p><${CopyCommand} command=${run.command} />`}
-    </section>`}`;
+    <${ResultsPanel} run=${run} />`;
+}
+
+const KeyNumbers = ({ numbers }) => html`<div class="numbers">${numbers.map(k => html`<div key=${k.label}><b>${formatKey(k.value)}</b><small>${k.label}</small></div>`)}</div>`;
+
+// An explained experiment (summary.explain, from the registry), for a biologist who doesn't know the method: the answer and why, what it
+// asks, how it was tested and what it means, what it shows about the method, the results drawn from its own tables, the terms it uses.
+function ExplainedRun({ run }) {
+  const s = run.summary, e = s.explain;
+  const [, kind, methodTitle] = methods[methodOf(run)] ?? [];
+  return html`<${PageHeader} title=${run.title} lede=${run.question} actions=${back} />
+    <section class="panel stack">
+      <${PanelBar} title="The answer" help=${verdictHelp} />
+      <p class="badges"><${VerdictBadge} verdict=${run.verdict} /><${MethodBadge} method=${methodOf(run)} /></p>
+      ${paragraphs(e.verdict)}
+      ${s.keyNumbers && html`<${KeyNumbers} numbers=${s.keyNumbers} />`}
+    </section>
+    <div class="summarygrid">
+      <section class="panel stack"><h2>What it asks</h2>${paragraphs(e.asks)}</section>
+      <section class="panel stack"><h2>How it was tested</h2>${paragraphs(e.how)}</section>
+      <section class="panel stack"><h2>What it means</h2>${paragraphs(e.meaning)}</section>
+    </div>
+    ${e.methodNote && html`<section class=${`panel stack methodnote ${kind ?? ""}`}><h2>${methodTitle ?? "Method"}</h2>${paragraphs(e.methodNote)}</section>`}
+    ${(e.charts ?? []).map(spec => html`<${ChartPanel} key=${spec.title} spec=${spec} files=${run.files} />`)}
+    ${e.terms && html`<section class="panel stack"><h2>Terms used here</h2>
+      <dl class="terms">${e.terms.map(([term, meaning]) => html`<div key=${term}><dt>${term}</dt><dd>${meaning}</dd></div>`)}</dl></section>`}
+    <${ResultsPanel} run=${run} details=${true} />`;
+}
+
+// The run's tables, readable in the page and downloadable, with how to reproduce them; an explained run keeps its provenance and the
+// article's own note here, under the tables, since they're for whoever checks the work.
+function ResultsPanel({ run, details = false }) {
+  const s = run.summary;
+  if (run.files.length === 0 && !run.command) return null;
+  return html`<section class="panel stack">
+    <${PanelBar} title="Result tables" help=${"The tables behind the numbers above, exactly as the experiment wrote them. " +
+      (run.runnable ? "This experiment needs only the database, so it can be rerun on it." : "This experiment needs DNA or outside data, so it is rerun offline only.")} />
+    <${ResultTables} files=${run.files} />
+    ${run.files.length > 0 && html`<div class="actions">${run.files.map(f => html`<${DownloadButton} key=${f.name} file=${f} />`)}</div>`}
+    ${run.command && html`<p class="hint">Reproduce from the repository root (${where(run).toLowerCase()}):</p><${CopyCommand} command=${run.command} />`}
+    ${details && html`<${HowTo} title="Technical details">
+      ${s.rule && html`<p>Rule as written: ${s.rule}</p>`}
+      ${s.note && html`<p>Note from the run: ${s.note}</p>`}
+      ${coverage(run) && html`<p>${coverage(run)}${s.analysedNote && `: ${s.analysedNote}`}</p>`}
+      ${provenance(run)}
+    <//>`}
+  </section>`;
 }
 
 const jobActive = job => job && (job.status === "Queued" || job.status === "Running");
@@ -187,7 +265,7 @@ export function ExperimentPage({ name }) {
   if (error) return html`<${Message} error>${error}<//>`;
   if (!page) return html`<${Message}>Loading…<//>`;
   const View = view();
-  return html`<${RunHeader} run=${page.experiment} />
+  return html`${page.experiment.summary.explain ? html`<${ExplainedRun} run=${page.experiment} />` : html`<${RunHeader} run=${page.experiment} />`}
     <${RerunPanel} article=${page.experiment} />
     ${View ? html`<${View} page=${page} />` : page.total > 0 && html`<${Message}>${page.total.toLocaleString()} findings; this experiment has no page of its own yet.<//>`}`;
 }
@@ -257,8 +335,21 @@ function CpgView({ page }) {
       <${Segmented} label="Dinucleotide" value=${measure} onChange=${setMeasure} options=${[["rhoCg", "CpG"], ["rhoTa", "TpA"]]} />
       <${ClassStrip} findings=${page.items} measure=${measure} />
     </section>
-    <section class="panel"><h2>Summary by group</h2><${GroupTable} groups=${page.experiment.summary.groups} measure=${measure} /></section>`;
+    <section class="panel"><h2>Summary by group</h2><${GroupTable} groups=${page.experiment.summary.groups} measure=${measure} /></section>
+    <section class="panel stack">
+      <${PanelBar} title=${`Every genome analysed (${page.items.length.toLocaleString()})`}
+        help="Every eukaryote the run analysed, including those in classes with fewer than 3 genomes, which the strip above leaves out." />
+      <${FindingsTable} findings=${page.items} columns=${cpgColumns} placeholder="genome, accession, kingdom or class" />
+    </section>`;
 }
+
+const cpgColumns = [
+  ["Genome", genomeLink],
+  ["Kingdom", f => kingdoms.find(([k]) => k === f.payload.kingdom)?.[1] ?? f.payload.kingdom ?? "–"],
+  ["Class", f => f.payload.class ?? "–"],
+  ["ρ*(CG)", f => f.payload.rhoCg.toFixed(3), true],
+  ["ρ*(TA)", f => f.payload.rhoTa.toFixed(3), true],
+];
 
 const median = values => { const s = [...values].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
 
