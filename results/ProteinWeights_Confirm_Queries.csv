@@ -1,4 +1,4 @@
-Genome,Half,Band,Residues,Family,Reachable,Rank first same family,Score gap,Length ratio,unweighted / best hit,unweighted / best with family,unweighted / vote 3,unweighted / vote 5,unweighted / vote 10,1/variance (G4, fixed) / best hit,1/variance (G4, fixed) / best with family,1/variance (G4, fixed) / vote 3,1/variance (G4, fixed) / vote 5,1/variance (G4, fixed) / vote 10
+Genome,Half,Band,Residues,Family,Reachable,Rank first same family,Score gap,Length ratio,unweighted / best hit,unweighted / best with family,unweighted / vote 3,unweighted / vote 5,unweighted / vote 10,1/variance (G4 fixed) / best hit,1/variance (G4 fixed) / best with family,1/variance (G4 fixed) / vote 3,1/variance (G4 fixed) / vote 5,1/variance (G4 fixed) / vote 10
 2975859.3,test,50-99 aa,68,823363,1,1,0.0000,1.000,1,1,1,1,1,1,1,1,1,0
 2975859.3,test,50-99 aa,64,12918494,1,1,0.0000,1.000,1,1,1,1,1,1,1,1,1,1
 2975859.3,test,50-99 aa,98,426274,0,-1,Infinity,0.000,0,0,0,0,0,0,0,0,0,0
