@@ -64,6 +64,79 @@ namespace SequenceAnaliseTests
             foreach (var line in lines) TestContext.Out.WriteLine(line);
         }
 
+        /// <summary>
+        /// The same on real windows (2026-11-22): genes called on the first 6 bundled bacteria (GeneLevelSignatureBenchmark.CallGenes,
+        /// from 50 aa), windows from the DNA as stored (QueryFromGene). Each window's Kyte-Doolittle series, one value per codon position
+        /// 1 and 2 base (its residue's hydropathy), gets the same three moments as the axes, so window and hydropathy moments are taken
+        /// over exactly the same bases. Pearson r across windows, separately for genes from 500 aa (333-base windows) and shorter ones (5
+        /// windows), per moment, for x, y, z and x + y. Stored windows mix positions 1 and 2, and position 1 carries no hydropathy, so this
+        /// is diluted against the amino-acid table. Reading fixed before the run: P0 x + y against mean hydropathy |r| >= 0.5 -> "the
+        /// profile is a DNA-level hydropathy profile" holds for real windows; < 0.3 -> the claim stays at the amino-acid level.
+        /// Writes AminoAcidAxisProperties_Windows.csv.
+        /// </summary>
+        [Test]
+        public void WindowAxesTrackWindowHydropathy()
+        {
+            var files = ProteinBackTranslationFeasibility.Corpus().Where(c => c.Group == "Bacteria").Select(c => c.FileName).Take(6).ToList();
+            const int F = ZCurveGeneProfile.FeatureCount;
+            var pairs = new List<(bool Long, double[] Axes, double[] Hydropathy)>();
+            int genes = 0;
+            foreach (var file in files)
+            {
+                var sequence = FastaReader.ReadPrimaryRecord(GenomeCatalog.PathTo(file)).Sequence;
+                var code = Path.GetFileName(file).StartsWith("mycoplasma_", StringComparison.Ordinal)
+                    ? ProteinBackTranslationFeasibility.mycoplasmaCode : ProteinBackTranslationFeasibility.standardCode;
+                foreach (var dna in GeneLevelSignatureBenchmark.CallGenes(sequence, code, 3 * ZCurveGeneProfile.MinResidues))
+                {
+                    var protein = ProteinBackTranslationFeasibility.Translate(dna, code).TrimEnd('*');
+                    if (protein.Length < ZCurveGeneProfile.MinResidues || protein.Contains('*')) continue;
+                    var windows = ZCurveGeneProfile.QueryFromGene(dna, code);
+                    int window = ZCurveGeneProfile.WindowOf(protein.Length), count = windows.Length / F;
+                    Assert.That(count, Is.EqualTo(2 * protein.Length / window), "window count");
+                    genes++;
+                    for (int w = 0; w < count; w++)
+                    {
+                        var moments = new double[3];
+                        for (int i = 0; i < window; i++)
+                        {
+                            int index = aminoAcids.IndexOf(protein[(w * window + i) / 2]);
+                            double value = index < 0 ? 0 : hydropathy[index], t = -1 + 2 * (i + 0.5) / window;
+                            moments[0] += value;
+                            moments[1] += value * t;
+                            moments[2] += value * (3 * t * t - 1) / 2;
+                        }
+                        for (int k = 0; k < 3; k++) moments[k] *= Math.Sqrt(2 * k + 1) / window;
+                        pairs.Add((protein.Length >= ZCurveGeneProfile.LongResidues, windows[(w * F)..((w + 1) * F)], moments));
+                    }
+                }
+            }
+
+            string[] momentNames = { "mean (P0)", "trend (P1)", "curvature (P2)" };
+            var lines = new List<string> { $"Genes,Moment,Axis,Windows,Pearson r ({genes:N0} genes on {files.Count} genomes)" };
+            foreach (bool isLong in new[] { true, false })
+            {
+                var cell = pairs.Where(p => p.Long == isLong).ToList();
+                for (int k = 0; k < 3; k++)
+                {
+                    var target = cell.Select(p => p.Hydropathy[k]).ToArray();
+                    foreach (var (axisName, axis) in new (string, Func<double[], double>)[]
+                        { ("x", a => a[3 * k]), ("y", a => a[3 * k + 1]), ("z", a => a[3 * k + 2]), ("x + y", a => a[3 * k] + a[3 * k + 1]) })
+                        lines.Add(string.Join(",", isLong ? "500+ aa (333-base windows)" : "50-499 aa (5 windows)", momentNames[k], axisName, cell.Count,
+                            Format(Pearson(cell.Select(p => axis(p.Axes)).ToArray(), target))));
+                }
+            }
+            // Reference: the amino-acid table with positions 1 and 2 averaged, as a stored window mixes them.
+            var table = ZCurveGeneProfile.ExpectedAxes();
+            var mixed = aminoAcids.Select(a => (table[2 * (a - 'A')].X + table[2 * (a - 'A')].Y + table[2 * (a - 'A') + 1].X + table[2 * (a - 'A') + 1].Y) / 2).ToArray();
+            lines.Add($"Amino-acid table: positions 1 and 2 averaged x + y against hydropathy,,,20,{Format(Pearson(mixed, hydropathy))}");
+            double reading = Math.Abs(Pearson(pairs.Where(p => p.Long).Select(p => p.Axes[0] + p.Axes[1]).ToArray(), pairs.Where(p => p.Long).Select(p => p.Hydropathy[0]).ToArray()));
+            lines.Add($"Reading (P0 x + y against mean hydropathy, 500+ aa: |r| >= 0.5 holds, < 0.3 amino-acid level only),,,,{Format(reading)}: " +
+                (reading >= 0.5 ? "holds for real windows" : reading < 0.3 ? "amino-acid level only" : "in between"));
+
+            File.WriteAllLines("AminoAcidAxisProperties_Windows.csv", lines);
+            foreach (var line in lines) TestContext.Out.WriteLine(line);
+        }
+
         private static double Pearson(double[] a, double[] b)
         {
             double ma = a.Average(), mb = b.Average(), ab = 0, aa = 0, bb = 0;
