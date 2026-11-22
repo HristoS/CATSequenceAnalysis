@@ -7,7 +7,7 @@ namespace SequenceAnaliseTests
     using P = ProteinBackTranslationFeasibility;
 
     /// <summary>
-    /// Data-set credits for the gene moments (2026-11-22, after the per-moment check in protein_family_diagnostic.cs --moments): instead
+    /// Data-set credits for the gene moments (2026-11-22, after the per-moment check, protein_family_diagnostic.cs --moments at commit f7c796e): instead
     /// of the weighted Euclidean distance, each of the 9 window features (P0, P1, P2 of x, y, z) scores a difference by its log-odds,
     /// log P(d | homolog) / P(d | unrelated), learned from pairs, as BLOSUM scores residue pairs. If both distributions are normal the
     /// log-odds is a weighted squared distance, today's form; a learned table can only beat it where they aren't.

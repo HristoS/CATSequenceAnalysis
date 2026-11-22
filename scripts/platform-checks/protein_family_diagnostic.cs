@@ -26,19 +26,9 @@ using SequencePlatform.Core;
 // with the weights fixed and nothing tuned: two arms (unweighted, 1/variance), every query is a test query. Rule fixed before the run: go
 // if exact-gene top-1 gains >= 2 points with the 95% genome-bootstrap CI above 0, and family top-1 (own genus removed, best hit) loses
 // <= 1 point.
-// --moments (2026-11-22): each moment compared on its own, G4's tuning half only (the test half and the confirmation set stay clean
-// for a combined score). Per pair (query against every comparable gene outside its genus), from the 9 stored numbers: per axis and
-// pooled over axes, the P0 offset (|mean difference| over the common windows), P0 raw (RMS difference), P0 pattern (RMS difference
-// with the offset removed), and for P1 and P2 the RMS difference, the share of windows with the same sign, and Pearson r across
-// windows; plus today's weighted score. Per sub-score alone: family top-1 (best hit; genes tied at the best share the credit; genes
-// without a family count as in G4) and the AUC of same-family against other-family pairs. Rule fixed before the run: a combined per-moment
-// score is checked only if, pooled over axes, P0 pattern beats P0 raw, or P1 / P2 sign or corr beats its diff, by >= 3 points of
-// family top-1; otherwise per-moment comparison stops.
-// Args: summary path (default ProteinFamily_Diagnostic.csv), per-query path (default ProteinFamily_Diagnostic_Queries.csv),
-// [--confirm | --moments].
+// Args: summary path (default ProteinFamily_Diagnostic.csv), per-query path (default ProteinFamily_Diagnostic_Queries.csv), [--confirm].
 const int seed = 20261105, confirmSeed = 20261113, perBand = 5, topK = 20, diagnosticK = 200, bootstrapRounds = 2000;
 bool confirm = args.Contains("--confirm");
-bool perMoment = args.Contains("--moments") && !confirm;
 args = args.Where(a => !a.StartsWith("--", StringComparison.Ordinal)).ToArray();
 int selectionSeed = confirm ? confirmSeed : seed;
 string[] bandNames = ["50-99 aa", "100-166 aa", "167-332 aa", "333-499 aa", "500+ aa"];
@@ -106,7 +96,6 @@ foreach (var (kind, count) in genomesPerKind)
     foreach (var genome in samples.GroupBy(s => s.Genome).OrderBy(g => Array.IndexOf(accessions, g.Key)))
     {
         bool tuning = !confirm && (MD5.HashData(Encoding.ASCII.GetBytes(genome.Key))[0] & 1) == 0;
-        if (perMoment && !tuning) continue;
         var records = genome.ToDictionary(s => s.Record);
         JsonElement features;
         try
@@ -209,242 +198,6 @@ async Task<T[]> PassAsync<T>(string sql, Func<T> start, Action<T, long, int, ZCu
 
 string Vector(double[] v) => string.Join(" ", v.Select(x => x.ToString("G3", CultureInfo.InvariantCulture)));
 static double[] Normalized(double[] w) { double s = w.Sum(); return w.Select(x => F * x / s).ToArray(); }
-
-if (perMoment)
-{
-    const int bins = 4096;
-    string[] kindNames = ["offset", "P0 raw", "P0 pattern", "P1 diff", "P1 sign", "P1 corr", "P2 diff", "P2 sign", "P2 corr"];
-    string[] slotNames = ["x", "y", "z", "pooled"];
-    int S = 4 * kindNames.Length + 1, today = S - 1;
-    string Name(int s) => s == today ? "today (weighted 9)" : $"{kindNames[s / 4]} {slotNames[s % 4]}";
-    var featureWeights = ZCurveGeneProfile.FeatureWeights.ToArray();
-
-    // Every sub-score is a similarity (distances negated), so one bin order fits all: higher bin = more alike. Distances are binned
-    // on sqrt(d / 4), which keeps resolution near 0 where the pairs are.
-    int BinOf(int s, double v)
-    {
-        int kind = s == today ? -1 : s / 4;
-        double u = kind is 4 or 7 ? v : kind is 5 or 8 ? (v + 1) / 2 : 1 - Math.Sqrt(Math.Clamp((s == today ? 1 - v : -v) / 4, 0, 1));
-        return (int)(Math.Clamp(u, 0, 1) * (bins - 1));
-    }
-
-    // Identity check (query against itself) and today's score against the G4 scorer on the own gene.
-    var self = new double[S];
-    foreach (var query in queries)
-    {
-        int count = query.Axes.Length / F;
-        MomentScores(query.Axes, query.Axes, count, featureWeights, self);
-        for (int s = 0; s < S; s++)
-        {
-            int kind = s == today ? -1 : s / 4;
-            double expected = s == today || kind is 4 or 5 or 7 or 8 ? 1 : 0;
-            if (kind is 5 or 8 && double.IsNaN(self[s])) continue;
-            if (Math.Abs(self[s] - expected) > 1e-9) throw new InvalidOperationException($"Identity check: {Name(s)} = {self[s]}, expected {expected}.");
-        }
-        var squared = new double[query.TruthWindows.Length];
-        int own = Differences(query.Axes, query.TruthWindows, squared);
-        MomentScores(query.Axes, query.TruthWindows, own, featureWeights, self);
-        if (own > 0 && Math.Abs(self[today] - Score(squared, own, featureWeights)) > 1e-12) throw new InvalidOperationException("Today's score differs from the G4 scorer.");
-    }
-    Console.WriteLine($"Identity check passed on {queries.Count} queries.");
-
-    var parts = await PassAsync("select sequence_id, bucket, payload from gene_profile where bucket = any($1) and window_count > 0",
-        () => new MomentTallies(queries.Count, S, bandNames.Length, bins), (t, id, bucket, profile) =>
-        {
-            var scores = new double[S];
-            var candidate = taxa[id];
-            var relevant = byBucket[bucket];
-            for (int g = 0; g < profile.Genes.Count; g++)
-            {
-                var gene = profile.Genes[g];
-                double[]? windows = null;
-                foreach (var query in relevant)
-                {
-                    if (!Comparable(query, gene) || IsSelf(query, id, gene) || !OutsideGenus(query, candidate)) continue;
-                    windows ??= profile.WindowsOf(g);
-                    int count = Math.Min(query.Axes.Length, windows.Length) / F;
-                    if (count == 0) continue;
-                    MomentScores(query.Axes, windows, count, featureWeights, scores);
-                    bool same = gene.Family == query.Truth.Family;
-                    if (same) t.SameFamily[query.Index]++;
-                    int pairClass = gene.Family == ZCurveGeneProfile.NoFamily ? -1 : same ? 0 : 1;
-                    for (int s = 0; s < S; s++)
-                    {
-                        double v = scores[s];
-                        if (double.IsNaN(v)) { t.Undefined[s]++; continue; }
-                        int slot = query.Index * S + s;
-                        if (v > t.Best[slot]) (t.Best[slot], t.Tied[slot], t.TiedRight[slot]) = (v, 0, 0);
-                        if (v == t.Best[slot]) { t.Tied[slot]++; if (same) t.TiedRight[slot]++; }
-                        if (pairClass >= 0) t.Histogram[((query.Band * S + s) * 2 + pairClass) * bins + BinOf(s, v)]++;
-                    }
-                }
-            }
-        });
-    Console.WriteLine($"Moments pass done, {total.Elapsed.TotalMinutes:F1} min.");
-
-    var right = new double[queries.Count, S];
-    var ties = new long[queries.Count, S];
-    var reach = new bool[queries.Count];
-    foreach (var query in queries)
-    {
-        int q = query.Index;
-        reach[q] = parts.Sum(t => t.SameFamily[q]) > 0;
-        for (int s = 0; s < S; s++)
-        {
-            // Genes tied at the best value share the credit: discrete sub-scores (sign shares) tie often, and a tie-break by today's
-            // score made the first run's sign rows mostly today's score (2026-11-22).
-            double top = parts.Max(t => t.Best[q * S + s]);
-            long tied = parts.Where(t => t.Best[q * S + s] == top).Sum(t => t.Tied[q * S + s]);
-            long tiedRight = parts.Where(t => t.Best[q * S + s] == top).Sum(t => t.TiedRight[q * S + s]);
-            right[q, s] = tied == 0 ? 0 : tiedRight / (double)tied;
-            ties[q, s] = tied;
-        }
-    }
-    var histogram = new long[bandNames.Length * S * 2 * bins];
-    foreach (var t in parts) for (int i = 0; i < histogram.Length; i++) histogram[i] += t.Histogram[i];
-    var undefined = Enumerable.Range(0, S).Select(s => parts.Sum(t => t.Undefined[s])).ToArray();
-
-    (long Positives, long Negatives, double Auc) AucOf(int s, int band)
-    {
-        var positive = new double[bins];
-        var negative = new double[bins];
-        foreach (int b in band < 0 ? Enumerable.Range(0, bandNames.Length) : Enumerable.Repeat(band, 1))
-            for (int i = 0; i < bins; i++)
-            {
-                positive[i] += histogram[((b * S + s) * 2) * bins + i];
-                negative[i] += histogram[((b * S + s) * 2 + 1) * bins + i];
-            }
-        double p = positive.Sum(), n = negative.Sum(), below = 0, wins = 0;
-        for (int i = 0; i < bins; i++) { wins += positive[i] * (below + 0.5 * negative[i]); below += negative[i]; }
-        return ((long)p, (long)n, p == 0 || n == 0 ? double.NaN : wins / (p * n));
-    }
-
-    var genomes = queries.GroupBy(q => q.Genome).Select(g => g.ToList()).ToList();
-    (double Low, double High) Interval(Func<Query, double> value, int roundsSeed)
-    {
-        var random = new Random(roundsSeed);
-        var draws = new List<double>();
-        for (int r = 0; r < bootstrapRounds; r++)
-        {
-            var resampled = Enumerable.Range(0, genomes.Count).SelectMany(_ => genomes[random.Next(genomes.Count)]).Where(q => reach[q.Index]).ToList();
-            if (resampled.Count > 0) draws.Add(resampled.Average(value));
-        }
-        draws.Sort();
-        return (draws[(int)(0.025 * draws.Count)], draws[(int)(0.975 * draws.Count) - 1]);
-    }
-    string Fixed(double x, int digits) => double.IsNaN(x) ? "" : x.ToString("F" + digits, CultureInfo.InvariantCulture);
-
-    var summary = new List<string> { "Band,Sub-score,Reachable,Family top-1,95% CI low,95% CI high,Same-family pairs,Other-family pairs,AUC,Mean genes tied at best" };
-    foreach (int band in Enumerable.Range(0, bandNames.Length).Prepend(-1))
-    {
-        var cell = queries.Where(q => reach[q.Index] && (band < 0 || q.Band == band)).ToList();
-        for (int s = 0; s < S; s++)
-        {
-            double share = cell.Count == 0 ? double.NaN : cell.Average(q => right[q.Index, s]);
-            double meanTied = cell.Count == 0 ? double.NaN : cell.Average(q => (double)ties[q.Index, s]);
-            var (lower, upper) = band < 0 ? Interval(q => right[q.Index, s], seed + s) : (double.NaN, double.NaN);
-            var (positives, negatives, auc) = AucOf(s, band);
-            summary.Add(string.Join(",", band < 0 ? "all" : bandNames[band], Name(s), cell.Count, Fixed(100 * share, 1), Fixed(100 * lower, 1),
-                Fixed(100 * upper, 1), positives, negatives, Fixed(auc, 4), Fixed(meanTied, 1)));
-        }
-    }
-
-    // Rule: pooled over axes, the alternative against its difference-based counterpart, paired genome bootstrap.
-    var allReach = queries.Where(q => reach[q.Index]).ToList();
-    int Pooled(int kind) => 4 * kind + 3;
-    var comparisons = new (int After, int Before)[] { (2, 1), (4, 3), (5, 3), (7, 6), (8, 6) };
-    bool go = false;
-    summary.Add("");
-    foreach (var (after, before) in comparisons)
-    {
-        double delta = allReach.Average(q => right[q.Index, Pooled(after)] - right[q.Index, Pooled(before)]);
-        var (lower, upper) = Interval(q => right[q.Index, Pooled(after)] - right[q.Index, Pooled(before)], seed + 100 + after);
-        go |= delta >= 0.03;
-        summary.Add($"{Name(Pooled(after))} vs {Name(Pooled(before))},{Points(delta)} points (95% CI {Points(lower)} to {Points(upper)}; {allReach.Count} reachable)");
-    }
-    summary.Add($"Undefined pairs (corr with < 3 windows or no variance),{string.Join(" ", Enumerable.Range(0, S).Where(s => undefined[s] > 0).Select(s => $"{Name(s)}: {undefined[s]:N0}"))}");
-    summary.Add($"Reference,today's weighted score family top-1 {Fixed(100 * allReach.Average(q => right[q.Index, today]), 1)}% (G4 tuning half, 1/variance, best hit: 62.3%)");
-    summary.Add("Rule (pooled: pattern vs raw, or sign / corr vs diff, >= +3 points)," + (go ? "go: check a combined per-moment score" : "stop: per-moment comparison adds nothing"));
-    summary.Add($"Total,{total.Elapsed.TotalMinutes:F1} min");
-    File.WriteAllLines(summaryPath, summary);
-    Console.WriteLine(string.Join(Environment.NewLine, summary.Where(l => !bandNames.Any(b => l.StartsWith(b + ",")))));
-
-    var momentQueries = new List<string> { "Genome,Band,Residues,Family,Reachable," + string.Join(",", Enumerable.Range(0, S).Select(Name)) };
-    foreach (var q in queries)
-        momentQueries.Add(string.Join(",", q.Genome, bandNames[q.Band], q.Residues, q.Truth.Family, reach[q.Index] ? 1 : 0,
-            string.Join(",", Enumerable.Range(0, S).Select(s => Fixed(right[q.Index, s], 3)))));
-    File.WriteAllLines(queriesPath, momentQueries);
-    return;
-}
-
-// Sub-scores of one pair over its common windows, all as similarities (distances negated; NaN where undefined), in the order
-// 4 * kind + slot (slot x, y, z, pooled over axes), then today's weighted score. Pooled distances weight each axis's squared
-// distance by FeatureWeights; pooled sign and corr take the 3 axes' values together.
-static void MomentScores(double[] query, double[] gene, int count, double[] weights, double[] scores)
-{
-    double pooledOffset = 0, pooledRaw = 0, pooledPattern = 0;
-    Span<double> pooledDiff = stackalloc double[2];
-    Span<double> pooledAgree = stackalloc double[2];
-    Span<double> pooledSums = stackalloc double[10];
-    for (int axis = 0; axis < 3; axis++)
-    {
-        double sum = 0, sumSquares = 0;
-        for (int w = 0; w < count; w++) { double d = query[w * F + axis] - gene[w * F + axis]; sum += d; sumSquares += d * d; }
-        double mean = sum / count, raw = sumSquares / count, pattern = Math.Max(0, raw - mean * mean);
-        scores[axis] = -Math.Abs(mean);
-        scores[4 + axis] = -Math.Sqrt(raw);
-        scores[8 + axis] = -Math.Sqrt(pattern);
-        pooledOffset += weights[axis] * mean * mean;
-        pooledRaw += weights[axis] * raw;
-        pooledPattern += weights[axis] * pattern;
-        for (int order = 1; order <= 2; order++)
-        {
-            int f = 3 * order + axis, kind = order == 1 ? 3 : 6;
-            double diff = 0, agree = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
-            for (int w = 0; w < count; w++)
-            {
-                double x = query[w * F + f], y = gene[w * F + f], d = x - y;
-                diff += d * d;
-                if (Math.Sign(x) == Math.Sign(y)) agree++;
-                sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y;
-            }
-            scores[4 * kind + axis] = -Math.Sqrt(diff / count);
-            scores[4 * (kind + 1) + axis] = agree / count;
-            scores[4 * (kind + 2) + axis] = Pearson(count, sx, sy, sxx, syy, sxy);
-            pooledDiff[order - 1] += weights[f] * diff / count;
-            pooledAgree[order - 1] += agree;
-            var sums = pooledSums.Slice(5 * (order - 1), 5);
-            sums[0] += sx; sums[1] += sy; sums[2] += sxx; sums[3] += syy; sums[4] += sxy;
-        }
-    }
-    scores[3] = -Math.Sqrt(pooledOffset);
-    scores[7] = -Math.Sqrt(pooledRaw);
-    scores[11] = -Math.Sqrt(pooledPattern);
-    for (int order = 1; order <= 2; order++)
-    {
-        int kind = order == 1 ? 3 : 6;
-        var sums = pooledSums.Slice(5 * (order - 1), 5);
-        scores[4 * kind + 3] = -Math.Sqrt(pooledDiff[order - 1]);
-        scores[4 * (kind + 1) + 3] = pooledAgree[order - 1] / (3 * count);
-        scores[4 * (kind + 2) + 3] = Pearson(3 * count, sums[0], sums[1], sums[2], sums[3], sums[4]);
-    }
-    double distance = 0;
-    for (int w = 0; w < count; w++)
-    {
-        double s = 0;
-        for (int f = 0; f < F; f++) { double d = query[w * F + f] - gene[w * F + f]; s += weights[f] * (d * d); }
-        distance += Math.Sqrt(s);
-    }
-    scores[^1] = 1 - distance / count;
-}
-
-static double Pearson(int n, double sx, double sy, double sxx, double syy, double sxy)
-{
-    if (n < 3) return double.NaN;
-    double vx = sxx - sx * sx / n, vy = syy - sy * sy / n;
-    return vx <= 1e-15 || vy <= 1e-15 ? double.NaN : (sxy - sx * sy / n) / Math.Sqrt(vx * vy);
-}
-
 (string Name, double[] Weights)[] weightings;
 if (confirm)
     weightings = [("unweighted", Enumerable.Repeat(1.0, F).ToArray()), ("1/variance (G4 fixed)", [0.741, 0.838, 0.333, 1.17, 1.16, 1.15, 1.19, 1.21, 1.2])];
@@ -735,23 +488,5 @@ sealed class Tallies
         SameFamily = new int[queries];
         BestSameResidues = new int[queries];
         Top = Enumerable.Range(0, queries * weightings).Select(_ => new PriorityQueue<(int, int), double>()).ToArray();
-    }
-}
-
-sealed class MomentTallies
-{
-    public readonly double[] Best;
-    public readonly long[] Tied, TiedRight;
-    public readonly int[] SameFamily;
-    public readonly long[] Histogram, Undefined;
-
-    public MomentTallies(int queries, int subScores, int bands, int bins)
-    {
-        Best = Enumerable.Repeat(double.NegativeInfinity, queries * subScores).ToArray();
-        Tied = new long[queries * subScores];
-        TiedRight = new long[queries * subScores];
-        SameFamily = new int[queries];
-        Histogram = new long[bands * subScores * 2 * bins];
-        Undefined = new long[subScores];
     }
 }

@@ -101,7 +101,7 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
   f5cb655). The weights find 0.5–0.75% fewer reciprocal pairs.
 - **The window metric: weighted Euclidean stays** (2026-11-22, three checks, no CSV kept). Is the weighted Euclidean distance the
   right way to compare the 9 window numbers, or should each moment get its own comparison and the results be combined?
-  - *Each moment on its own* (`protein_family_diagnostic.cs --moments`; G4's tuning half, 576 proteins; family top-1 with the own genus
+  - *Each moment on its own* (`protein_family_diagnostic.cs --moments` at commit f7c796e, removed after; G4's tuning half, 576 proteins; family top-1 with the own genus
     removed; today 62.3%).
     - Moments alone: P0 21.0%, P1 19.3%, P2 17.7%; one axis of one moment 1–4%.
     - Removing the offset from P0: −8.3 points (CI −12.0 to −4.6).
