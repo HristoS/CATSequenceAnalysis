@@ -5,6 +5,8 @@ using SequencePlatform.Core;
 // S3.4b stop criterion: the 300-query evaluation of results/Check_MutualNeighboursSample.csv, through the production
 // path (SimilaritySearch.SearchRecordAsync with and without the stored neighbour graph). Same sampling rule and seed;
 // the pool is ordered by id this time, so the queries differ from the check's.
+// The experiments page reruns it as SequencePlatform.Experiments/NeighbourRanking.cs (2026-11-22), which prints this table byte for byte
+// (line endings aside) on the same database.
 const int perKind = 150;
 await using var dataSource = NpgsqlDataSource.Create(ConnectionString.Resolve());
 var search = new SimilaritySearch(dataSource);

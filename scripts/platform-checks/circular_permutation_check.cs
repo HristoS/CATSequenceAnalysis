@@ -11,6 +11,8 @@ using SequencePlatform.Core;
 // candidate's windows followed by themselves (every start). Viruses with an NCBI genus, 10–400 kbp; 400 queries with a same-genus
 // record in the band. Rule fixed before the run: stop (search stays as it is) if wrap-around gains < 0.005 mean per-query AUC
 // (same genus vs other family) and changes < 2% of top-10 hits. Run from the repo root with SEQUENCE_PLATFORM_DB set.
+// The experiments page reruns it as SequencePlatform.Experiments/CircularPermutation.cs (2026-11-22), which gives this CSV byte for byte
+// (line endings aside) on the same database.
 const int queries = 400;
 var output = args.Length > 0 ? args[0] : "results/CircularPermutation_Check.csv";
 await using var dataSource = NpgsqlDataSource.Create(ConnectionString.Resolve());

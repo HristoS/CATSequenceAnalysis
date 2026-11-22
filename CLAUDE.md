@@ -138,7 +138,8 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   migration 0012) holds P9 experiment results that `scripts/platform-checks/p9_*.cs --publish` computed on frozen restored databases,
   `sequence_platform_p9` for round 1 and `sequence_platform_p9b` for round 2, publishing to the live one (shared loader `scripts/platform-checks/shared/ExperimentCorpus.cs`, via `#:include`); `/api/experiments` reads them.
   Experiments that need only the database rerun on it (migration 0024): `SequencePlatform.Experiments/` (library: `IExperiment`, the ports
-  `GcStratum` and `ProteinHomolog`, `ExperimentQueries` for a stored query set, profiles only, and `ExperimentRunner`), queued by an admin
+  `GcStratum`, `ProteinHomolog`, `Habitat`, `PhageHost`, `CircularPermutation` and `NeighbourRanking`, each giving its script's CSV byte for
+  byte; `Corpus`, the P9 scripts' genome selection; `ExperimentQueries` for a stored query set, profiles only, and `ExperimentRunner`), queued by an admin
   (`app_user.is_admin`) as `experiment_job`, run by `ExperimentWorker` and published as the `server` run beside the article's; row-level
   security keeps `sequence_app` off article runs. The web UI is `SequencePlatform.Api/wwwroot/`: static files in front of the API, React 18.3.1
   and htm vendored with no build step and no Node (React 19 has no UMD builds), hash routes, `default-src 'self'`, served `no-cache`

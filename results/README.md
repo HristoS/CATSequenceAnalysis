@@ -189,6 +189,12 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
   article run), 21–39 s; same-GC genus AUC 0.662 vs GC 0.607. `protein-homolog` from its stored query set (301 proteins as 12,924
   profile numbers, 108 kB, no sequence): scoring pass 450–491 s on 8 threads, so about half an hour on the 2-vCPU server (extrapolated);
   weighted score own genus removed 64.4% top-1 (65.9% in the unweighted article run), rule still passes.
+  Phase 2 (2026-11-22), four more, each byte for byte against its script on the live database (line endings aside); local times on
+  4 cores / 8 threads, server about 4× (extrapolated). `e5-habitat` 3–5 s: 82 / 26 genera, also identical to the round-1 CSV.
+  `e2-phage-host` predictor A 18 s: 7,461 phages (4,419 in round 1), top-1 0.057 vs GC 0.023 vs the commonest host 0.128.
+  `wrap-around` 27–30 s: AUC 0.904 → 0.934, identical to the article CSV. `neighbour-ranking` 195 s, peak 823 MB (its own profile cache):
+  today's search (rotation and wrap-around added since) bacteria precision@10 0.229 → 0.293 re-ranked (51 better, 11 worse), viruses
+  0.679 → 0.679 with reciprocal rank 0.921 → 0.862 (25 / 34), as `VirusRerank_Check.csv` found.
 - **Storage**: database 7.7 GB before the short-gene layer (about 45% of the DNA as 2-bit), 12.2 GB after it. Genome levels as float16 halved the logical size but saved only
   54 MB on disk (TOAST already compressed float32). 85.8% of gene profiles are distinct, so deduplication doesn't pay.
 
@@ -231,6 +237,7 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
 | Inserts between two genomes | 72.5% of inserts ≥ 10 kbp at 2.27 false calls per Mbp; same-GC donors missed | `P9_InsertCheck.csv` |
 | E4: CpG depletion from stored counts | **Pass.** Vertebrates' ρ\*(CG) Q3 0.494 below insects' Q1 0.950 and fungi's 0.822 | `P9_E4_CpG_*.csv` |
 | E5: habitat beyond genus and GC | **Pass.** 82 of 108 genera above the within-genus shuffle (p 3·10⁻⁸) | `P9_E5_Habitat.csv` |
+| E5b: the same with richer signatures (round 2) | **No challenger beats log ρ\*; E5 stands.** Same 108 genera (3,744 genomes), same shuffles for every arm. Excess over the shuffle > 0 in: log ρ\* 81, 6-mers 83, amino-acid composition 80, CVTree 82, GC 73. Paired against log ρ\* (better / worse, sign test, pass p < 0.017): 6-mers 52 / 54 (p 0.62), amino-acid 61 / 47 (0.11), CVTree 65 / 43 (0.021; mean excess +0.010). On GTDB genus (79 genera, context) CVTree's edge shrinks to 43 / 36 (p 0.25, +0.002): what it adds is mostly finer ancestry. 80 s | `p9_e5b_habitat.cs` |
 | Somatic mutations (tumour vs normal) | Invisible: 100 per Mbp moves the score by 0.00028, 9–620× below the closest strain pair | `SomaticMutationRate.csv` |
 | Protein search by back-translation | No-go (section 2) | `R6b_*`, `R6d_*` |
 

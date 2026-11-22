@@ -17,6 +17,8 @@ using SequencePlatform.Core;
 // - Pass: more genera with positive excess than negative, one-sided sign test p < 0.05.
 // - Context, not the rule: the same with |delta GC| as the distance, and the same per species (ancestry within a species remains).
 // Writes <prefix>_Habitat.csv (per genus and species) and <prefix>_Rules.csv (coverage of each rule).
+// The experiments page reruns it as SequencePlatform.Experiments/Habitat.cs (2026-11-22), which gives these files byte for byte (line
+// endings aside) on the same database; this script stays as the round-1 record and reads the snapshot.
 const int k = 5, minGenomes = 10, minGenera = 20, shuffles = 1000, seed = 20261104;
 var prefix = args.FirstOrDefault() ?? "P9_E5";
 var rules = new (string Habitat, Regex Pattern)[]

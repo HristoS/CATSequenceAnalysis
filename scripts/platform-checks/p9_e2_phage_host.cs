@@ -20,6 +20,8 @@ using SequencePlatform.Core;
 // - B is kept for the full run when, on the sample, its top-1 genus precision over the covered phages (at least 10) is above A's
 //   accuracy on those same phages.
 // Writes <prefix>_PhageHost.csv, and with --localize <prefix>_Localize.csv (per phage).
+// The experiments page reruns predictor A as SequencePlatform.Experiments/PhageHost.cs (2026-11-22), which gives <prefix>_PhageHost.csv byte
+// for byte (line endings aside) on the same database; this script stays as the round-1 record, reads the snapshot and keeps B.
 const int minHostPhages = 5, shuffles = 200, bootstraps = 1000, seed = 20261104;
 const long minLengthCheck = 5_000;
 const double coveredLog10E = 0;

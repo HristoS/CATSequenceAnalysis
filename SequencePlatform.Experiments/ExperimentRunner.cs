@@ -12,7 +12,7 @@ namespace SequencePlatform.Experiments
     public static class ExperimentRunner
     {
         /// <summary>Every experiment that reruns from the database alone, by name.</summary>
-        public static IReadOnlyList<IExperiment> All { get; } = [new GcStratum(), new ProteinHomolog()];
+        public static IReadOnlyList<IExperiment> All { get; } = [new GcStratum(), new ProteinHomolog(), new Habitat(), new PhageHost(), new CircularPermutation(), new NeighbourRanking()];
 
         public static IExperiment? Find(IEnumerable<IExperiment> experiments, string name) => experiments.FirstOrDefault(e => e.Name == name);
 

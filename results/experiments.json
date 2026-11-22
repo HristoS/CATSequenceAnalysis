@@ -316,8 +316,8 @@
     {
       "name": "neighbour-ranking", "article": "B", "verdict": "pass", "runnable": true,
       "title": "Re-ranking by shared neighbours", "question": "Does re-ranking the top 100 by shared top-20 neighbours find more same-genus genomes?",
-      "note": "Bacteria p = 0.002; viruses 0.462 → 0.491.", "snapshot": "local catalogue (BV-BRC)", "script": "neighbour_eval.cs", "commit": "5297250",
-      "keyNumbers": [ { "label": "bacteria precision@10, by score", "value": 0.131 }, { "label": "bacteria precision@10, re-ranked", "value": 0.195 } ],
+      "note": "Bacteria p = 0.002; viruses 0.462 → 0.491. Reruns from the database through today's search (SequencePlatform.Experiments/NeighbourRanking.cs), which has added rotation and wrap-around since.", "snapshot": "local catalogue (BV-BRC)", "script": "neighbour_eval.cs", "commit": "5297250",
+      "keyNumbers": [ { "label": "bacteria precision@10, by score", "value": 0.131 }, { "label": "bacteria precision@10, re-ranked", "value": 0.195 }, { "label": "viruses precision@10, by score", "value": 0.462 }, { "label": "viruses precision@10, re-ranked", "value": 0.491 } ],
       "files": [ "S34b_NeighbourRanking.csv" ]
     },
     {
@@ -330,7 +330,7 @@
     {
       "name": "wrap-around", "article": "B", "verdict": "pass", "runnable": true,
       "title": "Circularly permuted viruses", "question": "Does scoring a virus candidate wrapped around its end find more same-genus viruses?",
-      "note": "1.15× the time. Skipping neighbour re-ranking for viruses was checked and not taken.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
+      "note": "1.15× the time. Skipping neighbour re-ranking for viruses was checked and not taken. The AUC check reruns from the database (SequencePlatform.Experiments/CircularPermutation.cs); precision@10 is from the search script.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
       "script": "circular_permutation_check.cs", "commit": "7d3da90",
       "keyNumbers": [ { "label": "AUC same genus vs other family, before", "value": 0.904 }, { "label": "after", "value": 0.934 }, { "label": "precision@10, before", "value": 0.597 }, { "label": "after", "value": 0.67 } ],
       "files": [ "CircularPermutation_Check.csv", "WrapAround_Search.csv", "VirusRerank_Check.csv" ]
@@ -350,11 +350,11 @@
       "files": [ "S55_RelativesCheck.csv" ]
     },
     {
-      "name": "e2-phage-host", "article": "P9", "verdict": "fail", "runnable": true,
+      "name": "e2-phage-host", "article": "P9", "verdict": "pass", "runnable": true,
       "title": "Phage host from the signature (round 1)", "question": "Does the dinucleotide signature or localization tell a phage's host genus?",
-      "note": "Weak pass against GC, but always guessing Escherichia gives 0.110. Localization: 0/200. Round 2 (e2b, 6-mers) passes.",
+      "note": "Passes its rule, fixed before the run: beats GC with the 95% lower bound above 0, overall (+0.033) and macro (+0.031). A weak pass: always guessing Escherichia gives 0.110, which the rule didn't test. Localization: 0/200. Round 2 (e2b, 6-mers) passes. Predictor A reruns from the database (SequencePlatform.Experiments/PhageHost.cs); localization stays in the script.",
       "snapshot": "sequence_platform_p9 (2026-11-03)", "script": "p9_e2_phage_host.cs", "commit": "8f4395e",
-      "keyNumbers": [ { "label": "top-1 host genus, signature", "value": 0.057 }, { "label": "GC", "value": 0.024 }, { "label": "always Escherichia", "value": 0.11 } ],
+      "keyNumbers": [ { "label": "top-1 host genus, signature", "value": 0.057 }, { "label": "GC", "value": 0.024 }, { "label": "always the commonest host", "value": 0.11 } ],
       "files": [ "P9_E2_PhageHost.csv", "P9_E2_Sample_Localize.csv" ]
     },
     {
@@ -367,7 +367,8 @@
     {
       "name": "e5-habitat", "article": "P9", "verdict": "pass", "runnable": true,
       "title": "Habitat beyond genus and GC", "question": "Do signature neighbours share a habitat more than a within-genus shuffle predicts?",
-      "note": "82 of 108 genera above the shuffle, p = 3·10⁻⁸.", "snapshot": "sequence_platform_p9 (2026-11-03)", "script": "p9_e5_habitat.cs", "commit": "8f4395e",
+      "note": "82 of 108 genera above the shuffle, p = 3·10⁻⁸. Reruns from the database (SequencePlatform.Experiments/Habitat.cs). E5b's richer signatures (6-mers, amino-acid composition, CVTree) don't beat log ρ*.", "snapshot": "sequence_platform_p9 (2026-11-03)", "script": "p9_e5_habitat.cs", "commit": "8f4395e",
+      "keyNumbers": [ { "label": "genera above the shuffle", "value": 82 }, { "label": "genera below the shuffle", "value": 26 }, { "label": "genera where the signature beats GC", "value": 69 } ],
       "files": [ "P9_E5_Habitat.csv" ]
     },
     {

@@ -210,5 +210,55 @@ namespace SequencePlatform.Tests
             Assert.That(GcStratum.Auc([(0.5, false), (0.5, true), (0.5, false), (0.5, true)]).Auc, Is.EqualTo(0.5));
             Assert.That(double.IsNaN(GcStratum.Auc([(0.1, true)]).Auc), Is.True, "no negatives");
         }
+
+        [TestCase("patient blood", "clinical")]
+        [TestCase("Homo sapiens: blood", "clinical")]
+        [TestCase("Bos taurus: rumen", "host-associated")]
+        [TestCase("raw milk cheese", "food")]
+        [TestCase("Seawater", "marine")]
+        [TestCase("lake sediment", "freshwater")]
+        [TestCase("rhizosphere soil", "soil")]
+        [TestCase("  Water ", "none")]
+        [TestCase("laboratory strain", "other")]
+        public void AnIsolationSourceGetsTheFirstMatchingHabitat(string source, string habitat) =>
+            Assert.That(Habitat.Classify(source), Is.EqualTo(habitat));
+
+        [Test]
+        public void HabitatNeighboursBeatTheShuffleOnlyWhenHabitatsCluster()
+        {
+            var members = Enumerable.Range(0, 12).Select(i => new Habitat.Genome(i, i / 100.0, [i], "G", null, "x")).ToArray();
+            var neighbours = Habitat.Neighbours(members, (a, b) => Math.Abs(a.Gc - b.Gc));
+            var clustered = Habitat.ScoreGroup(neighbours, [.. Enumerable.Repeat("soil", 6), .. Enumerable.Repeat("marine", 6)], seed: 1);
+            var alternating = Habitat.ScoreGroup(neighbours, [.. Enumerable.Range(0, 12).Select(i => i % 2 == 0 ? "soil" : "marine")], seed: 1);
+
+            Assert.That(clustered.Shuffled, Is.EqualTo(5 / 11.0).Within(0.02), "a shuffle expects the base rate");
+            Assert.That(clustered.Excess, Is.GreaterThan(0.2));
+            Assert.That(clustered.P, Is.LessThan(0.01));
+            Assert.That(alternating.Excess, Is.LessThan(0));
+            Assert.That(Habitat.SignTest(5, 0), Is.EqualTo(1 / 32.0).Within(1e-12));
+            Assert.That(Habitat.SignTest(0, 0), Is.EqualTo(1));
+        }
+
+        [TestCase("Escherichia coli K-12", "Escherichia")]
+        [TestCase("  Bacillus ", "Bacillus")]
+        [TestCase("", null)]
+        public void APhagesHostGenusIsTheFirstWordOfItsHostName(string hostName, string? genus)
+        {
+            var phage = new Corpus.Genome(1, SignatureIndex.Viral, "virus", "phage", 40_000, 0.5, [], new Lineage(null, null, null, null, null, null, null, null, null),
+                new Dictionary<string, string> { ["host_name"] = hostName }, Excluded: false);
+            Assert.That(PhageHost.HostGenus(phage), Is.EqualTo(genus));
+        }
+
+        [Test]
+        public void AWrappedCandidateMatchesACircularlyPermutedQuery()
+        {
+            var dna = SequenceAnalyses.Generator.GetRandomDNA(20_000, seed: 1112);
+            var plain = new SequenceAnalyses.ZCurveWindowedProfile(dna);
+            var permuted = new SequenceAnalyses.ZCurveWindowedProfile(dna[7_000..] + dna[..7_000]);
+
+            Assert.That(CircularPermutation.Wrapped(plain).Windows, Has.Count.EqualTo(2 * plain.Windows.Count - 1));
+            Assert.That(SequenceAnalyses.ZCurveWindowedProfile.Compare(permuted, CircularPermutation.Wrapped(plain)), Is.GreaterThan(0.999));
+            Assert.That(SequenceAnalyses.ZCurveWindowedProfile.Compare(permuted, plain), Is.LessThan(0.99), "as deposited, the start differs");
+        }
     }
 }
