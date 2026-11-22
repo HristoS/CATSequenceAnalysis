@@ -2,6 +2,7 @@ using System.Globalization;
 using Npgsql;
 using SequenceAnalyses;
 using SequencePlatform.Core;
+using SequencePlatform.Experiments;
 using SequencePlatform.Ingest;
 
 // Small test app: populate the platform DB from BV-BRC. The connection string comes from the
@@ -28,7 +29,10 @@ using SequencePlatform.Ingest;
 //   search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]   records of comparable length (ratio 0.25-1, default 0.5) ranked by similarity (P3 S3.4)
 //   localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]   where each fragment sits: over records at least as long (>= 4 kbp), or inside one record (P3 S3.5)
 //   publish-experiments [--registry results/experiments.json] [--name N]   every experiment an article states, with its CSVs, for the experiments page (0023)
-//   add-user NAME                             an API user (D3); prints their key once, only its hash is stored
+//   seed-experiment-queries NAME [--contact EMAIL]   an experiment's query set from outside the database, profiles only (0024)
+//   run-experiment NAME [--publish] [--out DIR]       reruns a database experiment; --publish stores it as the server run (0024)
+//   add-user NAME [--admin]                   an API user (D3); prints their key once, only its hash is stored; --admin may queue reruns
+//   set-admin NAME true|false                 lets an enabled user queue experiment reruns, or stops them
 //   rotate-key NAME                           a new key for an enabled user, printed once; the old key stops working
 //   disable-user NAME                         revokes that user's key; their uploads stay
 const string usage =
@@ -42,7 +46,8 @@ const string usage =
     "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL] | verify-genes | cluster-genes\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
     "       | localize --fasta X | --profile X.zcwp [--record ID] [list's filters] [--top N]\n" +
-    "       | publish-experiments [--registry results/experiments.json] [--name N] | add-user NAME | rotate-key NAME | disable-user NAME";
+    "       | publish-experiments [--registry results/experiments.json] [--name N] | seed-experiment-queries NAME [--contact EMAIL]\n" +
+    "       | run-experiment NAME [--publish] [--out DIR] | add-user NAME [--admin] | set-admin NAME true|false | rotate-key NAME | disable-user NAME";
 
 if (args.Length == 0)
 {
@@ -199,10 +204,21 @@ switch (args[0])
     case "publish-experiments":
         return await ExperimentPublisher.PublishAsync(dataSource, Option("--registry") ?? Path.Combine("results", "experiments.json"), Option("--name"));
 
+    case "seed-experiment-queries" when args.Length > 1:
+        return await ExperimentQuerySeeder.SeedAsync(dataSource, args[1], Option("--contact"));
+
+    case "run-experiment" when args.Length > 1:
+        return await RunExperimentAsync(dataSource, args[1], args.Contains("--publish"), Option("--out") ?? ".");
+
     case "add-user" when args.Length > 1:
-        var (user, apiKey) = await Users.CreateAsync(dataSource, args[1]);
-        Console.WriteLine($"User {user.Name} (id {user.Id}). API key, shown only now: {apiKey}");
+        var (user, apiKey) = await Users.CreateAsync(dataSource, args[1], args.Contains("--admin"));
+        Console.WriteLine($"User {user.Name} (id {user.Id}{(user.IsAdmin ? ", admin" : "")}). API key, shown only now: {apiKey}");
         return 0;
+
+    case "set-admin" when args.Length > 2 && bool.TryParse(args[2], out bool isAdmin):
+        if (await Users.SetAdminAsync(dataSource, args[1], isAdmin)) return 0;
+        Console.WriteLine($"No enabled user named {args[1]}.");
+        return 1;
 
     case "rotate-key" when args.Length > 1:
         if (await Users.RotateKeyAsync(dataSource, args[1]) is { } rotatedKey)
@@ -935,4 +951,31 @@ static async Task PrintStatsAsync(NpgsqlDataSource dataSource)
         while (await reader.ReadAsync())
             Console.WriteLine($"{reader.GetString(0),-10} {reader.GetString(1),-10} {reader.GetString(2),-10} {reader.GetInt64(3),8:N0} {reader.GetInt32(4),13}");
     }
+}
+
+// A database experiment rerun here rather than by the experiment worker: its result files go to outDirectory, and with publish it also
+// replaces the experiment's server run, as a rerun from the experiments page does.
+static async Task<int> RunExperimentAsync(NpgsqlDataSource dataSource, string name, bool publish, string outDirectory)
+{
+    if (ExperimentRunner.Find(ExperimentRunner.All, name) is not { } experiment)
+    {
+        Console.WriteLine($"No database experiment named {name}; these rerun: {string.Join(", ", ExperimentRunner.All.Select(e => e.Name))}.");
+        return 1;
+    }
+    var context = ExperimentContext.Default with { Progress = Console.WriteLine };
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    ExperimentResult result;
+    if (publish)
+    {
+        (long runId, result) = await ExperimentRunner.RunAndPublishAsync(dataSource, experiment, context, CancellationToken.None);
+        Console.WriteLine($"Published as server run {runId}.");
+    }
+    else
+    {
+        result = await experiment.RunAsync(dataSource, context, CancellationToken.None);
+    }
+    Directory.CreateDirectory(outDirectory);
+    foreach (var file in result.Files) await File.WriteAllBytesAsync(Path.Combine(outDirectory, file.Name), file.Content);
+    Console.WriteLine($"{name}: {result.Verdict} in {watch.Elapsed.TotalSeconds:F0} s; {result.SummaryJson}");
+    return 0;
 }

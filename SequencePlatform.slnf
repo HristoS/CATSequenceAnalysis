@@ -6,6 +6,7 @@
       "SequencePlatform.Api\\SequencePlatform.Api.csproj",
       "SequencePlatform.AppHost\\SequencePlatform.AppHost.csproj",
       "SequencePlatform.Core\\SequencePlatform.Core.csproj",
+      "SequencePlatform.Experiments\\SequencePlatform.Experiments.csproj",
       "SequencePlatform.Ingest\\SequencePlatform.Ingest.csproj",
       "SequencePlatform.ServiceDefaults\\SequencePlatform.ServiceDefaults.csproj",
       "SequencePlatform.Tests\\SequencePlatform.Tests.csproj"

@@ -42,6 +42,10 @@ namespace SequencePlatform.Tests
         [TestCase("alter table sequence_record add column intruder int")]
         [TestCase("copy (select 1) to program 'echo intruder'")]
         [TestCase("create role intruder")]
+        [TestCase("update app_user set is_admin = true")]
+        [TestCase("delete from experiment_job")]
+        [TestCase("delete from experiment_query")]
+        [TestCase("insert into experiment_run (name, title, question, verdict, snapshot, script, summary) values ('intruder', 't', 'q', 'pass', 's', 'x', '{}')")]
         public async Task ItCannotDoWhatTheApiNeverDoes(string sql)
         {
             await using var command = ThrowawayDatabase.AppDataSource.CreateCommand(sql);

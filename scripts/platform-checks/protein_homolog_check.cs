@@ -19,6 +19,9 @@ using SequencePlatform.Core;
 // Rule fixed before the run: if family top-1 with the own species removed is under 50% of reachable queries in any band, the protein
 // claim becomes "fast lookup of near-identical genes from a protein" and G1 compares against exact/MinHash-style lookup, not BLASTP
 // sensitivity; otherwise the identity curve (the full item 1 run) goes ahead.
+// The experiments page reruns this from SequencePlatform.Experiments/ProteinHomolog.cs (2026-11-21), over the query set the Ingest's
+// seed-experiment-queries stores with the selection below; that port gave this script's CSV on the local catalogue that day. This script
+// stays as the article run computed it, with its own BV-BRC download.
 // Args: output path (default ProteinHomolog_Check.csv).
 const int seed = 20261105, perBand = 5, topK = 10;
 string[] bandNames = ["50-99 aa", "100-166 aa", "167-332 aa", "333-499 aa", "500+ aa"];

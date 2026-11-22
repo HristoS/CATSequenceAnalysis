@@ -212,10 +212,10 @@
       "files": [ "ProteinSearch_CatalogueV2.csv", "ProteinSearch_Catalogue.csv" ]
     },
     {
-      "name": "protein-homolog", "article": "A-gene", "verdict": "pass", "runnable": false,
+      "name": "protein-homolog", "article": "A-gene", "verdict": "pass", "runnable": true,
       "title": "Right family without the query's own gene", "question": "Is the right protein family first once the query's own gene, genome, species or genus is removed?",
       "rule": "Under 50% family top-1 with the own species removed in any band reframes the claim as near-identical lookup. No band was under 50%.",
-      "note": "157 proteins with a PGfam, unweighted score. Superseded for the own-genus figure by protein-homolog-key (989 proteins, weighted). Runnable once its query set is stored.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
+      "note": "157 proteins with a PGfam, unweighted score. Superseded for the own-genus figure by protein-homolog-key (989 proteins, weighted). Reruns from its stored query set (seed-experiment-queries; profiles only), with the weighted score.", "snapshot": "local catalogue (BV-BRC), 2026-11-12",
       "script": "protein_homolog_check.cs", "commit": "103f8c8",
       "keyNumbers": [ { "label": "own gene removed, top-1", "value": 0.845 }, { "label": "own genus removed, top-1", "value": 0.659 }, { "label": "own genus removed, top-10", "value": 0.793 } ],
       "files": [ "ProteinHomolog_Check.csv" ]

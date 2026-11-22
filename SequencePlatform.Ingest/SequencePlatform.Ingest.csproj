@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SequenceAnalise\SequenceAnalise.csproj" />
     <ProjectReference Include="..\SequencePlatform.Core\SequencePlatform.Core.csproj" />
+    <ProjectReference Include="..\SequencePlatform.Experiments\SequencePlatform.Experiments.csproj" />
   </ItemGroup>
 
   <!-- Local connection string, git-ignored. Optional: the SEQUENCE_PLATFORM_DB env var takes precedence. -->

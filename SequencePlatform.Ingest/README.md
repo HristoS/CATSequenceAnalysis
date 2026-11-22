@@ -166,8 +166,15 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   accession without its GCA_/GCF_ prefix). A plain run fetches only taxids not yet in `taxon`, so run it after each ingest;
   `--refresh` re-fetches all. `sequence_record` keeps BV-BRC's lineage as ingested; the view `lineage_difference` lists, per
   record and rank, where it and NCBI's differ (`differs`, `ncbi_only`, `provider_only`).
-- `add-user NAME` (P4, D3) creates an API user and prints their key once (`sp_...`); only its SHA-256 is stored. `disable-user NAME`
-  revokes it; the user's uploads stay. See `SequencePlatform.Api/README.md`.
+- `add-user NAME [--admin]` (P4, D3) creates an API user and prints their key once (`sp_...`); only its SHA-256 is stored. `disable-user NAME`
+  revokes it; the user's uploads stay. `--admin`, or later `set-admin NAME true|false`, lets the user queue experiment reruns (migration
+  0024). See `SequencePlatform.Api/README.md`.
+- `seed-experiment-queries NAME` stores the query set of a database experiment whose queries come from outside the database, so it reruns
+  from the database alone (`experiment_query`, migration 0024). Only `protein-homolog` has one: the proteins its script draws from BV-BRC
+  (seed 20261105), downloaded, profiled with `QueryFromProtein` and dropped; the record, the gene's place, the length and the axes are kept.
+- `run-experiment NAME [--publish] [--out DIR]` reruns a database experiment (`SequencePlatform.Experiments`: `gc-stratum`,
+  `protein-homolog`) and writes its result files to `DIR`; `--publish` also stores it as the experiment's server run, as a rerun queued
+  on the experiments page does. It reads the catalogue and writes only experiment tables, so P9 round 2 allows it.
 
 ## Behaviour
 

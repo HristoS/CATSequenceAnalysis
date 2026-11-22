@@ -3,7 +3,8 @@ using Npgsql;
 
 namespace SequencePlatform.Core
 {
-    public sealed record AppUser(long Id, string Name);
+    /// <param name="IsAdmin">May queue experiment reruns (migration 0024); set only by the Ingest.</param>
+    public sealed record AppUser(long Id, string Name, bool IsAdmin = false);
 
     /// <summary>
     /// app_user (migration 0010, D3): who may call the API. A key is shown once, when the user is created or the key rotated,
@@ -16,16 +17,26 @@ namespace SequencePlatform.Core
         private const int keyBytes = 32;
 
         /// <returns>The new user and their API key, which isn't stored anywhere.</returns>
-        public static async Task<(AppUser User, string ApiKey)> CreateAsync(NpgsqlDataSource dataSource, string name)
+        public static async Task<(AppUser User, string ApiKey)> CreateAsync(NpgsqlDataSource dataSource, string name, bool isAdmin = false)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("A user needs a name.", nameof(name));
 
             var apiKey = NewKey();
-            await using var command = dataSource.CreateCommand("insert into app_user (name, api_key_sha256) values ($1, $2) returning id");
+            await using var command = dataSource.CreateCommand("insert into app_user (name, api_key_sha256, is_admin) values ($1, $2, $3) returning id");
             command.Parameters.AddWithValue(name.Trim());
             command.Parameters.AddWithValue(Hash(apiKey));
+            command.Parameters.AddWithValue(isAdmin);
             var id = (long)(await command.ExecuteScalarAsync())!;
-            return (new AppUser(id, name.Trim()), apiKey);
+            return (new AppUser(id, name.Trim(), isAdmin), apiKey);
+        }
+
+        /// <returns>false when no enabled user has this name.</returns>
+        public static async Task<bool> SetAdminAsync(NpgsqlDataSource dataSource, string name, bool isAdmin)
+        {
+            await using var command = dataSource.CreateCommand("update app_user set is_admin = $2 where name = $1 and disabled_at is null");
+            command.Parameters.AddWithValue(name);
+            command.Parameters.AddWithValue(isAdmin);
+            return await command.ExecuteNonQueryAsync() == 1;
         }
 
         /// <summary>A new key for an enabled user, keeping the user (and so their uploads and searches); the old key stops working at once.</summary>
@@ -50,10 +61,10 @@ namespace SequencePlatform.Core
 
             // Lookup by hash: equality on a SHA-256 leaks nothing useful through timing.
             await using var command = dataSource.CreateCommand(
-                "select id, name from app_user where api_key_sha256 = $1 and disabled_at is null");
+                "select id, name, is_admin from app_user where api_key_sha256 = $1 and disabled_at is null");
             command.Parameters.AddWithValue(Hash(apiKey));
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            return await reader.ReadAsync(cancellationToken) ? new AppUser(reader.GetInt64(0), reader.GetString(1)) : null;
+            return await reader.ReadAsync(cancellationToken) ? new AppUser(reader.GetInt64(0), reader.GetString(1), reader.GetBoolean(2)) : null;
         }
 
         /// <returns>false when no enabled user has this name.</returns>

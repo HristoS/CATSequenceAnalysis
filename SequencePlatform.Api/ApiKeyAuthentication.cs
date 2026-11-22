@@ -19,6 +19,8 @@ namespace SequencePlatform.Api
         NpgsqlDataSource dataSource) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
         public const string SchemeName = "ApiKey";
+        /// <summary>The role claim of a user with app_user.is_admin (migration 0024), and the name of the policy that requires it.</summary>
+        public const string AdminRole = "admin";
 
         private const string bearerPrefix = "Bearer ";
 
@@ -30,9 +32,9 @@ namespace SequencePlatform.Api
             var user = await Users.AuthenticateAsync(dataSource, header[bearerPrefix.Length..].Trim(), Context.RequestAborted);
             if (user is null) return AuthenticateResult.Fail("Unknown or disabled API key.");
 
-            var identity = new ClaimsIdentity(
-                [new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)), new Claim(ClaimTypes.Name, user.Name)],
-                SchemeName);
+            var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)), new(ClaimTypes.Name, user.Name) };
+            if (user.IsAdmin) claims.Add(new Claim(ClaimTypes.Role, AdminRole));
+            var identity = new ClaimsIdentity(claims, SchemeName);
             return AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName));
         }
 

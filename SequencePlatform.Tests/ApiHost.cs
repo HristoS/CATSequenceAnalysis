@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using SequencePlatform.Api;
 using SequencePlatform.Core;
+using SequencePlatform.Experiments;
 
 namespace SequencePlatform.Tests
 {
@@ -17,8 +18,10 @@ namespace SequencePlatform.Tests
         /// <param name="workerMethodVersion">Runs the search worker over the profiles stored under this method version; null: no worker,
         /// so a test's queued jobs stay queued until it runs them itself.</param>
         /// <param name="logs">Also receives every log entry, at every level.</param>
+        /// <param name="experiments">Runs the experiment worker, over these experiments in place of the real ones; null: no experiment worker.</param>
         // Any public type of the API assembly names its entry point; Program would be ambiguous with the Ingest's.
-        public static WebApplicationFactory<SequencePageResponse> Create(string? workerMethodVersion = null, LogCapture? logs = null) =>
+        public static WebApplicationFactory<SequencePageResponse> Create(string? workerMethodVersion = null, LogCapture? logs = null,
+            IReadOnlyList<IExperiment>? experiments = null) =>
             new WebApplicationFactory<SequencePageResponse>().WithWebHostBuilder(host =>
             {
                 if (logs is not null)
@@ -34,6 +37,17 @@ namespace SequencePlatform.Tests
                         worker.MethodVersion = workerMethodVersion ?? worker.MethodVersion;
                         worker.PollInterval = TimeSpan.FromSeconds(1);
                     });
+                    services.Configure<ExperimentWorkerOptions>(worker =>
+                    {
+                        worker.Enabled = experiments is not null;
+                        worker.WaitForSearches = false;
+                        worker.PollInterval = TimeSpan.FromSeconds(1);
+                    });
+                    if (experiments is not null)
+                    {
+                        services.RemoveAll<IExperiment>();
+                        foreach (var experiment in experiments) services.AddSingleton(experiment);
+                    }
                 });
             });
 

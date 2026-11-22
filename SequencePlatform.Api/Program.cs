@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Npgsql;
 using SequencePlatform.Api;
 using SequencePlatform.Core;
+using SequencePlatform.Experiments;
 
 // The platform's HTTP API (P4). Kestrel serves plain HTTP; hosted, it listens on localhost behind Caddy's TLS and connects to PostgreSQL
 // as the least-privilege role sequence_app (S6.4, migration 0021). The connection string comes from ASP.NET configuration (user-secrets, or the
@@ -24,12 +25,19 @@ builder.Services.AddSingleton(services =>
 builder.Services.AddAuthentication(ApiKeyAuthentication.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthentication>(ApiKeyAuthentication.SchemeName, null);
 builder.Services.AddAuthorization(options =>
-    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+    options.AddPolicy(ExperimentEndpoints.AdminPolicy, policy => policy.RequireRole(ApiKeyAuthentication.AdminRole));
+});
 
 builder.Services.AddSingleton<SignatureIndex>();
 builder.Services.AddSingleton<Landscape>();
 builder.Services.Configure<SearchWorkerOptions>(builder.Configuration.GetSection("SearchWorker"));
 builder.Services.AddHostedService<SearchWorker>();
+// The experiments that rerun from the database (migration 0024); the experiment worker runs them in its own process (the AppHost's "experiments").
+foreach (var experiment in ExperimentRunner.All) builder.Services.AddSingleton(experiment);
+builder.Services.Configure<ExperimentWorkerOptions>(builder.Configuration.GetSection("ExperimentWorker"));
+builder.Services.AddHostedService<ExperimentWorker>();
 
 // The map of everything is several MB of JSON. Plain HTTP only: behind a TLS proxy the request counts as HTTPS (forwarded headers), so the
 // proxy compresses instead (hosting/tencent/Caddyfile, encode).

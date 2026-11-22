@@ -184,6 +184,11 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
 - **API**: warm find-similar 150–650 ms POST to done, localization 0.9–2.3 s streamed; the end-to-end scenario passes 10/10 on an
   empty database; `NoDnaTests` finds no trace of a planted marker in any column, log or temp file. Hosted on 2 vCPU / 8 GB:
   find-similar 5 s, localization 19 s.
+- **Experiment reruns** (2026-11-21, no CSV kept; migration 0024, `SequencePlatform.Experiments`): the platform's ports of two article
+  experiments write the same CSV as their scripts on the same database, byte for byte. `gc-stratum`: 454 genomes today (437 in the
+  article run), 21–39 s; same-GC genus AUC 0.662 vs GC 0.607. `protein-homolog` from its stored query set (301 proteins as 12,924
+  profile numbers, 108 kB, no sequence): scoring pass 450–491 s on 8 threads, so about half an hour on the 2-vCPU server (extrapolated);
+  weighted score own genus removed 64.4% top-1 (65.9% in the unweighted article run), rule still passes.
 - **Storage**: database 7.7 GB before the short-gene layer (about 45% of the DNA as 2-bit), 12.2 GB after it. Genome levels as float16 halved the logical size but saved only
   54 MB on disk (TOAST already compressed float32). 85.8% of gene profiles are distinct, so deduplication doesn't pay.
 

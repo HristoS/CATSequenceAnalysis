@@ -22,6 +22,7 @@
     <ProjectReference Include="..\SequencePlatform.Api\SequencePlatform.Api.csproj" />
     <!-- Only for the explicit end-to-end ingest test (IngestTests). -->
     <ProjectReference Include="..\SequencePlatform.Ingest\SequencePlatform.Ingest.csproj" />
+    <ProjectReference Include="..\SequencePlatform.Experiments\SequencePlatform.Experiments.csproj" />
   </ItemGroup>
 
   <!-- The bundled corpus's verified taxonomy, linked rather than copied so the analysis tests and BundledCorpus share one list. -->

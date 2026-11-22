@@ -55,4 +55,21 @@ namespace SequencePlatform.Api
 
     /// <summary>What the published experiments say about one record; empty when nothing.</summary>
     public sealed record RecordFindingsResponse(long Id, IReadOnlyList<RecordFindingResponse> Items);
+
+    /// <summary>A rerun of an experiment on this database (migration 0024).</summary>
+    /// <param name="RequestedBy">The admin who queued it.</param>
+    /// <param name="RunHref">The server run it published, while that run is still the latest; null otherwise.</param>
+    public sealed record ExperimentJobResponse(Guid Id, string Experiment, string RequestedBy, ExperimentJobStatus Status, string? Error, int Attempts,
+        DateTime CreatedAt, DateTime? StartedAt, DateTime? CompletedAt, string? RunHref, string Href)
+    {
+        internal static ExperimentJobResponse From(ExperimentJob job) => new(job.Id, job.Experiment, job.RequestedBy, job.Status, job.Error, job.Attempts,
+            job.CreatedAt, job.StartedAt, job.CompletedAt,
+            job.RunId is null ? null : $"/api/experiments/{Uri.EscapeDataString(job.Experiment)}?origin={ExperimentStore.ServerOrigin}",
+            $"/api/experiments/jobs/{job.Id}");
+    }
+
+    /// <summary>Whether an experiment reruns here, whether the caller may queue it, and its latest reruns.</summary>
+    /// <param name="Rerunnable">Its article run is marked runnable and this build has its code.</param>
+    /// <param name="CanRun">Rerunnable, and the caller is an admin.</param>
+    public sealed record ExperimentRerunsResponse(string Experiment, bool Rerunnable, bool CanRun, IReadOnlyList<ExperimentJobResponse> Jobs);
 }

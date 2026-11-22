@@ -132,16 +132,20 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   end-to-end walk-through; `scripts/platform-checks/e2e_scenario.py` makes its bodies (`prepare`) and replays it with checks (`run`).
   `Landscape` (Core) serves `GET /api/landscape`: PCA of the signature, public records only, one genome per species per group, or `all`
   (exactly what `SignatureIndex` holds), one map per group because the Z-curve and Karlin views are a rotation. `ExperimentStore` (Core,
-  migration 0012) holds P9 experiment results that `scripts/platform-checks/p9_*.cs --publish` computed on the frozen snapshot
-  `sequence_platform_p9` (shared loader `scripts/platform-checks/shared/ExperimentCorpus.cs`, via `#:include`); `/api/experiments` reads them. The web UI is `SequencePlatform.Api/wwwroot/`: static files in front of the API, React 18.3.1
+  migration 0012) holds P9 experiment results that `scripts/platform-checks/p9_*.cs --publish` computed on frozen restored databases,
+  `sequence_platform_p9` for round 1 and `sequence_platform_p9b` for round 2, publishing to the live one (shared loader `scripts/platform-checks/shared/ExperimentCorpus.cs`, via `#:include`); `/api/experiments` reads them.
+  Experiments that need only the database rerun on it (migration 0024): `SequencePlatform.Experiments/` (library: `IExperiment`, the ports
+  `GcStratum` and `ProteinHomolog`, `ExperimentQueries` for a stored query set, profiles only, and `ExperimentRunner`), queued by an admin
+  (`app_user.is_admin`) as `experiment_job`, run by `ExperimentWorker` and published as the `server` run beside the article's; row-level
+  security keeps `sequence_app` off article runs. The web UI is `SequencePlatform.Api/wwwroot/`: static files in front of the API, React 18.3.1
   and htm vendored with no build step and no Node (React 19 has no UMD builds), hash routes, `default-src 'self'`, served `no-cache`
   (revalidated by ETag) so an update never mixes old and new modules. Every page follows `SequencePlatform.Api/UI-LAYOUT.md` (page shell,
   five templates, controls beside what they control, lists beside the views they drive); its components are in `wwwroot/app/html.js`.
-- `SequencePlatform.AppHost/` and `SequencePlatform.ServiceDefaults/` (P6): Aspire. Run mode starts `migrate`, then `api` and `worker` as two
-  processes of the API project on the local database; publish mode writes Docker Compose with its own empty `postgres:17`, where the API and
+- `SequencePlatform.AppHost/` and `SequencePlatform.ServiceDefaults/` (P6): Aspire. Run mode starts `migrate`, then `api`, `worker` and
+  `experiments` (the experiment worker, waiting while searches are pending) as three processes of the API project on the local database; publish mode writes Docker Compose with its own empty `postgres:17`, where the API and
   worker connect as the least-privilege role `sequence_app` (migration 0021: reads all, writes only uploads and search jobs; `migrate` sets its
   generated password; the platform tests run the API as it, via `-c role=`). No broker:
-  PostgreSQL stays the queue. Exactly one worker. Generated output goes to the git-ignored `deploy/` (its `.env` holds a password).
+  PostgreSQL stays the queue. Exactly one search worker and one experiment worker. Generated output goes to the git-ignored `deploy/` (its `.env` holds a password).
 - `SequencePlatform.Ingest/`: console app that fills the DB from BV-BRC: download → profile (`FromStream`, never a whole
   string) → store ladder levels and annotations → delete the file. `ingest-bvbrc --per-species` adds one genome per species not yet stored;
   `ingest-ncbi` is the eukaryote pilot: one record per assembly with summed nuclear dinucleotide counts and no profile levels, streamed

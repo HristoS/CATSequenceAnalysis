@@ -32,7 +32,7 @@ export async function send(path, { method = "GET", body, contentType, bytes = fa
   }
   if (!response.ok) {
     const problem = await response.json().catch(() => null);
-    throw new Error(problem?.detail ?? problem?.title ?? `The server answered ${response.status}.`);
+    throw Object.assign(new Error(problem?.detail ?? problem?.title ?? `The server answered ${response.status}.`), { status: response.status });
   }
   return response.status === 204 ? null : bytes ? response.arrayBuffer() : response.json();
 }

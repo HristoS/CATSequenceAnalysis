@@ -30,7 +30,7 @@ dotnet run -c Release scripts/platform-checks/localize_eval.cs
 | `circular_permutation_check.cs` | `CircularPermutation_Check.csv` | Wrap-around scoring for circularly permuted viruses, pairwise |
 | `wrap_search_eval.cs` | `WrapAround_Search.csv` | Wrap-around through `SimilaritySearch`, 300 virus queries |
 | `virus_rerank_check.cs` | `VirusRerank_Check.csv` | Whether to skip neighbour re-ranking for viruses |
-| `gc_stratum_check.cs` | `S51_GcStratumCheck.csv` | AUC of 1 − `Compare` and GC per GTDB rank and \|ΔGC\| stratum, 437 genomes |
+| `gc_stratum_check.cs` | `S51_GcStratumCheck.csv` | AUC of 1 − `Compare` and GC per GTDB rank and \|ΔGC\| stratum, 437 genomes; runs `SequencePlatform.Experiments/GcStratum.cs` since 2026-11-21 |
 | `second_order_global.cs` | `S52c_SecondOrderGlobal*.csv` | Second-order Z-curve against Karlin δ\* on the same sample |
 | `gap_decomposition.cs` | `S52e_GapDecomposition.csv` | Where the second-order Z-curve's gap to Karlin comes from |
 | `relatives_check.cs` | `S55_RelativesCheck.csv` | `SignatureIndex`: load time, relatives, query and tree times |

@@ -98,6 +98,9 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/landscape?group=` | The public catalogue on three axes (`x`, `y`, `z`: PC1–PC3; the page draws two at a time): `cellular` (default), `viral` or `eukaryotic`, one genome per species, or `all`, every public genome on one set of axes. PCA of the signature as parallel arrays with domains, lineages and each axis's heaviest dinucleotides |
 | GET | `/api/experiments` | The published P9 experiments, newest first: question, verdict (`pass`, `fail`, `context`), snapshot, script, summary numbers |
 | GET | `/api/experiments/{name}` | One experiment and a page of its findings: `kind`, `order` = `score` (default) or `-score`, `offset`, `limit` (1–1000, default 100) |
+| GET | `/api/experiments/{name}/runs` | Whether the experiment reruns from the database, whether the caller may queue it (`canRun`), and its latest 10 reruns |
+| POST | `/api/experiments/{name}/runs` | Admins only: queue a rerun. 202 + `Location` of the job; 404 if it doesn't rerun from the database, 409 while one is queued or running |
+| GET | `/api/experiments/jobs/{id}` | One rerun's status (`Queued`, `Running`, `Done`, `Failed` with a reason) and, when done, the server run's `runHref` |
 | GET | `/api/sequences/{id}/findings` | What the published experiments say about one record; empty when nothing |
 | GET | `/health`, `/alive` | Open without a key: whether the process is up |
 
@@ -110,6 +113,13 @@ Experiments run offline: `scripts/platform-checks/p9_*.cs` compute on the frozen
 `--publish`, write their run and findings here (`ExperimentStore`, migration 0012). A publish replaces the previous run of the same
 name. Findings about records that have since been deleted, or that aren't public, are skipped. The API only reads them; the UI shows
 them under Experiments.
+
+Reruns (migration 0024): an experiment that needs only the database (`SequencePlatform.Experiments`; today `gc-stratum` and
+`protein-homolog`) can be rerun by an admin (`app_user.is_admin`, from the Ingest's `add-user --admin` / `set-admin`). The job goes to
+`experiment_job`, and the experiment worker (`ExperimentWorker`, a third process: the AppHost's `experiments`, or the API's own http
+launch profile) runs one at a time, only while no search is queued or running, and publishes the result as the experiment's `server`
+run beside the article's. Row-level security keeps `sequence_app` to server runs: it can't insert, delete or add files or findings to
+an article run.
 
 ## Relatives, signatures and trees (P5 S5.5)
 

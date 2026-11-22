@@ -115,6 +115,9 @@ $c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -U postgres -d s
 # already lists 0021, so migrate wouldn't run it again. The file is safe to rerun. Before migrate, which sets the role's password.
 $c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -U postgres -d sequence_platform -v ON_ERROR_STOP=1 -f -' \
   < ../../../SequencePlatform.Core/Migrations/0021_sequence_app.sql
+# 0024's grants, when the dump already has 0024 (experiment reruns): its tables and policies came with the dump, its grants didn't. Only the
+# grant lines; the rest of 0024 creates tables and can't run twice.
+$c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -U postgres -d sequence_platform -v ON_ERROR_STOP=1 -f -'   < <(grep '^grant ' ../../../SequencePlatform.Core/Migrations/0024_experiment_jobs.sql)
 $c run --rm --no-deps -T migrate migrate                 # schema up to the deployed commit; sequence_app's password
 $c run --rm --no-deps -T migrate stats                   # compare with stats.txt
 $c exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -U postgres -d sequence_platform -Atc "select name from app_user"'

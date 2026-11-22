@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SequencePlatform.AppHost", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SequencePlatform.ServiceDefaults", "SequencePlatform.ServiceDefaults\SequencePlatform.ServiceDefaults.csproj", "{18E09524-7FAC-4CE5-A627-766DB62A1EE6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SequencePlatform.Experiments", "SequencePlatform.Experiments\SequencePlatform.Experiments.csproj", "{91B5B844-3EB6-415D-B4B4-57C14B453638}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,18 @@ Global
 		{18E09524-7FAC-4CE5-A627-766DB62A1EE6}.Release|x64.Build.0 = Release|Any CPU
 		{18E09524-7FAC-4CE5-A627-766DB62A1EE6}.Release|x86.ActiveCfg = Release|Any CPU
 		{18E09524-7FAC-4CE5-A627-766DB62A1EE6}.Release|x86.Build.0 = Release|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Debug|x64.Build.0 = Debug|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Debug|x86.Build.0 = Debug|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Release|x64.ActiveCfg = Release|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Release|x64.Build.0 = Release|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Release|x86.ActiveCfg = Release|Any CPU
+		{91B5B844-3EB6-415D-B4B4-57C14B453638}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

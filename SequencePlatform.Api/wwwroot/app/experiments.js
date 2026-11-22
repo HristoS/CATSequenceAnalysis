@@ -1,4 +1,4 @@
-import { download, get } from "./api.js";
+import { download, get, send } from "./api.js";
 import { FilterBox, Help, HowTo, Message, PageHeader, Pager, PanelBar, Segmented, html, useEffect, useMemo, usePaged, useState } from "./html.js";
 
 const kingdoms = [["Metazoa", "Animals", "p1"], ["Fungi", "Fungi", "p2"], ["Viridiplantae", "Plants", "p3"]];
@@ -89,6 +89,92 @@ function RunHeader({ run }) {
     </section>`}`;
 }
 
+const jobActive = job => job && (job.status === "Queued" || job.status === "Running");
+const pollMilliseconds = 3000;
+const minutes = (from, to) => Math.max(1, Math.round((new Date(to) - new Date(from)) / 60000));
+
+function jobText(job) {
+  if (!job) return null;
+  const by = `by ${job.requestedBy}`;
+  switch (job.status) {
+    case "Queued": return `Queued ${by} at ${new Date(job.createdAt).toLocaleString()}; it starts when no search is waiting.`;
+    case "Running": return `Running since ${new Date(job.startedAt).toLocaleTimeString()} (started ${by}).`;
+    case "Done": return `Last rerun ${by} finished ${new Date(job.completedAt).toLocaleString()}, in about ${minutes(job.startedAt, job.completedAt)} min.`;
+    default: return `Last rerun ${by} failed: ${job.error ?? "no reason given"}`;
+  }
+}
+
+// A database experiment rerun on today's catalogue (migration 0024): the latest rerun's numbers beside the article's, which stay as
+// published. Only an admin sees the button; the experiment worker runs the job and the panel polls until it ends.
+function RerunPanel({ article }) {
+  const name = article.name;
+  const [reruns, setReruns] = useState(null);
+  const [server, setServer] = useState(undefined);
+  const [error, setError] = useState(null);
+  const [starting, setStarting] = useState(false);
+  const latest = reruns?.jobs[0];
+
+  const loadServer = () => get(`/api/experiments/${encodeURIComponent(name)}?origin=server&limit=1`)
+    .then(page => setServer(page.experiment))
+    .catch(e => (e.status === 404 ? setServer(null) : setError(e.message)));
+  useEffect(() => {
+    get(`/api/experiments/${encodeURIComponent(name)}/runs`).then(setReruns).catch(e => setError(e.message));
+    loadServer();
+  }, [name]);
+  useEffect(() => {
+    if (!jobActive(latest)) return undefined;
+    const timer = setTimeout(() => get(latest.href).then(job => {
+      setReruns(r => ({ ...r, jobs: [job, ...r.jobs.slice(1)] }));
+      if (job.status === "Done") loadServer();
+    }).catch(e => setError(e.message)), pollMilliseconds);
+    return () => clearTimeout(timer);
+  }, [latest]);
+
+  if (!reruns || server === undefined) return null;
+  if (!reruns.rerunnable && !server) return null;
+  const start = () => {
+    setStarting(true);
+    setError(null);
+    send(`/api/experiments/${encodeURIComponent(name)}/runs`, { method: "POST" })
+      .then(job => setReruns(r => ({ ...r, jobs: [job, ...r.jobs] })))
+      .catch(e => setError(e.message))
+      .finally(() => setStarting(false));
+  };
+  return html`<section class="panel stack">
+    <${PanelBar} title="Rerun on this database"
+      help=${"The same experiment run again on the catalogue as it is today, by the platform's own code. The article's numbers above stay as " +
+        "published; the rerun's sit beside them. Only admins can start one, and it waits while any search is queued or running."}>
+      ${reruns.canRun && html`<button type="button" class="primary" onClick=${start} disabled=${starting || jobActive(latest)}>
+        ${jobActive(latest) ? "Rerun in progress…" : "Rerun now"}</button>`}
+    <//>
+    ${error && html`<${Message} error>${error}<//>`}
+    ${latest && html`<p class=${latest.status === "Failed" ? "message error" : "hint"}>${jobText(latest)}</p>`}
+    ${server ? html`<${RerunComparison} article=${article} server=${server} />`
+      : !jobActive(latest) && html`<${Message}>Not rerun on this database yet.<//>`}
+  </section>`;
+}
+
+// One row per key number either run reports, by label: a rerun reports the article's labels where it computes the same number.
+function RerunComparison({ article, server }) {
+  const articleNumbers = article.summary.keyNumbers ?? [];
+  const serverNumbers = server.summary.keyNumbers ?? [];
+  const labels = [...new Set([...articleNumbers, ...serverNumbers].map(k => k.label))];
+  const value = (numbers, label) => numbers.find(k => k.label === label)?.value;
+  const cell = v => (v == null ? "–" : formatKey(v));
+  return html`<div class="tablewrap"><table>
+      <thead><tr><th></th><th class="num">Article run</th><th class="num">This database</th></tr></thead>
+      <tbody>
+        <tr><td>Verdict</td><td class="num"><${VerdictBadge} verdict=${article.verdict} /></td><td class="num"><${VerdictBadge} verdict=${server.verdict} /></td></tr>
+        ${labels.map(label => html`<tr key=${label}><td>${label}</td>
+          <td class="num mono">${cell(value(articleNumbers, label))}</td><td class="num mono">${cell(value(serverNumbers, label))}</td></tr>`)}
+      </tbody>
+    </table></div>
+    ${server.summary.rule && html`<p class="hint">${server.summary.rule}</p>`}
+    ${coverage(server) && html`<p><b>${coverage(server)}</b>${server.summary.analysedNote && html`<span class="hint">: ${server.summary.analysedNote}</span>`}</p>`}
+    <p class="hint">Computed on <code>${server.snapshot}</code> by <code>${server.script}</code>${server.commit && html` at <code>${server.commit}</code>`}${server.machine && ` on ${server.machine}`}. Published ${new Date(server.publishedAt).toLocaleString()}.</p>
+    ${server.files.length > 0 && html`<div class="actions">${server.files.map(f => html`<${DownloadButton} key=${f.name} file=${f} />`)}</div>`}`;
+}
+
 // Each experiment's own view, and how many findings the page needs up front (a view that loads its own asks for one).
 const views = { "e4-cpg": [() => CpgView, 1000], "e1-outliers": [() => OutlierView, 1000], "e2b-phage-host": [() => PhageHostView, 1] };
 
@@ -102,6 +188,7 @@ export function ExperimentPage({ name }) {
   if (!page) return html`<${Message}>Loading…<//>`;
   const View = view();
   return html`<${RunHeader} run=${page.experiment} />
+    <${RerunPanel} article=${page.experiment} />
     ${View ? html`<${View} page=${page} />` : page.total > 0 && html`<${Message}>${page.total.toLocaleString()} findings; this experiment has no page of its own yet.<//>`}`;
 }
 

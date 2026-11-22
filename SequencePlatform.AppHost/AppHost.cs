@@ -57,6 +57,8 @@ builder.AddProject<SequencePlatform_Api>("api")
     .WithEnvironment("ConnectionStrings__SequencePlatform", appDatabase)
     .WaitForCompletion(migrate)
     .WithEnvironment("SearchWorker__Enabled", "false")
+    // The http launch profile turns the experiment worker on for a lone local API; here the "experiments" process runs it.
+    .WithEnvironment("ExperimentWorker__Enabled", "false")
     .WithExternalHttpEndpoints()
     .PublishAsDockerComposeService((_, service) => service.Ports = ["127.0.0.1:5080:${API_PORT}"]);
 
@@ -68,5 +70,14 @@ var worker = builder.AddProject<SequencePlatform_Api>("worker", launchProfileNam
 // Locally, localization keeps its levels in memory: 1.4-9.6x faster for about 0.8 GB (results/SearchBreakdown_Before.csv). The published
 // set (the 8 GB server) keeps streaming.
 if (builder.ExecutionContext.IsRunMode) worker.WithEnvironment("SearchWorker__CacheLocalization", "true");
+
+// A third process of the same project that only runs experiment reruns (migration 0024): an admin queues them on the experiments page, and
+// each uses every core for minutes, so they run apart from searches and start only while no search is pending. Exactly one, like the worker.
+builder.AddProject<SequencePlatform_Api>("experiments", launchProfileName: null)
+    .WithEnvironment("ConnectionStrings__SequencePlatform", appDatabase)
+    .WaitForCompletion(migrate)
+    .WithEnvironment("ASPNETCORE_URLS", "http://127.0.0.1:0")
+    .WithEnvironment("SearchWorker__Enabled", "false")
+    .WithEnvironment("ExperimentWorker__Enabled", "true");
 
 builder.Build().Run();
