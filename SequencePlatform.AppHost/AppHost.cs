@@ -66,7 +66,9 @@ builder.AddProject<SequencePlatform_Api>("api")
 var worker = builder.AddProject<SequencePlatform_Api>("worker", launchProfileName: null)
     .WithEnvironment("ConnectionStrings__SequencePlatform", appDatabase)
     .WaitForCompletion(migrate)
-    .WithEnvironment("ASPNETCORE_URLS", "http://127.0.0.1:0");
+    .WithEnvironment("ASPNETCORE_URLS", "http://127.0.0.1:0")
+    // Nobody asks this process for relatives, so it doesn't build the index's CVTree vectors (about 0.7 GB).
+    .WithEnvironment("SignatureIndex__Warm", "false");
 // Locally, localization keeps its levels in memory: 1.4-9.6x faster for about 0.8 GB (results/SearchBreakdown_Before.csv). The published
 // set (the 8 GB server) keeps streaming.
 if (builder.ExecutionContext.IsRunMode) worker.WithEnvironment("SearchWorker__CacheLocalization", "true");
@@ -77,6 +79,7 @@ builder.AddProject<SequencePlatform_Api>("experiments", launchProfileName: null)
     .WithEnvironment("ConnectionStrings__SequencePlatform", appDatabase)
     .WaitForCompletion(migrate)
     .WithEnvironment("ASPNETCORE_URLS", "http://127.0.0.1:0")
+    .WithEnvironment("SignatureIndex__Warm", "false")
     .WithEnvironment("SearchWorker__Enabled", "false")
     .WithEnvironment("ExperimentWorker__Enabled", "true");
 

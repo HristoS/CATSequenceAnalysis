@@ -124,7 +124,10 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   FASTA or ZCWP body, never multipart (`IFormFile` buffers to a temp file); FASTA streams through `FastaReader.ReadRecordStreams`.
   Searches (`/api/searches/similar`, `/localize`, `/protein`) are `SearchLog` jobs: 202 + `Location`, then GET pages the hit lists.
   `SignatureIndex` (Core) serves `GET /api/sequences/{id}/relatives`, `/signature?view=zcurve|karlin` and `GET /api/trees`
-  synchronously from an in-memory table of dinucleotide signatures (log ρ\* = complete second-order Z-curve; P5 S5.5).
+  synchronously from an in-memory table of dinucleotide signatures (log ρ\* = complete second-order Z-curve; P5 S5.5) and, since
+  2026-11-22, amino-acid CVTree vectors (`CvTreeSignature`: stored 4-mers hashed to 8,192, 16-bit, built in the background after
+  startup), which relatives and trees use for bacteria, archaea and viruses with a gene layer (+13 to +16 points of same genus among
+  the 10 nearest); everything else, and everything until the vectors are built, uses log ρ\*.
   `SearchWorker` (a hosted service in the API) claims them with `for update skip locked`, wakes on `LISTEN search_queued`, runs
   one at a time, and requeues jobs left running at startup (single worker until P6). Tests run the API in process
   (`ApiTests`, `UploadTests`, `SearchApiTests` with the worker off; `WorkerTests` with it on). `NoDnaTests` runs it on Kestrel

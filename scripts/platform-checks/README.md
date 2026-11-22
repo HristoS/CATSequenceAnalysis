@@ -34,6 +34,7 @@ dotnet run -c Release scripts/platform-checks/localize_eval.cs
 | `second_order_global.cs` | `S52c_SecondOrderGlobal*.csv` | Second-order Z-curve against Karlin δ\* on the same sample |
 | `gap_decomposition.cs` | `S52e_GapDecomposition.csv` | Where the second-order Z-curve's gap to Karlin comes from |
 | `relatives_check.cs` | `S55_RelativesCheck.csv` | `SignatureIndex`: load time, relatives, query and tree times |
+| `cvtree_relatives_check.cs` | — (summary in `results/README.md`) | The 10 nearest relatives on hashed CVTree vs log ρ\*, per group; build time, 16-bit memory, query time |
 | `protein_search_check.cs` | `ProteinSearch_Catalogue.csv` | First protein-search check at catalogue scale |
 | `protein_search_check_v2.cs` | `ProteinSearch_CatalogueV2.csv` | Protein search on the length-bucketed gene layer, 301 proteins |
 | `protein_null_check.cs` | `ProteinNull_Check.csv` | Scores of proteins against genes of other families, for p and E |

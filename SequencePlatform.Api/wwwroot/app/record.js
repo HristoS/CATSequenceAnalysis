@@ -140,8 +140,10 @@ export function RecordPage({ id }) {
   return html`<${PageHeader} title=${s.name || s.recordId} lede=${lede} actions=${actions} />
     <div class="summarygrid">
       <section class="panel"><${PanelBar} title="Lineage" /><${Lineages} detail=${detail} /></section>
-      <section class="panel"><${PanelBar} title="Nearest relatives" help=${"The 10 records whose whole-genome dinucleotide signature is closest to " +
-          "this one's. That reflects composition, so close relatives come first, but distant ones can look alike."} />
+      <section class="panel"><${PanelBar} title="Nearest relatives" help=${"The 10 genomes closest to this one. With annotated genes, by amino-acid " +
+          "CVTree (the 4-letter words of its proteins, beyond what 3-letter words predict), which finds the genus most often; otherwise by the " +
+          "whole-genome dinucleotide signature, which reflects composition, so close relatives come first but distant ones can look alike. " +
+          "The note under the list says which."} />
         ${hasSignature ? html`<${Relatives} id=${s.id} kind=${s.kind} />` : html`<${Message}>Plasmids aren't compared by genome signature.<//>`}
       </section>
       ${hasSignature && html`<section class="panel"><${PanelBar} title="Dinucleotide signature" /><${Signature} id=${s.id} /></section>`}

@@ -2,10 +2,10 @@ using SequencePlatform.Core;
 
 namespace SequencePlatform.Api
 {
-    /// <summary>One relative: a genome and how far its dinucleotide signature is from the query's.</summary>
+    /// <summary>One relative: a genome and how far its signature is from the query's (in the units of the response's signature).</summary>
     public sealed record RelativeResponse(double Distance, SequenceSummaryResponse Sequence, string Href);
 
-    /// <summary>A record's nearest genomes by dinucleotide signature, nearest first.</summary>
+    /// <summary>A record's nearest genomes, nearest first, by amino-acid CVTree or by dinucleotide signature.</summary>
     /// <param name="Group">cellular (bacteria and archaea) or viral: relatives come from the query's own group.</param>
     /// <param name="Signature">What was compared.</param>
     public sealed record RelativesResponse(long Id, string Group, string Signature, IReadOnlyList<RelativeResponse> Items);
@@ -23,7 +23,7 @@ namespace SequencePlatform.Api
     /// </summary>
     public sealed record SignatureResponse(long Id, string View, string Signature, IReadOnlyList<SignatureValueResponse> Values);
 
-    /// <summary>A tree of genomes built from their dinucleotide signatures.</summary>
+    /// <summary>A tree of genomes, from amino-acid CVTree vectors or dinucleotide signatures.</summary>
     /// <param name="Newick">Leaf labels are record ids.</param>
     /// <param name="Leaves">The records at the leaves, in id order.</param>
     public sealed record TreeResponse(string Method, string Signature, string Newick, IReadOnlyList<SequenceSummaryResponse> Leaves);

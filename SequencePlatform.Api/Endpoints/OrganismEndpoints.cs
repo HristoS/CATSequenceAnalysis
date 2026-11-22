@@ -7,8 +7,8 @@ using SequencePlatform.Core;
 namespace SequencePlatform.Api
 {
     /// <summary>
-    /// Organizing organisms (P5 S5.5): nearest relatives, the signature behind them in either view, and trees, all from the
-    /// dinucleotide signature (<see cref="SignatureIndex"/>). They answer at once: a query reads the in-memory index, a tree of up to
+    /// Organizing organisms (P5 S5.5): nearest relatives and trees, by amino-acid CVTree where the genomes have a gene layer and by the
+    /// dinucleotide signature otherwise (<see cref="SignatureIndex"/>), and the dinucleotide signature in either view. They answer at once: a query reads the in-memory index, a tree of up to
     /// <see cref="SignatureIndex.MaxTreeLeaves"/> leaves takes well under a second. Visibility is the catalogue's: public records
     /// plus the caller's own uploads; anything else is a 404, as if it didn't exist.
     /// </summary>
@@ -22,9 +22,11 @@ namespace SequencePlatform.Api
 
             sequences.MapGet("/{id:long}/relatives", RelativesAsync)
                 .WithName("GetRelatives")
-                .WithSummary("The genomes nearest to a record by dinucleotide signature")
-                .WithDescription("Relatives come from the record's group: bacteria and archaea together, or viruses. One record stands for each " +
-                    "catalogue genome (its largest chromosome); plasmids and profile-only uploads have no relatives. k is 1-100, default 10.")
+                .WithSummary("The genomes nearest to a record, by amino-acid CVTree or by dinucleotide signature")
+                .WithDescription("Relatives come from the record's group: bacteria and archaea together, or viruses. A record with a gene layer is " +
+                    "compared by amino-acid CVTree with the genomes that have one; any other (eukaryotes, uploads) by dinucleotide signature with all; " +
+                    "signature says which. One record stands for each catalogue genome (its largest chromosome); plasmids and profile-only uploads have " +
+                    "no relatives. k is 1-100, default 10.")
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -37,7 +39,7 @@ namespace SequencePlatform.Api
 
             app.MapGroup("/api/trees").WithTags("Organisms").MapGet("/", TreeAsync)
                 .WithName("GetTree")
-                .WithSummary("A tree of genomes from their dinucleotide signatures")
+                .WithSummary("A tree of genomes, by amino-acid CVTree when every leaf has a gene layer, else by dinucleotide signature")
                 .WithDescription("Leaves are either ids (comma-separated record ids) or every genome of one taxon (rank and taxon, as the catalogue " +
                     "filter). 3 to 500 leaves, all bacteria and archaea or all viruses. method is upgma (default) or nj. Newick labels are record ids.")
                 .ProducesProblem(StatusCodes.Status400BadRequest);
@@ -64,9 +66,9 @@ namespace SequencePlatform.Api
             var (group, counts) = query.Value;
 
             await index.RefreshAsync(cancellationToken);
-            var relatives = index.Nearest(SignatureIndex.Signature(counts), group, user.UserId(), k, exclude: id);
-            var records = await Catalogue.ByIdsAsync(dataSource, relatives.Select(r => r.Id).ToList(), cancellationToken);
-            return TypedResults.Ok(new RelativesResponse(id, group, SignatureIndex.Description, relatives
+            var relatives = await index.RelativesAsync(id, counts, group, user.UserId(), k, cancellationToken);
+            var records = await Catalogue.ByIdsAsync(dataSource, relatives.Items.Select(r => r.Id).ToList(), cancellationToken);
+            return TypedResults.Ok(new RelativesResponse(id, group, relatives.Signature, relatives.Items
                 .Where(r => records.ContainsKey(r.Id))
                 .Select(r => new RelativeResponse(r.Distance, SequenceSummaryResponse.From(records[r.Id]), $"/api/sequences/{r.Id}"))
                 .ToList()));
@@ -128,10 +130,10 @@ namespace SequencePlatform.Api
             var rows = await SignatureIndex.ReadCountsAsync(dataSource, leaves, cancellationToken);
             var groups = leaves.Select(id => Checked(id, rows[id].Kind, rows[id].Counts)).Distinct().ToList();
             if (groups.Count > 1) throw new ArgumentException("A tree holds bacteria and archaea, or viruses, not both.");
-            var tree = SignatureIndex.Tree(
-                leaves.Select(id => (id.ToString(CultureInfo.InvariantCulture), SignatureIndex.Signature(rows[id].Counts!))).ToList(), method);
+            await index.RefreshAsync(cancellationToken);
+            var (tree, signature) = index.Tree(leaves.Select(id => (id, rows[id].Counts!)).ToList(), groups[0], method);
             var records = await Catalogue.ByIdsAsync(dataSource, leaves, cancellationToken);
-            return TypedResults.Ok(new TreeResponse(method.ToLowerInvariant(), SignatureIndex.Description, tree.ToNewick(),
+            return TypedResults.Ok(new TreeResponse(method.ToLowerInvariant(), signature, tree.ToNewick(),
                 leaves.Select(id => SequenceSummaryResponse.From(records[id])).ToList()));
         }
 

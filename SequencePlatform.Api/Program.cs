@@ -54,7 +54,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
-_ = app.Services.GetRequiredService<SignatureIndex>().RefreshAsync();   // warm the relatives index without delaying startup
+// Warm the relatives index without delaying startup; its CVTree vectors then build in the background (minutes, about 0.7 GB). The AppHost
+// turns this off in the worker and experiment processes, which never answer relatives.
+if (app.Configuration.GetValue("SignatureIndex:Warm", true)) _ = app.Services.GetRequiredService<SignatureIndex>().RefreshAsync();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

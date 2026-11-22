@@ -205,6 +205,15 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
 - **Map, not a periodic table**: 2-D PCA separates phyla somewhat better than GC + length (kNN purity 0.516 vs 0.465) but not genera.
 - **Amino-acid CVTree** tracks GTDB far better than Karlin (within-family Spearman 0.842 vs 0.586, 320 bacteria). Hashed to 8,192
   dimensions it keeps that accuracy.
+- **CVTree as the relatives signal** (2026-11-22, `cvtree_relatives_check.cs`, the 10 nearest for 500 queries per group among the
+  public index genomes with amino-acid 4-mers): same-genus share CVTree vs log ρ\* 0.520 vs 0.387 for bacteria and archaea (GTDB;
+  +13.3 points, 95% CI 11.3–15.3; family 0.664 vs 0.481), 0.607 vs 0.451 for viruses (NCBI; +15.6, CI 13.3–18.0). Removing the
+  query's own species keeps the gap (+13.9, +15.9). Rounding to 16-bit changes almost nothing (identical lists 498 / 500 and
+  487 / 500). Vectors for 15,314 + 28,570 genomes built in 51 + 81 s on 4 threads (server about 102 + 162 s, extrapolated), 0.25 +
+  0.47 GB at 16 bits; one brute-force query 58 / 93 ms on one thread in this script. Built into `SignatureIndex` the same day
+  (`CvTreeSignature`, 16-bit fixed point): the same shares to the fourth decimal, 10-nearest lists identical to float32 for 499 / 500
+  and 493 / 500 (overlap 100.0%); in the index all 43,883 vectors (one virus row holds no word) build in 115 s on 4 threads (0.74 GB managed), and one relatives
+  query takes 18 ms (bacteria and archaea) or 31 ms (viruses) median with AVX2, 150–170 ms before the AVX2 dot product and top-k scan.
 - **Eukaryote pilot**: on 297 assemblies (one per family) the signature keeps classes and orders together (5-nearest purity 0.53 and
   0.21 against shuffles 0.08 and 0.014) and beats GC + length at every rank.
 

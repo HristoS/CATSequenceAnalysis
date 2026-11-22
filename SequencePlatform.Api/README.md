@@ -86,7 +86,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/searches/{id}` | Status (Queued, Running, Done, Failed, Expired), parameters, summary, and once done one page of one hit list: `list` = Ranked / Identical / NotComparable, `after`, `limit` |
 | GET | `/api/searches/{id}/query` | A protein search's query as the windows it was compared with (the expected Z-curve, never the letters), in the gene windows' format, so the page can draw it over a hit gene; 404 for someone else's search, a DNA search, or once expired |
 | DELETE | `/api/searches/{id}` | Drop the query profile and results now (D7); 204. The search stays as Expired with its summary |
-| GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest by dinucleotide signature, in the record's group (bacteria and archaea, or viruses), nearest first. 400 for a plasmid or a profile-only upload |
+| GET | `/api/sequences/{id}/relatives?k=` | The `k` (1–100, default 10) genomes nearest the record in its group (bacteria and archaea, or viruses), nearest first: by amino-acid CVTree when it has a gene layer, else by dinucleotide signature; `signature` says which. 400 for a plasmid or a profile-only upload |
 | GET | `/api/sequences/{id}/signature?view=` | The record's dinucleotide signature: `zcurve` (default, the 16 Z-curve coefficients) or `karlin` (log ρ\* and ρ\* per dinucleotide) |
 | GET | `/api/sequences/{id}/genes` | The record's stored genes (BV-BRC, or NCBI-annotated eukaryotes; 50 aa and up), in order of sequence and start, with strand, length in aa, family and product and `sequence` (an index into `sequences`, the accessions a eukaryote's genes lie on), plus `meanWindow`: the 9 window features averaged over all of them, in the signature's format. No genes for uploads and unannotated eukaryotes |
 | GET | `/api/sequences/{id}/genes/path?origin=&sequence=` | The record's Z-curve path built from its genes alone, in chromosome order (from the replication origin with `origin=true`, when it has one): each gene window one step of its means over codon positions 1 and 2, reverse-strand genes flipped onto the forward strand, intergenic DNA left out; flat `coordinates`, and each gene's `firstPoint` (`results/GenePath_Check.csv`). `sequence=N` draws only one sequence's genes, as the UI draws a eukaryote: one chromosome at a time, never joined |
@@ -94,7 +94,7 @@ built from public records only, so private uploads don't shape anyone else's ran
 | GET | `/api/sequences/{id}/chromosomes/{index}/profile?windowSize=` | One chromosome level as ZCWP bytes (float32), as `/profile` serves a record's |
 | GET | `/api/sequences/{id}/genes/{index}` | One gene's stored windows: mean, trend and curvature of x, y and z over codon positions 1 and 2, from which the page redraws the gene's Z-curve (`results/GeneCurve_Check.csv`) |
 | GET | `/api/sequences/{id}/genes/{index}/matches?in=&top=` | The gene's best matches among record `in`'s genes by the Z-curve gene score (`GeneMatching`; from 500 aa against its long genes, below against those within ±10% of the length), the first flagged `reciprocal` when it is a reciprocal best hit. For records without families, such as NCBI eukaryotes: between same-genus genomes 93–99.7% of reciprocal pairs share the protein name (`results/GeneMatch_Check.csv`). The compare page's "Find this gene" |
-| GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes from their signatures: Newick with record ids as labels, and the leaf records |
+| GET | `/api/trees?ids=` or `?rank=&taxon=` | A UPGMA (default) or `method=nj` tree of 3–500 genomes, by amino-acid CVTree when every leaf has one in the index, else by dinucleotide signature (`signature` says which): Newick with record ids as labels, and the leaf records |
 | GET | `/api/landscape?group=` | The public catalogue on three axes (`x`, `y`, `z`: PC1–PC3; the page draws two at a time): `cellular` (default), `viral` or `eukaryotic`, one genome per species, or `all`, every public genome on one set of axes. PCA of the signature as parallel arrays with domains, lineages and each axis's heaviest dinucleotides |
 | GET | `/api/experiments` | The published P9 experiments, newest first: question, verdict (`pass`, `fail`, `context`), snapshot, script, summary numbers |
 | GET | `/api/experiments/{name}` | One experiment and a page of its findings: `kind`, `order` = `score` (default) or `-score`, `offset`, `limit` (1–1000, default 100) |
@@ -123,7 +123,17 @@ an article run.
 
 ## Relatives, signatures and trees (P5 S5.5)
 
-These answer at once from `SignatureIndex`, an in-memory table of every genome's dinucleotide signature: log ρ\* over both strands from
+These answer at once from `SignatureIndex`, an in-memory table of two signatures per genome. **Relatives and trees use amino-acid CVTree**
+(`CvTreeSignature`, since 2026-11-22) for bacteria, archaea and viruses with stored amino-acid 4-mers: Hao's composition vector of the
+4-mers (3- and 2-mers derived from them), hashed to 8,192 dimensions, unit length in 16-bit fixed point, compared by (1 − cosine) / 2.
+Among the 10 nearest it finds the GTDB genus 13.3 points more often than log ρ\* for bacteria and archaea and the NCBI genus 15.6 points
+more often for viruses (`scripts/platform-checks/cvtree_relatives_check.cs`, `results/README.md` §4). A query with a vector is ranked
+among the genomes that have one; any other (eukaryotes, uploads, the 9% of viruses without a gene layer) by log ρ\* among all. The
+vectors (about 44,000, 0.72 GB) are built from the stored counts in the background after startup, on half the cores: about 2 min
+locally, several on the 2-vCPU server; until they are in, everything uses log ρ\*, and each answer's `signature` says which was used.
+Later refreshes build only new genomes' vectors. The worker and experiment processes don't warm the index (`SignatureIndex__Warm=false`).
+
+The signature views and the map use the dinucleotide signature: log ρ\* over both strands from
 the stored dinucleotide counts, compared by Euclidean distance. It is Karlin's genomic signature and also the complete second-order
 Z-curve (its Z-curve coefficients are a rotation of it), so both views describe one vector. One record stands for each catalogue genome
 (the largest chromosome of a bacterium or archaeon; every virus record; every record of an upload); plasmids are left out. The index

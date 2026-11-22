@@ -259,8 +259,13 @@ export function TreePage({ params }) {
       </section>
       <${Score} title="Neighbour-joining" result=${scores.right} higherName=${scores.higherName} />`}
     </div>`}
-    <${HowTo}><p>Built from dinucleotide signatures (log ρ*, the complete second-order Z-curve). This is a composition tree: it tracks
-      relatedness within families well and says little across phyla, so read it as similarity, not as phylogeny.</p>
+    <${HowTo}>${trees && trees.upgma.signature.startsWith("amino-acid CVTree")
+        ? html`<p>Built from amino-acid CVTree: the 4-letter words of each genome's annotated proteins, beyond what their 3-letter words
+          predict. It follows taxonomy within families far better than the dinucleotide signature, but it is still a distance tree, not a
+          phylogeny. Genomes without annotated genes would make the whole tree fall back to dinucleotide signatures.</p>`
+        : html`<p>Built from dinucleotide signatures (log ρ*, the complete second-order Z-curve). This is a composition tree: it tracks
+          relatedness within families well and says little across phyla, so read it as similarity, not as phylogeny. When every genome
+          has annotated genes, the tree uses amino-acid CVTree instead.</p>`}
       <p>"Kept together" counts the genera (and phyla, or families for viruses) whose genomes some branch separates from all the others.</p><//>`;
 
   const plot = html`${!ids && !taxon && html`<${Message}>Name a taxon to build a tree, or pick genomes on the map or a record's relatives. A tree holds 3 to 500 genomes.<//>`}
@@ -275,7 +280,7 @@ export function TreePage({ params }) {
     </figure>`;
 
   return html`<${PageHeader} title="Tree of genomes"
-      lede="Genomes grouped by how alike their dinucleotide composition is. Read it as similarity, not as phylogeny." />
+      lede="Genomes grouped by how alike their proteins' amino-acid words are, or their dinucleotide composition when some have no annotated genes. Read it as similarity, not as phylogeny." />
     <${PlotLayout} plot=${plot} side=${side} />
     <div class="tip" ref=${tip} hidden><b></b><span></span></div>`;
 }
