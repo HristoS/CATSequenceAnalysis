@@ -99,6 +99,38 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
 - `GeneMatch_Check.csv`: reciprocal best hits by gene score alone, for genes without a family. Same-name agreement 99.7% (Podospora)
   and 92.9% (Nelumbo) against 0.5% and 0.2% by chance, with the weighted score (2026-11-20; unweighted 99.8% and 92.9%, at commit
   f5cb655). The weights find 0.5–0.75% fewer reciprocal pairs.
+- **The window metric: weighted Euclidean stays** (2026-11-22, three checks, no CSV kept). Is the weighted Euclidean distance the
+  right way to compare the 9 window numbers, or should each moment get its own comparison and the results be combined?
+  - *Each moment on its own* (`protein_family_diagnostic.cs --moments`; G4's tuning half, 576 proteins; family top-1 with the own genus
+    removed; today 62.3%).
+    - Moments alone: P0 21.0%, P1 19.3%, P2 17.7%; one axis of one moment 1–4%.
+    - Removing the offset from P0: −8.3 points (CI −12.0 to −4.6).
+    - Correlation instead of difference: P1 −5.0, P2 −3.8 points.
+    - Sign agreement: −17.0 / −15.3 points, with tied genes sharing the credit. A first run that broke ties by today's score showed
+      +8; that came from the tie-break.
+  - *Credits learned from the data* (`ProteinMomentCreditBenchmark.LogOddsCreditsAgainstEuclidean`; G9's corpus and alignment key,
+    genomes split into training (1,982 homolog pairs, 60,000 unrelated) and test (204 queries with a homolog); today 43.1%). Log-odds
+    log P(d | homolog) / P(d | unrelated) per feature, like BLOSUM:
+    - 1-D tables 40.2% (−2.9, CI −7.8 to +2.0);
+    - 2-D tables over (query, gene) values 34.3% (−8.8, CI −14.2 to −3.9);
+    - fitted normals 42.2% (−1.0, CI −4.9 to +2.9).
+  - *The author's hand-made credits, combined* (`HandCreditCombinations`; same corpus; 202 test queries; today 43.6%). Mean and
+    curvature earn max(0, 1 − |d|·√W / c); the trend the same, or full credit for the same sign. c, the moment weights and a bonus
+    were fitted on the training half:
+    - credits alone 39.1% (−4.5, CI −8.4 to −1.0);
+    - with full credit for the same sign 34.2% (−9.4);
+    - today + credits 42.6% (−1.0);
+    - today + sign agreement equal to today.
+    - No arm of 132 beat today on the test half.
+  - *Why:*
+    - In noise units (d·√W), unrelated genes' P1 and P2 differences have sd 1.33–1.44, about √2, as two random sequences would.
+      Homologs narrow that only to 1.04–1.17. P0 separates more (homolog 1.10–1.72 against unrelated 1.79–2.94).
+    - The differences are close to normal, and for normal differences the optimal credit is a weighted squared distance, which is
+      today's score.
+    - Magnitude carries the signal: sign and correlation lose. The composition level is signal too: removing the offset loses.
+  - What still loses homologs is low identity and indels (G9: top-1 13% under 40% identity, 98% from 80%), which no window metric
+    reaches. The AUC over all same-family pairs is 0.49–0.53 for every score: almost all of them are remote members the profile
+    doesn't see. Don't retry the metric without a new idea.
 
 ## 3. The catalogue as a system (Paper B)
 

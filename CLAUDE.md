@@ -66,7 +66,8 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
 - `ZCurveGeneProfile.cs` — the per-gene profile for protein search (S7.R, S7.S): each CDS in coding orientation, codon positions 1
   and 2, Legendre moments P0–P2 of x, y, z per window (9 numbers, stored as 16-bit halves; 8 bits lost up to 6 points), compared by a
   weighted Euclidean distance (`FeatureWeights`, 1 / catalogue variance, P0 z mostly halved; adopted 2026-11-20 by the author's decision,
-  +1.3 to +3.5 points of own gene first, `results/ProteinWeights_Confirm.csv`; changing them means rerunning `build-protein-null`). Window rule
+  +1.3 to +3.5 points of own gene first, `results/ProteinWeights_Confirm.csv`; changing them means rerunning `build-protein-null`). Per-moment comparisons, learned log-odds credits and hand-made combined credits all lost to this distance (2026-11-22,
+  `results/README.md` §2), so don't replace it without a new idea. Window rule
   by protein length: from 500 aa, windows of 333 such bases (500 bp of gene) from the start codon; 50–499 aa, 5 equal windows over
   the whole gene, compared only with genes within ±10% of the query's length (`results/ShortProtein_*.csv`); under 50 aa not kept.
   Binary format ZCGP v2 (varint-packed gene headers; the window count follows from the length); v3 (S7.T, NCBI eukaryotes) adds per gene

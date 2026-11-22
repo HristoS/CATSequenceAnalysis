@@ -215,7 +215,7 @@ namespace SequenceAnaliseTests
         private static int BandOf(int residues) => residues < 100 ? 0 : residues < 167 ? 1 : residues < 333 ? 2 : residues < 500 ? 3 : 4;
 
         // Rost (1999) HSSP curve: the identity (%) above which an alignment of L residues is in the safe zone of homology.
-        private static double Hssp(int length) => length <= 11 ? 100 : length > 450 ? 19.5 : 480 * Math.Pow(length, -0.32 * (1 + Math.Exp(-length / 1000.0)));
+        internal static double Hssp(int length) => length <= 11 ? 100 : length > 450 ? 19.5 : 480 * Math.Pow(length, -0.32 * (1 + Math.Exp(-length / 1000.0)));
 
         private static double Score(double[] query, double[] gene, double[]? weights)
         {
@@ -289,7 +289,7 @@ namespace SequenceAnaliseTests
         }
 
         // Distinct amino-acid 3-mers (20 letters), sorted, for the alignment prefilter.
-        private static int[] Trimers(string protein)
+        internal static int[] Trimers(string protein)
         {
             const string letters = "ACDEFGHIKLMNPQRSTVWY";
             var set = new HashSet<int>();
@@ -303,7 +303,7 @@ namespace SequenceAnaliseTests
             return sorted;
         }
 
-        private static int Shared(int[] a, int[] b)
+        internal static int Shared(int[] a, int[] b)
         {
             int i = 0, j = 0, shared = 0;
             while (i < a.Length && j < b.Length)
