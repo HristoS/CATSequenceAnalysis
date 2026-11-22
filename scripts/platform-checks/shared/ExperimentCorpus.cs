@@ -3,8 +3,10 @@ using System.Text.RegularExpressions;
 using Npgsql;
 using SequencePlatform.Core;
 
-// The genomes every P9 experiment reads. Round 1 (S9.0) reads the frozen snapshot database; round 2 (S9.9, D-P9d) reads the live one
-// cut off at RoundTwoMaxId and refuses to run unless the fingerprint of everything round 2 reads still matches. The selection
+// The genomes every P9 experiment reads. Round 1 (S9.0) reads the frozen snapshot database; round 2 (S9.9, D-P9d) reads
+// RoundTwoDatabase, restored from RoundTwoArchiveFile (until 2026-11-21 it read the live database under a freeze), cut off at
+// RoundTwoMaxId, and refuses to run unless the fingerprint of everything round 2 reads still matches. Results are published to the
+// live database (OpenLive), where the web UI reads them; record ids up to RoundTwoMaxId are the same in both. The selection
 // is SignatureIndex's, over public records only: the largest chromosome of each bacterium or archaeon, every virus and every eukaryote;
 // no plasmids, no uploads. A record described as partial is marked Excluded and left out of every experiment. Most viral records
 // under 1 kbp are complete segments or viroids, and "gene, complete cds" usually covers a whole small genome, so neither is excluded.
@@ -21,6 +23,7 @@ internal static class ExperimentCorpus
     public const string SnapshotFile = "sequence_platform_2026-11-03_P9.dump";
     public const long RoundTwoMaxId = 61_841;
     public const string RoundTwoArchiveFile = "sequence_platform_2026-11-12_P9b.dump";
+    public const string RoundTwoDatabase = "sequence_platform_p9b";
 
     // Per-table hashes taken on 2026-11-12 (D-P9d). A mismatch means something wrote to data round 2 reads: stop, don't update these.
     private static readonly (string Table, string Hash)[] roundTwoExpected =
@@ -60,8 +63,15 @@ internal static class ExperimentCorpus
     /// <summary>The fingerprint every round-2 CSV carries: one hash over the expected table hashes.</summary>
     public static string RoundTwoFingerprint => Combine(roundTwoExpected);
 
-    /// <summary>The live database (connection settings unchanged), for round 2.</summary>
+    /// <summary>The live database (connection settings unchanged): where results are published.</summary>
     public static NpgsqlDataSource OpenLive() => NpgsqlDataSource.Create(ConnectionString.Resolve());
+
+    /// <summary>The usual connection settings pointed at round 2's database; it must have been restored from <see cref="RoundTwoArchiveFile"/>.</summary>
+    public static NpgsqlDataSource OpenRoundTwo()
+    {
+        var builder = new NpgsqlConnectionStringBuilder(ConnectionString.Resolve()) { Database = RoundTwoDatabase };
+        return NpgsqlDataSource.Create(builder.ConnectionString);
+    }
 
     /// <summary>Throws unless every table round 2 reads still hashes as on 2026-11-12. Takes about 40 s; start it beside <see cref="LoadAsync"/>.</summary>
     public static async Task<string> VerifyRoundTwoAsync(NpgsqlDataSource dataSource)
@@ -70,7 +80,7 @@ internal static class ExperimentCorpus
         var moved = actual.Where(a => !roundTwoExpected.Contains(a)).Select(a => $"{a.Table} {a.Hash}").ToList();
         if (moved.Count > 0 || actual.Count != roundTwoExpected.Length)
             throw new InvalidOperationException($"Round-2 corpus moved (D-P9d). Tables now: {string.Join(", ", moved)}. " +
-                $"Restore {RoundTwoArchiveFile} and run there, or start a new round.");
+                $"Restore {RoundTwoArchiveFile} into {RoundTwoDatabase} again, or start a new round.");
         return RoundTwoFingerprint;
     }
 

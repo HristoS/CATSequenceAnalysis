@@ -29,7 +29,7 @@ const double minClassBacterial = 0.9;
 var prefix = args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) ?? "P9_E2b";
 bool publish = args.Contains("--publish");
 
-await using var dataSource = ExperimentCorpus.OpenLive();
+await using var dataSource = ExperimentCorpus.OpenRoundTwo();
 var verified = ExperimentCorpus.VerifyRoundTwoAsync(dataSource);
 var corpus = (await ExperimentCorpus.LoadAsync(dataSource, ExperimentCorpus.RoundTwoMaxId)).Where(g => !g.Excluded).ToList();
 var cellular = corpus.Where(g => g.Group == SignatureIndex.Cellular && g.Provider.Genus is not null).ToList();
@@ -194,9 +194,10 @@ if (publish)
             firstGuess = new { guessed = guessed[first], right = right[first] },
         }, json)));
     }
-    var (stored, skipped) = await ExperimentStore.PublishAsync(dataSource, "e2b-phage-host", "Phage host from 6-mers",
+    await using var live = ExperimentCorpus.OpenLive();
+    var (stored, skipped) = await ExperimentStore.PublishAsync(live, "e2b-phage-host", "Phage host from 6-mers",
         "Which bacterial or archaeal genus does a phage's 6-mer composition point to, and how often is that its recorded host?",
-        pass ? ExperimentStore.Pass : ExperimentStore.Fail, $"live, records <= {ExperimentCorpus.RoundTwoMaxId}, fingerprint {fingerprint}",
+        pass ? ExperimentStore.Pass : ExperimentStore.Fail, $"{ExperimentCorpus.RoundTwoDatabase}, records <= {ExperimentCorpus.RoundTwoMaxId}, fingerprint {fingerprint}",
         "scripts/platform-checks/p9_e2b_phage_host.cs", summary, findings);
     Console.WriteLine($"Published e2b-phage-host: {stored} findings stored, {skipped} skipped.");
 }

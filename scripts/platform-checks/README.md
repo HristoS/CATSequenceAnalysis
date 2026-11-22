@@ -25,6 +25,8 @@ dotnet run -c Release scripts/platform-checks/localize_eval.cs
 | `localize_eval.cs` | `S35_LocalizeEval_Summary.csv` | The same fragments through `Localization.LocalizeAsync` |
 | `neighbour_eval.cs` | `S34b_NeighbourRanking.csv` | Find-similar with and without the stored neighbour graph, 300 queries |
 | `rotation_eval.cs` | `S32_RotationProduction.csv` | Find-similar ranking with circular chromosomes rotated to their origin |
+| `origin_dnaa_check.cs` | — (summary in `results/README.md`) | Skew-minimum origin of every rotated chromosome against its dnaA start from the gene layer; writes the CSV the next script reads |
+| `origin_doric_check.py` | — (summary in `results/README.md`) | The same origins against DoriC 12.0 and experimentally verified oriCs (Zenodo 10888581, coordinates only) |
 | `circular_permutation_check.cs` | `CircularPermutation_Check.csv` | Wrap-around scoring for circularly permuted viruses, pairwise |
 | `wrap_search_eval.cs` | `WrapAround_Search.csv` | Wrap-around through `SimilaritySearch`, 300 virus queries |
 | `virus_rerank_check.cs` | `VirusRerank_Check.csv` | Whether to skip neighbour re-ranking for viruses |

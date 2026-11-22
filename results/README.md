@@ -162,6 +162,16 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
   0.462 → 0.491 for viruses (300 queries).
 - **Origin rotation** (`S32_RotationProduction.csv`): circular chromosomes scored as stored and from their origin, best kept.
   Bacterial precision@10 0.131 → 0.169 by score, 0.195 → 0.231 with neighbours. Warm E. coli search 76 → 382 ms.
+- **Origin validated at scale** (2026-11-20, no CSV kept; `origin_dnaa_check.cs` 34 s, then `origin_doric_check.py`). All 11,304
+  rotated chromosomes; windows of 32 kbp, the level they are scored at; stop line 80% within ±5.
+  - *dnaA key* (BV-BRC DnaA start, 9,842 with one copy): 58.2% / 74.3% within ±1 / ±5 (chance 1.9% / 9.7%), under the line. The misses
+    sit in Bacteroidota (6.6%) and Cyanobacteriota (5.1%), consistent within a genus (Flavobacterium 0.20–0.26 of the ring).
+  - *DoriC 12.0 key* (Ori-Finder oriC, Zenodo 10888581; 3,797 matched by chromosome accession): **85.1% / 96.5%**, median 2.3 kbp.
+    Bacteroidota 96.9%, Cyanobacteriota 100%, Pseudomonadota 97.1%; lowest Deinococcota 73.9% (n = 23) and weak skews (3–5 bp/kbp)
+    88.5%. dnaA itself is 86.2% from DoriC: in those two phyla dnaA lies far from oriC, so the skew was right and the key wrong.
+  - *Experimentally verified oriCs* (17 matched, independent of Ori-Finder's skew): skew origin 14 within ±1 window, 17 within ±5;
+    dnaA 14 within ±5 (misses Synechococcus elongatus, Cytophaga, Chlamydia, 0.4–1.1 Mbp off).
+  - Rotation stays on every clear-skew chromosome; no confident subset needed.
 - **Wrap-around for viruses** (`CircularPermutation_Check.csv`, `WrapAround_Search.csv`): many phages are circularly permuted. Scoring
   a virus candidate as its windows followed by themselves raises same-genus vs other-family AUC 0.904 → 0.934 and precision@10
   0.597 → 0.670, at 1.15× the time. Skipping neighbour re-ranking for viruses was checked and not taken (`VirusRerank_Check.csv`).

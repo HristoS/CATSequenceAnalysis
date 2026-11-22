@@ -22,7 +22,7 @@ var prefix = args.FirstOrDefault() ?? "P9_E1b_Check";
 var suffix = new Regex(@"_[A-Z]+$", RegexOptions.Compiled);
 string? Strip(string? name) => name is null ? null : suffix.Replace(name, "");
 
-await using var dataSource = ExperimentCorpus.OpenLive();
+await using var dataSource = ExperimentCorpus.OpenRoundTwo();
 var corpus = (await ExperimentCorpus.LoadAsync(dataSource, ExperimentCorpus.RoundTwoMaxId)).Where(g => !g.Excluded && g.Group != SignatureIndex.Eukaryotic).ToList();
 var withKmers = new HashSet<long>();
 await using (var command = dataSource.CreateCommand("select sequence_id from protein_kmer where k = 4 and status = 'done' and sequence_id <= $1"))

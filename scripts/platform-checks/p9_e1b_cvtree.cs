@@ -29,7 +29,7 @@ bool publish = args.Contains("--publish");
 var suffix = new Regex(@"_[A-Z]+$", RegexOptions.Compiled);
 string? Strip(string? name) => name is null ? null : suffix.Replace(name, "");
 
-await using var dataSource = ExperimentCorpus.OpenLive();
+await using var dataSource = ExperimentCorpus.OpenRoundTwo();
 var verified = ExperimentCorpus.VerifyRoundTwoAsync(dataSource);
 var corpus = await ExperimentCorpus.LoadAsync(dataSource, ExperimentCorpus.RoundTwoMaxId);
 var withKmers = new HashSet<long>();
@@ -161,9 +161,10 @@ if (publish)
         family = t.Genome.Provider.Family, share = t.Share, familyMedianShare = t.FamilyMedian, majorityFamily = t.Majority, majorityCount = t.MajorityCount,
         neighbours = t.NeighbourIds, gtdbFamily = t.GtdbFamily,
     }, json))).ToList();
-    var (stored, skipped) = await ExperimentStore.PublishAsync(dataSource, "e1b-outliers-cvtree", "Misplaced genomes (amino-acid CVTree)",
+    await using var live = ExperimentCorpus.OpenLive();
+    var (stored, skipped) = await ExperimentStore.PublishAsync(live, "e1b-outliers-cvtree", "Misplaced genomes (amino-acid CVTree)",
         "Do genomes whose amino-acid CVTree neighbours belong to another family point to mislabels or contamination more than GC and length do?",
-        pass ? ExperimentStore.Pass : ExperimentStore.Fail, $"live, records <= {ExperimentCorpus.RoundTwoMaxId}, fingerprint {fingerprint}",
+        pass ? ExperimentStore.Pass : ExperimentStore.Fail, $"{ExperimentCorpus.RoundTwoDatabase}, records <= {ExperimentCorpus.RoundTwoMaxId}, fingerprint {fingerprint}",
         "scripts/platform-checks/p9_e1b_cvtree.cs", summary, findings);
     Console.WriteLine($"Published e1b-outliers-cvtree: {stored} findings stored, {skipped} skipped.");
 }

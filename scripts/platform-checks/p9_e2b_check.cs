@@ -20,7 +20,7 @@ using SequencePlatform.Core;
 const int sampleSize = 200, timedPhages = 3, seed = 20261112;
 var prefix = args.FirstOrDefault() ?? "P9_E2b_Check";
 
-await using var dataSource = ExperimentCorpus.OpenLive();
+await using var dataSource = ExperimentCorpus.OpenRoundTwo();
 var corpus = (await ExperimentCorpus.LoadAsync(dataSource, ExperimentCorpus.RoundTwoMaxId)).Where(g => !g.Excluded).ToList();
 var cellular = corpus.Where(g => g.Group == SignatureIndex.Cellular && g.Provider.Genus is not null).ToList();
 var genera = cellular.Select(g => g.Provider.Genus!).ToHashSet(StringComparer.Ordinal);

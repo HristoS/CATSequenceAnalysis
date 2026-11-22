@@ -5,22 +5,22 @@ using System.Globalization;
 using Npgsql;
 
 // P9 corpus: what the shared corpus holds, per group. Every P9 script starts from ExperimentCorpus.LoadAsync, so these counts are the
-// denominators behind their results. Default is round 2 (S9.9): the live database cut off at RoundTwoMaxId, its fingerprint verified,
+// denominators behind their results. Default is round 2 (S9.9): round 2's database cut off at RoundTwoMaxId, its fingerprint verified,
 // and the coverage of the inputs round 2 adds (6-mers, amino-acid 4-mers, gene profiles). "--round1" repeats S9.0 on the snapshot.
 //   dotnet run p9_corpus.cs [--round1] [output.csv]
-//   dotnet run p9_corpus.cs --fingerprint      print the per-table hashes of the live database at the cut-off, check nothing
+//   dotnet run p9_corpus.cs --fingerprint [--live]   print the per-table hashes of round 2's database (or the live one) at the cut-off
 var roundOne = args.Contains("--round1");
 if (args.Contains("--fingerprint"))
 {
-    await using var live = ExperimentCorpus.OpenLive();
-    var tables = await ExperimentCorpus.FingerprintAsync(live, ExperimentCorpus.RoundTwoMaxId);
+    await using var target = args.Contains("--live") ? ExperimentCorpus.OpenLive() : ExperimentCorpus.OpenRoundTwo();
+    var tables = await ExperimentCorpus.FingerprintAsync(target, ExperimentCorpus.RoundTwoMaxId);
     foreach (var (table, hash) in tables) Console.WriteLine($"(\"{table}\", \"{hash}\"),");
     Console.WriteLine($"Combined: {ExperimentCorpus.Combine(tables)}");
     return;
 }
 var output = args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) ?? (roundOne ? "P9_S90_Corpus.csv" : "P9_S99_Corpus.csv");
 
-await using var dataSource = roundOne ? ExperimentCorpus.OpenSnapshot() : ExperimentCorpus.OpenLive();
+await using var dataSource = roundOne ? ExperimentCorpus.OpenSnapshot() : ExperimentCorpus.OpenRoundTwo();
 var verified = roundOne ? Task.FromResult("") : ExperimentCorpus.VerifyRoundTwoAsync(dataSource);
 var genomes = await ExperimentCorpus.LoadAsync(dataSource, roundOne ? long.MaxValue : ExperimentCorpus.RoundTwoMaxId);
 (HashSet<long> Kmers6, HashSet<long> AminoKmers, HashSet<long> GeneProfiles)? inputs = roundOne ? null : await RoundTwoInputsAsync(dataSource);
