@@ -17,7 +17,8 @@ function coverage(run) {
   if (analysed == null) return listed > 0 ? `${listed.toLocaleString()} listed` : null;
   if (listed > analysed)
     return `${listed.toLocaleString()} listed: ${analysed.toLocaleString()} checked against a known answer, ${(listed - analysed).toLocaleString()} more without one`;
-  return `analysed ${analysed.toLocaleString()} genomes · ${listed.toLocaleString()} listed`;
+  // A rerun stores no findings, so "0 listed" would only add noise.
+  return listed > 0 ? `analysed ${analysed.toLocaleString()} genomes · ${listed.toLocaleString()} listed` : `analysed ${analysed.toLocaleString()} genomes`;
 }
 
 // The registry's article groups, in the order the list shows them, under names that say what they're about (the article codes mean
@@ -169,7 +170,10 @@ function ResultsPanel({ run, details = false }) {
 
 const jobActive = job => job && (job.status === "Queued" || job.status === "Running");
 const pollMilliseconds = 3000;
-const minutes = (from, to) => Math.max(1, Math.round((new Date(to) - new Date(from)) / 60000));
+const took = (from, to) => {
+  const minutes = Math.round((new Date(to) - new Date(from)) / 60000);
+  return minutes < 1 ? "in under a minute" : `in about ${minutes} min`;
+};
 
 function jobText(job) {
   if (!job) return null;
@@ -177,7 +181,7 @@ function jobText(job) {
   switch (job.status) {
     case "Queued": return `Queued ${by} at ${new Date(job.createdAt).toLocaleString()}; it starts when no search is waiting.`;
     case "Running": return `Running since ${new Date(job.startedAt).toLocaleTimeString()} (started ${by}).`;
-    case "Done": return `Last rerun ${by} finished ${new Date(job.completedAt).toLocaleString()}, in about ${minutes(job.startedAt, job.completedAt)} min.`;
+    case "Done": return `Last rerun ${by} finished ${new Date(job.completedAt).toLocaleString()}, ${took(job.startedAt, job.completedAt)}.`;
     default: return `Last rerun ${by} failed: ${job.error ?? "no reason given"}`;
   }
 }
@@ -232,10 +236,16 @@ function RerunPanel({ article }) {
   </section>`;
 }
 
+// Key numbers come in pairs written "X, before" then "after"; matched by label, two bare "after"s would collapse into one row.
+const fullLabels = numbers => numbers.map((k, i) => {
+  const previous = numbers[i - 1]?.label ?? "";
+  return k.label === "after" && previous.endsWith(", before") ? { ...k, label: `${previous.slice(0, -", before".length)}, after` } : k;
+});
+
 // One row per key number either run reports, by label: a rerun reports the article's labels where it computes the same number.
 function RerunComparison({ article, server }) {
-  const articleNumbers = article.summary.keyNumbers ?? [];
-  const serverNumbers = server.summary.keyNumbers ?? [];
+  const articleNumbers = fullLabels(article.summary.keyNumbers ?? []);
+  const serverNumbers = fullLabels(server.summary.keyNumbers ?? []);
   const labels = [...new Set([...articleNumbers, ...serverNumbers].map(k => k.label))];
   const value = (numbers, label) => numbers.find(k => k.label === label)?.value;
   const cell = v => (v == null ? "–" : formatKey(v));

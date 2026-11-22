@@ -91,8 +91,8 @@ function HostGuess({ finding }) {
     ${p.host
       ? html`<p>Recorded host: <b>${p.host}</b>${p.hostFamily ? ` (${p.hostFamily})` : ""}, ranked ${p.rank.toLocaleString()} by 6-mers.</p>`
       : html`<p>No host is recorded for this ${p.class ?? "virus"}: these are guesses.</p>`}
-    <p class="hint">When ${first.genus} came first for a phage with a recorded host, it was right ${p.firstGuess.right.toLocaleString()} of
-      ${p.firstGuess.guessed.toLocaleString()} times${p.firstGuess.guessed === 0 ? " (never guessed first before)" : ""}.
+    <p class="hint">When ${first.genus} came first for a phage with a recorded host, it was right ${p.firstGuess.right.toLocaleString()}${" of "}
+      ${p.firstGuess.guessed.toLocaleString()} times${p.firstGuess.guessed === 0 ? " (never guessed first before)" : ""}.${" "}
       <a href="#/experiments/${finding.experiment}">How these guesses do overall</a>.</p>`;
 }
 
