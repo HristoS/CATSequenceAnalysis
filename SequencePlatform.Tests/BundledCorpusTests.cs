@@ -9,8 +9,10 @@ namespace SequencePlatform.Tests
         [Test]
         public void EveryBundledFileHasTaxonomyAndAnAccession()
         {
+            // eukaryotes/ isn't bundled: it holds git-ignored local downloads (scripts/platform-checks/fetch_eukaryotes.cs).
             var onDisk = Directory.EnumerateFiles(GenomeCatalog.DirectoryPath, "*.fna.gz", SearchOption.AllDirectories)
                 .Select(f => Path.GetRelativePath(GenomeCatalog.DirectoryPath, f).Replace('\\', '/'))
+                .Where(f => !f.StartsWith("eukaryotes/", StringComparison.Ordinal))
                 .ToList();
 
             Assert.That(BundledCorpus.Genomes.Select(g => g.FileName), Is.EquivalentTo(onDisk));
