@@ -210,7 +210,12 @@ namespace SequencePlatform.Tests
             var body = new StringBuilder(">too-big\n");
             while (body.Length <= 32 * 1024 * 1024) body.Append(lines).Append('\n');
 
-            var response = await client.PostAsync("/api/sequences?kind=eukaryote", Fasta(body.ToString()));
+            // Kestrel refuses on Content-Length without reading the body and then closes the connection. Sent at once, the unread
+            // body makes Windows reset it, which can drop the 413 before the client reads it; with 100-continue (curl's default above
+            // 1 MiB) the body is never sent. The server takes the same path either way.
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/sequences?kind=eukaryote") { Content = Fasta(body.ToString()) };
+            request.Headers.ExpectContinue = true;
+            var response = await client.SendAsync(request);
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.RequestEntityTooLarge));
             await using var command = ThrowawayDatabase.DataSource.CreateCommand("select count(*) from sequence_source where owner_id = $1");
