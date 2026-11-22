@@ -131,6 +131,18 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
   - What still loses homologs is low identity and indels (G9: top-1 13% under 40% identity, 98% from 80%), which no window metric
     reaches. The AUC over all same-family pairs is 0.49–0.53 for every score: almost all of them are remote members the profile
     doesn't see. Don't retry the metric without a new idea.
+- **What the axes mean for the protein** (2026-11-22, `AminoAcidAxisProperties`, under 1 s; no CSV kept). Each amino acid's expected
+  axes at codon positions 1 and 2, over the 20 amino acids, against residue properties (permutation p, n = 20):
+  - position 2 x + y (A against T): Kyte–Doolittle hydropathy **r = −0.86** (Spearman −0.83, p < 0.001). x alone −0.72, y alone −0.64.
+  - position 2 z (strong/weak): nothing (−0.02). This is the axis the 1/variance weights cut most, at 0.333.
+  - position 1: nothing significant; the largest are y with charge (+0.47, p 0.09) and z with volume (Spearman −0.47).
+  - So the profile's x and y at codon position 2 are a DNA-level hydropathy signal. A window's mean is the stretch's mean hydropathy,
+    and its trend and curvature are how hydropathy rises, falls or bulges across about 166 residues.
+  - This is correlation over the 20 amino acids, not yet over real windows. Comparing window values with the mean Kyte–Doolittle of the
+    same residues on the bundled proteins would be the next check.
+- **The moment values are pinned by tests** (2026-11-22, `ZCurveGeneProfileTests`):
+  - hand-computed exact values for constant, step and middle-bump windows: mean 1 / 0, trend 0 / −√3/2, curvature −√5/(2W²) / −3√5/8;
+  - an independent prefix-sum computation of all 9 numbers on random long and short genes, to 1e−9.
 
 ## 3. The catalogue as a system (Paper B)
 

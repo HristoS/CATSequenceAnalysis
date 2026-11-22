@@ -61,6 +61,83 @@ namespace SequenceAnaliseTests
             Assert.That(b[3], Is.GreaterThan(0.8), "purines late: rising x");
         }
 
+        // Exact values of the three moments on windows whose sums can be done by hand. Positions t_i = -1 + (2i + 1) / W, so
+        // sum(t^2) = (W^2 - 1) / (3W) and, for even W, sum over one half of |t| = W / 4.
+        [Test]
+        public void MomentsTakeTheirHandComputedValues()
+        {
+            // Constant x = +1 (GA at codon positions 1 and 2), 333-base windows: mean 1, trend 0, curvature sqrt(5) * -1 / (2 W^2),
+            // since sampled Legendre P2 isn't exactly orthogonal to P0 on W points.
+            var constant = ZCurveGeneProfile.QueryFromGene(string.Concat(Enumerable.Repeat("GAA", 600)) + "TAA");
+            const int W = ZCurveGeneProfile.WindowBases;
+            Assert.That(constant.Length / ZCurveGeneProfile.FeatureCount, Is.EqualTo(1200 / W));
+            for (int w = 0; w < constant.Length / ZCurveGeneProfile.FeatureCount; w++)
+            {
+                Assert.That(constant[w * 9], Is.EqualTo(1).Within(1e-12), "constant: mean");
+                Assert.That(constant[w * 9 + 3], Is.EqualTo(0).Within(1e-12), "constant: trend");
+                Assert.That(constant[w * 9 + 6], Is.EqualTo(-Math.Sqrt(5) / (2.0 * W * W)).Within(1e-12), "constant: curvature");
+            }
+
+            // 100 aa, so 5 windows of 40 bases (20 codons). A step, x = +1 then -1: mean 0, trend -sqrt(3) / 2, curvature 0 (odd
+            // against even). A middle bump, x = -1 in the outer quarters and +1 in the middle half: mean 0, trend 0, and
+            // sum(a P2) = -15 exactly at W = 40, so the curvature is sqrt(5) * -15 / 40 = -3 sqrt(5) / 8.
+            string Repeat(string codon, int times) => string.Concat(Enumerable.Repeat(codon, times));
+            var step = ZCurveGeneProfile.QueryFromGene(string.Concat(Enumerable.Repeat(Repeat("GAA", 10) + Repeat("CTA", 10), 5)) + "TAA");
+            var bump = ZCurveGeneProfile.QueryFromGene(string.Concat(Enumerable.Repeat(Repeat("CTA", 5) + Repeat("GAA", 10) + Repeat("CTA", 5), 5)) + "TAA");
+            for (int w = 0; w < ZCurveGeneProfile.SplitWindows; w++)
+            {
+                Assert.That(step[w * 9], Is.EqualTo(0).Within(1e-12), "step: mean");
+                Assert.That(step[w * 9 + 3], Is.EqualTo(-Math.Sqrt(3) / 2).Within(1e-12), "step: trend");
+                Assert.That(step[w * 9 + 6], Is.EqualTo(0).Within(1e-12), "step: curvature");
+                Assert.That(bump[w * 9], Is.EqualTo(0).Within(1e-12), "bump: mean");
+                Assert.That(bump[w * 9 + 3], Is.EqualTo(0).Within(1e-12), "bump: trend");
+                Assert.That(bump[w * 9 + 6], Is.EqualTo(-3 * Math.Sqrt(5) / 8).Within(1e-12), "bump: curvature");
+            }
+        }
+
+        // All 9 numbers of random long and short genes against a second, independent route: prefix sums of a, a * i and a * i^2 per
+        // axis, with the base-to-axis mapping written out again here.
+        [Test]
+        public void MomentsEqualAnIndependentPrefixSumComputation()
+        {
+            foreach (var (codons, seed) in new[] { (900, 31), (150, 32), (60, 33), (499, 34) })
+            {
+                var gene = RandomGene(codons, seed);
+                int residues = codons + 1;
+                int window = ZCurveGeneProfile.WindowOf(residues), bases = 2 * residues, count = bases / window;
+                var sums = new double[3, 3, bases + 1];
+                for (int i = 0; i < bases; i++)
+                {
+                    var (x, y, z) = gene[3 * (i / 2) + i % 2] switch { 'A' => (1, 1, -1), 'C' => (-1, 1, 1), 'G' => (1, -1, 1), _ => (-1, -1, -1) };
+                    int[] axes = { x, y, z };
+                    for (int axis = 0; axis < 3; axis++)
+                    {
+                        sums[axis, 0, i + 1] = sums[axis, 0, i] + axes[axis];
+                        sums[axis, 1, i + 1] = sums[axis, 1, i] + axes[axis] * (double)i;
+                        sums[axis, 2, i + 1] = sums[axis, 2, i] + axes[axis] * (double)i * i;
+                    }
+                }
+                var query = ZCurveGeneProfile.QueryFromGene(gene);
+                Assert.That(query.Length / ZCurveGeneProfile.FeatureCount, Is.EqualTo(count), $"{codons} codons: window count");
+                for (int w = 0; w < count; w++)
+                {
+                    int from = w * window, to = from + window;
+                    double shift = from - 0.5;
+                    for (int axis = 0; axis < 3; axis++)
+                    {
+                        // u = i - from + 0.5 and t = 2u / W - 1.
+                        double a = sums[axis, 0, to] - sums[axis, 0, from];
+                        double ai = sums[axis, 1, to] - sums[axis, 1, from], aii = sums[axis, 2, to] - sums[axis, 2, from];
+                        double au = ai - shift * a, auu = aii - 2 * shift * ai + shift * shift * a;
+                        double at = 2 * au / window - a, att = 4 * auu / ((double)window * window) - 4 * au / window + a;
+                        Assert.That(query[w * 9 + axis], Is.EqualTo(a / window).Within(1e-9), $"{codons} codons, window {w}: mean");
+                        Assert.That(query[w * 9 + 3 + axis], Is.EqualTo(Math.Sqrt(3) * at / window).Within(1e-9), $"{codons} codons, window {w}: trend");
+                        Assert.That(query[w * 9 + 6 + axis], Is.EqualTo(Math.Sqrt(5) * (1.5 * att - 0.5 * a) / window).Within(1e-9), $"{codons} codons, window {w}: curvature");
+                    }
+                }
+            }
+        }
+
         [Test]
         public void ShortGeneMeansEqualFiveEqualWindowsOfItsCodonPositionsOneAndTwo()
         {
