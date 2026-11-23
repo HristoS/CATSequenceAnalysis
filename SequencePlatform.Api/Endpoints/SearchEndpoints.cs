@@ -184,11 +184,15 @@ namespace SequencePlatform.Api
                 page.Where(h => h.GeneStart is not null).Select(h => h.SequenceId).ToHashSet(), cancellationToken);
             string? GeneSequence(StoredHit h) => h.GeneSequence is int s && sequenceNames.TryGetValue(h.SequenceId, out var names) && s < names.Length
                 ? names[s] : null;
+            var geneNames = await GeneNames.AtAsync(dataSource, page.Where(h => h.GeneStart is not null && h.GeneEnd is not null)
+                .Select(h => (h.SequenceId, h.GeneSequence ?? 0, h.GeneStart!.Value, h.GeneEnd!.Value)).ToHashSet(), cancellationToken);
             var items = page.Select(h => new SearchHitResponse(h.Position, h.SequenceId,
                 records.TryGetValue(h.SequenceId, out var r) ? SequenceSummaryResponse.From(r) : null, h.Strand, h.Score, h.CoarseScore, h.OffsetBp,
                 h.P?.Log10, h.P?.Kind, h.Log10E, h.SharedNeighbours, h.Rotated, h.GeneStart, h.GeneEnd,
                 h.FamilyId is int family ? ProteinFamilies.Format(family) : null,
-                h.FamilyId is int known && products.TryGetValue(known, out var product) ? product : null, GeneSequence(h))).ToList();
+                h.FamilyId is int known && products.TryGetValue(known, out var product) ? product : null, GeneSequence(h),
+                h.GeneStart is int start && h.GeneEnd is int end && geneNames.TryGetValue((h.SequenceId, h.GeneSequence ?? 0, start, end), out var name)
+                    ? name : null)).ToList();
             return TypedResults.Ok(SearchRunResponse.From(run,
                 new SearchHitPageResponse(list, items, hits.Count > limit ? page[^1].Position : null)));
         }

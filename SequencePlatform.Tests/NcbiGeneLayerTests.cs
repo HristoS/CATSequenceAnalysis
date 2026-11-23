@@ -30,7 +30,7 @@ namespace SequencePlatform.Tests
         {
             var other = ProteinSearchTests.RandomGene(200, seed: 4);
             string Record(string id, string attributes, string gene) => $">lcl|{id} {attributes} [gbkey=CDS]\n{gene}\n";
-            return Record("NC_000002.1_cds_XP_1.1_1", "[gene=abc] [db_xref=GeneID:11] [protein_id=XP_1.1] [location=complement(join(1001..1900,3001..3903))]", spliced) +
+            return Record("NC_000002.1_cds_XP_1.1_1", "[gene=abc] [db_xref=GeneID:11] [protein=ABC transporter] [protein_id=XP_1.1] [location=complement(join(1001..1900,3001..3903))]", spliced) +
                    Record("NC_000002.1_cds_XP_2.1_2", "[gene=abc] [db_xref=GeneID:11] [protein_id=XP_2.1] [location=1001..2203]", isoform) +
                    Record("NC_000001.1_cds_XP_3.1_3", "[locus_tag=T_3] [db_xref=GeneID:12] [protein_id=XP_3.1] [location=501..1403]", plain) +
                    Record("NC_000001.1_cds_XP_4.1_4", "[db_xref=GeneID:13] [partial=5'] [location=<1..603]", other) +
@@ -91,6 +91,7 @@ namespace SequencePlatform.Tests
                 Is.EqualTo(new[] { (0, 500, 1403, false, 0, 300), (1, 1000, 3903, true, 1100, 600) }));
             Assert.That(layer.Proteins, Is.EqualTo(new[] { ZCurveGeneProfile.Translate(plain), ZCurveGeneProfile.Translate(spliced) }));
             Assert.That(layer.Genes.BinaryFormatVersion, Is.EqualTo(3));
+            Assert.That(layer.Names, Is.EqualTo(new[] { null, "ABC transporter" }), "[protein=] per stored gene, in the profile's order");
         }
 
         [Test]

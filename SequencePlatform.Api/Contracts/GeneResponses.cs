@@ -10,15 +10,26 @@ namespace SequencePlatform.Api
     /// <param name="Windows">How many windows it has: 5 for 50–499 aa, one per 333 codon positions 1 and 2 from 500 aa.</param>
     /// <param name="Sequence">The record's sequence the gene lies on, an index into <see cref="GeneListResponse.Sequences"/>; always 0 for a
     /// single-sequence record. StartBp and EndBp are on that sequence.</param>
+    /// <param name="Product">The protein family's product, as BV-BRC names the family.</param>
+    /// <param name="Hydropathy">-(x + y) averaged over the gene's windows: how water-repelling its protein is, from the stored profile
+    /// (<see cref="GeneProfiles.Hydropathy"/>). Set in the gene list only.</param>
+    /// <param name="Name">The gene's own name as its provider gives it (BV-BRC's product, NCBI's protein name; <see cref="GeneNames"/>), also
+    /// for genes without a family; absent where none was given or the record's names aren't stored yet.</param>
+    /// <param name="MembraneScore">The score <see cref="GeneListResponse.MembraneRule"/> names, compared with
+    /// <see cref="GeneListResponse.MembraneLikeCut"/>; in the gene list of a kind with a rule only.</param>
     public sealed record GeneResponse(int Index, int StartBp, int EndBp, Strand Strand, int Residues, int Windows, string? FamilyId, string? Product,
-        int Sequence = 0);
+        int Sequence = 0, double? Hydropathy = null, string? Name = null, double? MembraneScore = null);
 
     /// <summary>A record's genes and its mean gene window: the 9 window features averaged over every window of every gene.</summary>
     /// <param name="MeanWindow">Mean, trend and curvature of x, y and z over codon positions 1 and 2; in the dinucleotide signature's format.</param>
     /// <param name="Sequences">For an NCBI eukaryote, the accessions of the sequences its genes lie on, in assembly order; empty for a
     /// single-sequence record.</param>
+    /// <param name="MembraneLikeCut">The <see cref="GeneResponse.MembraneScore"/> from which a gene's profile is membrane-like; null for kinds
+    /// without a tested rule (<see cref="GeneProfiles.MembraneRule"/>).</param>
+    /// <param name="MembraneRule">Which score the record's kind uses: "mean" (bacteria, archaea: the mean -(x + y), equal to Hydropathy), "peak"
+    /// (viruses: the most water-repelling window's -(x + y)) or "model" (eukaryotes: weights on the whole profile, membrane-like from 0).</param>
     public sealed record GeneListResponse(long Id, int GeneCount, int WindowCount, IReadOnlyList<SignatureValueResponse> MeanWindow,
-        IReadOnlyList<GeneResponse> Genes, IReadOnlyList<string> Sequences);
+        IReadOnlyList<GeneResponse> Genes, IReadOnlyList<string> Sequences, double? MembraneLikeCut = null, string? MembraneRule = null);
 
     /// <summary>One gene's stored windows, from which its Z-curve over codon positions 1 and 2 can be redrawn without any bases.</summary>
     /// <param name="WindowPositions">Codon positions 1 and 2 per window.</param>

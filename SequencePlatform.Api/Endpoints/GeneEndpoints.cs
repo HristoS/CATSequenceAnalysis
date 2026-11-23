@@ -22,7 +22,10 @@ namespace SequencePlatform.Api
                 .WithSummary("A record's stored genes and its mean gene window")
                 .WithDescription("Genes of at least 50 aa that BV-BRC annotates on the record, with family and product, or that NCBI annotates on " +
                     "a eukaryote's nuclear sequences (no family), in order of sequence and start. Records without a gene layer (uploads, " +
-                    "unannotated eukaryotes) answer with no genes.")
+                    "unannotated eukaryotes) answer with no genes. Each gene carries its hydropathy, -(x + y) over its windows. For bacteria, " +
+                    "archaea, viruses and eukaryotes each gene also carries membraneScore, membrane-like from membraneLikeCut; membraneRule " +
+                    "names the score: mean -(x + y) (bacteria, archaea), the most water-repelling window (viruses) or a model on the whole " +
+                    "profile (eukaryotes) (results/README.md section 2).")
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
             sequences.MapGet("/{id:long}/genes/path", PathAsync)
@@ -55,18 +58,26 @@ namespace SequencePlatform.Api
         private static async Task<Results<Ok<GeneListResponse>, ProblemHttpResult>> ListAsync(NpgsqlDataSource dataSource, ClaimsPrincipal user,
             long id, CancellationToken cancellationToken)
         {
-            if (!await Catalogue.IsVisibleAsync(dataSource, id, user.UserId(), cancellationToken))
-                return TypedResults.Problem($"No sequence {id}.", statusCode: StatusCodes.Status404NotFound);
+            var detail = await Catalogue.DetailAsync(dataSource, id, user.UserId(), cancellationToken);
+            if (detail is null) return TypedResults.Problem($"No sequence {id}.", statusCode: StatusCodes.Status404NotFound);
             var profile = await GeneProfiles.ReadAsync(dataSource, id);
             if (profile is null) return TypedResults.Ok(new GeneListResponse(id, 0, 0, [], [], []));
 
             var products = await ProteinFamilies.ProductsAsync(dataSource,
                 profile.Genes.Where(g => g.Family != ZCurveGeneProfile.NoFamily).Select(g => g.Family).Distinct().ToList(), cancellationToken);
             var names = await GeneProfiles.SequenceNamesAsync(dataSource, [id], cancellationToken);
+            var geneNames = await GeneNames.ReadAsync(dataSource, id, cancellationToken);
             var mean = profile.MeanWindow();
+            var rule = GeneProfiles.MembraneRule(detail.Record.Kind);
             return TypedResults.Ok(new GeneListResponse(id, profile.Genes.Count, profile.WindowCount,
                 GeneProfiles.Features.Select((f, i) => new SignatureValueResponse(f.Name, mean[i], f.Meaning, null)).ToList(),
-                profile.Genes.Select((g, i) => Gene(g, i, products)).ToList(), names.GetValueOrDefault(id) ?? []));
+                profile.Genes.Select((g, i) => Gene(g, i, products, geneNames) with
+                {
+                    Hydropathy = Math.Round(GeneProfiles.Hydropathy(profile, i), 3),
+                    MembraneScore = rule is { } r ? Math.Round(GeneProfiles.MembraneScore(profile, i, r.Score), 3) : null,
+                }).ToList(),
+                names.GetValueOrDefault(id) ?? [],
+                rule?.Cut, rule?.Score));
         }
 
         private static async Task<Results<Ok<GenePathResponse>, ProblemHttpResult>> PathAsync(NpgsqlDataSource dataSource, ClaimsPrincipal user,
@@ -103,7 +114,8 @@ namespace SequencePlatform.Api
             var gene = profile.Genes[index];
             var products = gene.Family == ZCurveGeneProfile.NoFamily ? [] : await ProteinFamilies.ProductsAsync(dataSource, [gene.Family], cancellationToken);
             var windows = profile.WindowsOf(index);
-            return TypedResults.Ok(new GeneWindowsResponse(id, Gene(gene, index, products), ZCurveGeneProfile.WindowOf(gene.Residues),
+            var geneNames = await GeneNames.ReadAsync(dataSource, id, cancellationToken);
+            return TypedResults.Ok(new GeneWindowsResponse(id, Gene(gene, index, products, geneNames), ZCurveGeneProfile.WindowOf(gene.Residues),
                 Enumerable.Range(0, gene.WindowCount)
                     .Select(w => (IReadOnlyList<double>)windows.AsSpan(w * ZCurveGeneProfile.FeatureCount, ZCurveGeneProfile.FeatureCount).ToArray()).ToList()));
         }
@@ -127,12 +139,15 @@ namespace SequencePlatform.Api
             var families = matches.Select(m => searched.Genes[m.Gene].Family).Append(profile.Genes[index].Family)
                 .Where(f => f != ZCurveGeneProfile.NoFamily).Distinct().ToList();
             var products = families.Count == 0 ? new Dictionary<int, string>() : await ProteinFamilies.ProductsAsync(dataSource, families, cancellationToken);
-            return TypedResults.Ok(new GeneMatchListResponse(id, Gene(profile.Genes[index], index, products), target, compared,
-                matches.Select(m => new GeneMatchResponse(Gene(searched.Genes[m.Gene], m.Gene, products), Math.Round(m.Score, 6), m.Reciprocal)).ToList()));
+            var geneNames = await GeneNames.ReadManyAsync(dataSource, [id, target], cancellationToken);
+            return TypedResults.Ok(new GeneMatchListResponse(id, Gene(profile.Genes[index], index, products, geneNames.GetValueOrDefault(id)), target, compared,
+                matches.Select(m => new GeneMatchResponse(Gene(searched.Genes[m.Gene], m.Gene, products, geneNames.GetValueOrDefault(target)),
+                    Math.Round(m.Score, 6), m.Reciprocal)).ToList()));
         }
 
-        private static GeneResponse Gene(ZCurveGeneProfile.Gene g, int index, Dictionary<int, string> products) =>
+        private static GeneResponse Gene(ZCurveGeneProfile.Gene g, int index, Dictionary<int, string> products, string?[]? names = null) =>
             new(index, g.Start, g.End, g.Reverse ? Strand.Reverse : Strand.Forward, g.Residues, g.WindowCount,
-                g.Family == ZCurveGeneProfile.NoFamily ? null : ProteinFamilies.Format(g.Family), products.GetValueOrDefault(g.Family), g.Chromosome);
+                g.Family == ZCurveGeneProfile.NoFamily ? null : ProteinFamilies.Format(g.Family), products.GetValueOrDefault(g.Family), g.Chromosome,
+                Name: names is not null && index < names.Length ? names[index] : null);
     }
 }

@@ -40,6 +40,8 @@ dotnet run -c Release scripts/platform-checks/localize_eval.cs
 | `protein_null_check.cs` | `ProteinNull_Check.csv` | Scores of proteins against genes of other families, for p and E |
 | `search_breakdown.cs` | `SearchBreakdown_*.csv` | Protein search and streamed localization stage by stage; a later run compares hits for equality |
 | `gene_match_check.cs` | `GeneMatch_Check.csv` | Reciprocal best hits by gene score between two related eukaryotes |
+| `overnight_catalogue.ps1` | — | The overnight catalogue run (2026-11-22): gene names, NCBI retries and rechecks, new BV-BRC species, the rebuilds after an ingest, then chromosome levels; logs to `.logs\overnight-*` |
+| `gene_class_check.cs` | `GeneClass_*.csv` (experiments page `membrane-genes`) | Membrane vs soluble genes from the stored gene profile, on families and phyla held out from training (round-2 corpus); `--contrast enzymes` the harder contrast, `--names-only` the label check, `--transfer` the per-gene cut across bacteria, archaea and viruses; `--transfer --live` the same cut on eukaryote and virus genes labelled from their stored names (live database) |
 | `fetch_eukaryotes.cs` | — | Downloads the eukaryote pairs the splice and gene checks use into `data/genomes/eukaryotes/` (git-ignored), checked against the stored SHA-256 |
 | `splice_join_check.cs`, `splice_twist_check.cs` | — | Current work (2026-11-12): splice sites from Z-curve and DNA shape; no database |
 | `p9_corpus.cs`, `p9_e1_outliers.cs` … `p9_e5_habitat.cs` | `P9_*.csv` | P9 experiments on the frozen corpus (`shared/ExperimentCorpus.cs`); `--publish` writes them to `ExperimentStore` |

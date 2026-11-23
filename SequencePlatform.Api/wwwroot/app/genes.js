@@ -48,7 +48,16 @@ export function GenesPanel({ id, selected = null, onSelect = () => {} }) {
   const { list, error } = useGenes(id);
   const sequences = list?.sequences ?? [];
   const genes = useMemo(() => list?.genes ?? [], [list]);
-  const paged = usePaged(genes, { size: rowsPerPage, text: g => `${g.product ?? ""} ${g.familyId ?? ""} ${sequences[g.sequence] ?? ""}` });
+  // One rule per kind, each the best its check found (results/README.md §2): bacteria and archaea the mean −(x + y), viruses the most
+  // water-repelling window, eukaryotes a model on the whole profile. Kinds without a checked rule get no cut.
+  const cut = list?.membraneLikeCut ?? null;
+  const rule = list?.membraneRule ?? "mean";
+  const marked = g => cut != null && g.membraneScore != null && g.membraneScore >= cut;
+  const scoreTitle = g => rule === "model" ? `membrane score ${g.membraneScore.toFixed(2)}, membrane-like from ${cut}`
+    : rule === "peak" ? `most water-repelling window −(x + y) ${g.membraneScore.toFixed(3)}, cut ${cut}`
+    : `−(x + y) ${g.membraneScore.toFixed(3)}, cut ${cut}`;
+  const paged = usePaged(genes, { size: rowsPerPage,
+    text: g => `${g.name ?? ""} ${g.product ?? ""} ${g.familyId ?? ""} ${sequences[g.sequence] ?? ""} ${marked(g) ? "membrane-like" : ""}` });
   useEffect(() => { paged.setNeedle(""); }, [id]);
   const pick = g => onSelect(g);
   const clear = () => onSelect(null);
@@ -59,9 +68,9 @@ export function GenesPanel({ id, selected = null, onSelect = () => {} }) {
   if (list.geneCount === 0) return html`<${Message}>No genes are stored for this record: the gene layer covers BV-BRC genomes and NCBI-annotated eukaryotes, genes of 50 aa and up.<//>`;
 
   return html`<${FilterBox} paged=${paged} label=${sequences.length ? "Product or sequence contains" : "Product or family contains"}
-      placeholder=${sequences.length ? "e.g. NC_ or kinase" : "e.g. gyrase"} />
+      placeholder=${sequences.length ? "e.g. NC_ or kinase" : cut != null ? "e.g. gyrase or membrane-like" : "e.g. gyrase"} />
     <div class="tablewrap"><table>
-      <thead><tr><th class="num">#</th>${sequences.length > 0 && html`<th>Sequence</th>`}<th class="num">Position</th><th>Strand</th><th class="num">aa</th><th>Product</th></tr></thead>
+      <thead><tr><th class="num">#</th>${sequences.length > 0 && html`<th>Sequence</th>`}<th class="num">Position</th><th>Strand</th><th class="num">aa</th><th>Product</th>${cut != null && html`<th>Profile</th>`}</tr></thead>
       <tbody>${paged.rows.map(g => html`<tr key=${g.index}
           class=${selected === g.index ? "row picked" : "row"} tabIndex="0" onClick=${() => pick(g)}
           onKeyDown=${e => { if (e.key === "Enter") pick(g); }}>
@@ -70,14 +79,30 @@ export function GenesPanel({ id, selected = null, onSelect = () => {} }) {
         <td class="num">${formatBp(g.startBp)}</td>
         <td>${g.strand === "Reverse" ? "−" : "+"}</td>
         <td class="num">${g.residues.toLocaleString()}</td>
-        <td title=${g.familyId ?? ""}>${g.product ?? g.familyId ?? "–"}</td>
+        <td title=${g.familyId ?? ""}>${g.name ?? g.product ?? g.familyId ?? "–"}</td>
+        ${cut != null && html`<td>${marked(g) && html`<span class="genemark" title=${scoreTitle(g)}>membrane-like</span>`}</td>`}
       </tr>`)}</tbody>
     </table></div>
     ${paged.filtered.length === 0 && html`<${Message}>No gene matches.<//>`}
     <${Pager} paged=${paged} noun="genes" />
+    ${cut != null && html`<p class="hint">${membraneHint(rule, cut)} A hint from the profile, not an annotation.</p>`}
     ${selected != null && !onPage && html`<p class="showing">Drawn: gene #${selected + 1}, which isn't on this page.
       <button type="button" onClick=${() => paged.locate(g => g.index === selected)}>Show it in the table</button>
       <button type="button" class="quiet" onClick=${clear}>Clear</button></p>`}`;
+}
+
+// What the membrane-like mark means for this kind of organism, with what its check measured (results/README.md §2, 2026-11-22/23).
+function membraneHint(rule, cut) {
+  if (rule === "peak") return html`Membrane-like: the gene's most water-repelling stretch, read from its stored profile (−(x + y) of its
+    most water-repelling window ≥ ${cut}), looks like a membrane protein's. Over 9,600 virus genomes the mark catches 77% of genes named as
+    membrane proteins, mostly holins, and 8% of soluble ones, so about half of the marked named genes are membrane proteins.`;
+  if (rule === "model") return html`Membrane-like: the gene's whole stored profile (water-repelling stretches, their spread over the gene
+    and its length, weighed together) reads like a membrane protein's. On eukaryote genomes it wasn't fitted on, the mark caught about
+    85% of genes named as membrane proteins (transporters, permeases) and 9–11% of soluble ones, so about half of the marked named genes
+    are membrane proteins. Checked on fungi, plants and animals.`;
+  return html`Membrane-like: the gene's stored profile reads as water-repelling (−(x + y) ≥ ${cut}), as membrane proteins' stretches
+    are. Over 1,000 bacteria the mark catches 86% of genes named as membrane proteins and 7% of soluble ones, so about two in three
+    marked named genes are membrane proteins; in GC-rich genomes it marks more soluble genes (13%). Checked on bacteria and archaea.`;
 }
 
 // The running sums inside window k of W positions at t in [-1, 1], from its scaled Legendre moments m0, m1, m2 (one axis):

@@ -338,7 +338,7 @@ export function ZCurvePath({ id, chromosome, hasWindows = true, hasChromosomes =
     if (fromGenes) {
       const g = geneList?.genes[genePath.geneAt(best)];
       tip.current.textContent = g ? `gene #${g.index + 1} at ${formatBp(g.startBp)}${sequences.length ? ` of ${sequences[g.sequence]}` : ""} ` +
-        `(${g.strand === "Reverse" ? "−" : "+"}) · ${g.product ?? g.familyId ?? "no family"}` : "";
+        `(${g.strand === "Reverse" ? "−" : "+"}) · ${g.name ?? g.product ?? g.familyId ?? "no family"}` : "";
     } else {
       const w = Math.min(best, profile.n - 1);
       tip.current.textContent = `${formatBp(best * profile.size)}${shownChromosome ? ` of ${shownChromosome.name}` : ""} · window GC ` +
@@ -358,7 +358,7 @@ export function ZCurvePath({ id, chromosome, hasWindows = true, hasChromosomes =
     return html`${caption()}<div class="zpath empty">${noWindows} It has no gene annotation either (NCBI publishes none for this assembly), so there's no path to draw yet.</div>`;
   if (hasChromosomes && !chromosomes) return html`${caption()}<div class="zpath empty">Loading the chromosomes…</div>`;
   const picked = gene && geneHere && (!fromGenes || genePath?.spans.has(gene.index)) &&
-    `Highlighted: gene #${gene.index + 1}, ${gene.product ?? gene.familyId ?? "no family"}` + (fromGenes ? "." : `, ${formatBp(gene.startBp)}–${formatBp(gene.endBp)}.`);
+    `Highlighted: gene #${gene.index + 1}, ${gene.name ?? gene.product ?? gene.familyId ?? "no family"}` + (fromGenes ? "." : `, ${formatBp(gene.startBp)}–${formatBp(gene.endBp)}.`);
   const elsewhere = gene && !picked && sequences.length > 0 && `The picked gene is on ${sequences[gene.sequence]}` +
     (fromGenes || chromosomes?.some(c => c.name === sequences[gene.sequence]) ? "." : ", which has no stored windows (shorter than 100 kbp).");
   const options = html`

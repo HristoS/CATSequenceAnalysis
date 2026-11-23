@@ -9,16 +9,17 @@ namespace SequencePlatform.Ingest
 
     /// <summary>
     /// What the pass found for one record. Proteins, one per stored gene in the profile's order, are kept only in memory, for the trial's
-    /// self-search check.
+    /// self-search check; Names, in the same order, are BV-BRC's products (<see cref="GeneNames"/>).
     /// </summary>
     internal sealed record RecordGeneResult(long SequenceId, string Status, ZCurveGeneProfile? Genes, Dictionary<int, int[]>? ProteinCounts,
-        int[]? HexamerCounts, int CodingSequences, int CleanTranslations, int Skipped, List<string> Proteins, List<(int Id, string Product)> Families);
+        int[]? HexamerCounts, int CodingSequences, int CleanTranslations, int Skipped, List<string> Proteins, List<(int Id, string Product)> Families,
+        string?[]? Names = null);
 
     /// <summary>
     /// The gene layer for records already stored (S7.R, decided 2026-11-04; S7.S, 2026-11-05): each BV-BRC genome is downloaded again,
     /// checked against what was profiled (same SHA-256 and dinucleotide counts, as <see cref="KmerBackfill"/>), and each record gets, in one
     /// transaction per genome, its gene profile (<see cref="GeneProfiles"/>, gene_profile rows by length bucket) from BV-BRC's coding
-    /// sequences, its amino-acid k-mer counts (<see cref="ProteinKmers"/>) and, when it has none, its 6-mer counts. A record is pending
+    /// sequences, each gene's name (<see cref="GeneNames"/>), its amino-acid k-mer counts (<see cref="ProteinKmers"/>) and, when it has none, its 6-mer counts. A record is pending
     /// when it has no k-mer row yet, or its k-mers are done but it has no gene_profile row (a record from before S7.S). The file is
     /// deleted as soon as it's read; no base, and no protein, is stored.
     /// </summary>
@@ -83,6 +84,8 @@ namespace SequencePlatform.Ingest
             {
                 if (result.Status == ProteinKmers.Done && !await GeneProfiles.WriteAsync(connection, transaction, result.SequenceId, result.Genes!))
                     throw new InvalidOperationException($"A gene profile bucket of record {result.SequenceId} is over {GeneProfiles.MaxRowBytes:N0} bytes.");
+                if (result.Status == ProteinKmers.Done)
+                    await GeneNames.WriteAsync(connection, transaction, result.SequenceId, GeneNames.BvBrc, result.Names!);
                 foreach (var k in ProteinKmers.Ks)
                     await ProteinKmers.WriteAsync(connection, transaction, result.SequenceId, k, result.Status,
                         result.Status == ProteinKmers.Done ? result.Genes!.Genes.Count : null, result.ProteinCounts?[k]);
@@ -137,10 +140,19 @@ namespace SequencePlatform.Ingest
                 results.Add(new RecordGeneResult(record.SequenceId, usable.Count > 0 ? ProteinKmers.Done : ProteinKmers.NoCds, genes,
                     usable.Count > 0 ? ProteinKmers.Ks.ToDictionary(k => k, k => AminoAcidKmers.Count(proteins, k)) : null,
                     features.HexamerCounts, cds.Count, proteins.Count(p => !p.Contains('*')), cds.Count - usable.Count,
-                    genes.Genes.Select(g => proteinAt[(g.Start, g.End, g.Reverse)]).ToList(), families));
+                    genes.Genes.Select(g => proteinAt[(g.Start, g.End, g.Reverse)]).ToList(), families,
+                    GeneNames.Match(genes, ProductsByPlace(usable)).Names));
             }
             results.AddRange(stored.Where(s => !seen.Contains(s.RecordId)).Select(s => Failed(s.SequenceId, ProteinKmers.Missing)));
             return results;
+        }
+
+        /// <summary>BV-BRC's product of each coding sequence of one record, by where it lies (the first where two share a place).</summary>
+        internal static Dictionary<(int Sequence, int Start, int End, bool Reverse), string?> ProductsByPlace(IEnumerable<BvBrcCds> codingSequences)
+        {
+            var byPlace = new Dictionary<(int, int, int, bool), string?>();
+            foreach (var c in codingSequences) byPlace.TryAdd((0, c.Start, c.End, c.Reverse), c.Product);
+            return byPlace;
         }
 
         private static RecordGeneResult Failed(long sequenceId, string status) =>

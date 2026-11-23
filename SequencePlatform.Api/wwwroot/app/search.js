@@ -156,7 +156,7 @@ function GeneHits({ items, picked, setPicked }) {
       <td class="num">${h.position}</td>
       <td>${h.sequence ? html`<a href="#/sequences/${h.sequenceId}" onClick=${e => e.stopPropagation()}>${h.sequence.name || h.sequence.recordId}</a>` : `deleted record ${h.sequenceId}`}</td>
       <td class="mono">${h.geneSequence ? `${h.geneSequence}: ` : ""}${(h.geneStartBp + 1).toLocaleString()}–${h.geneEndBp.toLocaleString()} ${h.strand === "Reverse" ? "(−)" : "(+)"}</td>
-      <td>${h.product ?? "–"}${h.familyId && html` <span class="hint mono">${h.familyId}</span>`}</td>
+      <td>${h.geneName ?? h.product ?? "–"}${h.familyId && html` <span class="hint mono">${h.familyId}</span>`}</td>
       <td class="num mono">${h.score == null ? "–" : h.score.toFixed(3)}</td>
       <td class="num mono" title=${h.pKind === "Bound" ? "An upper bound: fewer than 10 protein-gene pairs of the null sample scored this high" : ""}>${
         h.pKind === "Bound" ? `< ${expected(h.log10E)}` : expected(h.log10E)}</td>
@@ -184,7 +184,7 @@ function HitView({ id, hit }) {
 
   const curves = useMemo(() => {
     if (!query || !gene) return [];
-    return [[query, "--p4", `query protein, ${query.lengthAa} aa`], [gene, "--p1", `${gene.gene.product ?? "hit gene"}, ${gene.gene.residues} aa`]].map(([w, colour, label]) => {
+    return [[query, "--p4", `query protein, ${query.lengthAa} aa`], [gene, "--p1", `${gene.gene.name ?? gene.gene.product ?? "hit gene"}, ${gene.gene.residues} aa`]].map(([w, colour, label]) => {
       const shape = genePath(w.windows, w.windowPositions);
       const points = drift === "kept" ? shape.points
         : shape.points.map((p, i) => p.map((v, a) => v - (shape.fits[a][0] + shape.fits[a][1] * shape.at[i])));
@@ -195,7 +195,7 @@ function HitView({ id, hit }) {
   if (error) return html`<${Message}>${error}<//>`;
   if (!query || !gene) return html`<${Message}>Loading the windows…<//>`;
   const peak = Math.max(...query.windows.flat().concat(gene.windows.flat()).map(Math.abs), 1e-9);
-  return html`<div class="hitview"><h3 class="genetitle">${gene.gene.product ?? "gene"} <span class="mono">${gene.gene.familyId ?? ""}</span></h3>
+  return html`<div class="hitview"><h3 class="genetitle">${gene.gene.name ?? gene.gene.product ?? "gene"} <span class="mono">${gene.gene.familyId ?? ""}</span></h3>
     <p class="legend"><span><span class="dot" style=${{ "--swatch": "var(--p4)" }}></span>the protein's expected curve</span>
       <span><span class="dot" style=${{ "--swatch": "var(--p1)" }}></span>the stored gene in ${hit.sequence?.name ?? `record ${hit.sequenceId}`}</span></p>
     <${CurveCanvas} curves=${curves} unit="bases" label="The query protein's expected Z-curve over the hit gene's; drag to rotate"
@@ -220,7 +220,7 @@ function CompareTop({ run }) {
 // One list's hits, all loaded, paged and filtered in the page: by record name or accession, and for proteins by product, family or sequence.
 // Protein hits open into a plot, so they're a workspace (docs/ui-layout.md G5): the list on one side, the picked hit drawn on the other.
 function HitList({ id, run }) {
-  const text = h => [h.sequence?.name, h.sequence?.recordId, h.product, h.familyId, h.geneSequence].filter(Boolean).join(" ");
+  const text = h => [h.sequence?.name, h.sequence?.recordId, h.geneName, h.product, h.familyId, h.geneSequence].filter(Boolean).join(" ");
   const paged = usePaged(run.hits.items, { size: hitsPerPage, text });
   const [picked, setPicked] = useState(null);
   const list = html`<${FilterBox} paged=${paged} label="Filter these hits"

@@ -117,7 +117,9 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   sequences genes lie on listed in `annotations.ncbi.gene_layer` and kept on protein hits as `search_hit.gene_sequence`, migration 0020),
   `ProteinSearch` (P7, migrations 0015 and 0017: a protein ≥ 50 aa, never stored, as expected Z-curve windows, compared with the long
   genes or with the genes within ±10% of its length, reading only those buckets from the database and scoring them in place (`ZCurveGeneProfile.ScoreRow`, no decode and no
-  per-query hash: `verify-genes` checks the rows; since then PostgreSQL's transfer is most of a query, `results/SearchBreakdown_*.csv`, and `cluster-genes` keeps each bucket's rows together); each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`). `GeneMatching` pairs a gene with its reciprocal best hit in another record by the same score, for genes without a family (NCBI eukaryotes; `results/GeneMatch_Check.csv`), served on demand, nothing stored.
+  per-query hash: `verify-genes` checks the rows; since then PostgreSQL's transfer is most of a query, `results/SearchBreakdown_*.csv`, and `cluster-genes` keeps each bucket's rows together); each hit carries p and E against genes of other families, `ProteinScoreNull`, migration 0019, built by `build-protein-null`). `GeneMatching` pairs a gene with its reciprocal best hit in another record by the same score, for genes without a family (NCBI eukaryotes; `results/GeneMatch_Check.csv`), served on demand, nothing stored. `GeneNames` (migration
+  0025) keeps each gene's name as its provider gives it (BV-BRC product, NCBI `[protein=]`), one int array per record in gene-profile order;
+  the gene passes write it and `backfill-gene-names` fills older records.
 - `SequencePlatform.Api/`: ASP.NET Core minimal API on localhost:5080 (P4; see its README). Per-user API keys (`Users` in Core,
   only the SHA-256 stored); `CatalogueFilter.ViewerId` makes an upload visible to its owner only, and no viewer means public records
   only. The neighbour graph and score null are built from public records only. Uploads (`POST /api/sequences`) take the raw
@@ -158,7 +160,7 @@ dotnet run --project SequencePlatform.AppHost   # API, worker and dashboard unde
   (`ChromosomeLevels` in Core), built in the same pass, for drawing one chromosome at a time; nothing searches them, and a eukaryote's
   chromosomes are never joined. `backfill-chromosomes` re-downloads older genomes and keeps levels only if length and dinucleotide counts match. Commands `migrate`, `ingest-bvbrc`, `ingest-ncbi`, `load-taxonomy`, `stats`, `list`,
   `profile`, `search-similar`, `localize`, `build-null`, `build-neighbours`, `build-origins`, `convert-levels-half`, `backfill-kmers`,
-  `backfill-genes`, `backfill-genes-ncbi`, `backfill-chromosomes`, `build-protein-null`, `verify-genes`, `cluster-genes`, `add-user`,
+  `backfill-genes`, `backfill-genes-ncbi`, `backfill-gene-names`, `backfill-chromosomes`, `build-protein-null`, `verify-genes`, `cluster-genes`, `add-user`,
   `disable-user`; see its README.
   6-mer counts per record (`record_kmer`, migration 0013, D8 widened 2026-11-04) are stored at ingest; `backfill-kmers` re-downloads older
   records and stores counts only where the SHA-256 matches. Measurement scripts for the platform's

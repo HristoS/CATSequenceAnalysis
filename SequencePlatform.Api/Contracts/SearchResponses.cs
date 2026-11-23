@@ -43,9 +43,11 @@ namespace SequencePlatform.Api
     /// <param name="GeneSequence">Protein search on a whole-assembly record (an NCBI eukaryote): the accession of the chromosome or scaffold
     /// the gene lies on, which <c>GeneStartBp</c> and <c>GeneEndBp</c> are on; the span covers its introns. Absent when the gene lies on the
     /// record itself.</param>
+    /// <param name="GeneName">Protein search: the hit gene's own name as its provider gives it (<see cref="GeneNames"/>), also for genes
+    /// without a family; absent where none is stored.</param>
     public sealed record SearchHitResponse(int Position, long SequenceId, SequenceSummaryResponse? Sequence, Strand? Strand, double? Score,
         double? CoarseScore, long? OffsetBp, double? Log10P, PValueKind? PKind, double? Log10E, int? SharedNeighbours, bool Rotated,
-        int? GeneStartBp, int? GeneEndBp, string? FamilyId, string? Product, string? GeneSequence = null);
+        int? GeneStartBp, int? GeneEndBp, string? FamilyId, string? Product, string? GeneSequence = null, string? GeneName = null);
 
     /// <summary>One page of one hit list.</summary>
     /// <param name="List">Ranked; Identical (records whose sequence equals the query's on either strand, by SHA-256); or NotComparable

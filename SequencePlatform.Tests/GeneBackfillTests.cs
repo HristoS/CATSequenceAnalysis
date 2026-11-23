@@ -34,6 +34,7 @@ namespace SequencePlatform.Tests
             Assert.That(result.ProteinCounts![4].Sum(), Is.EqualTo(2 * (801 - 3)));
             Assert.That(result.HexamerCounts!.Sum(), Is.EqualTo(dna.Length - 5));
             Assert.That(result.Families, Is.EqualTo(new[] { (421071, "Aspartokinase") }));
+            Assert.That(result.Names, Is.EqualTo(new[] { "Aspartokinase", null }), "BV-BRC's product per stored gene, in the profile's order");
         }
 
         [Test]

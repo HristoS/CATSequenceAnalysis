@@ -10,7 +10,7 @@ using SequencePlatform.Ingest;
 //
 //   migrate                                   create the database if missing, apply migrations; with SEQUENCE_APP_PASSWORD set, let sequence_app log in with it
 //   ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact you@example.org] [--retry-failed] [--per-species]
-//   ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--contact you@example.org]   the eukaryote pilot: reference genomes, dinucleotide counts only
+//   ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--registered-only] [--contact you@example.org]   the eukaryote pilot: reference genomes, dinucleotide counts only; --registered-only takes only the taxon's pending and failed crawl items, drawing nothing new
 //   load-taxonomy [--refresh] [--skip-gtdb]   NCBI's current lineage per referenced taxid, GTDB's per assembly (S2.4)
 //   stats                                     what's in the DB, including crawl state
 //   list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]
@@ -20,7 +20,8 @@ using SequencePlatform.Ingest;
 //   convert-levels-half                       rewrite stored ZCWP version 1 levels as version 2 (float16), then rebuild the origin rows; no download
 //   backfill-kmers [--limit N] [--sample SEED] [--contact you@example.org]   6-mer counts for BV-BRC records stored before migration 0013, by re-downloading
 //   backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]   the gene layer (S7.R, S7.S): gene_profile rows, amino-acid 4-mers, missing 6-mers
-//   backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]   the gene layer for NCBI eukaryotes (S7.T), from each annotated assembly's CDS file; no genome download
+//   backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--recheck] [--contact EMAIL]   the gene layer for NCBI eukaryotes (S7.T), from each annotated assembly's CDS file; no genome download; --recheck retries those NCBI hadn't annotated
+//   backfill-gene-names [--provider bvbrc|ncbi] [--kind K] [--limit N] [--contact EMAIL]   each stored gene's name (0025): BV-BRC from feature metadata, NCBI from the CDS file's headers
 //   backfill-chromosomes [--limit N] [--accession A] [--parallel P] [--contact EMAIL]   500 bp and 32 kbp levels per eukaryote chromosome (0022), by re-downloading; smallest genomes first
 //   build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL]   p and E for protein hits: real BV-BRC proteins (not stored) scored against other families
 //   verify-genes                              every gene row against its stored SHA-256 (protein search doesn't hash rows); exit 2 on a mismatch
@@ -37,11 +38,13 @@ using SequencePlatform.Ingest;
 //   disable-user NAME                         revokes that user's key; their uploads stay
 const string usage =
     "usage: SequencePlatform.Ingest migrate | ingest-bvbrc --group bacteria|archaea|viruses --limit N [--offset K] [--contact EMAIL] [--retry-failed] [--per-species]\n" +
-    "       | ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--contact EMAIL] | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
+    "       | ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--registered-only] [--contact EMAIL]\n" +
+    "       | load-taxonomy [--refresh] [--skip-gtdb] | stats\n" +
     "       | list [--kind K] [--rank R --taxon T] [--min-length N] [--max-length N] [--provider P] [--name TEXT] [--after ID] [--limit N]\n" +
     "       | build-null [--per-cell N] [--genome-draws N] [--fragment-draws N] [--pool N] [--seed S] [--csv PATH] | build-neighbours [--ratio R] | build-origins | convert-levels-half\n" +
     "       | backfill-kmers [--limit N] [--sample SEED] [--contact EMAIL] | backfill-genes [--limit N] [--sample SEED] [--contact EMAIL] [--check-search N] [--parallel P]\n" +
-    "       | backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--contact EMAIL]\n" +
+    "       | backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--recheck] [--contact EMAIL]\n" +
+    "       | backfill-gene-names [--provider bvbrc|ncbi] [--kind K] [--limit N] [--contact EMAIL]\n" +
     "       | backfill-chromosomes [--limit N] [--accession A] [--parallel P] [--contact EMAIL]\n" +
     "       | build-protein-null [--per-bucket N] [--seed S] [--contact EMAIL] | verify-genes | cluster-genes\n" +
     "       | profile --fasta X --out X.zcwp | search-similar --fasta X | --profile X.zcwp [list's filters] [--ratio R] [--top N]\n" +
@@ -100,7 +103,8 @@ switch (args[0])
 
     case "ingest-ncbi":
         return await IngestNcbiAsync(dataSource, Option("--taxon") ?? "fungi", int.Parse(Option("--limit") ?? "100"),
-            long.Parse(Option("--max-bp") ?? "2000000000"), int.Parse(Option("--parallel") ?? "1"), args.Contains("--retry-failed"), Option("--contact"), args.Contains("--dry-run"));
+            long.Parse(Option("--max-bp") ?? "2000000000"), int.Parse(Option("--parallel") ?? "1"), args.Contains("--retry-failed"), Option("--contact"), args.Contains("--dry-run"),
+            args.Contains("--registered-only"));
 
     case "load-taxonomy":
         return await LoadTaxonomyAsync(dataSource, args.Contains("--refresh"), args.Contains("--skip-gtdb"), Option("--contact"));
@@ -165,9 +169,13 @@ switch (args[0])
         using (var ncbi = new NcbiGenomeClient(Option("--contact")))
         {
             var geneLayer = new NcbiGeneLayer(dataSource, ncbi);
-            return await NcbiGenePassAsync(dataSource, geneLayer, await geneLayer.PendingAsync(int.Parse(Option("--limit") ?? "1000"), Option("--accession")),
+            return await NcbiGenePassAsync(dataSource, geneLayer,
+                await geneLayer.PendingAsync(int.Parse(Option("--limit") ?? "1000"), Option("--accession"), args.Contains("--recheck")),
                 args.Contains("--dry-run"), int.Parse(Option("--check-search") ?? "0"));
         }
+
+    case "backfill-gene-names":
+        return await BackfillGeneNamesAsync(dataSource, Option("--provider"), Option("--kind"), int.Parse(Option("--limit") ?? "1000000"), Option("--contact"));
 
     case "backfill-chromosomes":
         return await BackfillChromosomesAsync(dataSource, int.Parse(Option("--limit") ?? "1000"), Option("--accession"),
@@ -363,7 +371,10 @@ static async Task<int> IngestBvBrcAsync(NpgsqlDataSource dataSource, string? gro
 }
 
 // The eukaryote pilot: one reference genome per family, counted and discarded; see NcbiIngestor.
-static async Task<int> IngestNcbiAsync(NpgsqlDataSource dataSource, string taxon, int limit, long maxLengthBp, int parallel, bool retryFailed, string? contact, bool dryRun)
+// --registered-only: the taxon's crawl items already registered and not yet stored (pending, failed), with no new draw. Pick draws again
+// whenever NCBI's list grows, so a plain rerun could pick other assemblies for families already stored (the plan's rule).
+static async Task<int> IngestNcbiAsync(NpgsqlDataSource dataSource, string taxon, int limit, long maxLengthBp, int parallel, bool retryFailed, string? contact, bool dryRun,
+    bool registeredOnly = false)
 {
     int taxid = taxon switch
     {
@@ -376,7 +387,16 @@ static async Task<int> IngestNcbiAsync(NpgsqlDataSource dataSource, string taxon
     var ingestor = new NcbiIngestor(dataSource, client);
 
     var assemblies = await client.ListAssembliesAsync(taxid);
-    var picked = NcbiIngestor.Pick(assemblies, await client.LineagesAsync(assemblies.Select(a => a.Taxid).ToList()), limit, maxLengthBp);
+    List<(NcbiAssembly Assembly, Lineage Lineage)> picked;
+    if (registeredOnly)
+    {
+        var registered = await CrawlState.UnfinishedAsync(dataSource, NcbiIngestor.Provider, taxon);
+        var listed = assemblies.Where(a => registered.Contains(a.Accession)).ToList();
+        var lineages = await client.LineagesAsync(listed.Select(a => a.Taxid).ToList());
+        picked = listed.Where(a => lineages.ContainsKey(a.Taxid)).Select(a => (a, lineages[a.Taxid])).ToList();
+        Console.WriteLine($"NCBI {taxon}: {registered.Count} registered items not stored, {picked.Count} still listed by NCBI with a lineage.");
+    }
+    else picked = NcbiIngestor.Pick(assemblies, await client.LineagesAsync(assemblies.Select(a => a.Taxid).ToList()), limit, maxLengthBp);
     Console.WriteLine($"NCBI {taxon}: {assemblies.Count} reference assemblies, {picked.Count} picked, {picked.Sum(p => p.Assembly.LengthBp) / 1e9:F1} Gbp in all.");
     if (dryRun)
     {
@@ -978,4 +998,69 @@ static async Task<int> RunExperimentAsync(NpgsqlDataSource dataSource, string na
     foreach (var file in result.Files) await File.WriteAllBytesAsync(Path.Combine(outDirectory, file.Name), file.Content);
     Console.WriteLine($"{name}: {result.Verdict} in {watch.Elapsed.TotalSeconds:F0} s; {result.SummaryJson}");
     return 0;
+}
+
+// backfill-gene-names: BV-BRC genomes 20 at a time through one feature listing (no genome download), NCBI assemblies one at a time,
+// each CDS file streamed for its headers. Every genome commits alone, so a stopped run resumes with what's left.
+static async Task<int> BackfillGeneNamesAsync(NpgsqlDataSource dataSource, string? provider, string? kind, int limit, string? contact)
+{
+    var backfill = new GeneNameBackfill(dataSource);
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    long genes = 0, named = 0, unmatched = 0;
+    int records = 0, failed = 0;
+    void Report(string what) => Console.WriteLine($"  {watch.Elapsed.TotalMinutes,6:F1} min  {what}: {records:N0} records, {genes:N0} genes, " +
+        $"{named:N0} named ({(genes == 0 ? 0 : (double)named / genes):P1}), {unmatched:N0} unmatched, {failed} failed");
+
+    if (provider is null or "bvbrc")
+    {
+        var pending = await backfill.PendingAsync(GenomeIngestor.Provider, kind, limit);
+        var genomes = pending.GroupBy(p => p.Source, StringComparer.Ordinal).ToList();
+        Console.WriteLine($"BV-BRC: {pending.Count:N0} records in {genomes.Count:N0} genomes without names.");
+        using var client = new BvBrcClient(contact);
+        const int chunk = 20;
+        for (int i = 0; i < genomes.Count; i += chunk)
+        {
+            var batch = genomes.Skip(i).Take(chunk).ToList();
+            try
+            {
+                var codingSequences = await client.ListCodingSequencesAsync(batch.Select(g => g.Key).ToList());
+                foreach (var genome in batch)
+                    foreach (var (_, geneCount, namedCount, unmatchedCount) in await backfill.NameBvBrcAsync(genome.ToList(), codingSequences[genome.Key]))
+                        (records, genes, named, unmatched) = (records + 1, genes + geneCount, named + namedCount, unmatched + unmatchedCount);
+            }
+            catch (Exception e) when (e is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or NpgsqlException)
+            {
+                failed += batch.Count;
+                Console.WriteLine($"  {batch[0].Key}..: {e.GetType().Name}: {e.Message}");
+            }
+            if (i / chunk % 25 == 0) Report($"BV-BRC {Math.Min(i + chunk, genomes.Count):N0} of {genomes.Count:N0} genomes");
+        }
+        Report("BV-BRC done");
+    }
+    if (provider is null or "ncbi")
+    {
+        var pending = await backfill.PendingAsync(NcbiIngestor.Provider, kind, limit);
+        Console.WriteLine($"NCBI: {pending.Count:N0} eukaryotes without names.");
+        using var ncbi = new NcbiGenomeClient(contact);
+        var layer = new NcbiGeneLayer(dataSource, ncbi);
+        int otherFile = 0;
+        foreach (var record in pending)
+        {
+            try
+            {
+                var (geneCount, namedCount, unmatchedCount, sameFile) = await backfill.NameNcbiAsync(record, layer);
+                (records, genes, named, unmatched) = (records + 1, genes + geneCount, named + namedCount, unmatched + unmatchedCount);
+                if (!sameFile) otherFile++;
+                Console.WriteLine($"  {record.Source}: {namedCount:N0} of {geneCount:N0} genes named, {unmatchedCount:N0} unmatched" +
+                    (sameFile ? "" : " (CDS file re-released since the gene layer)"));
+            }
+            catch (Exception e) when (e is HttpRequestException or TaskCanceledException or InvalidOperationException or InvalidDataException or IOException)
+            {
+                failed++;
+                Console.WriteLine($"  {record.Source}: {e.GetType().Name}: {e.Message}");
+            }
+        }
+        Report($"NCBI done ({otherFile} CDS files re-released since their gene layer)");
+    }
+    return failed == 0 ? 0 : 1;
 }

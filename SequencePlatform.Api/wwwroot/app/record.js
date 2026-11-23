@@ -129,7 +129,7 @@ export function RecordPage({ id }) {
     hasChromosomes=${hasChromosomes} hasGenes=${hasGenes} sequences=${geneLayer?.sequences ?? []} gene=${gene}
     viewSet=${plots.viewSet} drift=${plots.drift} />`;
   const geneSlot = gene
-    ? html`<${PlotCaption} title=${`Gene #${gene.index + 1}: ${gene.product ?? gene.familyId ?? "no family"}`}>
+    ? html`<${PlotCaption} title=${`Gene #${gene.index + 1}: ${gene.name ?? gene.product ?? gene.familyId ?? "no family"}`}>
         <button type="button" class="quiet" onClick=${() => setGene(null)}>Clear</button><//>
       <${GeneView} key=${gene.index} id=${s.id} index=${gene.index} viewSet=${plots.viewSet} drift=${plots.drift} />`
     : html`<${PlotCaption} title="Gene" /><div class="zpath empty">Click a gene in the list to draw its Z-curve here and mark it on the path.</div>`;

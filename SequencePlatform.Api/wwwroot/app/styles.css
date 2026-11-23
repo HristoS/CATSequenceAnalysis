@@ -357,6 +357,7 @@ td.clip { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-spa
 .badges { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
 .methodbadge { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); }
 .methodbadge.zcurve { border-color: var(--accent); color: var(--accent); }
+.genemark { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--p1); color: var(--p1); white-space: nowrap; }
 .methodnote.zcurve { border-left: 4px solid var(--accent); }
 .methodnote p, .summarygrid p { max-width: 90ch; }
 .terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 10px 24px; margin: 0; }
@@ -379,6 +380,7 @@ td.clip { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-spa
 .chart .ci { stroke: var(--ink); stroke-width: 1.5; fill: none; }
 .chart .mark.p0 { fill: var(--p0); } .chart .mark.p1 { fill: var(--p1); } .chart .mark.p2 { fill: var(--p2); } .chart .mark.p3 { fill: var(--p3); } .chart .mark.p4 { fill: var(--p4); }
 .chart .dot { stroke: var(--panel); stroke-width: 2; }
+.chart .dot.dense { stroke-width: 0.75; fill-opacity: 0.75; }
 .chart .trace { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .chart .trace.p0 { stroke: var(--p0); } .chart .trace.p1 { stroke: var(--p1); } .chart .trace.p2 { stroke: var(--p2); } .chart .trace.p3 { stroke: var(--p3); } .chart .trace.p4 { stroke: var(--p4); }
 .chart.line svg { max-width: 900px; }

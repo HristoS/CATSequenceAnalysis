@@ -2586,6 +2586,221 @@
       "files": [ "GeneMatch_Check.csv" ]
     },
     {
+      "name": "membrane-genes",
+      "method": "zcurve-gene",
+      "article": "A-gene",
+      "verdict": "pass",
+      "runnable": false,
+      "title": "Membrane proteins recognised from the stored gene profile",
+      "question": "Can a gene's stored Z-curve profile tell a membrane protein from a soluble one, for protein families and phyla it never saw in training?",
+      "rule": "Fixed before each run: on genes whose protein family and phylum were both left out of training, the lower end of the 95% interval at least 0.80 and the AUC at least 0.10 above GC content plus gene length. Both contrasts passed.",
+      "note": "Labels from BV-BRC protein-family names. Four enzyme kinds usually anchored in the membrane (sensor histidine kinases, serine/threonine protein kinases, glycosyltransferases, PlsC) were left out after reading the 30 commonest enzyme names, before scoring. Needs only the database; no rerun port yet.",
+      "snapshot": "round-2 catalogue (frozen 2026-11-12), 1,000 genomes, one per GTDB genus",
+      "script": "gene_class_check.cs",
+      "command": "dotnet run scripts/platform-checks/gene_class_check.cs -- GeneClass --contrast enzymes",
+      "keyNumbers": [
+        {
+          "label": "AUC, membrane vs translation machinery",
+          "value": 0.983
+        },
+        {
+          "label": "AUC, membrane vs ordinary enzymes",
+          "value": 0.955
+        },
+        {
+          "label": "AUC of GC + length, vs ordinary enzymes",
+          "value": 0.534
+        }
+      ],
+      "explain": {
+        "asks": [
+          "The catalogue keeps no protein sequences. Each gene is kept as nine numbers for every stretch of about 166 amino acids, read from its DNA. Two of those numbers taken together (x + y) follow how water-repelling the encoded amino acids are, because the genetic code fixes that property mostly at the second codon position.",
+          "Membrane proteins cross the cell membrane with long water-repelling stretches. Can the stored numbers alone pick them out from soluble proteins, for protein families and phyla the method never saw?"
+        ],
+        "how": "1,000 bacterial and archaeal genomes, one per genus. Genes were labelled from their protein family's name: membrane proteins (permeases, symporters, antiporters, integral membrane proteins), translation machinery (ribosomal proteins, tRNA synthetases, RNA polymerase, elongation factors, chaperones) and ordinary enzymes (kinases, dehydrogenases, synthases, transferases, hydrolases, reductases, with membrane-bound complexes left out). A logistic regression on each gene's nine numbers, averaged along the gene, plus its length, learned from half the protein families in half the phyla and was tested on the other half of both. Two simpler arms were scored the same way: x + y alone with nothing fitted, and GC content plus gene length.",
+        "verdict": [
+          "Pass on both contrasts. Membrane proteins against translation machinery: AUC 0.983 (95% interval 0.971 to 0.991). Against ordinary enzymes, the harder contrast: 0.955 (0.932 to 0.971). GC content plus length reached 0.696 and 0.534.",
+          "The single x + y number, with nothing fitted, gives 0.977 and 0.930: nearly all of the signal is how water-repelling the protein is."
+        ],
+        "meaning": "A gene's stored profile carries how water-repelling its protein is, well enough to recognise membrane proteins in families and phyla it has not seen, from the DNA alone. This is the classic hydropathy result (Kyte and Doolittle, 1982), still readable in a profile kept at about 166 amino acids per window. It places a gene on one physical-chemical axis; it does not sort genes into families, which overlap in this space.",
+        "methodNote": [
+          "Membrane proteins that cross the membrane only once are diluted in a window of about 166 amino acids, and family names can't mark them, so this test doesn't measure them.",
+          "The labels come from names, not from experiments, so a few enzymes counted as soluble may in fact sit in the membrane."
+        ],
+        "charts": [
+          {
+            "file": "GeneClass_FamilyMap.csv",
+            "kind": "scatter",
+            "title": "Protein families on two axes: water-repelling and GC",
+            "help": "One dot per protein family with 100 or more labelled genes, at the mean of its genes. Across: how water-repelling the protein is, read from the DNA (−(x + y); right is more water-repelling). Up: GC at codon positions 1 and 2. Hover a dot for the family.",
+            "x": "Hydropathy (-(x + y))",
+            "y": "GC12",
+            "name": "Product",
+            "tip": [
+              "Genes"
+            ],
+            "separateAxes": true,
+            "colourBy": {
+              "column": "Class",
+              "values": [
+                "membrane",
+                "machinery",
+                "enzyme"
+              ],
+              "labels": {
+                "membrane": "Membrane proteins",
+                "machinery": "Translation machinery",
+                "enzyme": "Ordinary enzymes"
+              }
+            },
+            "xFormat": "decimal",
+            "format": "percent",
+            "xLabel": "Water-repelling, read from the DNA: −(x + y)",
+            "yLabel": "GC at codon positions 1 and 2",
+            "xReference": {
+              "value": 0.04,
+              "label": "best single cut, membrane vs ordinary enzymes"
+            },
+            "read": "The classes line up left to right. GC tilts each cloud a little (families from GC-rich genomes sit slightly to the right) but moves all three alike, which is why GC and length alone predict so little."
+          },
+          {
+            "file": "GeneClass_Histogram.csv",
+            "kind": "line",
+            "title": "Each class's genes along the water-repelling axis",
+            "help": "The share of each class's genes in each step of −(x + y), gene by gene rather than per family. Drawn from −0.6 to 0.6; the few genes beyond are in the table.",
+            "x": "Bin centre",
+            "series": [
+              {
+                "column": "membrane share",
+                "label": "Membrane proteins"
+              },
+              {
+                "column": "machinery share",
+                "label": "Translation machinery"
+              },
+              {
+                "column": "enzyme share",
+                "label": "Ordinary enzymes"
+              }
+            ],
+            "format": "percent",
+            "xFormat": "decimal",
+            "xDomain": [
+              -0.6,
+              0.6
+            ],
+            "xLabel": "Water-repelling, read from the DNA: −(x + y)",
+            "yLabel": "share of the class's genes",
+            "read": "A single cut separates membrane genes from translation machinery at −(x + y) ≥ −0.033 (balanced accuracy 94.6%) and from ordinary enzymes at ≥ 0.040 (89.0%)."
+          },
+          {
+            "file": "GeneClass_Auc_machinery.csv",
+            "kind": "bars",
+            "title": "Membrane proteins vs translation machinery, unseen families and phyla",
+            "help": "AUC on genes whose protein family and phylum were both left out of training. The whiskers are 95% intervals from resampling the test families.",
+            "where": {
+              "Split": "families and phyla",
+              "Train half": "A"
+            },
+            "category": "{Arm}",
+            "labels": {
+              "Arm": {
+                "full profile": "Full profile (fitted)",
+                "P0 x + y alone": "x + y alone (not fitted)",
+                "GC + length": "GC + length (baseline)"
+              }
+            },
+            "series": [
+              {
+                "column": "AUC",
+                "low": "CI low",
+                "high": "CI high",
+                "label": "AUC"
+              }
+            ],
+            "format": "decimal",
+            "baseline": 0.5,
+            "baselineLabel": "bars start at 0.5, a coin toss",
+            "domain": [
+              0.5,
+              1
+            ],
+            "reference": {
+              "value": 0.8,
+              "label": "the rule's 0.80 (for the lower end of the interval)"
+            },
+            "read": "Both profile arms clear the rule with room to spare; GC and length do much worse. The table has the other splits (families only, phyla only, halves swapped): 0.985 to 0.992."
+          },
+          {
+            "file": "GeneClass_Auc_enzymes.csv",
+            "kind": "bars",
+            "title": "Membrane proteins vs ordinary enzymes, unseen families and phyla",
+            "help": "AUC on genes whose protein family and phylum were both left out of training. The whiskers are 95% intervals from resampling the test families.",
+            "where": {
+              "Split": "families and phyla",
+              "Train half": "A"
+            },
+            "category": "{Arm}",
+            "labels": {
+              "Arm": {
+                "full profile": "Full profile (fitted)",
+                "P0 x + y alone": "x + y alone (not fitted)",
+                "GC + length": "GC + length (baseline)"
+              }
+            },
+            "series": [
+              {
+                "column": "AUC",
+                "low": "CI low",
+                "high": "CI high",
+                "label": "AUC"
+              }
+            ],
+            "format": "decimal",
+            "baseline": 0.5,
+            "baselineLabel": "bars start at 0.5, a coin toss",
+            "domain": [
+              0.5,
+              1
+            ],
+            "reference": {
+              "value": 0.8,
+              "label": "the rule's 0.80 (for the lower end of the interval)"
+            },
+            "read": "The harder contrast still passes, while GC and length are close to a coin toss. The other splits give 0.956 to 0.968."
+          }
+        ],
+        "terms": [
+          [
+            "Z-curve gene profile",
+            "The per-gene version of the profile: each gene read from its start codon in its coding direction, using codon positions 1 and 2, in windows of 500 bases of gene, each window kept as nine numbers (the moments of its three axes)."
+          ],
+          [
+            "Hydropathy",
+            "How water-repelling an amino acid is (the Kyte–Doolittle scale). Stretches of water-repelling amino acids are what anchor a protein in the membrane."
+          ],
+          [
+            "AUC",
+            "A score for how well a ranking puts the right items first: 0.5 is a coin toss, 1 is perfect. Here it is the chance that a randomly picked membrane gene ranks above a randomly picked soluble one."
+          ],
+          [
+            "95% interval",
+            "The range the true value most likely lies in, estimated by resampling the data many times (bootstrap). A difference whose interval doesn't include zero is unlikely to be chance."
+          ],
+          [
+            "Protein family (PGfam)",
+            "BV-BRC's groups of proteins that share function and ancestry across genera; used here for the labels and to keep test families out of training."
+          ]
+        ]
+      },
+      "files": [
+        "GeneClass_FamilyMap.csv",
+        "GeneClass_Histogram.csv",
+        "GeneClass_Auc_machinery.csv",
+        "GeneClass_Auc_enzymes.csv"
+      ]
+    },
+    {
       "name": "search-breakdown", "method": "zcurve-gene", "article": "B", "verdict": "context", "runnable": false,
       "title": "Where a protein search spends its time", "question": "Reading, decoding or scoring: what dominates a protein search, and what cut it?",
       "note": "Pooled buffers and scoring in place cut the time above the transfer floor by 58%; PostgreSQL's transfer is now 74–92% of a query.",

@@ -328,7 +328,7 @@ function ComparePaths({ records, picked, viewSet, drift }) {
       if (gene) highlights = [loaded.spans.get(gene.index)];
       describe = k => {
         const g = list?.genes[loaded.geneAt(k)];
-        return g ? `gene #${g.index + 1}${w.sequence == null ? "" : ` on ${w.name}`} · ${g.product ?? g.familyId ?? "no family"}` : "";
+        return g ? `gene #${g.index + 1}${w.sequence == null ? "" : ` on ${w.name}`} · ${g.name ?? g.product ?? g.familyId ?? "no family"}` : "";
       };
     } else {
       const shape = path(loaded);
@@ -382,7 +382,7 @@ function ComparePaths({ records, picked, viewSet, drift }) {
     ${wanted.length === 0 && records.every(r => !hasChromosomesOf(r) || chromosomes[r.id]) && html`<${Message}>${fromGenes
       ? "None of these records has stored genes." : "None of these records has stored windows: eukaryotes keep them per chromosome once backfilled."}<//>`}
     ${failed.map(f => html`<p class="hint" key=${f}>${f}</p>`)}
-    ${pickedNames.length > 0 && html`<p class="hint">${`Highlighted: ${pickedNames.map(g => `${g.product ?? g.familyId ?? "gene"} (#${g.index + 1})`).join(", ")}; ` +
+    ${pickedNames.length > 0 && html`<p class="hint">${`Highlighted: ${pickedNames.map(g => `${g.name ?? g.product ?? g.familyId ?? "gene"} (#${g.index + 1})`).join(", ")}; ` +
       (fromGenes ? "each an exact stretch of its record's gene path." : "on a whole chromosome a gene is a window or two, so it shows as a marked spot.")}</p>`}
     <${HowTo}><p>${(fromGenes
         ? "Built from the gene layer alone: each record's stored genes in chromosome order, each window one step of its means over codon positions 1 and 2, " +
@@ -459,7 +459,7 @@ function CompareGenes({ records, hidden, picked, setPicked, pathsSlot, plots }) 
   const loaded = records.filter(r => lists[r.id]);
   const withGenes = loaded.filter(r => lists[r.id].geneCount > 0);
   const needle = text.trim().toLowerCase();
-  const matches = g => !needle || (g.product ?? "").toLowerCase().includes(needle) || (g.familyId ?? "").toLowerCase().includes(needle);
+  const matches = g => !needle || (g.name ?? g.product ?? "").toLowerCase().includes(needle) || (g.familyId ?? "").toLowerCase().includes(needle);
 
   // Families every record with genes carries, with how many copies each has.
   const common = useMemo(() => {
@@ -565,7 +565,7 @@ function CompareGenes({ records, hidden, picked, setPicked, pathsSlot, plots }) 
         <div class="pickrow">
           <select id=${id} value=${picked[r.id] ?? ""} onChange=${e => setPicked(old => ({ ...old, [r.id]: e.target.value === "" ? undefined : Number(e.target.value) }))}>
             <option value="">none</option>
-            ${options.map(g => html`<option key=${g.index} value=${g.index}>${`#${g.index + 1} · ${g.product ?? g.familyId ?? "no family"} · ${g.residues} aa`}</option>`)}
+            ${options.map(g => html`<option key=${g.index} value=${g.index}>${`#${g.index + 1} · ${g.name ?? g.product ?? g.familyId ?? "no family"} · ${g.residues} aa`}</option>`)}
             ${more > 0 && html`<option disabled value="more">${`… ${more.toLocaleString()} more: narrow them with the filter above`}</option>`}
           </select>
           <button type="button" disabled=${chosen == null} onClick=${() => matchFrom(r)}
@@ -577,7 +577,7 @@ function CompareGenes({ records, hidden, picked, setPicked, pathsSlot, plots }) 
     </section>`;
   // The picked genes: their curves beside the genome paths, and one heat strip per record in the row beneath both plots.
   const first = selected[0]?.gene.gene;
-  const geneTitle = !first ? "Picked gene" : `Picked gene: ${first.product ?? first.familyId ?? "#" + (first.index + 1)}`;
+  const geneTitle = !first ? "Picked gene" : `Picked gene: ${first.name ?? first.product ?? first.familyId ?? "#" + (first.index + 1)}`;
   const right = selected.length > 0
     ? html`<${PlotCaption} title=${geneTitle}><button type="button" class="quiet" onClick=${() => { setPicked({}); setMatched({}); }}>Clear</button><//>
       <${CurveCanvas} curves=${curves} unit="bases" viewSet=${plots.viewSet}

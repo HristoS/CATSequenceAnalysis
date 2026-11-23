@@ -29,6 +29,95 @@ namespace SequencePlatform.Core
             ("z curvature", "whether z bulges or dips in the window's middle (Legendre P2, scaled)"),
         ];
 
+        /// <summary>
+        /// The -(x + y) mean above which a bacterial or archaeal gene's profile is membrane-like (2026-11-22,
+        /// scripts/platform-checks/gene_class_check.cs --transfer, results/README.md section 2): the best balanced accuracy for membrane
+        /// against soluble genes over 736,651 genes of 1,000 bacteria labelled by family name (0.894). It holds in archaea (0.918) and in
+        /// every third of bacterial GC (0.879-0.903), but marks 13% of soluble genes in GC-rich bacteria against 3% in GC-poor ones.
+        /// </summary>
+        public const double MembraneLikeCut = 0.038;
+
+        /// <summary>
+        /// The <see cref="HydropathyPeak"/> above which a virus gene is membrane-like (2026-11-23, gene_class_check.cs --transfer --live
+        /// --peak): set on the same bacteria, it gives viruses AUC 0.898 and balanced accuracy 0.844 (genes named by their own names,
+        /// membrane mostly holins), where the mean gave 0.640.
+        /// </summary>
+        public const double MembraneLikePeakCut = 0.168;
+
+        /// <summary>
+        /// The eukaryote membrane score's weights (2026-11-23, gene_class_check.cs --transfer --live --peak, arm 3, refitted on 220,376
+        /// named genes of 96 NCBI eukaryotes): intercept, then the 9 window features averaged over the gene's windows
+        /// (<see cref="Features"/> order), ln residues and <see cref="HydropathyPeak"/>. Membrane-like from 0. Held out by genome it
+        /// reached balanced accuracy 0.869 (plants 0.861, animals 0.902), where one -(x + y) cut reached 0.843.
+        /// </summary>
+        private static readonly double[] eukaryoteMembraneWeights =
+        [
+            -7.8418721949496835, -12.85687249335593, -16.64457695432388, -2.7839683578536145, -4.775443037248389, -1.9453241543375637,
+            -1.9896651686498772, 1.8862252857344113, 2.592405494052271, 1.1823139258183804, 1.1744764260448965, 3.8047062026757734,
+        ];
+
+        /// <summary>
+        /// How a record's genes are judged membrane-like, by the record's kind, each the best rule its check found; null for kinds that
+        /// weren't tested (plasmids and the rest). <c>Score</c> names what <see cref="MembraneScore"/> returns: "mean" (the mean -(x + y),
+        /// <see cref="Hydropathy"/>), "peak" (<see cref="HydropathyPeak"/>) or "model" (the eukaryote weights).
+        /// </summary>
+        public static (string Score, double Cut)? MembraneRule(string kind) => kind switch
+        {
+            "bacterium" or "archaeon" => ("mean", MembraneLikeCut),
+            "virus" => ("peak", MembraneLikePeakCut),
+            "eukaryote" => ("model", 0),
+            _ => null,
+        };
+
+        /// <summary>The gene's score under <see cref="MembraneRule"/>'s score name: membrane-like at or above the rule's cut.</summary>
+        public static double MembraneScore(ZCurveGeneProfile profile, int gene, string score) => score switch
+        {
+            "mean" => Hydropathy(profile, gene),
+            "peak" => HydropathyPeak(profile, gene),
+            "model" => EukaryoteMembraneScore(profile, gene),
+            _ => throw new ArgumentOutOfRangeException(nameof(score), score, "mean, peak or model"),
+        };
+
+        private static double EukaryoteMembraneScore(ZCurveGeneProfile profile, int gene)
+        {
+            var windows = profile.WindowsOf(gene);
+            int count = windows.Length / ZCurveGeneProfile.FeatureCount;
+            if (count == 0) return eukaryoteMembraneWeights[0];
+            double score = eukaryoteMembraneWeights[0];
+            for (int f = 0; f < ZCurveGeneProfile.FeatureCount; f++)
+            {
+                double sum = 0;
+                for (int w = 0; w < count; w++) sum += windows[w * ZCurveGeneProfile.FeatureCount + f];
+                score += eukaryoteMembraneWeights[f + 1] * sum / count;
+            }
+            return score + eukaryoteMembraneWeights[ZCurveGeneProfile.FeatureCount + 1] * Math.Log(profile.Genes[gene].Residues)
+                + eukaryoteMembraneWeights[ZCurveGeneProfile.FeatureCount + 2] * HydropathyPeak(profile, gene);
+        }
+
+        /// <summary>
+        /// A gene's -(x + y) window mean averaged over its windows: how water-repelling its protein is, read from codon positions 1 and 2
+        /// (x + y tracks Kyte-Doolittle hydropathy at r = -0.84 per window). Compared with <see cref="MembraneLikeCut"/>.
+        /// </summary>
+        public static double Hydropathy(ZCurveGeneProfile profile, int gene)
+        {
+            var windows = profile.WindowsOf(gene);
+            int count = windows.Length / ZCurveGeneProfile.FeatureCount;
+            double sum = 0;
+            for (int w = 0; w < count; w++) sum -= windows[w * ZCurveGeneProfile.FeatureCount] + windows[w * ZCurveGeneProfile.FeatureCount + 1];
+            return count == 0 ? 0 : sum / count;
+        }
+
+        /// <summary>The most water-repelling window's -(x + y): a short gene's 5 windows can isolate one membrane helix, as in holins.</summary>
+        public static double HydropathyPeak(ZCurveGeneProfile profile, int gene)
+        {
+            var windows = profile.WindowsOf(gene);
+            int count = windows.Length / ZCurveGeneProfile.FeatureCount;
+            double peak = double.NegativeInfinity;
+            for (int w = 0; w < count; w++)
+                peak = Math.Max(peak, -(windows[w * ZCurveGeneProfile.FeatureCount] + windows[w * ZCurveGeneProfile.FeatureCount + 1]));
+            return count == 0 ? 0 : peak;
+        }
+
         public const int MaxBucket = 25;
         // Gene rows have no object-storage path, unlike genome levels (ProfileLevels.MaxInlineBytes, 1 MB). The largest vertebrate
         // proteomes put 1-1.5 MB of long genes in one bucket (2026-11-09, S7.T), so gene rows get their own limit (your choice).

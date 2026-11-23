@@ -41,6 +41,19 @@ namespace SequencePlatform.Ingest
             return statuses;
         }
 
+        /// <summary>The group's items registered but neither stored nor final: pending and failed.</summary>
+        public static async Task<HashSet<string>> UnfinishedAsync(NpgsqlDataSource dataSource, string provider, string group)
+        {
+            await using var command = dataSource.CreateCommand(
+                "select external_id from crawl_item where provider = $1 and item_group = $2 and status in ('pending', 'failed')");
+            command.Parameters.AddWithValue(provider);
+            command.Parameters.AddWithValue(group);
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync()) ids.Add(reader.GetString(0));
+            return ids;
+        }
+
         /// <param name="group">null retries failed items of every group.</param>
         public static async Task<List<string>> FailedAsync(NpgsqlDataSource dataSource, string provider, string? group, int limit)
         {

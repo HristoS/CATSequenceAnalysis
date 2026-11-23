@@ -135,6 +135,7 @@ namespace SequencePlatform.Tests
             {
                 await ProteinFamilies.AddAsync(connection, transaction, [(990_000_101, "test gyrase")]);
                 Assert.That(await GeneProfiles.WriteAsync(connection, transaction, id, profile), Is.True);
+                await GeneNames.WriteAsync(connection, transaction, id, GeneNames.BvBrc, ["DNA gyrase subunit A", null, "Phage holin"]);
                 Assert.That(await GeneProfiles.WriteAsync(connection, transaction, upload, profile), Is.True);
                 await transaction.CommitAsync();
             }
@@ -147,9 +148,25 @@ namespace SequencePlatform.Tests
             Assert.That(listed[0].GetProperty("product").GetString(), Is.EqualTo("test gyrase"));
             Assert.That(listed[1].GetProperty("strand").GetString(), Is.EqualTo("Reverse"));
             Assert.That(list.GetProperty("meanWindow").EnumerateArray().Select(v => v.GetProperty("value").GetDouble()), Is.EqualTo(profile.MeanWindow()).Within(1e-9));
+            // Each gene's hydropathy is -(x + y) of its window means, averaged over its windows; a bacterium also gets the membrane-like cut.
+            double Hydropathy(int gene)
+            {
+                var w = profile.WindowsOf(gene);
+                return Enumerable.Range(0, w.Length / 9).Average(k => -(w[9 * k] + w[9 * k + 1]));
+            }
+            Assert.That(listed.Select(g => g.GetProperty("hydropathy").GetDouble()), Is.EqualTo(Enumerable.Range(0, 3).Select(Hydropathy)).Within(0.0005));
+            Assert.That(list.GetProperty("membraneLikeCut").GetDouble(), Is.EqualTo(GeneProfiles.MembraneLikeCut));
+            Assert.That(list.GetProperty("membraneRule").GetString(), Is.EqualTo("mean"));
+            Assert.That(listed.Select(g => g.GetProperty("membraneScore").GetDouble()), Is.EqualTo(listed.Select(g => g.GetProperty("hydropathy").GetDouble())),
+                "a bacterium's membrane score is its hydropathy");
+            // Each gene's own name beside its family's product; absent where the provider gave none.
+            Assert.That(listed.Select(g => g.TryGetProperty("name", out var n) ? n.GetString() : null),
+                Is.EqualTo(new[] { "DNA gyrase subunit A", null, "Phage holin" }));
 
             var one = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes/1"))!;
             Assert.That(one.GetProperty("windowPositions").GetInt32(), Is.EqualTo(120), "300 aa: 5 windows of 120 positions");
+            var two = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes/2"))!;
+            Assert.That(two.GetProperty("gene").GetProperty("name").GetString(), Is.EqualTo("Phage holin"));
             Assert.That(one.GetProperty("windows").EnumerateArray().SelectMany(w => w.EnumerateArray().Select(v => v.GetDouble())),
                 Is.EqualTo(profile.WindowsOf(1)).Within(1e-9));
 
@@ -199,6 +216,12 @@ namespace SequencePlatform.Tests
             var list = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes"))!;
             Assert.That(list.GetProperty("sequences").EnumerateArray().Select(s => s.GetString()), Is.EqualTo(new[] { "NC_1.1", "NC_2.1" }));
             Assert.That(list.GetProperty("genes").EnumerateArray().Select(g => g.GetProperty("sequence").GetInt32()), Is.EqualTo(new[] { 0, 0, 1 }));
+            Assert.That(list.GetProperty("genes").EnumerateArray().All(g => g.TryGetProperty("hydropathy", out _)), Is.True);
+            Assert.That((list.GetProperty("membraneRule").GetString(), list.GetProperty("membraneLikeCut").GetDouble()), Is.EqualTo(("model", 0.0)),
+                "eukaryotes: the model on the whole profile, membrane-like from 0");
+            var stored = (await GeneProfiles.ReadAsync(ThrowawayDatabase.DataSource, id))!;
+            Assert.That(list.GetProperty("genes").EnumerateArray().Select(g => g.GetProperty("membraneScore").GetDouble()),
+                Is.EqualTo(Enumerable.Range(0, 3).Select(i => GeneProfiles.MembraneScore(stored, i, "model"))).Within(0.0005));
 
             var joined = (await client.GetFromJsonAsync<JsonElement>($"/api/sequences/{id}/genes/path"))!;
             Assert.That(joined.GetProperty("geneIndex").EnumerateArray().Select(v => v.GetInt32()), Is.EqualTo(new[] { 0, 1, 2 }));

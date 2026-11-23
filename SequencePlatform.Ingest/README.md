@@ -57,7 +57,7 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   run reaches it, and an interrupted run loses at most one batch of 50. BV-BRC refuses species names with an apostrophe; those are logged and
   skipped. Item groups are `<group>-species`, so failed items are retried with `--retry-failed --group viruses-species`.
 - `--contact you@example.org` adds a contact address to the User-Agent. Recommended for large runs.
-- `ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--dry-run]` is the eukaryote pilot: reference assemblies at chromosome
+- `ingest-ncbi --taxon fungi|plants|animals --limit N [--max-bp B] [--parallel P] [--retry-failed] [--registered-only] [--dry-run]` is the eukaryote pilot: reference assemblies at chromosome
   level or better, one per family in a fixed random order, up to `B` bases each (default 2 Gbp). `--parallel P` streams `P` genomes at once,
   default 1. A stream dropped midway marks that genome failed, and only `--retry-failed` fetches it again. `--dry-run` prints what would be
   fetched, by class. The FASTA streams from NCBI's FTP tree through hash, gzip and `SequenceFeatureReader` with no temp file, so the DNA never
@@ -67,19 +67,29 @@ dotnet run -c Release --project SequencePlatform.Ingest -- localize --fasta read
   100 kbp as chromosome levels (see `backfill-chromosomes`). Organelles are left out by their FASTA description. Human assemblies are refused in
   code. `--limit` and `--max-bp` decide what is picked, so resume a run with the same values. NCBI's FTP gave about 0.5 MB/s
   (1.6 Mbp/s) per connection on 2026-10-30, so size a run by bases rather than genomes. Since S7.T, each genome stored also gets its
-  gene layer, as `backfill-genes-ncbi` builds it.
-- `backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N]` (P7 S7.T, migration 0020) builds the gene layer for
+  gene layer, as `backfill-genes-ncbi` builds it. `Pick` draws again whenever NCBI's list grows, so a rerun could pick other assemblies for
+  families already stored; `--registered-only` (2026-11-22) takes only the taxon's crawl items already registered and not stored
+  (pending, failed) and draws nothing new, which is how failed genomes are retried.
+- `backfill-genes-ncbi [--limit N] [--accession A] [--dry-run] [--check-search N] [--recheck]` (P7 S7.T, migration 0020) builds the gene layer for
   NCBI eukaryotes without downloading a genome. For each record with no 4-mer row it looks the assembly's annotation and nuclear genetic
   code up in NCBI Datasets, then streams the assembly report (which sequences are nuclear) and `*_cds_from_genomic.fna.gz` (each coding
   sequence already spliced, in coding orientation, with its location). Per gene (GeneID) it keeps the longest isoform and leaves out
   partial, pseudo and `exception`-flagged coding sequences, since the windows are anchored at the start codon. It stores the
   `gene_profile` rows (ZCGP version 3 where genes lie on several sequences or are spliced), amino-acid 4-mers, and under
   `annotations.ncbi.gene_layer` the CDS file's URL and SHA-256, the annotation's name and release, the counts left out and the names of
-  the sequences the genes lie on, which protein hits refer to. An assembly with no annotation gets `no_cds` and is skipped by later runs.
+  the sequences the genes lie on, which protein hits refer to, and each gene's `[protein=]` name (`gene_name`, migration 0025). An assembly
+  with no annotation gets `no_cds` and is skipped by later runs; `--recheck` tries those again, since NCBI may have annotated them since.
   Genetic codes 1 and 12 (CUG-Ser yeasts) are read; any other is skipped and stays pending. Nothing of the DNA or the proteins is kept.
   `--dry-run` builds and reports without writing (the largest bucket row against gene rows' 4 MB limit, `GeneProfiles.MaxRowBytes`; genome levels keep 1 MB); `--check-search N` then searches
   N proteins of each assembly through `ProteinSearch` over the whole catalogue. On 2026-11-06, 131 of the 587 stored eukaryotes
   were annotated: 4–38 s per assembly; a 3 Gbp mammal kept 20,457 genes of 47,953 coding sequences (26,268 other isoforms).
+- `backfill-gene-names [--provider bvbrc|ncbi] [--kind K] [--limit N]` (migration 0025, 2026-11-22) stores each stored gene's name as
+  its provider gives it, for genes stored before the gene passes kept names (`backfill-genes` and `backfill-genes-ncbi` write them since).
+  BV-BRC records take their coding sequences' products from BV-BRC's feature list, 20 genomes per listing, with no genome download; NCBI
+  eukaryotes take `[protein=]` from the CDS file streamed again for its headers (all 131 in about 11 min). Each stored gene is matched by
+  where it lies; one the provider no longer lists keeps no name and is counted as unmatched. Each genome commits alone, so a stopped run
+  resumes. Sampled 2026-11-22: an informative name (not empty, hypothetical, uncharacterized or unknown) for 18% of bacterial, 15% of
+  plasmid-genome, 9% of archaeal and 22% of virus genes without a protein family, and for 55% of eukaryote genes (RefSeq 81%, others 31%).
 - `backfill-chromosomes [--limit N] [--accession A] [--parallel P]` (migration 0022, 2026-11-11) stores each eukaryote's chromosome levels:
   every nuclear sequence of at least 100 kbp at 500 bp and 32 kbp windows (`chromosome_level`, ZCWP version 2), for drawing one
   chromosome's path. Since 0022 `ingest-ncbi` builds them in the same pass that counts dinucleotides; this re-downloads genomes stored

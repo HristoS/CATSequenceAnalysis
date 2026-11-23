@@ -147,6 +147,105 @@ On the catalogue (58,141 BV-BRC records plus 131 annotated eukaryotes, 64.3M gen
       positions 1 and 2 mixed in each window.
     - This follows from the genetic code, so it holds for any coding sequence. That homologs conserve the profile is the separate,
       literature claim.
+- **A "table" for genes: the profile predicts membrane vs soluble, for unseen families and phyla** (2026-11-22,
+  `gene_class_check.cs`, round-2 corpus (fingerprint verified), 66 s; no CSV kept). This is the gene version of S9.7 T1.
+  - *Data:* one genome per GTDB genus, 1,000 genomes. 184,337 genes labelled from BV-BRC product names, fixed before the run:
+    - membrane: permease, transmembrane, symporter, ... (91,601 genes, 5,055 families);
+    - soluble: ribosomal proteins, tRNA synthetases, RNA polymerase, elongation factors, chaperones (92,736 genes, 1,030 families).
+  - *Method:* logistic regression on each gene's 9 window numbers, averaged, plus log length. Trained on half the PGfams within half
+    the GTDB phyla, tested on the other families within the other phyla. 95% CIs from a bootstrap over test families.
+  - *Result:*
+    - full profile AUC **0.983** (0.971–0.991);
+    - P0 x + y alone, unfitted, **0.977** (0.962–0.986);
+    - GC + length 0.696.
+    - Rule (lower bound ≥ 0.80, ≥ 0.10 above GC + length): **pass**.
+    - Swapped halves, family-only and phylum-only splits: 0.985–0.992.
+  - *What it means:* nearly all of the signal is the one hydropathy number, a DNA-level GRAVY. That is the classic hydropathy result
+    (Kyte & Doolittle 1982) surviving 166-residue windows stored as DNA profiles. It is not new biology.
+  - *Harder contrast, membrane vs ordinary enzymes* (C1, `--contrast enzymes`, 2 min):
+    - enzyme class (fixed before the run): kinase, dehydrogenase, synthase, transferase, hydrolase, reductase and similar;
+      membrane-complex names dropped;
+    - four kinds were also dropped after reading the 30 commonest names, before scoring: sensor histidine kinases,
+      serine/threonine protein kinases, glycosyltransferases, PlsC;
+    - 531,190 enzyme genes in 20,073 families.
+    - Rule split: full profile AUC **0.955** (0.932–0.971), x + y alone 0.930 (0.901–0.952), GC + length 0.534 (0.501–0.566):
+      **pass**. Other splits 0.956–0.968.
+    - So it holds for typical proteins, not only for the two ends of the range.
+  - *Family centroids vs genes:* x + y AUC over family means 0.958 / 0.906 against 0.983 / 0.939 over genes. That's within the 0.05
+    the plot check allowed, so a family map is a fair picture.
+  - *Limits:* membrane proteins with a single helix can't be labelled from names, so they aren't measured.
+  - *One cut for a per-gene mark* (C2, `--transfer`, 53 s; rules fixed before the run):
+    - The cut on −(x + y) is set on 1,000 bacteria: ≥ 0.038, balanced accuracy 0.894, AUC 0.944. It marks 85.7% of membrane genes
+      and 6.9% of soluble ones; 65% of marked labelled genes are membrane.
+    - Archaea at the same cut: AUC 0.968, balanced accuracy 0.918: **holds**.
+    - Bacterial GC thirds: balanced accuracy 0.879 / 0.903 / 0.894, so the ≥ 0.80 rule **holds**. But soluble genes marked rise from
+      2.7% to 13.0% (precision 0.80 to 0.54): GC shifts x + y.
+    - Viruses: only 123 named membrane genes in 3,000 genomes, **not testable**. Eukaryote genes store no names, also not testable.
+    - Built for bacteria and archaea only: `GeneProfiles.MembraneLikeCut`, a hydropathy value per gene in `/genes`, and a mark in
+      the record page's gene list.
+  - *The same cut on eukaryotes and viruses, labelled from each gene's own stored name* (2026-11-23, `--transfer --live` on the live
+    database after migration 0025; rules fixed before the run, names read before scoring; no CSV kept):
+    - membrane = names stating a membrane function (permease, symporter, antiporter, transporter, holin), without soluble transporter
+      parts. Dropped after reading the names: plant receptor-like kinases and autotransporters;
+    - eukaryotes (96 genomes, 28,864 membrane, 191,512 soluble genes): AUC **0.911** (0.905–0.917), balanced accuracy at the
+      bacterial cut **0.810** (0.803–0.817). It marks 67% of membrane genes (bacteria 86%) and 4.9% of soluble ones. The ranking
+      holds; the cut sits too high for eukaryotes;
+    - viruses (5,152 membrane genes, 90% holins; 41,505 soluble): AUC **0.760**, balanced accuracy 0.640. Holins are short, so a
+      166-residue window dilutes their one to three helices;
+    - with generic "transmembrane" names added (context): eukaryotes 0.876, viruses 0.757;
+    - rule (both within 0.05 of the bacteria's 0.944 and 0.894): **no mark** for either group. Eukaryotes miss on balanced accuracy only
+      (0.810 against 0.844).
+  - *A eukaryote cut of their own* (2026-11-23, `--fit-eukaryotes`, rules fixed before the run; no CSV kept): fitted on half the genomes
+    (by MD5 of the accession), judged on the other half.
+    - The cut is −0.026 (bacteria 0.038). Held-out balanced accuracy is **0.843** (0.832–0.855) against the 0.844 needed: **no mark**, missed
+      by 0.001. Kingdoms: plants 0.829, animals 0.882; fungi too few in the test half. Swapped halves (context): 0.857.
+    - The full profile (logistic, 10 features) reaches 0.866 and 0.874 on the two halves (AUC 0.917 / 0.925). GC12 + length reaches
+      0.62.
+    - *Which side moved:*
+      - soluble genes barely shift: mean −(x + y) −0.121 in eukaryotes against −0.109 in bacteria;
+      - membrane genes drop to about half: 0.066 against 0.148. They are also longer: median 523 aa against 335.
+      - Fungi, plants and animals all show it (0.055–0.071), and GC12 hardly differs between the classes, so codon usage isn't the
+        cause.
+      - First reading: dilution by non-membrane windows. The peak check below doesn't support it.
+  - *The most hydrophobic window ("peak") and full profile + peak* (2026-11-23, `--peak`, rules fixed before the run; no CSV kept). Arms
+    are taken in order; the first that passes for a group is the one to ship.
+    - Arm 1, the peak with one cut set on bacteria (−(x + y) ≥ 0.168):
+      - bacteria: balanced accuracy 0.892 (mean score 0.894), every GC tertile ≥ 0.889. But it marks 11.0% of soluble genes (mean
+        score 6.9%), so precision drops from 0.65 to about 0.55;
+      - archaea 0.922: **yes**;
+      - viruses: AUC **0.898**, balanced accuracy **0.844**: **yes**, by 0.002. The mean score gave 0.760 and 0.640. It now marks 77% of
+        membrane genes against 29%; viruses without holins aren't testable;
+      - eukaryotes 0.788: no.
+    - Arm 2, the peak with a eukaryote cut: 0.815 on the held-out half, **no**.
+    - Arm 3, full profile + peak (logistic): held-out **0.869** (0.859–0.878); plants 0.861, animals 0.902; fungi too few. Swapped halves
+      0.878. **Pass.** The peak adds only 0.003 over the full profile alone (0.866, context), so this is the full profile's result.
+    - *Dilution check, negative:*
+      - the peak doesn't close the gap: membrane peak 0.223 in eukaryotes against 0.307 in bacteria, a gap of 0.084, the same as for
+        the mean (0.082). Soluble peaks are equal (0.030 against 0.027);
+      - a likely confound, not checked: the window rule. Genes under 500 aa get 5 windows of 10–100 aa, longer genes windows of
+        166 aa. Short windows give more extreme peaks: virus membrane genes, which are short, peak at 0.326. Bacterial membrane genes
+        (median 335 aa) mostly have short windows; eukaryote ones (median 523) mostly long windows.
+    - *Shipped* (the author's choice, the best rule per organism, `GeneProfiles.MembraneRule`):
+      - bacteria and archaea keep the mean;
+      - viruses use the peak at 0.168;
+      - eukaryotes use arm 3, refitted on all 220,376 named eukaryote genes: balanced accuracy 0.875 on the genes it was fitted on.
+        The held-out figure is 0.869.
+  - *Organizing by family:* still no. Same-family pairs give AUC 0.49–0.53 (above), so families don't form cells. The profile places
+    a gene on a physicochemical axis, not in a table of families.
+- **Gene names, how many are informative** (2026-11-22, N1 check before migration 0025; no CSV kept). Rule fixed before the check: store
+  a group's names only if ≥ 40% of its genes without a protein family get an informative name (not empty, hypothetical,
+  uncharacterized, unknown function, "Phage protein").
+  - *BV-BRC*, random genomes from the catalogue, products from the feature list:
+    - viruses (200 genomes, 15,165 CDS): 83.6% have no family; 21.7% of those get an informative name (33.3% counting PLfam);
+    - bacteria (100, 395,218): 17.8% no family; 18.0% of those named;
+    - plasmid genomes (100, 494,160): 18.4% no family; 15.2% named;
+    - archaea (50, 145,187): 32.7% no family; 9.1% named.
+    - A first sample of 40 consecutive virus genomes gave 58%; it was a run of poxviruses.
+  - *NCBI eukaryotes*, `[protein=]` in all 131 annotated CDS files (3.03M CDS, 646 s): **54.7%** informative (RefSeq 81.2% over 34
+    assemblies, other annotators 30.7% over 97; 72 assemblies ≥ 40%).
+  - Rule: passes for eukaryotes only. **The author chose to store names for every group** (Decisions, D8).
+  - First runs: 50 virus records (549 genes) and 2 eukaryotes (17,880 genes), every stored gene matched by place (0 unmatched). Names
+    compress well: 17,880 ids in 16 kB.
 - **The moment values are pinned by tests** (2026-11-22, `ZCurveGeneProfileTests`):
   - hand-computed exact values for constant, step and middle-bump windows: mean 1 / 0, trend 0 / −√3/2, curvature −√5/(2W²) / −3√5/8;
   - an independent prefix-sum computation of all 9 numbers on random long and short genes, to 1e−9.

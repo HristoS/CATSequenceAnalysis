@@ -1,0 +1,1284 @@
+# Corpus fingerprint 9a0baea856543d97f121ba45900d82c5; families with at least 100 labelled genes
+Family,Class,Product,Genes,Hydropathy (-(x + y)),GC12
+3746,enzyme,"FKBP-type peptidyl-prolyl cis-trans isomerase FkpA precursor (EC 5.2.1.8)",128,-0.207,0.504
+3749,enzyme,"FKBP-type peptidyl-prolyl cis-trans isomerase SlpA (EC 5.2.1.8)",109,-0.072,0.518
+3752,enzyme,"FKBP-type peptidyl-prolyl cis-trans isomerase FklB (EC 5.2.1.8)",180,-0.162,0.506
+4169,enzyme,"Fe-S oxidoreductase",108,-0.117,0.402
+4231,membrane,"Inner membrane transport permease YhhJ",102,0.114,0.501
+4381,enzyme,"Ferredoxin--NADP(+) reductase, actinobacterial (eukaryote-like) type (EC 1.18.1.2)",111,-0.080,0.582
+4481,membrane,"Ferric iron ABC transporter, permease protein",493,0.216,0.514
+4652,membrane,"Ferrous iron transport permease EfeU",103,0.129,0.531
+5572,enzyme,"Flagellar protein FlgJ [peptidoglycan hydrolase]",178,-0.193,0.530
+6195,membrane,"Na(+) H(+) antiporter subunit A",136,0.193,0.510
+6278,enzyme,"Formiminoglutamic iminohydrolase (EC 3.5.3.13)",133,-0.029,0.606
+6351,membrane,"Efflux ABC transporter, permease protein",1318,0.216,0.519
+6359,enzyme,"Fructokinase (EC 2.7.1.4)",118,-0.079,0.511
+6390,enzyme,"Fructose-bisphosphate aldolase class I (EC 4.1.2.13)",117,-0.146,0.485
+6931,enzyme,"GMP reductase (EC 1.7.1.7)",142,-0.145,0.471
+6935,enzyme,"GMP synthase [glutamine-hydrolyzing], amidotransferase subunit (EC 6.3.5.2) / GMP synthase [glutamine-hydrolyzing], ATP pyrophosphatase subunit (EC 6.3.5.2)",920,-0.077,0.501
+6983,enzyme,"GTP cyclohydrolase I (EC 3.5.4.16) type 2",230,-0.134,0.486
+7007,enzyme,"GTP pyrophosphokinase (EC 2.7.6.5)",212,-0.247,0.410
+7085,enzyme,"Galactokinase (EC 2.7.1.6)",389,-0.082,0.516
+7119,enzyme,"Galactose-1-phosphate uridylyltransferase (EC 2.7.7.10)",102,-0.195,0.432
+7812,enzyme,"Glucans biosynthesis glucosyltransferase H",148,0.086,0.552
+7844,enzyme,"Glucokinase (EC 2.7.1.2)",445,-0.035,0.553
+8075,enzyme,"Glutamate N-acetyltransferase (EC 2.3.1.35) @ N-acetylglutamate synthase (EC 2.3.1.1)",651,-0.131,0.533
+8115,enzyme,"Glutamate synthase [NADPH] large chain (EC 1.4.1.13)",871,-0.119,0.522
+8261,enzyme,"Glutamine synthetase type III, GlnN (EC 6.3.1.2)",229,-0.171,0.467
+8326,machinery,"Glutaminyl-tRNA synthetase (EC 6.1.1.18)",454,-0.197,0.472
+8334,enzyme,"Glutamyl-tRNA reductase (EC 1.2.1.70)",656,-0.130,0.500
+8335,machinery,"Glutamyl-tRNA synthetase (EC 6.1.1.17)",430,-0.136,0.505
+8337,machinery,"Glutamyl-tRNA synthetase (EC 6.1.1.17) @ Glutamyl-tRNA(Gln) synthetase (EC 6.1.1.24)",568,-0.150,0.479
+8342,enzyme,"Glutamyl-tRNA(Gln) synthetase (EC 6.1.1.24)",137,-0.080,0.546
+8393,enzyme,"Glutaryl-CoA dehydrogenase (EC 1.3.8.6)",353,-0.096,0.528
+8469,enzyme,"Glutathione synthetase (EC 6.3.2.3)",329,-0.114,0.513
+8510,enzyme,"16S rRNA (guanine(1516)-N(2))-methyltransferase (EC 2.1.1.242)",127,-0.044,0.543
+8537,enzyme,"Glycerol kinase (EC 2.7.1.30)",774,-0.112,0.527
+8548,enzyme,"Glycerol-1-phosphate dehydrogenase [NAD(P)+] (EC 1.1.1.261)",119,-0.126,0.490
+8595,enzyme,"Glycerol-3-phosphate acyltransferase (EC 2.3.1.15)",115,-0.051,0.487
+8605,enzyme,"Glycerol-3-phosphate dehydrogenase (EC 1.1.5.3)",107,-0.204,0.458
+8611,enzyme,"Glycerol-3-phosphate dehydrogenase [NAD(P)+] (EC 1.1.1.94)",830,-0.079,0.525
+8773,enzyme,"Glycine dehydrogenase [decarboxylating] (glycine cleavage system P protein) (EC 1.4.4.2)",419,-0.095,0.533
+8774,enzyme,"Glycine dehydrogenase [decarboxylating] (glycine cleavage system P1 protein) (EC 1.4.4.2)",326,-0.090,0.510
+8776,enzyme,"Glycine dehydrogenase [decarboxylating] (glycine cleavage system P2 protein) (EC 1.4.4.2)",335,-0.135,0.513
+8838,enzyme,"16S rRNA (guanine(527)-N(7))-methyltransferase (EC 2.1.1.170)",692,-0.074,0.490
+8864,enzyme,"Glycogen biosynthesis protein GlgD, glucose-1-phosphate adenylyltransferase family",102,-0.192,0.397
+8876,enzyme,"Glycogen synthase, ADP-glucose transglucosylase (EC 2.4.1.21)",543,-0.069,0.480
+8882,enzyme,"Glycolate dehydrogenase (EC 1.1.99.14), FAD-binding subunit GlcE",225,-0.007,0.591
+8885,enzyme,"Glycolate dehydrogenase (EC 1.1.99.14), iron-sulfur subunit GlcF",278,-0.058,0.555
+8960,enzyme,"Glycosyl hydrolase, BNR repeat precursor",170,-0.215,0.484
+9966,machinery,"Glycyl-tRNA synthetase (EC 6.1.1.14)",422,-0.170,0.463
+9967,machinery,"Glycyl-tRNA synthetase alpha chain (EC 6.1.1.14)",570,-0.085,0.489
+9969,machinery,"Glycyl-tRNA synthetase beta chain (EC 6.1.1.14)",562,-0.099,0.510
+10349,enzyme,"Guanosine-3',5'-bis(diphosphate) 3'-pyrophosphohydrolase (EC 3.1.7.2) / GTP pyrophosphokinase (EC 2.7.6.5), (p)ppGpp synthetase II",915,-0.194,0.478
+10468,enzyme,"Hydrolase (HAD superfamily) in cluster with DUF1447",108,-0.195,0.415
+11463,enzyme,"RNA binding methyltransferase FtsJ like",464,-0.081,0.505
+11753,enzyme,"Toxin HigB / Protein kinase domain of HipA",200,-0.084,0.512
+11940,membrane,"Histidine permease YuiF",105,0.152,0.469
+12329,enzyme,"Homoserine O-acetyltransferase (EC 2.3.1.31)",531,-0.063,0.531
+12336,enzyme,"Homoserine O-succinyltransferase (EC 2.3.1.46)",268,-0.146,0.448
+12356,enzyme,"Homoserine kinase (EC 2.7.1.39)",466,-0.039,0.534
+12376,membrane,"Tungstate ABC transporter, permease protein",171,0.171,0.510
+12652,enzyme,"FIG001553: Hydrolase, HAD subfamily IIIA",110,-0.167,0.415
+12918,enzyme,"ADA regulatory protein / Methylated-DNA--protein-cysteine methyltransferase (EC 2.1.1.63)",104,-0.061,0.544
+12969,enzyme,"Phosphomethylpyrimidine synthase ThiC (EC 4.1.99.17)",643,-0.178,0.509
+12972,enzyme,"ADP compounds hydrolase NudE",112,-0.072,0.505
+12987,enzyme,"D-3-phosphoglycerate dehydrogenase (EC 1.1.1.95)",2318,-0.101,0.523
+13017,enzyme,"ADP-L-glycero-D-manno-heptose-6-epimerase (EC 5.1.3.20)",239,-0.129,0.461
+13100,enzyme,"D-glycero-beta-D-manno-heptose 1-phosphate adenylyltransferase (EC 2.7.7.70) / D-glycero-beta-D-manno-heptose-7-phosphate kinase (EC 2.7.1.167)",541,-0.088,0.525
+13120,enzyme,"ADP-heptose--lipooligosaccharide heptosyltransferase II",397,-0.046,0.519
+13144,machinery,"Terminal oxidase biogenesis protein CtaM, putative heme A, heme O chaperone",118,0.159,0.438
+13272,enzyme,"Peptidyl-tRNA hydrolase ArfB (EC 3.1.1.29)",352,-0.217,0.553
+13490,enzyme,"Hypoxanthine-guanine phosphoribosyltransferase (EC 2.4.2.8)",682,-0.080,0.457
+13509,enzyme,"IMP cyclohydrolase (EC 3.5.4.10) / Phosphoribosylaminoimidazolecarboxamide formyltransferase (EC 2.1.2.3)",824,-0.138,0.516
+13857,enzyme,"Inactive (p)ppGpp 3'-pyrophosphohydrolase domain / GTP pyrophosphokinase (EC 2.7.6.5), (p)ppGpp synthetase I",186,-0.152,0.510
+14051,enzyme,"Indole-3-glycerol phosphate synthase (EC 4.1.1.48)",709,-0.100,0.514
+14061,enzyme,"Indolepyruvate ferredoxin oxidoreductase, alpha and beta subunits",186,-0.084,0.559
+14064,enzyme,"Indolepyruvate oxidoreductase subunit IorA (EC 1.2.7.8)",242,-0.115,0.501
+14067,enzyme,"Indolepyruvate oxidoreductase subunit IorB (EC 1.2.7.8)",185,-0.102,0.496
+14264,machinery,"Inner membrane protein translocase and chaperone YidC, short form OxaI-like",299,-0.053,0.436
+14314,enzyme,"Inosine-5'-monophosphate dehydrogenase, catalytic domain (EC 1.1.1.205)",133,-0.043,0.584
+14381,enzyme,"Inositol-1-phosphate synthase (EC 5.5.1.4)",157,-0.133,0.498
+14399,enzyme,"Xylose isomerase-like TIM-barrel protein KPN_00539",127,-0.069,0.520
+14617,membrane,"Integral membrane protein",149,0.135,0.595
+14728,membrane,"Integral membrane protein TerC",284,0.174,0.470
+14855,enzyme,"ATP phosphoribosyltransferase (EC 2.4.2.17) => HisGl",261,-0.093,0.527
+15699,enzyme,"Isocitrate dehydrogenase [NADP] (EC 1.1.1.42)",238,-0.194,0.475
+15701,enzyme,"Isocitrate dehydrogenase [NADP] (EC 1.1.1.42)",346,-0.181,0.486
+15703,enzyme,"Isocitrate dehydrogenase [NADP] (EC 1.1.1.42); Monomeric isocitrate dehydrogenase [NADP] (EC 1.1.1.42)",235,-0.181,0.488
+15735,enzyme,"Isopentenyl-diphosphate Delta-isomerase (EC 5.3.3.2)",163,-0.085,0.525
+15737,enzyme,"Isopentenyl-diphosphate delta-isomerase, FMN-dependent (EC 5.3.3.2)",234,-0.113,0.498
+15855,enzyme,"Ketol-acid reductoisomerase (NADP(+)) (EC 1.1.1.86)",791,-0.163,0.499
+15963,enzyme,"L,L-diaminopimelate aminotransferase (EC 2.6.1.83)",137,-0.145,0.479
+16028,enzyme,"L-arabinose isomerase (EC 5.3.1.4)",175,-0.109,0.505
+16083,enzyme,"L-ectoine synthase (EC 4.2.1.108)",131,-0.216,0.477
+16122,enzyme,"L-glyceraldehyde 3-phosphate reductase",180,-0.088,0.530
+16130,enzyme,"L-lactate dehydrogenase",406,-0.045,0.556
+16231,enzyme,"L-seryl-tRNA(Sec) selenium transferase (EC 2.9.1.1)",253,-0.091,0.534
+16235,enzyme,"L-sorbosone dehydrogenase",245,-0.100,0.546
+16257,enzyme,"L-threonine 3-dehydrogenase (EC 1.1.1.103)",104,-0.176,0.455
+16340,machinery,"LSU ribosomal protein L14p (L23e)",896,-0.171,0.501
+16342,machinery,"LSU ribosomal protein L15p (L27Ae)",875,-0.224,0.529
+16343,machinery,"LSU ribosomal protein L16p (L10e)",913,-0.185,0.521
+16346,machinery,"LSU ribosomal protein L17p",866,-0.256,0.515
+16353,machinery,"LSU ribosomal protein L18p (L5e)",841,-0.209,0.535
+16357,machinery,"LSU ribosomal protein L1p (L10Ae)",901,-0.211,0.506
+16358,machinery,"LSU ribosomal protein L20p",890,-0.237,0.493
+16368,machinery,"LSU ribosomal protein L22p (L17e)",831,-0.235,0.501
+16377,machinery,"LSU ribosomal protein L24p (L26e)",808,-0.361,0.465
+16385,machinery,"LSU ribosomal protein L27p",869,-0.222,0.521
+16387,machinery,"LSU ribosomal protein L28p @ LSU ribosomal protein L28p, zinc-dependent",237,-0.237,0.495
+16393,machinery,"LSU ribosomal protein L2p (L8e)",921,-0.261,0.534
+16395,machinery,"LSU ribosomal protein L30p (L7e)",682,-0.275,0.470
+16404,machinery,"LSU ribosomal protein L32p @ LSU ribosomal protein L32p, zinc-dependent",387,-0.262,0.519
+16416,machinery,"LSU ribosomal protein L33p @ LSU ribosomal protein L33p, zinc-independent",472,-0.495,0.395
+16418,machinery,"LSU ribosomal protein L34p",122,-0.397,0.505
+16431,machinery,"LSU ribosomal protein L3p (L3e)",905,-0.197,0.517
+16443,machinery,"LSU ribosomal protein L5p (L11e)",910,-0.184,0.452
+16444,machinery,"LSU ribosomal protein L6p (L9e)",880,-0.229,0.497
+16445,machinery,"LSU ribosomal protein L7p/L12p (P1/P2)",869,-0.216,0.533
+16452,machinery,"LSU ribosomal protein L9p",791,-0.248,0.493
+16613,enzyme,"Lactyl (2) diphospho-(5')guanosine:7,8-didemethyl-8-hydroxy-5-deazariboflavin 2-phospho-L-lactate transferase (EC 2.7.8.28)",129,-0.045,0.566
+16850,enzyme,"Branched-chain amino acid dehydrogenase [deaminating] (EC 1.4.1.9)(EC 1.4.1.23)",255,-0.140,0.526
+16919,enzyme,"Leucyl/phenylalanyl-tRNA--protein transferase (EC 2.3.2.6)",432,0.007,0.521
+17109,enzyme,"Lipid-A-disaccharide synthase (EC 2.4.1.182)",528,-0.028,0.509
+17281,enzyme,"Lipopolysaccharide core heptosyltransferase I",170,-0.061,0.525
+17479,enzyme,"Lipoyl synthase (EC 2.8.1.8)",773,-0.141,0.515
+17612,membrane,"Low-affinity gluconate/H+ symporter GntU",115,0.202,0.520
+17939,enzyme,"Lysine 2,3-aminomutase (EC 5.4.3.2)",487,-0.113,0.499
+18016,membrane,"Lysine-specific permease",125,0.162,0.470
+18084,machinery,"Lysyl-tRNA synthetase (class I) (EC 6.1.1.6)",127,-0.110,0.510
+18952,enzyme,"Malate dehydrogenase (EC 1.1.1.37)",525,-0.096,0.503
+18956,enzyme,"Malate dehydrogenase (EC 1.1.1.37)",194,-0.115,0.545
+18964,enzyme,"Malate synthase (EC 2.3.3.9)",204,-0.130,0.528
+18965,enzyme,"Malate synthase G (EC 2.3.3.9)",197,-0.169,0.525
+19051,enzyme,"Malto-oligosyltrehalose trehalohydrolase (EC 3.2.1.141)",238,-0.048,0.559
+19279,enzyme,"Mannose-1-phosphate guanylyltransferase (EC 2.7.7.13)",277,-0.128,0.491
+19563,enzyme,"2,3,4,5-tetrahydropyridine-2,6-dicarboxylate N-acetyltransferase (EC 2.3.1.89)",103,-0.196,0.478
+20172,enzyme,"2,3,4,5-tetrahydropyridine-2,6-dicarboxylate N-succinyltransferase (EC 2.3.1.117)",413,-0.085,0.523
+20173,enzyme,"2,3,4,5-tetrahydropyridine-2,6-dicarboxylate N-succinyltransferase (EC 2.3.1.117)",127,-0.045,0.565
+20361,enzyme,"Metal-dependent hydrolase YbeY, involved in rRNA and/or ribosome maturation and assembly",726,-0.151,0.484
+20984,enzyme,"Methenyltetrahydrofolate cyclohydrolase (EC 3.5.4.9) / Methylenetetrahydrofolate dehydrogenase (NADP+) (EC 1.5.1.5)",972,-0.128,0.523
+20996,enzyme,"Methylglyoxal synthase (EC 4.2.3.3)",290,-0.145,0.477
+21019,enzyme,"Methylmalonyl-CoA epimerase (EC 5.1.99.1) @ Ethylmalonyl-CoA epimerase",101,-0.118,0.537
+21020,enzyme,"Methylmalonyl-CoA mutase (EC 5.4.99.2)",277,-0.148,0.509
+21021,enzyme,"Methylmalonyl-CoA mutase (EC 5.4.99.2) / B12 binding domain of Methylmalonyl-CoA mutase (EC 5.4.99.2)",114,-0.150,0.530
+21022,enzyme,"Methylmalonyl-CoA mutase large subunit, MutB (EC 5.4.99.2)",193,-0.144,0.511
+21023,enzyme,"Methylmalonyl-CoA mutase small subunit, MutA (EC 5.4.99.2)",157,-0.114,0.525
+21217,enzyme,"2,3-bisphosphoglycerate-independent phosphoglycerate mutase (EC 5.4.2.12)",597,-0.165,0.498
+22507,enzyme,"Molybdopterin adenylyltransferase (EC 2.7.7.75)",359,-0.095,0.548
+22531,enzyme,"Molybdopterin molybdenumtransferase (EC 2.10.1.1) / Periplasmic molybdate-binding domain",122,-0.078,0.531
+22540,enzyme,"Molybdopterin oxidoreductase",142,0.176,0.457
+22545,machinery,"Molybdopterin oxidoreductase subunit, predicted; chaperone protein HtpG",118,-0.128,0.479
+22548,enzyme,"Molybdopterin oxidoreductase, iron-sulfur binding subunit (EC 1.2.7.-)",141,-0.150,0.512
+22550,enzyme,"Molybdopterin synthase catalytic subunit MoaE (EC 2.8.1.12)",454,-0.114,0.538
+22566,enzyme,"Molybdopterin synthase sulfur carrier subunit",226,-0.018,0.541
+23326,membrane,"MarC family integral membrane protein",357,0.187,0.475
+23818,enzyme,"N-acetylglutamate synthase (EC 2.3.1.1)",154,-0.076,0.515
+24232,enzyme,"N-succinyl-L,L-diaminopimelate aminotransferase (EC 2.6.1.17), type 2",247,-0.011,0.575
+24274,enzyme,"N5-carboxyaminoimidazole ribonucleotide synthase (EC 6.3.4.18)",634,-0.090,0.534
+24314,enzyme,"NAD(FAD)-utilizing dehydrogenase, sll0175 homolog",256,-0.112,0.515
+24414,enzyme,"NAD-dependent dihydropyrimidine dehydrogenase subunit PreA (EC 1.3.1.1)",119,-0.135,0.508
+24415,enzyme,"NAD-dependent dihydropyrimidine dehydrogenase subunit PreT (EC 1.3.1.1)",107,-0.107,0.554
+24478,enzyme,"NAD-dependent glyceraldehyde-3-phosphate dehydrogenase (EC 1.2.1.12)",1070,-0.156,0.484
+24505,enzyme,"NAD-specific glutamate dehydrogenase (EC 1.4.1.2)",102,-0.165,0.469
+24619,membrane,"Acetate permease ActP (cation/acetate symporter)",386,0.140,0.497
+24831,enzyme,"NADP-specific glutamate dehydrogenase (EC 1.4.1.4)",403,-0.145,0.493
+24855,enzyme,"NADPH-dependent 7-cyano-7-deazaguanine reductase (EC 1.7.1.13)",506,-0.126,0.473
+25090,enzyme,"Acetolactate synthase large subunit (EC 2.2.1.6)",1008,-0.118,0.510
+25181,membrane,"Na(+)-linked D-alanine glycine permease",158,0.124,0.472
+25215,enzyme,"Acetolactate synthase small subunit (EC 2.2.1.6)",785,-0.130,0.478
+25383,enzyme,"Naringenin-chalcone synthase (EC 2.3.1.74)",174,0.006,0.548
+25440,enzyme,"Acetyl CoA synthase (Acetyl-CoA c-acetyltransferase) (EC 2.3.1.9)",107,-0.115,0.546
+25598,enzyme,"Nicotinate phosphoribosyltransferase (EC 6.3.4.21)",163,-0.079,0.488
+25600,enzyme,"Nicotinate phosphoribosyltransferase (EC 6.3.4.21)",521,-0.092,0.506
+25623,enzyme,"Nicotinate-nucleotide--dimethylbenzimidazole phosphoribosyltransferase (EC 2.4.2.21)",390,-0.055,0.570
+25784,enzyme,"Nitric-oxide reductase (EC 1.7.99.7), quinol-dependent",131,0.110,0.491
+25954,enzyme,"Nitrogenase (molybdenum-iron) reductase and maturation protein NifH",170,-0.178,0.479
+26453,enzyme,"Acetyl-coenzyme A carboxyl transferase beta chain (EC 6.4.1.2)",676,-0.107,0.493
+26563,enzyme,"Nudix-like NDP and NTP phosphohydrolase NudJ",108,-0.072,0.538
+26615,enzyme,"N-acetylglutamate kinase (EC 2.7.2.8)",700,-0.127,0.505
+26684,membrane,"O-antigen export system, permease protein",128,0.233,0.428
+26866,enzyme,"Octaprenyl diphosphate synthase (EC 2.5.1.90)",200,-0.111,0.511
+27514,enzyme,"N-acetylornithine aminotransferase (EC 2.6.1.11)",664,-0.078,0.531
+28690,enzyme,"Oxidoreductase YdhF",100,-0.090,0.487
+28700,enzyme,"Oxidoreductase probably involved in sulfite reduction",134,-0.044,0.569
+28947,enzyme,"Oxygen-insensitive NAD(P)H nitroreductase (EC 1.-.-.-) / Dihydropteridine reductase (EC 1.5.1.34)",318,-0.160,0.457
+29343,enzyme,"PQQ-dependent oxidoreductase, gdhB family",282,-0.104,0.538
+30349,enzyme,"Peptidase M20D, amidohydrolase",190,-0.045,0.596
+30813,enzyme,"Peptidyl-prolyl cis-trans isomerase PpiC (EC 5.2.1.8)",111,-0.145,0.492
+30918,enzyme,"Periplasmic aromatic aldehyde oxidoreductase, FAD binding subunit YagS",158,-0.077,0.595
+31036,enzyme,"Periplasmic nitrate reductase (EC 1.7.99.4)",135,-0.174,0.489
+32869,enzyme,"Isovaleryl-CoA dehydrogenase (EC 1.3.8.4)",307,-0.111,0.524
+32889,enzyme,"Acyl-CoA dehydrogenase family protein",155,-0.064,0.576
+33095,machinery,"Phenylalanyl-tRNA synthetase beta chain (EC 6.1.1.20)",972,-0.100,0.515
+33197,enzyme,"Phosphate acetyltransferase (EC 2.3.1.8)",294,-0.131,0.506
+33289,enzyme,"Phosphate:acyl-ACP acyltransferase PlsX (EC 2.3.1.n2)",685,-0.107,0.506
+33359,enzyme,"Phospho-N-acetylmuramoyl-pentapeptide-transferase (EC 2.7.8.13)",883,0.182,0.464
+33363,enzyme,"Phosphoadenylyl-sulfate reductase [thioredoxin] (EC 1.8.4.8)",302,-0.126,0.527
+33390,enzyme,"Phosphoenolpyruvate carboxykinase [GTP] (EC 4.1.1.32)",241,-0.119,0.529
+33411,enzyme,"Phosphoenolpyruvate synthase regulatory protein",406,-0.143,0.476
+33423,enzyme,"Phosphoenolpyruvate-protein phosphotransferase of PTS system (EC 2.7.3.9)",610,-0.120,0.516
+33479,enzyme,"Phosphoglucomutase (EC 5.4.2.2)",409,-0.138,0.509
+33729,enzyme,"Acyl-[acyl-carrier-protein]--UDP-N-acetylglucosamine O-acyltransferase (EC 2.3.1.129)",561,-0.131,0.505
+33817,enzyme,"Phosphomannomutase (EC 5.4.2.8) / Phosphoglucosamine mutase (EC 5.4.2.10)",100,-0.156,0.469
+33904,enzyme,"Phosphopentomutase (EC 5.4.2.7)",307,-0.132,0.502
+33936,enzyme,"Phosphoribosylaminoimidazole-succinocarboxamide synthase (EC 6.3.2.6)",908,-0.158,0.474
+33941,enzyme,"Phosphoribosylanthranilate isomerase (EC 5.3.1.24)",559,-0.076,0.527
+33946,enzyme,"Phosphoribosylformimino-5-aminoimidazole carboxamide ribotide isomerase (EC 5.3.1.16)",669,-0.106,0.519
+33959,enzyme,"Phosphoribosylformylglycinamidine synthase, glutamine amidotransferase subunit (EC 6.3.5.3)",530,-0.072,0.521
+33961,enzyme,"Phosphoribosylformylglycinamidine synthase, synthetase subunit (EC 6.3.5.3)",488,-0.098,0.533
+33963,enzyme,"Phosphoribosylformylglycinamidine synthase, synthetase subunit (EC 6.3.5.3) / Phosphoribosylformylglycinamidine synthase, glutamine amidotransferase subunit (EC 6.3.5.3)",358,-0.118,0.505
+33968,enzyme,"Phosphoribosylglycinamide formyltransferase (EC 2.1.2.2)",777,-0.083,0.517
+33971,enzyme,"Formate-dependent phosphoribosylglycinamide formyltransferase",214,-0.080,0.537
+33987,enzyme,"Phosphoserine aminotransferase (EC 2.6.1.52)",100,-0.025,0.577
+33988,enzyme,"Phosphoserine aminotransferase (EC 2.6.1.52)",145,-0.054,0.549
+34647,enzyme,"Polyhydroxyalkanoic acid synthase",400,-0.109,0.508
+34972,enzyme,"Adenine phosphoribosyltransferase (EC 2.4.2.7)",646,-0.049,0.502
+35334,enzyme,"Adenosylcobinamide-phosphate synthase (EC 6.3.1.10)",440,0.080,0.545
+35464,enzyme,"Precorrin-4 C(11)-methyltransferase (EC 2.1.1.133)",103,0.001,0.608
+35467,enzyme,"Precorrin-6Y C(5,15)-methyltransferase [decarboxylating] (EC 2.1.1.132)",122,0.043,0.620
+35468,enzyme,"Precorrin-8X methylmutase (EC 5.4.99.61)",121,0.003,0.601
+35591,enzyme,"Predicted L-lactate dehydrogenase, Fe-S oxidoreductase subunit YkgE",266,-0.033,0.527
+35595,enzyme,"Predicted L-lactate dehydrogenase, Iron-sulfur cluster-binding subunit YkgF",272,-0.126,0.536
+35831,enzyme,"Adenylyl-sulfate reductase [thioredoxin] (EC 1.8.4.10)",153,-0.162,0.499
+35860,enzyme,"Predicted functional analog of homoserine kinase (EC 2.7.1.-)",102,-0.170,0.497
+36268,enzyme,"Predicted rhamnulose-1-phosphate aldolase (EC 4.1.2.19) / Predicted lactaldehyde dehydrogenase (EC 1.2.1.22)",116,-0.110,0.544
+36543,enzyme,"Aerobic glycerol-3-phosphate dehydrogenase (EC 1.1.5.3)",351,-0.077,0.536
+36551,enzyme,"Prephenate and/or arogenate dehydrogenase (unknown specificity) (EC 1.3.1.12)(EC 1.3.1.43)",137,-0.169,0.440
+37521,enzyme,"Proline dehydrogenase (EC 1.5.5.2)",193,-0.122,0.494
+37522,enzyme,"Proline dehydrogenase (EC 1.5.5.2) / Delta-1-pyrroline-5-carboxylate dehydrogenase (EC 1.2.1.88)",353,-0.071,0.551
+37586,machinery,"Prolyl-tRNA synthetase (EC 6.1.1.15), archaeal/eukaryal type",352,-0.190,0.469
+37588,machinery,"Prolyl-tRNA synthetase (EC 6.1.1.15), bacterial type",696,-0.124,0.505
+37758,enzyme,"Propionyl-CoA carboxylase carboxyl transferase subunit (EC 6.4.1.3)",138,-0.107,0.515
+38772,enzyme,"Protein-L-isoaspartate O-methyltransferase (EC 2.1.1.77)",819,-0.055,0.545
+38913,enzyme,"Aldo/keto reductase, SCO4109 family",112,-0.094,0.557
+39342,enzyme,"2-Keto-3-deoxy-D-manno-octulosonate-8-phosphate synthase (EC 2.5.1.55)",537,-0.081,0.507
+40869,membrane,"Alkanesulfonate ABC transporter permease protein SsuC",100,0.182,0.502
+41206,machinery,"Uncharacterized chaperone protein YegD",161,-0.040,0.554
+41527,membrane,"Alkanesulfonates transport system permease protein",122,0.208,0.541
+41794,enzyme,"Alkyl hydroperoxide reductase protein C (EC 1.11.1.15)",352,-0.133,0.483
+42843,enzyme,"Putative oxidoreductase YncB",237,-0.051,0.552
+43154,membrane,"Putative permease PerM (= YfgO)",113,0.287,0.448
+43159,membrane,"Putative permease often clustered with de novo purine synthesis",136,0.253,0.520
+44210,enzyme,"Allophanate hydrolase (EC 3.5.1.54)",116,-0.006,0.585
+45738,membrane,"Putrescine transport system permease protein PotH (TC 3.A.1.11.2)",161,0.194,0.476
+45787,enzyme,"Pyridoxal 5'-phosphate synthase (glutamine hydrolyzing), glutaminase subunit (EC 4.3.3.6)",286,-0.048,0.528
+45788,enzyme,"Pyridoxal 5'-phosphate synthase (glutamine hydrolyzing), synthase subunit (EC 4.3.3.6)",326,-0.138,0.533
+45900,enzyme,"Pyridoxine 5'-phosphate synthase (EC 2.6.99.2)",512,-0.154,0.533
+45982,enzyme,"Pyruvate dehydrogenase E1 component (EC 1.2.4.1)",354,-0.130,0.512
+45994,enzyme,"Pyruvate kinase (EC 2.7.1.40) / Phosphohistidine swiveling domain",150,-0.201,0.475
+45999,enzyme,"Pyruvate,phosphate dikinase (EC 2.7.9.1)",475,-0.140,0.514
+46007,enzyme,"Pyruvate-flavodoxin oxidoreductase",378,-0.147,0.484
+46027,enzyme,"Pyruvate:ferredoxin oxidoreductase, alpha subunit (EC 1.2.7.1)",193,-0.102,0.492
+46029,enzyme,"Pyruvate:ferredoxin oxidoreductase, beta subunit (EC 1.2.7.1)",189,-0.171,0.489
+46034,enzyme,"Pyruvate:ferredoxin oxidoreductase, gamma subunit (EC 1.2.7.1)",147,-0.153,0.479
+46084,enzyme,"Quino(hemo)protein alcohol dehydrogenase, PQQ-dependent (EC 1.1.2.8)",169,-0.142,0.539
+46174,enzyme,"Alpha-D-ribose 1-methylphosphonate 5-triphosphate synthase subunit PhnI (EC 2.7.8.37)",114,-0.082,0.556
+46185,enzyme,"Alpha-D-ribose 1-methylphosphonate 5-triphosphate synthase subunit PhnL (EC 2.7.8.37)",106,-0.039,0.543
+46199,machinery,"RNA binding protein, contains ribosomal protein S1 domain",119,-0.305,0.464
+47730,enzyme,"Respiratory nitrate reductase beta chain (EC 1.7.99.4)",207,-0.146,0.498
+47732,enzyme,"Respiratory nitrate reductase delta chain (EC 1.7.99.4)",140,-0.042,0.559
+47734,enzyme,"Respiratory nitrate reductase gamma chain (EC 1.7.99.4)",162,0.180,0.493
+48282,enzyme,"Rhamnulokinase (EC 2.7.1.5)",163,-0.074,0.527
+48375,enzyme,"Rhodanese-related sulfurtransferase",118,-0.064,0.581
+48627,enzyme,"Ribonucleotide reductase of class III (anaerobic), large subunit (EC 1.17.4.2)",432,-0.194,0.448
+48630,enzyme,"Ribonucleotide reductase of class Ia (aerobic), alpha subunit (EC 1.17.4.1)",489,-0.141,0.475
+48638,enzyme,"Ribonucleotide reductase of class Ia (aerobic), beta subunit (EC 1.17.4.1)",112,-0.147,0.467
+48640,enzyme,"Ribonucleotide reductase of class Ib (aerobic), alpha subunit (EC 1.17.4.1)",134,-0.161,0.439
+48641,enzyme,"Ribonucleotide reductase of class Ib (aerobic), beta subunit (EC 1.17.4.1)",139,-0.149,0.429
+48643,enzyme,"Ribonucleotide reductase transcriptional regulator NrdR",674,-0.143,0.499
+48782,enzyme,"Ribose-phosphate pyrophosphokinase (EC 2.7.6.1)",1061,-0.099,0.494
+48824,enzyme,"LSU rRNA pseudouridine(746) synthase (EC 5.4.99.29) @ tRNA pseudouridine(32) synthase (EC 5.4.99.28)",162,-0.084,0.540
+48829,enzyme,"LSU rRNA pseudouridine(2605) synthase (EC 5.4.99.22)",780,-0.194,0.518
+48836,enzyme,"LSU rRNA pseudouridine(2604) synthase (EC 5.4.99.21)",154,-0.283,0.433
+48840,machinery,"Ribosomal protein L11 methyltransferase",657,-0.098,0.503
+48842,machinery,"Ribosomal protein L3 N(5)-glutamine methyltransferase (EC 2.1.1.298)",190,-0.020,0.524
+48846,machinery,"Ribosomal protein S12p Asp88 (E. coli) methylthiotransferase (EC 2.8.4.4)",623,-0.128,0.499
+48858,machinery,"Ribosomal protein S6--L-glutamate ligase",231,-0.114,0.509
+49362,enzyme,"S-adenosylmethionine:tRNA ribosyltransferase-isomerase (EC 2.4.99.17)",810,-0.091,0.499
+49363,enzyme,"S-formylglutathione hydrolase (EC 3.1.2.12)",254,-0.059,0.533
+49461,enzyme,"SAM-dependent methyltransferase",115,-0.075,0.530
+49555,enzyme,"SAM-dependent methyltransferase, BioC-like",101,0.002,0.598
+49721,enzyme,"Altronate oxidoreductase (EC 1.1.1.58)",127,-0.097,0.469
+49827,enzyme,"SSU rRNA (adenine(1518)-N(6)/adenine(1519)-N(6))-dimethyltransferase (EC 2.1.1.182)",900,-0.077,0.499
+49828,machinery,"SSU ribosomal protein S10p (S20e)",889,-0.244,0.469
+49837,machinery,"SSU ribosomal protein S11p (S14e)",886,-0.252,0.544
+49840,machinery,"SSU ribosomal protein S13p (S18e)",886,-0.290,0.514
+49842,machinery,"SSU ribosomal protein S14p (S29e) @ SSU ribosomal protein S14p (S29e), zinc-dependent",373,-0.171,0.484
+49844,machinery,"SSU ribosomal protein S14p (S29e) @ SSU ribosomal protein S14p (S29e), zinc-independent",524,-0.254,0.514
+49847,machinery,"SSU ribosomal protein S15p (S13e)",856,-0.275,0.455
+49854,machinery,"SSU ribosomal protein S17p (S11e)",837,-0.364,0.443
+49858,machinery,"SSU ribosomal protein S18p @ SSU ribosomal protein S18p, zinc-independent",634,-0.205,0.475
+49860,machinery,"SSU ribosomal protein S19p (S15e)",885,-0.236,0.464
+49889,machinery,"SSU ribosomal protein S3p (S3e)",913,-0.234,0.513
+49893,machinery,"SSU ribosomal protein S4p (S9e) @ SSU ribosomal protein S4p (S9e), zinc-independent",721,-0.176,0.490
+49896,machinery,"SSU ribosomal protein S5p (S2e)",891,-0.178,0.539
+49901,machinery,"SSU ribosomal protein S6p",742,-0.263,0.467
+49904,machinery,"SSU ribosomal protein S7p (S5e)",888,-0.230,0.504
+49906,machinery,"SSU ribosomal protein S8p (S15Ae)",851,-0.190,0.478
+49909,machinery,"SSU ribosomal protein S9p (S16e)",879,-0.185,0.528
+50040,enzyme,"Sarcosine dehydrogenase (EC 1.5.8.3)",151,-0.074,0.546
+50368,enzyme,"Selenophosphate-dependent tRNA 2-selenouridine synthase",199,-0.122,0.504
+50995,enzyme,"Amidophosphoribosyltransferase (EC 2.4.2.14)",950,-0.105,0.501
+51187,enzyme,"Ser/Thr protein phosphatase family protein, UDP-2,3-diacylglucosamine hydrolase (EC 3.6.1.54) homolog",138,-0.134,0.463
+51320,enzyme,"Serine protein kinase (prkA protein), P-loop containing",121,-0.212,0.436
+51334,enzyme,"Serine--pyruvate aminotransferase (EC 2.6.1.51) / L-alanine:glyoxylate aminotransferase (EC 2.6.1.44)",194,-0.047,0.540
+51525,machinery,"Seryl-tRNA synthetase (EC 6.1.1.11)",1005,-0.158,0.496
+53078,enzyme,"Aminodeoxyfutalosine synthase (EC 2.5.1.120)",166,-0.169,0.476
+53562,enzyme,"Sorbitol dehydrogenase (EC 1.1.1.14)",168,-0.043,0.539
+53700,membrane,"Spermidine/putrescine import ABC transporter permease protein PotB (TC 3.A.1.11.1)",459,0.184,0.449
+53770,enzyme,"Aminomethyltransferase (glycine cleavage system T protein) (EC 2.1.2.10)",695,-0.089,0.527
+54560,enzyme,"Succinylglutamic semialdehyde dehydrogenase (EC 1.2.1.71)",101,-0.075,0.558
+54955,enzyme,"Sulfate adenylyltransferase (EC 2.7.7.4)",213,-0.144,0.479
+54959,enzyme,"Sulfate adenylyltransferase subunit 1 (EC 2.7.7.4)",309,-0.134,0.504
+54960,enzyme,"Sulfate adenylyltransferase subunit 1 (EC 2.7.7.4) / Adenylylsulfate kinase (EC 2.7.1.25)",163,-0.122,0.519
+54961,enzyme,"Sulfate adenylyltransferase subunit 2 (EC 2.7.7.4)",513,-0.145,0.505
+54986,membrane,"Sulfate transport system permease protein CysT",260,0.221,0.514
+54988,membrane,"Sulfate transport system permease protein CysW",258,0.184,0.506
+55049,enzyme,"Sulfite reductase [NADPH] flavoprotein alpha-component (EC 1.8.1.2)",157,-0.106,0.524
+55052,enzyme,"Sulfite reductase [NADPH] hemoprotein beta-component (EC 1.8.1.2)",318,-0.156,0.512
+55095,enzyme,"Protein-methionine-sulfoxide reductase catalytic subunit MsrP",230,-0.109,0.509
+55273,enzyme,"Superoxide dismutase [Fe] (EC 1.15.1.1)",289,-0.190,0.465
+55284,enzyme,"Superoxide reductase (EC 1.15.1.2)",158,-0.207,0.458
+55966,enzyme,"Anhydro-N-acetylmuramic acid kinase (EC 2.7.1.170)",454,-0.049,0.547
+56662,enzyme,"Anthranilate phosphoribosyltransferase (EC 2.4.2.18)",784,-0.091,0.536
+56814,enzyme,"Anthranilate synthase, aminase component (EC 4.1.3.27)",789,-0.098,0.507
+56897,enzyme,"Thymidylate synthase (EC 2.1.1.45)",591,-0.108,0.469
+57270,enzyme,"DNA topoisomerase IV subunit A (EC 5.99.1.3)",628,-0.166,0.488
+57399,enzyme,"Transaldolase (EC 2.2.1.2)",925,-0.148,0.487
+57435,machinery,"Transcription elongation factor GreB",220,-0.195,0.516
+60409,machinery,"Translation elongation factor G",1033,-0.167,0.493
+60412,machinery,"Elongation factor G-like protein TM_1651",292,-0.155,0.497
+60414,machinery,"Translation elongation factor LepA",942,-0.119,0.474
+60424,machinery,"Translation elongation factor P Lys34--(R)-beta-lysine ligase",218,-0.031,0.529
+60428,machinery,"Translation elongation factor Tu",1352,-0.174,0.507
+60942,membrane,"Transporter, sodium/sulfate symporter family",152,0.096,0.520
+61880,enzyme,"Trimethylamine methyltransferase family protein",152,-0.076,0.548
+61907,enzyme,"2-dehydro-3-deoxy-D-gluconate 5-dehydrogenase (EC 1.1.1.127) @ 2-deoxy-D-gluconate 3-dehydrogenase (EC 1.1.1.125)",244,-0.117,0.509
+62023,enzyme,"Tryptophan synthase alpha chain (EC 4.2.1.20)",796,-0.066,0.530
+62027,enzyme,"Tryptophan synthase beta chain (EC 4.2.1.20)",890,-0.133,0.527
+62045,machinery,"Tryptophanyl-tRNA synthetase (EC 6.1.1.2)",986,-0.171,0.482
+63916,machinery,"Tyrosyl-tRNA synthetase (EC 6.1.1.1)",952,-0.150,0.474
+63943,enzyme,"UDP-2-acetamido-3-amino-2,3-dideoxy-D-glucuronic acid acetyltransferase (EC 2.3.1.201)",119,-0.148,0.478
+63948,enzyme,"UDP-3-O-[3-hydroxymyristoyl] glucosamine N-acyltransferase (EC 2.3.1.191)",592,-0.131,0.514
+63974,enzyme,"UDP-N-acetylenolpyruvoylglucosamine reductase (EC 1.3.1.98)",841,-0.093,0.517
+64046,enzyme,"UDP-galactopyranose mutase (EC 5.4.99.9)",215,-0.187,0.448
+64131,enzyme,"UDP-glucuronate 5'-epimerase (EC 5.1.3.12)",163,-0.111,0.474
+64143,enzyme,"UDP-sulfoquinovose synthase (EC 3.13.1.1)",113,-0.162,0.480
+64393,enzyme,"UTP--glucose-1-phosphate uridylyltransferase (EC 2.7.7.9)",803,-0.143,0.488
+64506,membrane,"Uncharacterized efflux ABC transporter, permease protein YadH",135,0.246,0.422
+66158,membrane,"Urea ABC transporter, permease protein UrtC",254,0.218,0.509
+66183,enzyme,"Urea carboxylase-related aminomethyltransferase",145,-0.149,0.515
+66263,enzyme,"Uronate isomerase (EC 5.3.1.12)",291,-0.116,0.483
+66286,enzyme,"Uroporphyrinogen-III methyltransferase (EC 2.1.1.107) / Uroporphyrinogen-III synthase (EC 4.2.1.75)",232,-0.078,0.529
+66502,machinery,"Asparaginyl-tRNA synthetase (EC 6.1.1.22)",506,-0.115,0.462
+66706,membrane,"Vitamin B12 ABC transporter, permease protein BtuC",412,0.241,0.511
+66715,enzyme,"Aspartate aminotransferase (EC 2.6.1.1)",147,-0.107,0.515
+66906,enzyme,"Aspartate carbamoyltransferase (EC 2.1.3.2)",905,-0.107,0.497
+66935,membrane,"Uracil permease @ Uracil:proton symporter UraA",257,0.163,0.472
+66942,enzyme,"Xanthine phosphoribosyltransferase (EC 2.4.2.22)",150,-0.108,0.433
+66960,enzyme,"Aspartate carbamoyltransferase regulatory chain (PyrI)",153,-0.282,0.412
+66964,membrane,"Xanthine/uracil/thiamine/ascorbate permease family protein",553,0.174,0.478
+67063,enzyme,"Xylose isomerase (EC 5.3.1.5)",225,-0.174,0.475
+67188,enzyme,"Aspartate-semialdehyde dehydrogenase (EC 1.2.1.11)",966,-0.120,0.501
+67277,enzyme,"Valine--pyruvate aminotransferase (EC 2.6.1.66)",217,-0.002,0.566
+67382,enzyme,"(R)-citramalate synthase (EC 2.3.1.182)",406,-0.151,0.512
+67554,enzyme,"Aspartyl-tRNA(Asn) amidotransferase subunit B (EC 6.3.5.6) @ Glutamyl-tRNA(Gln) amidotransferase subunit B (EC 6.3.5.7)",816,-0.194,0.488
+69558,enzyme,"2-hydroxymuconic semialdehyde hydrolase (EC 3.7.1.9)",106,-0.007,0.574
+69740,enzyme,"2-iminoacetate synthase (ThiH) (EC 4.1.99.19)",121,-0.113,0.478
+70068,enzyme,"B12 binding domain / kinase domain / Methylmalonyl-CoA mutase (EC 5.4.99.2)",173,-0.163,0.484
+70354,enzyme,"2-keto-3-deoxy-D-arabino-heptulosonate-7-phosphate synthase I alpha (EC 2.5.1.54)",468,-0.159,0.513
+70550,enzyme,"2-keto-3-deoxy-D-arabino-heptulosonate-7-phosphate synthase I beta (EC 2.5.1.54)",442,-0.121,0.505
+71194,enzyme,"2-keto-3-deoxy-D-arabino-heptulosonate-7-phosphate synthase II (EC 2.5.1.54)",286,-0.104,0.547
+72326,enzyme,"Homocitrate synthase (EC 2.3.3.14)",142,-0.096,0.515
+75770,enzyme,"FIG00519347: Ribonucleotide reductase-like protein",157,-0.108,0.503
+123288,membrane,"Sulfate permease, Trk-type",164,0.115,0.510
+127024,enzyme,"Cell division inhibitor Slr1223 (YfcH in EC), contains epimerase/dehydratase and DUF1731 domains",137,-0.048,0.519
+178044,machinery,"SSU ribosomal protein S16p",844,-0.242,0.521
+213073,enzyme,"2-hydroxychromene-2-carboxylate isomerase/DsbA-like thioredoxin domain",261,-0.131,0.522
+217849,membrane,"Uncharacterized UPF0721 integral membrane protein",211,0.222,0.550
+275905,enzyme,"Glutamine synthetase type I (EC 6.3.1.2)",998,-0.131,0.484
+306574,enzyme,"Phosphotransferase involved in threonylcarbamoyladenosine t(6)A37 formation in tRNA",253,-0.027,0.525
+322610,membrane,"ABC exporter permease subunit of DevC family",122,0.044,0.440
+402268,enzyme,"oxidoreductase of aldo/keto reductase family, subgroup 1",393,-0.164,0.494
+402817,enzyme,"Betaine aldehyde dehydrogenase (EC 1.2.1.8)",130,-0.094,0.552
+403095,enzyme,"Uracil phosphoribosyltransferase (EC 2.4.2.9)",696,-0.098,0.499
+403434,enzyme,"2-methylcitrate synthase (EC 2.3.3.5)",161,-0.119,0.508
+404432,enzyme,"Biotin synthase related domain containing protein",164,-0.127,0.476
+406692,enzyme,"2-oxoglutarate dehydrogenase E1 component (EC 1.2.4.2)",514,-0.131,0.499
+407246,enzyme,"2-oxoglutarate/2-oxoacid ferredoxin oxidoreductase, alpha subunit (EC 1.2.7.-)",314,-0.125,0.497
+408673,enzyme,"Ferredoxin-dependent glutamate synthase (EC 1.4.7.1)",259,-0.069,0.512
+409350,membrane,"Lipopolysaccharide export system permease protein LptG",304,0.083,0.467
+410279,enzyme,"2-oxoglutarate/2-oxoacid ferredoxin oxidoreductase, gamma subunit (EC 1.2.7.-) / 2-oxoglutarate/2-oxoacid ferredoxin oxidoreductase, alpha subunit (EC 1.2.7.-)",411,-0.119,0.518
+412178,enzyme,"Branched-chain alpha-keto acid dehydrogenase, E1 component, beta subunit (EC 1.2.4.4)",355,-0.046,0.544
+413182,enzyme,"tRNA ho5U(34) carboxymethyltransferase",142,-0.061,0.487
+413189,enzyme,"tRNA (adenine(22)-N(1))-methyltransferase (EC 2.1.1.217)",138,-0.197,0.439
+413203,enzyme,"tRNA (cytidine(34)-2'-O)-methyltransferase (EC 2.1.1.207)",621,-0.069,0.489
+413208,enzyme,"tRNA (guanine(37)-N(1))-methyltransferase (EC 2.1.1.228)",883,-0.080,0.517
+413226,enzyme,"tRNA (uracil(54)-C5)-methyltransferase (EC 2.1.1.35) @ tmRNA (uracil(341)-C5)-methyltransferase",121,-0.145,0.452
+413286,enzyme,"tRNA pseudouridine(13) synthase (EC 5.4.99.27)",241,-0.119,0.503
+413290,enzyme,"tRNA pseudouridine(38-40) synthase (EC 5.4.99.12)",957,-0.090,0.515
+413295,enzyme,"tRNA pseudouridine(55) synthase (EC 5.4.99.25)",840,-0.104,0.516
+413298,enzyme,"tRNA t(6)A37-methylthiotransferase (EC 2.8.4.5)",481,-0.146,0.486
+413306,enzyme,"tRNA-(cytosine32)-2-thiocytidine synthetase TtcA",407,-0.149,0.461
+413340,enzyme,"tRNA-dihydrouridine(16) synthase",126,-0.067,0.538
+415332,enzyme,"23S rRNA (cytidine(2498)-2'-O)-methyltransferase (EC 2.1.1.186)",124,-0.061,0.507
+415346,enzyme,"23S rRNA (cytosine(1962)-C(5))-methyltransferase (EC 2.1.1.191)",359,-0.069,0.517
+415407,enzyme,"23S rRNA (guanine(2445)-N(2))-methyltransferase (EC 2.1.1.173)",312,-0.138,0.487
+415422,enzyme,"23S rRNA (guanine(2445)-N(2))-methyltransferase (EC 2.1.1.173) / 23S rRNA (guanine(2069)-N(7))-methyltransferase (EC 2.1.1.264)",149,-0.115,0.510
+415581,enzyme,"23S rRNA (uridine(2552)-2'-O)-methyltransferase (EC 2.1.1.166)",407,-0.104,0.514
+416129,enzyme,"CTP synthase (EC 6.3.4.2)",971,-0.148,0.487
+416410,enzyme,"Carbamoyl-phosphate synthase large chain (EC 6.3.5.5)",1046,-0.124,0.495
+416513,enzyme,"Carbon-nitrogen hydrolase",185,-0.138,0.454
+416623,enzyme,"Carboxynorspermidine synthase (EC 1.5.1.43)",181,-0.182,0.464
+416674,enzyme,"3,4-dihydroxy-2-butanone 4-phosphate synthase (EC 4.1.99.12) / GTP cyclohydrolase II (EC 3.5.4.25)",749,-0.144,0.517
+417376,enzyme,"3-carboxy-cis,cis-muconate cycloisomerase (EC 5.5.1.2)",122,-0.016,0.625
+417437,machinery,"Chaperone protein HscA",147,-0.060,0.547
+417658,enzyme,"3-dehydroquinate synthase (EC 4.2.3.4)",855,-0.070,0.507
+417721,enzyme,"Cholesterol oxidase (EC 1.1.3.6) @ Steroid Delta(5)->Delta(4)-isomerase (EC 5.3.3.1)",123,-0.059,0.566
+417755,enzyme,"3-demethylubiquinol 3-O-methyltransferase (EC 2.1.1.64) @ 2-polyprenyl-6-hydroxyphenyl methylase (EC 2.1.1.222)",308,-0.090,0.519
+417816,enzyme,"Chorismate mutase I (EC 5.4.99.5)",116,-0.186,0.545
+417840,enzyme,"Chorismate synthase (EC 4.2.3.5)",930,-0.134,0.539
+418127,membrane,"Citrate/H+ symporter of CitMHS family",111,0.179,0.478
+418128,enzyme,"3-deoxy-manno-octulosonate cytidylyltransferase (EC 2.7.7.38)",549,-0.097,0.519
+418243,enzyme,"Cob(I)alamin adenosyltransferase (EC 2.5.1.17)",275,-0.188,0.494
+418244,enzyme,"Cob(I)alamin adenosyltransferase (EC 2.5.1.17) @ Cob(I)alamin adenosyltransferase (EC 2.5.1.17), clustered with cobalamin synthesis",177,-0.175,0.528
+418254,enzyme,"Cobalamin biosynthesis protein BluB @ 5,6-dimethylbenzimidazole synthase, flavin destructase family",140,-0.039,0.547
+418278,enzyme,"Cobalt-precorrin 5A hydrolase (EC 3.7.1.12)",153,-0.118,0.486
+418285,enzyme,"Cobalt-precorrin-3 C(17)-methyltransferase (EC 2.1.1.272)",144,-0.157,0.482
+418291,enzyme,"Cobalt-precorrin-4 C(11)-methyltransferase (EC 2.1.1.271)",219,-0.116,0.508
+418292,enzyme,"Cobalt-precorrin-5B (C1)-methyltransferase (EC 2.1.1.195)",212,-0.127,0.508
+418308,enzyme,"Cobalt-precorrin-7 (C5)-methyltransferase (EC 2.1.1.289) / Cobalt-precorrin-6B C15-methyltransferase [decarboxylating] (EC 2.1.1.196)",120,-0.037,0.544
+418309,enzyme,"Cobalt-precorrin-8 methylmutase (EC 5.4.99.60)",189,-0.143,0.505
+418379,enzyme,"Cobyrinic acid a,c-diamide synthetase (EC 6.3.5.11)",357,-0.057,0.525
+418406,enzyme,"3-hydroxyacyl-[acyl-carrier-protein] dehydratase, FabA form (EC 4.2.1.59) @ Trans-2-decenoyl-[acyl-carrier-protein] isomerase (EC 5.3.3.14)",217,-0.031,0.502
+418448,enzyme,"Coenzyme F420-dependent N5,N10-methylene tetrahydromethanopterin reductase and related flavin-dependent oxidoreductases",145,-0.063,0.567
+419694,enzyme,"Creatinine amidohydrolase (EC 3.5.2.10)",312,-0.077,0.537
+419870,enzyme,"Cyanophycin synthase (EC 6.3.2.29)(EC 6.3.2.30)",196,-0.120,0.522
+419899,enzyme,"Cyclic beta-1,2-glucan synthase (EC 2.4.1.-)",149,-0.059,0.516
+419900,enzyme,"Cyclic dehypoxanthine futalosine synthase (EC 1.21.98.1)",166,-0.140,0.483
+419913,enzyme,"Cyclic pyranopterin monophosphate synthase (EC 4.6.1.17)",674,-0.181,0.520
+419915,enzyme,"3-methyl-2-oxobutanoate hydroxymethyltransferase (EC 2.1.2.11)",759,-0.098,0.524
+420762,enzyme,"D-2-hydroxyglutarate dehydrogenase (EC 1.1.99.2)",264,-0.051,0.564
+420764,enzyme,"Erythronate-4-phosphate dehydrogenase (EC 1.1.1.290)",102,-0.065,0.510
+420792,enzyme,"D-alanine aminotransferase (EC 2.6.1.21)",234,-0.108,0.506
+420903,enzyme,"D-arabinose-5-phosphate isomerase (EC 5.3.1.13)",552,-0.086,0.519
+420953,enzyme,"3-oxoacyl-[acyl-carrier-protein] synthase, KASIII (EC 2.3.1.180)",1142,-0.099,0.516
+421013,enzyme,"3-oxoacyl-[acyl-carrier-protein] synthase, KASI (EC 2.3.1.41)",238,-0.100,0.522
+422651,enzyme,"Decaprenyl diphosphate synthase (EC 2.5.1.91)",126,-0.088,0.550
+422888,enzyme,"Delta-1-pyrroline-5-carboxylate dehydrogenase (EC 1.2.1.88)",269,-0.128,0.502
+422912,enzyme,"Deoxyadenosine kinase (EC 2.7.1.76) @ Deoxyguanosine kinase (EC 2.7.1.113)",190,-0.146,0.419
+422938,enzyme,"Deoxyhypusine synthase (EC 2.5.1.46)",161,-0.132,0.479
+423089,enzyme,"Diaminohydroxyphosphoribosylaminopyrimidine deaminase (EC 3.5.4.26) / 5-amino-6-(5-phosphoribosylamino)uracil reductase (EC 1.1.1.193)",739,-0.089,0.554
+423335,enzyme,"Dihydrolipoamide dehydrogenase of 2-oxoglutarate dehydrogenase (EC 1.8.1.4)",267,-0.145,0.526
+423429,enzyme,"Dihydroxyacetone kinase-like protein, phosphatase domain / Dihydroxyacetone kinase-like protein, kinase domain",265,-0.161,0.496
+423449,enzyme,"1,4-dihydroxy-6-naphtoate synthase",149,-0.074,0.502
+423470,enzyme,"4-deoxy-L-threo-5-hexosulose-uronate ketol-isomerase (EC 5.3.1.17)",173,-0.168,0.471
+423533,enzyme,"4-diphosphocytidyl-2-C-methyl-D-erythritol kinase (EC 2.7.1.148)",671,-0.041,0.533
+423732,enzyme,"4-hydroxy-3-methylbut-2-enyl diphosphate reductase (EC 1.17.7.4)",724,-0.140,0.512
+423927,enzyme,"4-hydroxybenzoate polyprenyltransferase (EC 2.5.1.39)",349,0.197,0.514
+424447,enzyme,"4-hydroxythreonine-4-phosphate dehydrogenase (EC 1.1.1.262)",618,-0.089,0.537
+424496,enzyme,"Enoyl-CoA hydratase [isoleucine degradation] (EC 4.2.1.17) / 3-hydroxyacyl-CoA dehydrogenase (EC 1.1.1.35) / 3-hydroxybutyryl-CoA epimerase (EC 5.1.2.3)",125,-0.118,0.543
+424627,enzyme,"3D-(3,5/4)-trihydroxycyclohexane-1,2-dione hydrolase (EC 3.7.1.22)",139,-0.078,0.550
+426041,enzyme,"5,10-methylenetetrahydrofolate reductase (EC 1.5.1.20)",160,-0.116,0.501
+426115,enzyme,"1-deoxy-D-xylulose 5-phosphate synthase (EC 2.2.1.7)",859,-0.104,0.512
+426204,enzyme,"5-aminolevulinate synthase (EC 2.3.1.37)",159,-0.100,0.533
+426236,enzyme,"(E)-4-hydroxy-3-methylbut-2-enyl-diphosphate synthase (flavodoxin) (EC 1.17.7.3)",757,-0.135,0.515
+426342,enzyme,"FIG005121: SAM-dependent methyltransferase (EC 2.1.1.-)",119,0.028,0.530
+426377,enzyme,"5-carboxymethyl-2-hydroxymuconate semialdehyde dehydrogenase (EC 1.2.1.60)",135,-0.102,0.523
+426474,enzyme,"5-deoxy-glucuronate isomerase (EC 5.3.1.30)",123,-0.119,0.543
+426531,enzyme,"5-hydroxyisourate hydrolase (EC 3.5.2.17)",171,-0.042,0.544
+426629,enzyme,"5-methyl-dCTP pyrophosphohydrolase (EC 3.6.1.-)",119,-0.004,0.574
+426722,enzyme,"5-methyltetrahydrofolate--homocysteine methyltransferase (EC 2.1.1.13)",713,-0.133,0.506
+426932,enzyme,"6,7-dimethyl-8-ribityllumazine synthase (EC 2.5.1.78)",776,-0.107,0.525
+427299,enzyme,"6-phosphogluconate dehydrogenase, decarboxylating (EC 1.1.1.44)",707,-0.100,0.516
+427366,enzyme,"6-pyruvoyl tetrahydrobiopterin synthase (EC 4.2.3.12)",154,-0.225,0.426
+435859,membrane,"PTS system permease (IIAMan), nitrogen regulatory IIA protein",106,-0.081,0.545
+473519,enzyme,"Superoxide dismutase [Mn] (EC 1.15.1.1)",482,-0.197,0.475
+489714,enzyme,"Porphobilinogen synthase (EC 4.2.1.24)",841,-0.104,0.517
+492707,enzyme,"Homoserine dehydrogenase (EC 1.1.1.3)",789,-0.116,0.521
+502238,enzyme,"Pyruvate dehydrogenase E1 component alpha subunit (EC 1.2.4.1)",384,-0.172,0.497
+529632,machinery,"Chaperone protein ClpB (ATP-dependent unfoldase)",957,-0.185,0.504
+549380,enzyme,"4-hydroxy-tetrahydrodipicolinate synthase (EC 4.3.3.7)",928,-0.110,0.511
+571237,enzyme,"dTDP-4-dehydrorhamnose reductase (EC 1.1.1.133)",634,-0.129,0.511
+577145,enzyme,"FIG138056: a glutathione-dependent thiol reductase",391,-0.209,0.458
+577820,membrane,"Cytosine/purine/uracil/thiamine/allantoin permease family protein",158,0.163,0.511
+595771,enzyme,"Squalene synthase (EC 2.5.1.21)",120,-0.008,0.571
+598374,enzyme,"Para-aminobenzoate synthase, amidotransferase component (EC 2.6.1.85)",135,-0.055,0.483
+618776,enzyme,"23S rRNA (adenine(2503)-C(2))-methyltransferase @ tRNA (adenine(37)-C(2))-methyltransferase (EC 2.1.1.192)",886,-0.131,0.488
+624653,enzyme,"Uncharacterized oxidoreductase",118,-0.038,0.585
+625415,enzyme,"7-cyano-7-deazaguanine synthase (EC 6.3.4.20)",575,-0.082,0.513
+634936,membrane,"Protein QmcA (possibly involved in integral membrane quality control)",612,-0.164,0.494
+659995,enzyme,"glutamine synthetase family protein",293,-0.091,0.537
+660064,enzyme,"Galactoside O-acetyltransferase (EC 2.3.1.18)",140,-0.162,0.482
+662025,enzyme,"L-fuconolactone hydrolase",108,-0.033,0.533
+662874,enzyme,"3-hydroxyisobutyrate dehydrogenase family protein",384,-0.050,0.565
+662997,enzyme,"Cobalamin synthase (EC 2.7.8.26)",405,0.209,0.536
+665441,enzyme,"Ferredoxin--sulfite reductase (EC 1.8.7.1)",132,-0.162,0.475
+668429,membrane,"Macrolide export ATP-binding/permease protein MacB",108,-0.101,0.523
+671335,enzyme,"Cinnamyl alcohol dehydrogenase/reductase (EC 1.1.1.195) @ Alcohol dehydrogenase (EC 1.1.1.1)",129,-0.076,0.534
+688906,membrane,"Nucleoside ABC transporter, permease protein 1",152,0.196,0.542
+689961,enzyme,"Guanylate kinase (EC 2.7.4.8)",809,-0.121,0.493
+693744,enzyme,"Serine/threonine kinase",683,-0.114,0.469
+693753,membrane,"Sodium/glycine symporter GlyP",198,0.117,0.490
+695496,enzyme,"Succinyl-CoA:3-ketoacid-coenzyme A transferase subunit A (EC 2.8.3.5)",339,-0.133,0.517
+709627,membrane,"Nucleoside ABC transporter, permease protein 2",161,0.217,0.548
+709681,membrane,"Inner membrane protein YrbG, predicted calcium/sodium:proton antiporter",262,0.180,0.493
+710545,machinery,"Lysyl-tRNA synthetase (class II) (EC 6.1.1.6)",797,-0.155,0.474
+717752,enzyme,"Cobalt-precorrin-2 C(20)-methyltransferase (EC 2.1.1.151)",167,-0.084,0.496
+719345,enzyme,"Phosphoenolpyruvate-dihydroxyacetone phosphotransferase (EC 2.7.1.121), ADP-binding subunit DhaL",166,-0.138,0.556
+730148,enzyme,"Cell division protein FtsI [Peptidoglycan synthetase] (EC 2.4.1.129) @ Sporulation peptidoglycan synthetase SpoVD",121,-0.199,0.456
+730641,enzyme,"4-hydroxy-2-oxoglutarate aldolase (EC 4.1.3.16) @ 2-dehydro-3-deoxyphosphogluconate aldolase (EC 4.1.2.14)",555,-0.043,0.541
+734221,enzyme,"Xanthine and CO dehydrogenases maturation factor, XdhC/CoxF family",435,-0.040,0.561
+736089,enzyme,"Hydroxylamine reductase (EC 1.7.99.1)",298,-0.149,0.470
+741652,enzyme,"Uncharacterized oxidoreductase Atu4375",130,-0.128,0.536
+743561,enzyme,"Anthranilate synthase, amidotransferase component (EC 4.1.3.27)",218,-0.086,0.479
+760084,enzyme,"Cystathionine beta-synthase (EC 4.2.1.22)",454,-0.150,0.516
+761827,enzyme,"Beta-ketoadipate enol-lactone hydrolase (EC 3.1.1.24)",150,-0.010,0.585
+769755,enzyme,"16S rRNA (cytosine(967)-C(5))-methyltransferase (EC 2.1.1.176)",676,-0.078,0.543
+778630,membrane,"Uncharacterized amino acid permease, GabP family",1417,0.169,0.515
+780840,enzyme,"Undecaprenyl-phosphate alpha-N-acetylglucosaminyl 1-phosphate transferase (EC 2.7.8.33)",542,0.210,0.457
+791353,membrane,"Xanthine permease",169,0.163,0.469
+792111,enzyme,"Butyryl-CoA dehydrogenase (EC 1.3.8.1)",107,-0.123,0.516
+794375,membrane,"Maltodextrin ABC transporter, permease protein MdxF",327,0.117,0.465
+802025,membrane,"N-acetyl-D-glucosamine ABC transporter, permease protein 2",161,0.175,0.446
+802791,enzyme,"FIG01423360: glycoside hydrolase",156,-0.079,0.503
+821117,enzyme,"Cyclopropane-fatty-acyl-phospholipid synthase (EC 2.1.1.79)",372,-0.071,0.518
+822481,membrane,"Dipeptide ABC transporter, permease protein DppB (TC 3.A.1.5.2)",482,0.163,0.488
+827693,enzyme,"Long chain acyl-CoA dehydrogenase [fadN-fadA-fadE operon] (EC 1.3.8.8)",154,-0.158,0.466
+853991,enzyme,"Diaminopimelate epimerase (EC 5.1.1.7)",835,-0.082,0.521
+861656,enzyme,"Choline dehydrogenase (EC 1.1.99.1)",122,-0.106,0.545
+862519,enzyme,"Aspartokinase (EC 2.7.2.4)",1076,-0.131,0.487
+876943,enzyme,"1,4-dihydroxy-2-naphthoate polyprenyltransferase (EC 2.5.1.74)",330,0.170,0.506
+880747,membrane,"Na+/H+ antiporter NhaC",218,0.118,0.459
+886151,membrane,"Glycine betaine/L-proline transport system permease protein ProW (TC 3.A.1.12.1)",141,0.124,0.501
+900122,enzyme,"UDP-N-acetylglucosamine 1-carboxyvinyltransferase (EC 2.5.1.7)",1031,-0.108,0.515
+906364,enzyme,"Hydroxyacylglutathione hydrolase (EC 3.1.2.6)",352,-0.102,0.526
+907539,enzyme,"Branched-chain alpha-keto acid dehydrogenase, E1 component, alpha subunit (EC 1.2.4.4)",351,-0.124,0.548
+909019,enzyme,"2,4-dienoyl-CoA reductase [NADPH] (EC 1.3.1.34)",465,-0.117,0.528
+911329,enzyme,"Acryloyl-CoA reductase AcuI/YhdH (EC 1.3.1.84)",316,-0.048,0.552
+912265,enzyme,"tRNA-dihydrouridine synthase DusB",809,-0.123,0.520
+915037,enzyme,"Oxidoreductase, GMC family",430,-0.077,0.564
+925719,membrane,"ABC transporter, permease protein (cluster 13, osmolytes)",241,0.187,0.565
+926109,machinery,"Arginyl-tRNA synthetase (EC 6.1.1.19)",1036,-0.152,0.486
+931013,enzyme,"Choloylglycine hydrolase (EC 3.5.1.24)",131,-0.117,0.473
+935233,enzyme,"Fe-S oxidoreductase",164,-0.030,0.506
+970618,membrane,"Glutamine ABC transporter, permease protein GlnP",112,0.152,0.450
+970735,enzyme,"Putative predicted metal-dependent hydrolase",102,-0.193,0.453
+977978,membrane,"Oligopeptide ABC transporter, permease protein OppB (TC 3.A.1.5.1)",692,0.141,0.461
+982259,machinery,"Aspartyl-tRNA synthetase (EC 6.1.1.12) @ Aspartyl-tRNA(Asn) synthetase (EC 6.1.1.23)",684,-0.099,0.502
+990926,enzyme,"Trehalose-6-phosphate hydrolase (EC 3.2.1.93)",102,-0.215,0.430
+1003946,enzyme,"Epoxide hydrolase (EC 3.3.2.9)",444,-0.025,0.573
+1010490,enzyme,"Galactose-1-phosphate uridylyltransferase (EC 2.7.7.10)",197,-0.131,0.490
+1016954,enzyme,"Precorrin-6A reductase (EC 1.3.1.54)",109,0.007,0.617
+1025472,membrane,"CzcABC family efflux RND transporter, transmembrane protein",765,0.004,0.498
+1033123,enzyme,"UDP-glucose 4-epimerase (EC 5.1.3.2)",1816,-0.108,0.504
+1036334,enzyme,"UDP-N-acetyl-D-mannosamine dehydrogenase (EC 1.1.1.336)",145,-0.135,0.486
+1039483,enzyme,"Fe-S protein, homolog of lactate dehydrogenase SO1521",306,-0.064,0.560
+1043799,machinery,"Transcription elongation factor GreA",801,-0.279,0.478
+1052212,enzyme,"Uroporphyrinogen-III synthase (EC 4.2.1.75)",185,-0.057,0.536
+1053024,enzyme,"Glutamine synthetase adenylyl-L-tyrosine phosphorylase (EC 2.7.7.89) / Glutamate-ammonia-ligase adenylyltransferase (EC 2.7.7.42)",453,-0.034,0.565
+1072023,enzyme,"Allophanate hydrolase 2 subunit 2 (EC 3.5.1.54)",332,-0.039,0.562
+1072302,membrane,"Phosphate ABC transporter, permease protein PstA (TC 3.A.1.7.1)",910,0.126,0.496
+1110486,enzyme,"Flavodoxin reductases (ferredoxin-NADPH reductases) family 1",279,-0.049,0.543
+1112149,enzyme,"Oxidoreductase",141,-0.040,0.572
+1114144,membrane,"Multidrug efflux system EmrAB-OMF, inner-membrane proton/drug antiporter EmrB (MFS type)",113,0.174,0.497
+1124177,enzyme,"Dihydrolipoamide succinyltransferase component (E2) of 2-oxoglutarate dehydrogenase complex (EC 2.3.1.61)",486,-0.167,0.527
+1127158,enzyme,"Zn-dependent hydrolase YycJ/WalJ, required for cell wall metabolism and coordination of cell division with DNA replication",154,-0.186,0.444
+1135236,enzyme,"Dephospho-CoA kinase (EC 2.7.1.24)",621,-0.128,0.511
+1137124,enzyme,"Phosphoglucosamine mutase (EC 5.4.2.10)",826,-0.105,0.522
+1154330,enzyme,"Polyphosphate kinase 2 (EC 2.7.4.1)",350,-0.176,0.498
+1159117,enzyme,"Selenide,water dikinase (EC 2.7.9.3) @ selenocysteine-containing",176,-0.102,0.502
+1170509,enzyme,"2-oxoglutarate/2-oxoacid ferredoxin oxidoreductase, delta subunit, ferredoxin-like 4Fe-4S binding protein (EC 1.2.7.-)",186,-0.146,0.449
+1174787,enzyme,"Xanthine-guanine phosphoribosyltransferase (EC 2.4.2.22)",280,-0.094,0.504
+1174807,enzyme,"Para-aminobenzoate synthase, aminase component (EC 2.6.1.85)",460,-0.090,0.511
+1174827,membrane,"FIG152265: Sodium:solute symporter associated protein",131,0.147,0.407
+1175575,machinery,"Threonyl-tRNA synthetase (EC 6.1.1.3)",1056,-0.156,0.475
+1176589,enzyme,"4-hydroxy-tetrahydrodipicolinate reductase (EC 1.17.1.8)",851,-0.113,0.529
+1182430,membrane,"Domain of unknown function / Efflux ABC transporter, permease protein",200,0.094,0.456
+1187736,enzyme,"Dihydrofolate reductase homolog",130,-0.048,0.538
+1195880,membrane,"D-xylose proton-symporter XylE",119,0.167,0.454
+1212739,machinery,"Heat shock protein 60 kDa family chaperone GroEL",1183,-0.233,0.509
+1213071,machinery,"LSU ribosomal protein L10p (P0)",781,-0.150,0.508
+1219411,enzyme,"5-methyltetrahydropteroyltriglutamate--homocysteine methyltransferase (EC 2.1.1.14)",411,-0.103,0.515
+1220473,enzyme,"Tyrosine-protein kinase (EC 2.7.10.2)",437,-0.147,0.464
+1252304,enzyme,"Xanthine dehydrogenase iron-sulfur subunit (EC 1.17.1.4) / Xanthine dehydrogenase, molybdenum binding subunit (EC 1.17.1.4)",105,-0.118,0.547
+1258559,machinery,"Metal chaperone, involved in Zn homeostasis",413,-0.127,0.488
+1264039,enzyme,"Pyrophosphate-dependent fructose 6-phosphate-1-kinase (EC 2.7.1.90)",234,-0.133,0.496
+1308267,enzyme,"Beta-1,3-glucosyltransferase",110,-0.102,0.437
+1323228,enzyme,"Acyl-phosphate:glycerol-3-phosphate O-acyltransferase PlsY (EC 2.3.1.n3)",594,0.178,0.487
+1329056,enzyme,"N-acetylglucosaminyl-L-malate N-acetyl hydrolase",112,-0.147,0.476
+1366266,enzyme,"Ribosomal-protein-S18p-alanine acetyltransferase (EC 2.3.1.128)",451,-0.073,0.504
+1383123,enzyme,"Acetoacetyl-CoA synthetase (EC 6.2.1.16)",218,-0.007,0.536
+1400330,enzyme,"Biotin synthase (EC 2.8.1.6)",590,-0.134,0.507
+1421572,machinery,"SSU ribosomal protein S4p (S9e) @ SSU ribosomal protein S4p (S9e), zinc-dependent",189,-0.173,0.492
+1427606,enzyme,"2-C-methyl-D-erythritol 4-phosphate cytidylyltransferase (EC 2.7.7.60) / 2-C-methyl-D-erythritol 2,4-cyclodiphosphate synthase (EC 4.6.1.12)",142,-0.084,0.574
+1430214,enzyme,"Deoxyuridine 5'-triphosphate nucleotidohydrolase (EC 3.6.1.23)",644,-0.079,0.538
+1446424,membrane,"Na(+) H(+) antiporter subunit E",253,0.098,0.485
+1447139,enzyme,"ATP:Cob(I)alamin adenosyltransferase (EC 2.5.1.17)",456,-0.116,0.525
+1456294,enzyme,"3-hydroxybutyryl-CoA dehydrogenase (EC 1.1.1.157)",390,-0.133,0.482
+1462537,membrane,"Efflux ABC transporter, permease/ATP-binding protein YwjA",151,-0.029,0.424
+1468574,enzyme,"Ribulose-5-phosphate 4-epimerase and related epimerases and aldolases",449,-0.091,0.531
+1469197,enzyme,"RNA methyltransferase, TrmA family",403,-0.167,0.454
+1476110,enzyme,"YgfD: protein that forms a complex with the methylmalonyl-CoA mutase in a pathway for conversion of succinyl-CoA to propionyl-CoA",211,-0.123,0.532
+1513923,enzyme,"Dihydroorotate dehydrogenase (NAD(+)), electron transfer subunit (EC 1.3.1.14)",290,-0.048,0.502
+1586506,enzyme,"Thiosulfate sulfurtransferase, rhodanese (EC 2.8.1.1)",560,-0.102,0.544
+1614738,machinery,"LSU ribosomal protein L31p @ LSU ribosomal protein L31p, zinc-independent",442,-0.263,0.457
+1625234,enzyme,"Thioredoxin reductase (EC 1.8.1.9)",1951,-0.130,0.514
+1632255,enzyme,"S-(hydroxymethyl)glutathione dehydrogenase (EC 1.1.1.284)",308,-0.088,0.522
+1641254,enzyme,"Ribonucleotide reductase of class III (anaerobic), activating protein (EC 1.97.1.4)",385,-0.094,0.471
+1670799,enzyme,"Ribosomal-protein-S5p-alanine acetyltransferase (EC 2.3.1.128)",255,-0.054,0.532
+1673335,enzyme,"2-succinyl-6-hydroxy-2,4-cyclohexadiene-1-carboxylate synthase (EC 4.2.99.20)",114,-0.062,0.482
+1683772,membrane,"Cyclic-nucleotide-regulated bacteriocin/lantibiotic efflux ABC transporter, permease/ATP-binding protein",110,0.014,0.475
+1719396,enzyme,"Thiamin pyrophosphokinase (EC 2.7.6.2)",178,-0.087,0.456
+1724713,enzyme,"Ribose-5-phosphate isomerase B (EC 5.3.1.6)",633,-0.158,0.510
+1745391,enzyme,"Cystathionine gamma-synthase (EC 2.5.1.48)",244,-0.076,0.523
+1763778,enzyme,"Lipid A biosynthesis lauroyl acyltransferase (EC 2.3.1.241)",496,-0.041,0.507
+1769544,membrane,"Putative transmembrane protein",119,0.155,0.524
+1771319,membrane,"Bacteriocin/lantibiotic efflux ABC transporter, permease/ATP-binding protein",227,-0.017,0.458
+1776925,enzyme,"Uridine kinase (EC 2.7.1.48)",297,-0.200,0.430
+1783125,enzyme,"Putative secreted glycosyl hydrolase",181,-0.240,0.458
+1785347,enzyme,"Adenosine (5')-pentaphospho-(5'')-adenosine pyrophosphohydrolase",318,-0.100,0.511
+1797166,enzyme,"Dihydrolipoamide acyltransferase component of branched-chain alpha-keto acid dehydrogenase complex (EC 2.3.1.168)",407,-0.146,0.551
+1843012,membrane,"Sodium:alanine symporter family protein",171,0.125,0.464
+1853493,enzyme,"Dihydropteroate synthase (EC 2.5.1.15)",745,-0.074,0.533
+1889325,enzyme,"DNA-cytosine methyltransferase (EC 2.1.1.37)",653,-0.139,0.467
+1889881,membrane,"ABC-type antimicrobial peptide transport system, permease component",1042,-0.008,0.500
+1898546,membrane,"KtrAB potassium uptake system, integral membrane component KtrB",376,0.162,0.458
+1898991,enzyme,"Threonylcarbamoyl-AMP synthase (EC 2.7.7.87)",380,-0.085,0.532
+1899098,enzyme,"Arsenate reductase (EC 1.20.4.4) thioredoxin-coupled, LMWP family",516,-0.131,0.517
+1915472,enzyme,"Dihydrolipoamide acetyltransferase component of pyruvate dehydrogenase complex (EC 2.3.1.12)",780,-0.166,0.548
+1922821,machinery,"Zn-dependent protease with chaperone function PA4632",153,-0.139,0.517
+1937476,enzyme,"BioD-like N-terminal domain / Phosphate acetyltransferase (EC 2.3.1.8)",178,-0.097,0.521
+1960322,enzyme,"Glutamine--fructose-6-phosphate aminotransferase [isomerizing] (EC 2.6.1.16)",1018,-0.116,0.506
+1969379,enzyme,"Acetoin dehydrogenase E1 component beta-subunit (EC 2.3.1.190)",254,-0.060,0.542
+1979294,enzyme,"Dihydroneopterin aldolase (EC 4.1.2.25)",384,-0.119,0.481
+1979610,enzyme,"Phosphoenolpyruvate-dihydroxyacetone phosphotransferase (EC 2.7.1.121), dihydroxyacetone binding subunit DhaK",182,-0.092,0.533
+1985478,enzyme,"Biosynthetic Aromatic amino acid aminotransferase beta (EC 2.6.1.57)",219,-0.036,0.553
+2007855,enzyme,"Zinc-type alcohol dehydrogenase-like protein",567,-0.078,0.542
+2011315,enzyme,"Geranylgeranyl diphosphate synthase (EC 2.5.1.29)",362,-0.090,0.542
+2011760,enzyme,"Imidazole glycerol phosphate synthase cyclase subunit",830,-0.095,0.534
+2019462,machinery,"Phenylalanyl-tRNA synthetase alpha chain (EC 6.1.1.20)",962,-0.112,0.489
+2031353,machinery,"FIG01269488: protein, clustered with ribosomal protein L32p",483,-0.104,0.499
+2061452,enzyme,"Queuine tRNA-ribosyltransferase (EC 2.4.2.29)",861,-0.101,0.497
+2075044,enzyme,"RNA:NAD 2'-phosphotransferase",108,-0.155,0.493
+2075427,enzyme,"Succinate-semialdehyde dehydrogenase [NAD] (EC 1.2.1.24); Succinate-semialdehyde dehydrogenase [NADP+] (EC 1.2.1.79)",354,-0.103,0.526
+2098447,enzyme,"SAM-dependent methyltransferase, MidA",325,-0.035,0.546
+2104569,enzyme,"Cysteine synthase B (EC 2.5.1.47)",153,-0.164,0.535
+2139563,enzyme,"6-carboxy-5,6,7,8-tetrahydropterin synthase (EC 4.1.2.50)",375,-0.154,0.464
+2149812,enzyme,"Alkyldihydroxyacetonephosphate synthase (EC 2.5.1.26)",112,-0.023,0.595
+2158014,enzyme,"Amidohydrolase family protein",346,-0.123,0.520
+2158779,membrane,"Di-tripeptide/cation symporter",296,0.168,0.461
+2167696,membrane,"Na(+) H(+) antiporter subunit A",110,0.223,0.479
+2189378,enzyme,"Serine--glyoxylate aminotransferase (EC 2.6.1.45)",328,-0.087,0.523
+2191019,enzyme,"Thiamine-monophosphate kinase (EC 2.7.4.16)",605,-0.029,0.554
+2224568,enzyme,"ATP phosphoribosyltransferase regulatory subunit (EC 2.4.2.17)",334,-0.042,0.533
+2230495,enzyme,"N-acetylmannosamine-6-phosphate 2-epimerase (EC 5.1.3.9)",147,-0.125,0.513
+2230794,enzyme,"Molybdenum cofactor guanylyltransferase (EC 2.7.7.77)",357,-0.049,0.530
+2254418,enzyme,"Biosynthetic Aromatic amino acid aminotransferase beta (EC 2.6.1.57) @ Histidinol-phosphate aminotransferase (EC 2.6.1.9)",166,-0.110,0.501
+2268482,enzyme,"Putative glutamine amidotransferase YafJ",136,-0.069,0.498
+2277678,enzyme,"Phosphoglycerate kinase (EC 2.7.2.3)",995,-0.107,0.512
+2278006,enzyme,"Quinolinate synthetase (EC 2.5.1.72)",698,-0.146,0.491
+2280536,enzyme,"Dienelactone hydrolase family protein",579,-0.096,0.549
+2280759,enzyme,"Undecaprenyl diphosphate synthase (EC 2.5.1.31)",879,-0.140,0.481
+2282777,enzyme,"Trans-aconitate 2-methyltransferase (EC 2.1.1.144)",110,-0.007,0.584
+2314677,enzyme,"Xanthine dehydrogenase iron-sulfur subunit (EC 1.17.1.4)",183,-0.119,0.511
+2321834,membrane,"ABC transporter, permease protein (cluster 9, phospholipid)",281,0.135,0.505
+2323834,enzyme,"Cyclohexadienyl dehydrogenase (EC 1.3.1.12)(EC 1.3.1.43)",184,-0.030,0.571
+2325838,enzyme,"Apolipoprotein N-acyltransferase / Copper homeostasis protein CutE",378,0.123,0.531
+2326387,enzyme,"Peptidyl-prolyl cis-trans isomerase PpiB (EC 5.2.1.8)",248,-0.238,0.460
+2328757,membrane,"ABC-type Fe3+-siderophore transport system, permease component",158,0.222,0.568
+2345287,enzyme,"Oxidoreductase",115,-0.074,0.554
+2346669,enzyme,"Ornithine carbamoyltransferase (EC 2.1.3.3)",893,-0.134,0.496
+2347716,enzyme,"Omega-amino acid--pyruvate aminotransferase (EC 2.6.1.18)",259,-0.069,0.543
+2356531,enzyme,"putative phosphotransferase",139,0.003,0.609
+2366077,enzyme,"NAD-dependent epimerase/dehydratase",132,-0.008,0.571
+2366581,membrane,"Transmembrane component of general energizing module of ECF transporters",208,0.140,0.415
+2370501,enzyme,"Putative oxidoreductase",218,-0.092,0.559
+2382389,enzyme,"Ribokinase (EC 2.7.1.15)",732,-0.089,0.532
+2386833,enzyme,"7-carboxy-7-deazaguanine synthase (EC 4.3.99.3)",590,-0.095,0.489
+2390924,enzyme,"16S rRNA (cytosine(1402)-N(4))-methyltransferase (EC 2.1.1.199)",916,-0.114,0.520
+2405545,membrane,"Phosphate ABC transporter, permease protein PstC (TC 3.A.1.7.1)",917,0.152,0.494
+2417835,enzyme,"4-aminobutyraldehyde dehydrogenase (EC 1.2.1.19)",124,-0.070,0.570
+2420191,enzyme,"Glycolate dehydrogenase (EC 1.1.99.14), subunit GlcD",391,-0.074,0.542
+2450432,enzyme,"Phosphatidate cytidylyltransferase (EC 2.7.7.41)",849,0.240,0.483
+2454577,machinery,"SSU ribosomal protein S20p",779,-0.411,0.483
+2455692,enzyme,"Cytidylate kinase (EC 2.7.4.25)",689,-0.136,0.528
+2472178,enzyme,"Uncharacterized metal-dependent hydrolase YcfH",870,-0.120,0.499
+2473279,enzyme,"tRNA (cytidine(32)/uridine(32)-2'-O)-methyltransferase (EC 2.1.1.200)",462,-0.088,0.536
+2489591,enzyme,"Uncharacterized Nudix hydrolase NudL",395,-0.027,0.554
+2565090,enzyme,"Thiol:disulfide oxidoreductase related to ResA",125,-0.077,0.524
+2589988,enzyme,"LSU rRNA pseudouridine(2457) synthase (EC 5.4.99.20)",268,-0.133,0.526
+2594696,enzyme,"acyl-CoA dehydrogenase, putative phosphotransferase",288,-0.052,0.559
+2613926,enzyme,"Ribulosamine/erythrulosamine 3-kinase potentially involved in protein deglycation",176,-0.054,0.510
+2617052,enzyme,"Transcriptional regulator of pyridoxine metabolism / Pyridoxamine phosphate aminotransferase (EC 2.6.1.54)",102,-0.056,0.540
+2623406,enzyme,"FMN adenylyltransferase (EC 2.7.7.2) / Riboflavin kinase (EC 2.7.1.26)",818,-0.068,0.503
+2635429,enzyme,"tRNA (adenine(37)-N6)-methyltransferase",294,-0.087,0.509
+2658061,enzyme,"Phosphoribosyl-AMP cyclohydrolase (EC 3.5.4.19) / Phosphoribosyl-ATP pyrophosphatase (EC 3.6.1.31)",344,-0.194,0.456
+2686787,enzyme,"Putative glycosyl hydrolase of unknown function (DUF1680)",200,-0.143,0.485
+2703381,enzyme,"Phosphoglycerate mutase (EC 5.4.2.11)",465,-0.166,0.510
+2705782,machinery,"Copper(I) chaperone CopZ",151,-0.183,0.513
+2706008,enzyme,"tRNA pseudouridine(65) synthase (EC 5.4.99.26)",126,-0.109,0.515
+2710247,enzyme,"Glyoxylate reductase (EC 1.1.1.79) @ Glyoxylate reductase (EC 1.1.1.26) @ Hydroxypyruvate reductase (EC 1.1.1.81)",153,-0.128,0.512
+2740181,membrane,"Na(+) H(+) antiporter subunit G",305,0.127,0.517
+2746079,enzyme,"Transcription regulator [contains diacylglycerol kinase catalytic domain]",419,-0.102,0.500
+2772091,enzyme,"Methylphosphotriester-DNA--protein-cysteine S-methyltransferase (EC 2.1.1.n11) / ADA regulatory protein / Methylated-DNA--protein-cysteine methyltransferase (EC 2.1.1.63)",148,-0.068,0.573
+2776009,enzyme,"Anaerobic dimethyl sulfoxide reductase chain B (EC 1.8.5.3), iron-sulfur binding subunit",160,-0.140,0.513
+2776739,enzyme,"Phosphoribosyl-AMP cyclohydrolase (EC 3.5.4.19)",438,-0.130,0.521
+2777905,enzyme,"proposed amino acid ligase found clustered with an amidotransferase",145,-0.103,0.499
+2781328,enzyme,"NAD synthetase (EC 6.3.1.5)",398,-0.178,0.479
+2787474,enzyme,"Hydroxyethylthiazole kinase (EC 2.7.1.50)",270,-0.090,0.533
+2788759,enzyme,"Cysteine desulfurase (EC 2.8.1.7), associated with tRNA 4-thiouridine synthase",122,-0.188,0.437
+2790700,enzyme,"Adenosylcobinamide kinase (EC 2.7.1.156) / Adenosylcobinamide-phosphate guanylyltransferase (EC 2.7.7.62)",369,-0.071,0.541
+2797400,machinery,"Cysteinyl-tRNA synthetase (EC 6.1.1.16)",1020,-0.173,0.482
+2801842,membrane,"TRAP-type C4-dicarboxylate transport system, large permease component",1166,0.238,0.490
+2806641,enzyme,"Carbamate kinase (EC 2.7.2.2)",241,-0.167,0.514
+2820109,enzyme,"GTP cyclohydrolase I (EC 3.5.4.16) type 1",748,-0.137,0.488
+2825959,enzyme,"Branched-chain acyl-CoA dehydrogenase (EC 1.3.99.12)",145,-0.077,0.548
+2827227,enzyme,"GDP-L-fucose synthetase (EC 1.1.1.271)",349,-0.151,0.475
+2838109,enzyme,"Shikimate kinase I (EC 2.7.1.71)",614,-0.134,0.504
+2861862,enzyme,"D-mannonate oxidoreductase (EC 1.1.1.57)",100,-0.089,0.486
+2862285,enzyme,"Argininosuccinate synthase (EC 6.3.4.5)",855,-0.155,0.495
+2876233,membrane,"ABC transporter, permease protein 1 (cluster 1, maltose/g3p/polyamine/iron)",2122,0.156,0.467
+2877184,enzyme,"Chorismate mutase I (EC 5.4.99.5) / Prephenate dehydratase (EC 4.2.1.51)",315,-0.137,0.489
+2890229,enzyme,"Gamma-glutamyltranspeptidase (EC 2.3.2.2) @ Glutathione hydrolase (EC 3.4.19.13)",1033,-0.078,0.557
+2895613,enzyme,"Methylenetetrahydrofolate--tRNA-(uracil-5-)-methyltransferase TrmFO (EC 2.1.1.74)",340,-0.112,0.521
+2897110,enzyme,"6-phospho-3-hexuloisomerase (EC 5.3.1.27)",101,-0.123,0.460
+2898176,membrane,"Methionine ABC transporter permease protein",507,0.163,0.475
+2899131,machinery,"LSU ribosomal protein L29p (L35e)",691,-0.328,0.460
+2899915,enzyme,"Hydrolase, HAD superfamily",233,-0.159,0.462
+2901457,enzyme,"Nitrite reductase probable [NAD(P)H] subunit (EC 1.7.1.4)",100,-0.183,0.463
+2903501,membrane,"Glycerol-3-phosphate ABC transporter, permease protein UgpA (TC 3.A.1.1.3)",186,0.209,0.472
+2904832,enzyme,"Homoserine kinase (EC 2.7.1.39)",166,-0.002,0.541
+2923127,enzyme,"Uridylate kinase (EC 2.7.4.22)",952,-0.130,0.499
+2931312,enzyme,"Malonyl-[acyl-carrier protein] O-methyltransferase (EC 2.1.1.197)",148,-0.037,0.545
+2938414,enzyme,"Osmosensitive K+ channel histidine kinase KdpD",380,-0.064,0.539
+2940505,enzyme,"UDP-galactose-lipid carrier transferase (EC 2.-.-.-)",210,-0.173,0.511
+2942020,enzyme,"Peptidyl-prolyl cis-trans isomerase PpiA precursor (EC 5.2.1.8)",116,-0.156,0.495
+2944779,enzyme,"Acetoin dehydrogenase E1 component alpha-subunit (EC 2.3.1.190)",274,-0.127,0.545
+2947204,enzyme,"Phosphoenolpyruvate carboxykinase [ATP] (EC 4.1.1.49)",439,-0.140,0.483
+2976396,enzyme,"3-hydroxyisobutyryl-CoA hydrolase (EC 3.1.2.4)",195,-0.050,0.566
+2976460,enzyme,"Phosphatidylinositol phosphate synthase @ Archaetidylinositol phosphate synthase (EC 2.7.8.39)",129,0.162,0.537
+2977685,enzyme,"Hydroxymethylglutaryl-CoA reductase (EC 1.1.1.34)",144,-0.150,0.481
+2992100,enzyme,"Arginyl-tRNA--protein transferase (EC 2.3.2.8)",249,-0.068,0.516
+2996778,enzyme,"Enoyl-CoA hydratase (EC 4.2.1.17) / Delta(3)-cis-delta(2)-trans-enoyl-CoA isomerase (EC 5.3.3.8) / 3-hydroxyacyl-CoA dehydrogenase (EC 1.1.1.35) / 3-hydroxybutyryl-CoA epimerase (EC 5.1.2.3)",285,-0.092,0.536
+2996782,enzyme,"LSU rRNA pseudouridine(955/2504/2580) synthase (EC 5.4.99.24)",405,-0.164,0.511
+3004613,machinery,"Histidyl-tRNA synthetase (EC 6.1.1.21)",995,-0.113,0.498
+3011092,enzyme,"ATP phosphoribosyltransferase (EC 2.4.2.17) => HisGl",152,-0.105,0.465
+3029062,enzyme,"Dihydroorotate dehydrogenase (NAD(+)), catalytic subunit (EC 1.3.1.14)",372,-0.096,0.501
+3031015,enzyme,"Myo-inositol 2-dehydrogenase (EC 1.1.1.18)",597,-0.145,0.524
+3034557,enzyme,"Fumarate reductase iron-sulfur protein (EC 1.3.5.4)",102,-0.132,0.474
+3036276,enzyme,"Citrate synthase (si) (EC 2.3.3.1)",1022,-0.104,0.500
+3059539,enzyme,"3-hydroxyisobutyrate dehydrogenase (EC 1.1.1.31)",168,-0.055,0.568
+3060077,enzyme,"4-alpha-glucanotransferase (amylomaltase) (EC 2.4.1.25)",447,-0.058,0.521
+3063012,machinery,"Chaperone protein HscB",127,-0.154,0.504
+3081665,membrane,"Cell division integral membrane protein, YggT and half-length relatives",483,0.278,0.436
+3084064,enzyme,"Type I restriction-modification system, DNA-methyltransferase subunit M (EC 2.1.1.72)",1079,-0.202,0.453
+3084402,enzyme,"B12 binding domain of Methylmalonyl-CoA mutase (EC 5.4.99.2)",185,-0.114,0.527
+3087517,enzyme,"4-hydroxyproline epimerase (EC 5.1.1.8)",138,-0.068,0.542
+3098349,enzyme,"Acylphosphate phosphohydrolase (EC 3.6.1.7) / [NiFe] hydrogenase metallocenter assembly protein HypF",257,-0.068,0.532
+3104485,enzyme,"Polyribonucleotide nucleotidyltransferase (EC 2.7.7.8)",912,-0.140,0.505
+3117711,enzyme,"Hydrolase (HAD superfamily), YqeK",146,-0.197,0.436
+3138336,enzyme,"tRNA (5-methylaminomethyl-2-thiouridylate)-methyltransferase (EC 2.1.1.61)",151,-0.105,0.467
+3145455,enzyme,"Pyruvate dehydrogenase E1 component beta subunit (EC 1.2.4.1)",392,-0.103,0.507
+3148229,enzyme,"L-alanine-DL-glutamate epimerase (EC 5.1.1.n1)",323,-0.094,0.537
+3187833,enzyme,"FolM Alternative dihydrofolate reductase 1",224,-0.086,0.551
+3192541,membrane,"Efflux ABC transporter, permease/ATP-binding protein",1262,0.022,0.487
+3197417,enzyme,"2-oxoglutarate/2-oxoacid ferredoxin oxidoreductase, gamma subunit (EC 1.2.7.-)",251,-0.136,0.474
+3202156,enzyme,"S-adenosylmethionine synthetase (EC 2.5.1.6)",982,-0.155,0.511
+3202871,enzyme,"Hydrolase SMc00528, alpha/beta fold family",131,-0.057,0.515
+3203461,membrane,"Efflux ABC transporter, permease/ATP-binding protein mlr7818",210,0.010,0.511
+3204088,membrane,"ABC transporter, permease protein (cluster 15, trp?)",181,0.124,0.448
+3207284,enzyme,"Lipid carrier : UDP-N-acetylgalactosaminyltransferase (EC 2.4.1.-)",177,-0.021,0.444
+3215471,enzyme,"16S rRNA (cytidine(1402)-2'-O)-methyltransferase (EC 2.1.1.198)",821,-0.094,0.523
+3231750,membrane,"Branched-chain amino acid ABC transporter, permease protein LivM (TC 3.A.1.4.1)",640,0.188,0.498
+3237586,enzyme,"L-threonine 3-dehydrogenase (EC 1.1.1.103)",201,-0.084,0.509
+3237765,enzyme,"3-hydroxybutyryl-CoA dehydrogenase (EC 1.1.1.157); 3-hydroxyacyl-CoA dehydrogenase (EC 1.1.1.35)",294,-0.116,0.511
+3278866,machinery,"LSU ribosomal protein L28p @ LSU ribosomal protein L28p, zinc-independent",592,-0.241,0.481
+3287477,enzyme,"ATP phosphoribosyltransferase (EC 2.4.2.17) => HisGs",387,-0.096,0.495
+3295331,enzyme,"UDP-N-acetylglucosamine--N-acetylmuramyl-(pentapeptide) pyrophosphoryl-undecaprenol N-acetylglucosamine transferase (EC 2.4.1.227)",848,-0.060,0.533
+3295678,enzyme,"CDP-diacylglycerol--glycerol-3-phosphate 3-phosphatidyltransferase (EC 2.7.8.5)",713,0.163,0.468
+3316046,enzyme,"Threonine synthase (EC 4.2.3.1)",873,-0.104,0.510
+3341880,enzyme,"3-mercaptopyruvate sulfurtransferase (EC 2.8.1.2)",171,-0.062,0.554
+3373042,enzyme,"Putative NAD(P)-dependent oxidoreductase EC-YbbO",108,-0.071,0.526
+3374975,enzyme,"O-succinylbenzoate synthase (EC 4.2.1.113)",221,-0.027,0.549
+3375688,enzyme,"S-methyl-5-thioribose-1-phosphate isomerase (EC 5.3.1.23)",463,-0.126,0.536
+3415168,enzyme,"Acyl-CoA dehydrogenase; probable dibenzothiophene desulfurization enzyme",139,-0.075,0.579
+3416607,enzyme,"N-acetylmannosaminyltransferase (EC 2.4.1.187)",242,-0.073,0.469
+3439803,enzyme,"Para-aminobenzoate synthase, aminase component (EC 2.6.1.85) / Aminodeoxychorismate lyase (EC 4.1.3.38)",120,-0.041,0.557
+3439827,enzyme,"Precorrin-2 oxidase (EC 1.3.1.76) @ Sirohydrochlorin ferrochelatase activity of CysG (EC 4.99.1.4) / Uroporphyrinogen-III methyltransferase (EC 2.1.1.107)",298,-0.018,0.589
+3441843,enzyme,"3-hydroxyacyl-CoA dehydrogenase [fadN-fadA-fadE operon] (EC 1.1.1.35) / Enoyl-CoA hydratase [fadN-fadA-fadE operon] (EC 4.2.1.17)",255,-0.120,0.495
+3442474,enzyme,"Putative dihydropyrimidine dehydrogenase [NADP+], similar to dihydroorotate dehydrogenase",100,-0.091,0.486
+3456354,enzyme,"Glycerol dehydrogenase (EC 1.1.1.6)",231,-0.076,0.513
+3482413,enzyme,"Acetyltransferase",107,-0.065,0.491
+3498333,membrane,"ABC-type Fe3+-siderophore transport system, permease 2 component",125,0.223,0.552
+3507290,membrane,"Serine/threonine:Na+ symporter SstT",109,0.141,0.482
+3518570,enzyme,"Nucleoside diphosphate kinase (EC 2.7.4.6)",827,-0.132,0.496
+3572345,enzyme,"Alcohol dehydrogenase (EC 1.1.1.1)",1750,-0.065,0.547
+3609651,machinery,"Methionyl-tRNA synthetase (EC 6.1.1.10)",1021,-0.141,0.469
+3719292,enzyme,"Protein often near L-alanine-DL-glutamate epimerase (cell wall recycling)",133,-0.047,0.563
+3730047,membrane,"Acidobacterial duplicated orphan permease (function unknown)",837,-0.014,0.481
+3741671,enzyme,"Phosphoglycerate mutase family protein",304,-0.120,0.527
+3743176,machinery,"Selenocysteine-specific translation elongation factor",256,-0.093,0.530
+3750938,enzyme,"CO dehydrogenase accessory protein CooC (nickel insertion)",131,-0.165,0.469
+3751076,enzyme,"Riboflavin synthase eubacterial/eukaryotic (EC 2.5.1.9)",766,-0.107,0.500
+3751326,enzyme,"Epoxyqueuosine reductase (EC 1.17.99.6) QueH",189,-0.175,0.449
+3751665,membrane,"L-lactate permease",286,0.196,0.507
+3751973,machinery,"Inner membrane protein translocase and chaperone YidC, long form",525,-0.099,0.460
+3752158,enzyme,"FIG092679: Fe-S oxidoreductase",276,-0.081,0.491
+3753601,enzyme,"Aminotransferase, DegT/DnrJ/EryC1/StrS family",639,-0.104,0.500
+3754184,membrane,"Na(+) H(+) antiporter subunit C",332,0.091,0.509
+3760224,enzyme,"Dethiobiotin synthase BioD (EC 6.3.3.3)",456,-0.052,0.527
+3786627,enzyme,"Gluconokinase (EC 2.7.1.12)",106,-0.064,0.502
+3799365,machinery,"Translation elongation factor P",890,-0.211,0.460
+3801195,enzyme,"Putative amidotransferase similar to cobyric acid synthase",148,-0.128,0.504
+3803868,enzyme,"Fumarate reductase flavoprotein subunit (EC 1.3.5.4)",117,-0.132,0.524
+3804453,enzyme,"Glutathione S-transferase, unnamed subgroup (EC 2.5.1.18)",131,-0.042,0.519
+3811905,enzyme,"Histidinol-phosphate aminotransferase (EC 2.6.1.9)",590,-0.076,0.498
+3818138,machinery,"LSU ribosomal protein L35p",814,-0.426,0.447
+3843396,enzyme,"Glutamyl-Q tRNA(Asp) synthetase",365,-0.032,0.588
+3844200,enzyme,"Tas protein, an NADP(H)-dependent aldo-keto reductase",245,-0.162,0.507
+3846068,enzyme,"Pyridoxal kinase (EC 2.7.1.35)",219,-0.052,0.506
+3850044,membrane,"Sodium/glutamate symporter",176,0.175,0.471
+3858132,enzyme,"Methylphosphotriester-DNA--protein-cysteine S-methyltransferase (EC 2.1.1.n11) / DNA-3-methyladenine glycosylase II (EC 3.2.2.21)",148,0.018,0.621
+3879367,enzyme,"Nitrite reductase [NAD(P)H] small subunit (EC 1.7.1.4)",202,-0.064,0.543
+3882257,membrane,"Nitrate ABC transporter, permease protein",183,0.124,0.483
+3941737,enzyme,"L-lactate dehydrogenase (EC 1.1.1.27)",307,-0.115,0.488
+3952305,enzyme,"Arogenate dehydrogenase (EC 1.3.1.43)",121,0.007,0.611
+3954179,enzyme,"Putative reductase",169,-0.073,0.535
+3977347,enzyme,"2-oxoglutarate/2-oxoacid ferredoxin oxidoreductase, beta subunit (EC 1.2.7.-)",708,-0.153,0.492
+3990071,machinery,"LSU ribosomal protein L23p (L23Ae)",780,-0.309,0.438
+4007946,enzyme,"Octanoate-[acyl-carrier-protein]-protein-N-octanoyltransferase (EC 2.3.1.181)",577,-0.071,0.527
+4031412,enzyme,"Alkyl sulfatase and related hydrolases, MBL-fold metallo-hydrolase superfamily",116,-0.121,0.534
+4034430,machinery,"SSU ribosomal protein S21p",756,-0.358,0.484
+4055837,membrane,"ABC transporter, permease protein 2 (cluster 11, riboflavin/purine nucleoside/unknown)",247,0.197,0.510
+4065085,membrane,"ABC transporter, permease protein 1 (cluster 11, riboflavin/purine nucleoside/unknown)",211,0.129,0.490
+4067884,enzyme,"3-methylmercaptopropionyl-CoA dehydrogenase (DmdC)",309,-0.117,0.549
+4125042,enzyme,"2-polyprenyl-6-methoxyphenol hydroxylase and related FAD-dependent oxidoreductases",292,-0.023,0.583
+4132127,membrane,"Manganese ABC transporter, inner membrane permease protein SitD",264,0.233,0.469
+4146410,enzyme,"Protein-arginine kinase McsB (EC 2.7.14.1)",142,-0.143,0.450
+4147121,enzyme,"Aldehyde dehydrogenase B (EC 1.2.1.22)",345,-0.096,0.533
+4149001,membrane,"Hydroxymethylpyrimidine ABC transporter, transmembrane component",414,0.208,0.497
+4150742,membrane,"Zinc ABC transporter, permease protein ZnuB",580,0.274,0.496
+4152933,enzyme,"N-acetyltransferase ElaA",153,-0.090,0.467
+4156755,membrane,"Na(+) H(+) antiporter subunit F",204,0.222,0.470
+4164518,enzyme,"Cyclopropane-fatty-acyl-phospholipid synthase (EC 2.1.1.79), plant type",104,-0.058,0.525
+4175327,enzyme,"Thiazole synthase (EC 2.8.1.10)",523,-0.068,0.547
+4205755,enzyme,"Ribulokinase (EC 2.7.1.16)",153,-0.066,0.537
+4208139,enzyme,"Phosphomannomutase (EC 5.4.2.8)",423,-0.094,0.536
+4211832,enzyme,"Polyphosphate glucokinase (EC 2.7.1.63)",149,-0.084,0.548
+4213876,enzyme,"Pantothenate kinase type III, CoaX-like (EC 2.7.1.33)",590,-0.064,0.494
+4225951,enzyme,"Regulator of nucleoside diphosphate kinase",106,-0.116,0.526
+4244475,enzyme,"Adenylate kinase (EC 2.7.4.3)",931,-0.180,0.502
+4251132,enzyme,"Xanthine dehydrogenase iron-sulfur subunit (EC 1.17.1.4) / Xanthine dehydrogenase, FAD binding subunit (EC 1.17.1.4)",143,-0.069,0.564
+4294677,enzyme,"2-isopropylmalate synthase (EC 2.3.3.13)",652,-0.184,0.495
+4306800,enzyme,"Alanine dehydrogenase (EC 1.4.1.1)",632,-0.096,0.527
+4337880,enzyme,"Gamma-aminobutyrate:alpha-ketoglutarate aminotransferase (EC 2.6.1.19)",228,-0.077,0.548
+4341022,membrane,"Na(+) H(+) antiporter subunit A / Na(+) H(+) antiporter subunit B",184,0.208,0.555
+4375422,membrane,"ABC transporter, permease protein 1 (cluster 4, leucine/isoleucine/valine/benzoate)",547,0.245,0.513
+4405923,enzyme,"Cysteine synthase (EC 2.5.1.47)",945,-0.160,0.518
+4449783,enzyme,"Pantothenate kinase (EC 2.7.1.33)",213,-0.064,0.492
+4456509,enzyme,"2-succinyl-5-enolpyruvyl-6-hydroxy-3-cyclohexene-1-carboxylic-acid synthase (EC 2.2.1.9)",335,-0.031,0.542
+4475678,enzyme,"D-malate dehydrogenase [decarboxylating] (EC 1.1.1.83)",175,-0.073,0.529
+4477253,enzyme,"Phosphoserine aminotransferase (EC 2.6.1.52)",417,-0.125,0.470
+4478029,enzyme,"Periplasmic aromatic aldehyde oxidoreductase, iron-sulfur subunit YagT",151,-0.116,0.571
+4485073,enzyme,"Dihydrofolate synthase (EC 6.3.2.12) @ Folylpolyglutamate synthase (EC 6.3.2.17)",865,-0.080,0.511
+4495531,membrane,"Na(+) H(+) antiporter subunit B",141,0.165,0.513
+4505269,machinery,"SSU ribosomal protein S2p (SAe)",903,-0.243,0.482
+4512522,machinery,"LSU ribosomal protein L4p (L1e)",883,-0.192,0.498
+4520897,membrane,"Urea ABC transporter, permease protein UrtB",260,0.129,0.524
+4544396,enzyme,"Aspartate aminotransferase (EC 2.6.1.1)",1673,-0.095,0.504
+4557396,enzyme,"23S rRNA (adenine(2030)-N(6))-methyltransferase (EC 2.1.1.266)",227,-0.093,0.531
+4574228,enzyme,"Triosephosphate isomerase (EC 5.3.1.1)",898,-0.132,0.518
+4577966,enzyme,"Glucose dehydrogenase, PQQ-dependent (EC 1.1.5.2)",157,-0.087,0.542
+4587056,enzyme,"Glucose-1-phosphate cytidylyltransferase (EC 2.7.7.33)",228,-0.136,0.467
+4630848,machinery,"Cytochrome c-type biogenesis protein CcmE, heme chaperone",237,-0.098,0.525
+4645019,enzyme,"HPr kinase/phosphorylase",326,-0.098,0.486
+4652281,membrane,"putative anion permease",153,0.174,0.444
+4655384,enzyme,"1-phosphofructokinase (EC 2.7.1.56)",318,-0.095,0.521
+4681578,enzyme,"Alkyl hydroperoxide reductase subunit C-like protein",871,-0.102,0.493
+4695681,enzyme,"Serine acetyltransferase (EC 2.3.1.30)",904,-0.095,0.518
+4760055,enzyme,"D-sedoheptulose 7-phosphate isomerase (EC 5.3.1.28)",264,-0.117,0.499
+4762552,enzyme,"Phosphopantetheine adenylyltransferase (EC 2.7.7.3)",822,-0.056,0.471
+4775373,enzyme,"5,10-methylenetetrahydrofolate reductase (EC 1.5.1.20)",607,-0.096,0.515
+4788810,enzyme,"Peptidyl-tRNA hydrolase (EC 3.1.1.29)",833,-0.145,0.493
+4792416,machinery,"LSU ribosomal protein L32p @ LSU ribosomal protein L32p, zinc-independent",292,-0.304,0.535
+4797267,enzyme,"Naphthoate synthase (EC 4.1.3.36)",358,-0.118,0.522
+4803924,membrane,"Putrescine transport system permease protein PotI (TC 3.A.1.11.2)",167,0.224,0.503
+4805734,membrane,"Proton/glutamate symporter @ Sodium/glutamate symporter",392,0.119,0.474
+4807486,enzyme,"tRNA dimethylallyltransferase (EC 2.5.1.75)",884,-0.124,0.510
+4815798,enzyme,"Mevalonate kinase (EC 2.7.1.36)",123,-0.107,0.509
+4828114,enzyme,"Quinolinate phosphoribosyltransferase [decarboxylating] (EC 2.4.2.19)",708,-0.122,0.519
+4845029,machinery,"LSU ribosomal protein L19p",877,-0.199,0.494
+4858171,enzyme,"Branched-chain acyl kinase",138,-0.142,0.482
+4867467,enzyme,"Imidazole glycerol phosphate synthase amidotransferase subunit HisH",781,-0.058,0.511
+4882920,enzyme,"Fumarylacetoacetate hydrolase family protein",798,-0.102,0.519
+4883561,enzyme,"Assimilatory nitrate reductase large subunit (EC 1.7.99.4)",384,-0.093,0.551
+4978890,machinery,"LSU ribosomal protein L21p",774,-0.302,0.473
+4985269,enzyme,"Circadian input kinase A",258,-0.116,0.450
+4992191,enzyme,"Aspartokinase (EC 2.7.2.4) / Homoserine dehydrogenase (EC 1.1.1.3)",205,-0.087,0.479
+4996109,enzyme,"Acetyl-CoA synthetase (ADP-forming) alpha and beta chains, putative",235,-0.085,0.524
+5004488,membrane,"ABC transporter, permease protein 2 (cluster 4, leucine/isoleucine/valine/benzoate)",467,0.224,0.512
+5026985,enzyme,"Deoxyribose-phosphate aldolase (EC 4.1.2.4)",644,-0.149,0.513
+5048110,membrane,"Spermidine/putrescine import ABC transporter permease protein PotC (TC 3.A.1.11.1)",440,0.208,0.453
+5083865,enzyme,"Peptide-methionine (S)-S-oxide reductase MsrA (EC 1.8.4.11)",964,-0.159,0.501
+5097244,enzyme,"2-dehydro-3-deoxygluconokinase (EC 2.7.1.45)",478,-0.079,0.524
+5110907,membrane,"N-acetyl-D-glucosamine ABC transporter, permease protein 1",195,0.159,0.438
+5117700,enzyme,"Free methionine-(R)-sulfoxide reductase, contains GAF domain",272,-0.044,0.497
+5119600,membrane,"Multidrug efflux system MdtABC-TolC, inner-membrane proton/drug antiporter MdtC (RND type)",127,0.016,0.532
+5147941,enzyme,"Nucleoside-diphosphate-sugar epimerases",288,-0.060,0.570
+5149076,membrane,"Multidrug efflux system MdtABC-TolC, inner-membrane proton/drug antiporter MdtB (RND type)",125,0.011,0.529
+5151036,enzyme,"D-mannonate oxidoreductase (EC 1.1.1.57)",210,-0.083,0.548
+5153104,enzyme,"Thymidine kinase (EC 2.7.1.21)",196,-0.131,0.478
+5165078,enzyme,"Methionyl-tRNA formyltransferase (EC 2.1.2.9)",863,-0.110,0.530
+5171623,machinery,"Isoleucyl-tRNA synthetase (EC 6.1.1.5)",1029,-0.132,0.483
+5172785,enzyme,"N5-carboxyaminoimidazole ribonucleotide mutase (EC 5.4.99.18)",850,-0.068,0.545
+5195470,enzyme,"Polyphosphate kinase (EC 2.7.4.1)",714,-0.098,0.479
+5197855,enzyme,"Dihydrolipoamide dehydrogenase of pyruvate dehydrogenase complex (EC 1.8.1.4)",438,-0.130,0.529
+5200824,enzyme,"Mannitol-1-phosphate 5-dehydrogenase (EC 1.1.1.17)",101,-0.182,0.475
+5225955,enzyme,"L-ribulose-5-phosphate 4-epimerase (EC 5.1.3.4)",247,-0.154,0.501
+5246660,enzyme,"Nucleotidyltransferase domain protein, BT0168 group",218,-0.119,0.428
+5255412,enzyme,"Adenosylmethionine-8-amino-7-oxononanoate aminotransferase (EC 2.6.1.62)",474,-0.046,0.517
+5317494,enzyme,"Uroporphyrinogen-III methyltransferase (EC 2.1.1.107)",395,-0.075,0.547
+5326245,enzyme,"putative oxidoreductase, nitronate monooxygenase family",710,-0.080,0.546
+5369673,enzyme,"Methylcrotonyl-CoA carboxylase carboxyl transferase subunit (EC 6.4.1.4)",419,-0.105,0.533
+5382760,enzyme,"Aminotransferase, class III",339,-0.073,0.539
+5387084,enzyme,"Gamma-glutamyl phosphate reductase (EC 1.2.1.41)",755,-0.131,0.528
+5399159,enzyme,"Acetyl-coenzyme A carboxyl transferase alpha chain (EC 6.4.1.2)",680,-0.154,0.503
+5421852,machinery,"Chaperone protein HtpG",580,-0.227,0.433
+5423582,enzyme,"Asparagine synthetase [glutamine-hydrolyzing] (EC 6.3.5.4)",839,-0.067,0.497
+5424184,membrane,"Na(+) H(+) antiporter subunit D",392,0.224,0.516
+5438553,enzyme,"Phosphoenolpyruvate synthase (EC 2.7.9.2)",547,-0.112,0.512
+5493644,enzyme,"Sulfur carrier protein ThiS adenylyltransferase (EC 2.7.7.73)",171,-0.092,0.509
+5493974,enzyme,"Mercuric ion reductase (EC 1.16.1.1)",276,-0.097,0.537
+5500127,machinery,"Valyl-tRNA synthetase (EC 6.1.1.9)",1029,-0.148,0.481
+5514477,enzyme,"Chromate reductase (EC 1.6.5.2)",113,-0.101,0.497
+5515346,enzyme,"Methylmalonyl-CoA epimerase (EC 5.1.99.1)",198,-0.161,0.485
+5520131,enzyme,"Hydroxymethylpyrimidine phosphate kinase ThiD (EC 2.7.4.7)",571,-0.084,0.550
+5554840,enzyme,"Cobyric acid synthase (EC 6.3.5.10)",479,-0.087,0.526
+5562436,enzyme,"Maltose O-acetyltransferase (EC 2.3.1.79)",181,-0.151,0.492
+5562713,enzyme,"[Protein-PII] uridylyltransferase (EC 2.7.7.59) / [Protein-PII]-UMP uridylyl-removing enzyme",423,-0.074,0.528
+5569319,enzyme,"Acetaldehyde dehydrogenase, acetylating, (EC 1.2.1.10) in gene cluster for degradation of phenols, cresols, catechol",118,-0.144,0.529
+5580933,enzyme,"Peptide chain release factor N(5)-glutamine methyltransferase (EC 2.1.1.297)",747,-0.053,0.530
+5593819,membrane,"ABC transporter, permease protein (cluster 12, methionine/phosphonates)",210,0.151,0.484
+5605679,enzyme,"Phytoene synthase (EC 2.5.1.32)",350,-0.050,0.540
+5621995,enzyme,"Prolipoprotein diacylglyceryl transferase",971,0.166,0.480
+5622318,enzyme,"Serine hydroxymethyltransferase (EC 2.1.2.1)",1012,-0.152,0.510
+5637823,enzyme,"Periplasmic aromatic aldehyde oxidoreductase, molybdenum binding subunit YagR",169,-0.106,0.580
+5646459,enzyme,"Glutathione S-transferase family protein",154,-0.046,0.549
+5657253,enzyme,"Ribose-5-phosphate isomerase A (EC 5.3.1.6)",459,-0.108,0.508
+5671907,enzyme,"Putative oxidoreductase",255,-0.062,0.544
+5672678,enzyme,"Beta-propeller domains of methanol dehydrogenase type",218,0.002,0.538
+5689837,membrane,"Probable iron export permease protein FetB",264,0.124,0.466
+5689946,enzyme,"4-hydroxybutyrate coenzyme A transferase",256,-0.124,0.491
+5729472,enzyme,"NAD-specific glutamate dehydrogenase (EC 1.4.1.2), large form",241,-0.079,0.526
+5732875,enzyme,"Limit dextrin alpha-1,6-maltotetraose-hydrolase (EC 3.2.1.196)",481,-0.105,0.527
+5743061,enzyme,"Protein lysine acetyltransferase Pat (EC 2.3.1.-)",220,-0.017,0.584
+5760069,enzyme,"Histidinol dehydrogenase (EC 1.1.1.23)",853,-0.097,0.545
+5770273,machinery,"LSU ribosomal protein L31p @ LSU ribosomal protein L31p, zinc-dependent",451,-0.272,0.457
+5770898,enzyme,"Selenide,water dikinase (EC 2.7.9.3)",165,-0.056,0.561
+5777681,enzyme,"Oxidoreductase",190,-0.072,0.574
+5783138,enzyme,"4-hydroxy-2-oxovalerate aldolase (EC 4.1.3.39)",175,-0.116,0.512
+5847461,membrane,"Dipeptide ABC transporter, permease protein DppC (TC 3.A.1.5.2)",563,0.155,0.519
+5867827,enzyme,"Molybdopterin-synthase adenylyltransferase (EC 2.7.7.80)",521,-0.058,0.529
+5875473,membrane,"Efflux ABC transporter, permease/ATP-binding protein Atu2242",143,0.049,0.504
+5880970,enzyme,"Cardiolipin synthase (CMP-forming), eukaryotic type Cls-II (EC 2.7.8.41)",119,0.204,0.517
+5940986,membrane,"D-beta-hydroxybutyrate permease",141,0.158,0.501
+5969969,enzyme,"tRNA(1)(Val) (adenine(37)-N(6))-methyltransferase (EC 2.1.1.223)",274,-0.121,0.456
+6005188,enzyme,"DNA topoisomerase IV subunit B (EC 5.99.1.3)",634,-0.171,0.498
+6023067,enzyme,"Carboxy-S-adenosyl-L-methionine synthase",155,-0.088,0.454
+6027248,enzyme,"Glucose-6-phosphate 1-dehydrogenase (EC 1.1.1.49)",725,-0.100,0.510
+6075233,enzyme,"PF00070 family, FAD-dependent NAD(P)-disulphide oxidoreductase",136,-0.042,0.604
+6084092,enzyme,"2,5-dioxovalerate dehydrogenase (EC 1.2.1.26)",215,-0.022,0.598
+6098642,enzyme,"Thymidylate synthase ThyX (EC 2.1.1.148)",270,-0.125,0.488
+6111020,enzyme,"Thymidylate kinase (EC 2.7.4.9)",785,-0.095,0.518
+6115957,enzyme,"tRNA 4-thiouridine synthase (EC 2.8.1.4)",252,-0.167,0.454
+6180597,machinery,"LSU ribosomal protein L13p (L13Ae)",885,-0.291,0.479
+6214912,enzyme,"Alpha,alpha-trehalose-phosphate synthase [UDP-forming] (EC 2.4.1.15)",211,-0.050,0.544
+6230969,enzyme,"NAD(P)H-hydrate epimerase (EC 5.1.99.6) / ADP-dependent (S)-NAD(P)H-hydrate dehydratase (EC 4.2.1.136)",768,-0.042,0.562
+6261705,enzyme,"Siderophore biosynthesis non-ribosomal peptide synthetase modules",166,-0.023,0.531
+6292183,membrane,"Integral membrane protein",321,0.122,0.577
+6294815,membrane,"Sodium/bile acid symporter family",106,0.242,0.515
+6319722,membrane,"Manganese ABC transporter, inner membrane permease protein SitC",171,0.193,0.482
+6341010,enzyme,"2,4-dihydroxyhept-2-ene-1,7-dioic acid aldolase (EC 4.1.2.52)",149,-0.054,0.577
+6350405,enzyme,"Flavodoxin reductases (ferredoxin-NADPH reductases) family 1; Vanillate O-demethylase oxidoreductase (EC 1.14.13.-)",145,-0.020,0.587
+6400908,enzyme,"Mannose-6-phosphate isomerase (EC 5.3.1.8)",423,-0.121,0.496
+6407625,enzyme,"16S rRNA (guanine(1207)-N(2))-methyltransferase (EC 2.1.1.172)",235,-0.114,0.480
+6434787,membrane,"ABC transporter-coupled two-component system, fused permease protein",101,-0.151,0.391
+6463602,enzyme,"Glutathione S-transferase (EC 2.5.1.18)",1201,-0.063,0.532
+6506752,enzyme,"FMN reductase (NADPH) (EC 1.5.1.38)",111,-0.000,0.551
+6522349,enzyme,"Aspartyl-tRNA(Asn) amidotransferase subunit A (EC 6.3.5.6) @ Glutamyl-tRNA(Gln) amidotransferase subunit A (EC 6.3.5.7)",854,-0.086,0.527
+6525160,enzyme,"NAD synthetase (EC 6.3.1.5) / Glutamine amidotransferase chain of NAD synthetase",625,-0.064,0.519
+6530721,enzyme,"tRNA (guanine(46)-N(7))-methyltransferase (EC 2.1.1.33)",711,-0.137,0.489
+6547054,membrane,"Ribose ABC transporter, permease protein RbsC (TC 3.A.1.2.1)",139,0.143,0.482
+6566462,enzyme,"Epoxyqueuosine reductase (EC 1.17.99.6) QueG",524,-0.097,0.521
+6574151,enzyme,"Hydrolase, alpha/beta fold family",1598,-0.036,0.546
+6589185,machinery,"Aspartyl-tRNA synthetase (EC 6.1.1.12)",350,-0.131,0.457
+6594013,enzyme,"Peptide-methionine (R)-S-oxide reductase MsrB (EC 1.8.4.12)",790,-0.148,0.514
+6609275,machinery,"LSU ribosomal protein L33p @ LSU ribosomal protein L33p, zinc-dependent",164,-0.477,0.440
+6626131,enzyme,"2-C-methyl-D-erythritol 2,4-cyclodiphosphate synthase (EC 4.6.1.12)",587,-0.090,0.532
+6652053,enzyme,"3-oxoacyl-[acyl-carrier-protein] synthase, KASII (EC 2.3.1.179)",1275,-0.102,0.540
+6672158,enzyme,"Nitroreductase family protein",261,-0.122,0.504
+6690407,enzyme,"FAD:protein FMN transferase (EC 2.7.1.180)",285,-0.126,0.499
+6713057,enzyme,"D-lactate dehydrogenase (EC 1.1.1.28)",229,-0.122,0.455
+6728837,enzyme,"Glycerate kinase (EC 2.7.1.31)",393,-0.064,0.565
+6747785,membrane,"AmpG permease",336,0.208,0.504
+6757690,enzyme,"Malto-oligosyltrehalose synthase (EC 5.4.99.15)",187,-0.065,0.550
+6759389,membrane,"Gliding motility-associated ABC transporter permease protein GldF",192,0.263,0.440
+6773303,enzyme,"beta-glycosyl hydrolase",615,-0.117,0.517
+6775354,enzyme,"DNA-binding transcriptional regulator, MocR family / aminotransferase domain",242,-0.029,0.555
+6784545,enzyme,"(2E,6E)-farnesyl diphosphate synthase (EC 2.5.1.10)",647,-0.096,0.528
+6788576,enzyme,"SAM-dependent methyltransferase",1703,-0.055,0.519
+6798036,enzyme,"YscS-like amidohydrolase",105,-0.036,0.592
+6812369,machinery,"Leucyl-tRNA synthetase (EC 6.1.1.4)",967,-0.156,0.490
+6852796,membrane,"Na+/H+-dicarboxylate symporter",221,0.109,0.501
+6863675,enzyme,"Beta-phosphoglucomutase (EC 5.4.2.6)",212,-0.118,0.482
+6868199,membrane,"Branched-chain amino acid ABC transporter, permease protein LivH (TC 3.A.1.4.1)",673,0.189,0.498
+6904886,enzyme,"Maleylacetoacetate isomerase (EC 5.2.1.2) @ Glutathione S-transferase, zeta (EC 2.5.1.18)",135,-0.058,0.539
+6907304,enzyme,"N-acetylneuraminate synthase (EC 2.5.1.56)",301,-0.149,0.478
+6908566,enzyme,"D-glycerate 2-kinase (EC 2.7.1.165)",257,-0.078,0.575
+6929062,enzyme,"Alkyl hydroperoxide reductase and/or thiol-specific antioxidant family (AhpC/TSA) protein",246,-0.159,0.475
+6935032,enzyme,"Adenylosuccinate synthetase (EC 6.3.4.4)",945,-0.124,0.509
+6936561,machinery,"Translation elongation factor Ts",885,-0.240,0.492
+6941403,machinery,"SSU ribosomal protein S12p (S23e)",892,-0.257,0.524
+6945838,membrane,"Na+/H+ antiporter NhaA type",432,0.180,0.516
+6946342,enzyme,"tRNA-dihydrouridine(20/20a) synthase (EC 1.3.1.91)",281,-0.088,0.532
+6948903,machinery,"SSU ribosomal protein S18p @ SSU ribosomal protein S18p, zinc-dependent",205,-0.284,0.476
+6989821,enzyme,"Methylmalonate-semialdehyde dehydrogenase (EC 1.2.1.27)",173,-0.086,0.541
+7015581,enzyme,"Carbamoyl-phosphate synthase small chain (EC 6.3.5.5)",935,-0.140,0.503
+7016429,enzyme,"Adenylylsulfate kinase (EC 2.7.1.25)",297,-0.144,0.487
+7026263,membrane,"TRAP-type uncharacterized transport system, fused permease component",385,0.172,0.504
+7026465,enzyme,"23S rRNA (guanine(745)-N(1))-methyltransferase (EC 2.1.1.187)",112,-0.049,0.550
+7051332,machinery,"LSU ribosomal protein L25p",622,-0.184,0.508
+7071261,enzyme,"GTP cyclohydrolase II (EC 3.5.4.25)",166,-0.154,0.481
+7075462,machinery,"Periplasmic chaperone and peptidyl-prolyl cis-trans isomerase of outer membrane proteins SurA (EC 5.2.1.8)",312,-0.208,0.486
+7076100,enzyme,"Inosine-uridine preferring nucleoside hydrolase (EC 3.2.2.1)",332,-0.067,0.533
+7076389,enzyme,"heterodisulfide reductase, subunit A/methylviologen reducing hydrogenase, subunit delta",118,-0.126,0.506
+7085092,enzyme,"Fructokinase (EC 2.7.1.4)",508,-0.050,0.545
+7093307,enzyme,"UDP-N-acetyl-D-glucosamine 6-dehydrogenase (EC 1.1.1.136)",429,-0.140,0.473
+7114837,membrane,"Phospholipid ABC transporter permease protein MlaE",440,0.204,0.486
+7115887,enzyme,"dTDP-4-dehydrorhamnose 3,5-epimerase (EC 5.1.3.13)",677,-0.065,0.488
+7133621,enzyme,"16S rRNA (guanine(966)-N(2))-methyltransferase (EC 2.1.1.171)",706,-0.073,0.519
+7157721,enzyme,"Heme O synthase, protoheme IX farnesyltransferase, COX10-CtaB",619,0.178,0.496
+7175005,enzyme,"Metal-dependent hydrolases of the beta-lactamase superfamily I; PhnP protein",377,-0.084,0.501
+7176000,enzyme,"Gluconokinase (EC 2.7.1.12)",216,-0.084,0.538
+7186360,enzyme,"NAD-specific glutamate dehydrogenase (EC 1.4.1.2); NADP-specific glutamate dehydrogenase (EC 1.4.1.4)",387,-0.137,0.521
+7191133,enzyme,"Similar to phosphoglycolate phosphatase, clustered with ribosomal large subunit pseudouridine synthase C",171,-0.042,0.553
+7191648,enzyme,"3-isopropylmalate dehydrogenase (EC 1.1.1.85)",918,-0.091,0.524
+7201805,membrane,"Permease of the drug/metabolite transporter (DMT) superfamily",2404,0.241,0.504
+7204877,enzyme,"Succinate-semialdehyde dehydrogenase [NAD(P)+] (EC 1.2.1.16)",498,-0.092,0.545
+7251811,enzyme,"Spermidine synthase N-terminal extension / Spermidine synthase (EC 2.5.1.16)",108,0.109,0.507
+7275226,enzyme,"Competence protein F homolog, phosphoribosyltransferase domain; protein YhgH required for utilization of DNA as sole source of carbon and energy",440,-0.006,0.549
+7285706,enzyme,"Oxidoreductase, aldo/keto reductase family",783,-0.113,0.532
+7303950,membrane,"Proline/sodium symporter PutP (TC 2.A.21.2.1) @ Propionate/sodium symporter",220,0.183,0.476
+7356420,enzyme,"Polysaccharide pyruvyl transferase CsaB",108,-0.039,0.479
+7410757,enzyme,"Aldose 1-epimerase (EC 5.1.3.3)",316,-0.190,0.483
+7411046,enzyme,"Uncharacterized RNA methyltransferase YsgA",195,-0.134,0.462
+7421229,enzyme,"6-phosphofructokinase (EC 2.7.1.11)",783,-0.133,0.504
+7459774,enzyme,"Succinyl-CoA:3-ketoacid-coenzyme A transferase subunit B (EC 2.8.3.5)",340,-0.125,0.510
+7479808,enzyme,"Ketopantoate reductase PanG (EC 1.1.1.169)",141,-0.041,0.570
+7480521,enzyme,"23S rRNA (pseudouridine(1915)-N(3))-methyltransferase (EC 2.1.1.177)",579,-0.113,0.489
+7489704,machinery,"DJ-1/YajL/PfpI superfamily, includes chaperone protein YajL (former ThiJ), parkinsonism-associated protein DJ-1, peptidases PfpI, Hsp31",170,-0.077,0.500
+7507244,enzyme,"Glutathione S-transferase family protein",115,-0.041,0.535
+7527179,enzyme,"Glycerol-3-phosphate dehydrogenase (EC 1.1.5.3)",242,-0.056,0.575
+7540743,membrane,"Thiamin ABC transporter, transmembrane component",166,0.268,0.559
+7541421,enzyme,"8-amino-7-oxononanoate synthase (EC 2.3.1.47)",455,-0.044,0.544
+7549903,enzyme,"Periplasmic thiol:disulfide oxidoreductase DsbB, required for DsbA reoxidation",216,0.241,0.530
+7552118,membrane,"ABC transporter, fused permease protein",500,0.074,0.561
+7597988,enzyme,"Aldehyde dehydrogenase (EC 1.2.1.3)",1642,-0.096,0.532
+7609122,enzyme,"Pyrroline-5-carboxylate reductase (EC 1.5.1.2)",826,-0.082,0.534
+7639199,enzyme,"Xylulose kinase (EC 2.7.1.17)",419,-0.046,0.563
+7668817,enzyme,"Ferredoxin--NADP(+) reductase (EC 1.18.1.2) @ Flavodoxin--NADP(+) reductase (EC 1.19.1.1)",241,-0.084,0.504
+7695531,machinery,"LSU ribosomal protein L11p (L12e)",904,-0.236,0.494
+7700065,enzyme,"FKBP-type peptidyl-prolyl cis-trans isomerase SlyD (EC 5.2.1.8)",392,-0.204,0.513
+7724894,enzyme,"COG1649 predicted glycoside hydrolase",179,-0.153,0.489
+7730014,enzyme,"2-dehydropantoate 2-reductase (EC 1.1.1.169)",574,-0.090,0.524
+7750068,enzyme,"Malonate-semialdehyde dehydrogenase [inositol] (EC 1.2.1.18)",249,-0.066,0.535
+7760799,enzyme,"Pyruvate kinase (EC 2.7.1.40)",839,-0.147,0.512
+7804709,membrane,"ABC transporter, permease protein (cluster 3, basic aa/glutamine/opines)",1487,0.173,0.484
+7808892,membrane,"Hemin ABC transporter, permease protein",103,0.243,0.563
+7829604,machinery,"T6SS AAA+ chaperone ClpV (TssH)",156,-0.122,0.533
+7830674,machinery,"Alanyl-tRNA synthetase (EC 6.1.1.7)",1039,-0.150,0.495
+7834678,membrane,"O-antigen export system permease protein RfbD",154,0.243,0.456
+7836795,enzyme,"Aspartyl-tRNA(Asn) amidotransferase subunit C (EC 6.3.5.6) @ Glutamyl-tRNA(Gln) amidotransferase subunit C (EC 6.3.5.7)",546,-0.172,0.510
+7844318,enzyme,"3-phosphoshikimate 1-carboxyvinyltransferase (EC 2.5.1.19)",871,-0.073,0.530
+7854425,enzyme,"Superoxide dismutase [Cu-Zn] precursor (EC 1.15.1.1)",234,-0.192,0.545
+7888855,enzyme,"D-amino acid dehydrogenase (EC 1.4.99.6)",392,-0.030,0.576
+7889681,enzyme,"N-acetyl-gamma-glutamyl-phosphate reductase (EC 1.2.1.38)",739,-0.067,0.528
+7894470,enzyme,"Dihydrodipicolinate synthase family",162,-0.034,0.551
+7915158,enzyme,"N(6)-L-threonylcarbamoyladenine synthase (EC 2.3.1.234)",901,-0.042,0.536
+7935890,membrane,"ABC transporter, permease protein 1 (cluster 5, nickel/peptides/opines)",1183,0.187,0.515
+7941512,enzyme,"23S rRNA (uracil(1939)-C(5))-methyltransferase (EC 2.1.1.190)",359,-0.065,0.545
+7948865,enzyme,"Acetoacetyl-CoA reductase (EC 1.1.1.36)",227,-0.159,0.517
+7957805,enzyme,"Phosphoribosylformylglycinamidine synthase, PurS subunit (EC 6.3.5.3)",389,-0.171,0.492
+7980447,enzyme,"Threonine dehydrogenase and related Zn-dependent dehydrogenases",636,-0.050,0.555
+8005402,enzyme,"FIG002813: LPPG:FO 2-phospho-L-lactate transferase like, CofD-like",332,-0.063,0.515
+8028591,enzyme,"Cardiolipin synthase (EC 2.7.8.-) phosphatidylethanolamine-utilizing, bacterial type ClsC",129,-0.072,0.513
+8030327,membrane,"Sulfate permease",791,0.135,0.506
+8048708,enzyme,"Carbon monoxide dehydrogenase large chain (EC 1.2.99.2)",102,-0.080,0.562
+8051111,enzyme,"Phosphotransferase system, phosphocarrier protein HPr",387,-0.199,0.487
+8060212,enzyme,"Arsenate reductase (EC 1.20.4.1) glutaredoxin-coupled, glutaredoxin-like family",111,-0.117,0.534
+8094426,membrane,"Inner-membrane proton/drug antiporter (MSF type) of tripartite multidrug efflux system",301,0.144,0.506
+8108653,enzyme,"Glucose-1-phosphate thymidylyltransferase (EC 2.7.7.24)",800,-0.093,0.485
+8110448,enzyme,"Tungsten-containing aldehyde:ferredoxin oxidoreductase (EC 1.2.7.5)",296,-0.153,0.513
+8121553,enzyme,"Signal transduction histidine kinase CheA",930,-0.134,0.507
+8122432,enzyme,"2-C-methyl-D-erythritol 4-phosphate cytidylyltransferase (EC 2.7.7.60)",448,-0.089,0.527
+8128839,membrane,"Heterodimeric efflux ABC transporter, permease/ATP-binding subunit 2",724,-0.011,0.474
+8133459,enzyme,"Multidomain signal transduction protein including CheB-like methylesterase, CheR-like methyltransferase and BaeS-like histidine kinase",507,-0.112,0.505
+8136687,enzyme,"Heptaprenyl diphosphate synthase component II (EC 2.5.1.30)",100,-0.142,0.444
+8137752,enzyme,"tRNA (5-methylaminomethyl-2-thiouridylate)-methyltransferase (EC 2.1.1.61) / FAD-dependent cmnm(5)s(2)U34 oxidoreductase",150,-0.026,0.559
+8139483,membrane,"Uncharacterized UPF0721 integral membrane protein",207,0.243,0.517
+8147841,enzyme,"Sucrose-6-phosphate hydrolase (EC 3.2.1.26)",152,-0.121,0.484
+8154601,membrane,"Glycerol-3-phosphate ABC transporter, permease protein UgpE (TC 3.A.1.1.3)",159,0.182,0.460
+8166083,membrane,"Na+/H+ antiporter NhaD type",159,0.157,0.447
+8181546,enzyme,"Shikimate 5-dehydrogenase I alpha (EC 1.1.1.25)",793,-0.072,0.528
+8199696,enzyme,"Glutathione reductase (EC 1.8.1.7)",317,-0.117,0.522
+8214619,machinery,"MbtH-like NRPS chaperone",109,-0.182,0.525
+8244241,enzyme,"Tetraacyldisaccharide 4'-kinase (EC 2.7.1.130)",444,-0.031,0.529
+8262214,enzyme,"3-ketoacyl-CoA thiolase (EC 2.3.1.16) @ Acetyl-CoA acetyltransferase (EC 2.3.1.9)",1421,-0.096,0.564
+8331244,enzyme,"Diacylglycerol kinase (EC 2.7.1.107)",381,0.129,0.462
+8376928,enzyme,"Branched-chain amino acid aminotransferase (EC 2.6.1.42)",993,-0.110,0.500
+8398205,enzyme,"CCA tRNA nucleotidyltransferase (EC 2.7.7.72)",747,-0.088,0.520
+8421732,enzyme,"NAD kinase (EC 2.7.1.23)",934,-0.061,0.500
+8432396,enzyme,"Nicotinate-nucleotide adenylyltransferase (EC 2.7.7.18)",666,-0.079,0.499
+8442788,enzyme,"Peptidyl-prolyl cis-trans isomerase PpiD (EC 5.2.1.8)",239,-0.180,0.509
+8449066,enzyme,"Chemotaxis protein methyltransferase CheR (EC 2.1.1.80)",724,-0.092,0.464
+8454293,enzyme,"N-acetylglucosamine-1-phosphate uridyltransferase (EC 2.7.7.23) / Glucosamine-1-phosphate N-acetyltransferase (EC 2.3.1.157)",803,-0.168,0.520
+8461341,membrane,"Lipopolysaccharide export system permease protein LptF",160,0.089,0.494
+8473931,enzyme,"Flavin prenyltransferase UbiX",449,-0.036,0.516
+8514768,enzyme,"Glutathione S-transferase, omega (EC 2.5.1.18)",322,-0.113,0.511
+8515716,membrane,"Lipid A export permease/ATP-binding protein MsbA",443,0.004,0.474
+8520701,enzyme,"Acyl-CoA dehydrogenase, short-chain specific (EC 1.3.8.1)",504,-0.126,0.519
+8562657,enzyme,"tRNA-i(6)A37 methylthiotransferase (EC 2.8.4.3)",848,-0.155,0.491
+8582746,enzyme,"23S rRNA (guanosine(2251)-2'-O)-methyltransferase (EC 2.1.1.185)",796,-0.118,0.529
+8693885,enzyme,"3-oxoacyl-[acyl-carrier protein] reductase (EC 1.1.1.100), FadG",763,-0.138,0.516
+8719117,enzyme,"FIG011945: O-methyltransferase family protein",107,-0.186,0.408
+8736618,enzyme,"N-carbamoyl-L-amino acid hydrolase (EC 3.5.1.87)",173,-0.097,0.543
+8794816,enzyme,"Undecaprenyl-phosphate galactosephosphotransferase (EC 2.7.8.6)",536,-0.015,0.463
+8854233,enzyme,"Ribonucleotide reductase of class II (coenzyme B12-dependent) (EC 1.17.4.1)",645,-0.150,0.497
+8861326,enzyme,"Aspartate aminotransferase (AspB-4) (EC 2.6.1.1)",120,-0.091,0.486
+8864586,enzyme,"Trehalose synthase (EC 5.4.99.16)",182,-0.081,0.510
+8865288,enzyme,"Adenine-specific methyltransferase (EC 2.1.1.72)",136,-0.170,0.469
+8913741,membrane,"Multi antimicrobial extrusion protein (Na(+)/drug antiporter), MATE family of MDR efflux pumps",857,0.146,0.434
+8929609,enzyme,"Low-specificity L-threonine aldolase (EC 4.1.2.48)",495,-0.073,0.556
+9008105,enzyme,"Chorismate mutase II (EC 5.4.99.5)",128,-0.091,0.512
+9019918,enzyme,"Glutamate-1-semialdehyde 2,1-aminomutase (EC 5.4.3.8)",789,-0.057,0.526
+9020471,enzyme,"GTP cyclohydrolase 1 type 2 homolog YbgI",590,-0.112,0.504
+9054074,enzyme,"Methionine synthase II (cobalamin-independent)",168,-0.135,0.490
+9077460,enzyme,"1-deoxy-D-xylulose 5-phosphate reductoisomerase (EC 1.1.1.267)",759,-0.063,0.525
+9084129,enzyme,"Acetaldehyde dehydrogenase (EC 1.2.1.10) / Alcohol dehydrogenase (EC 1.1.1.1)",187,-0.161,0.470
+9087715,enzyme,"tRNA(Ile)-lysidine synthetase (EC 6.3.4.19)",725,-0.075,0.522
+9111052,enzyme,"Phosphopantothenoylcysteine decarboxylase (EC 4.1.1.36) / Phosphopantothenoylcysteine synthetase (EC 6.3.2.5)",873,-0.126,0.526
+9112178,enzyme,"Threonylcarbamoyl-AMP synthase (EC 2.7.7.87) / SUA5 domain with internal deletion",456,-0.090,0.555
+9129813,enzyme,"Glutamate 5-kinase (EC 2.7.2.11) / RNA-binding C-terminal domain PUA",665,-0.101,0.542
+9170204,enzyme,"Mannose-1-phosphate guanylyltransferase (EC 2.7.7.13) / Mannose-6-phosphate isomerase (EC 5.3.1.8)",361,-0.106,0.515
+9188652,enzyme,"Molybdopterin molybdenumtransferase (EC 2.10.1.1)",987,-0.044,0.554
+9242109,enzyme,"3-hydroxyacyl-CoA dehydrogenase",153,-0.065,0.582
+9269788,membrane,"Lipopolysaccharide export system permease protein LptF",110,-0.027,0.424
+9348764,enzyme,"Dihydrofolate reductase (EC 1.5.1.3)",888,-0.106,0.504
+9358806,enzyme,"Nitrite reductase [NAD(P)H] large subunit (EC 1.7.1.4)",379,-0.094,0.536
+9372748,enzyme,"Respiratory nitrate reductase alpha chain (EC 1.7.99.4)",219,-0.144,0.518
+9375481,enzyme,"Uncharacterized protein YfgD, not an arsenate reductase",220,-0.201,0.493
+9402727,membrane,"Molybdenum ABC transporter permease protein ModB",570,0.230,0.527
+9449034,enzyme,"Leader peptidase (Prepilin peptidase) (EC 3.4.23.43) / N-methyltransferase (EC 2.1.1.-)",382,0.262,0.481
+9519210,membrane,"Arginine/ornithine antiporter ArcD",176,0.124,0.447
+9581668,machinery,"Heat shock protein 10 kDa family chaperone GroES",927,-0.219,0.489
+9583846,enzyme,"Metal-dependent hydrolase",156,-0.119,0.490
+9587716,enzyme,"Protein-methionine-sulfoxide reductase heme-binding subunit MsrQ",146,0.217,0.503
+9621708,enzyme,"putative periplasmic protein kinase ArgK and related GTPases of G3E family",185,-0.101,0.554
+9626318,enzyme,"SSU rRNA pseudouridine(516) synthase (EC 5.4.99.19)",313,-0.161,0.476
+9658708,enzyme,"Dihydrolipoamide dehydrogenase (EC 1.8.1.4)",299,-0.162,0.493
+9794316,membrane,"Glutamate/aspartate ABC transporter, permease protein GltJ (TC 3.A.1.3.4)",108,0.165,0.486
+9913306,enzyme,"Arginase/agmatinase/formimionoglutamate hydrolase, arginase family",141,-0.063,0.550
+9939762,machinery,"SSU ribosomal protein S1p",950,-0.174,0.483
+9945671,enzyme,"Acetate kinase (EC 2.7.2.1)",727,-0.098,0.504
+9954313,enzyme,"Peptidyl-prolyl cis-trans isomerase (EC 5.2.1.8)",988,-0.188,0.490
+9969389,enzyme,"Alkyl hydroperoxide reductase protein F",207,-0.145,0.502
+9985786,enzyme,"Transcriptional regulator, GntR family domain / Aspartate aminotransferase (EC 2.6.1.1)",764,-0.043,0.544
+10013075,enzyme,"DNA topoisomerase III (EC 5.99.1.2)",396,-0.234,0.459
+10013303,enzyme,"Isocitrate dehydrogenase [NAD] (EC 1.1.1.41)",148,-0.162,0.494
+10048015,enzyme,"Inosine-5'-monophosphate dehydrogenase (EC 1.1.1.205) / CBS domain",971,-0.137,0.524
+10052038,machinery,"HtrA protease/chaperone protein",501,-0.130,0.525
+10097632,enzyme,"2-hydroxy-3-oxopropionate reductase (EC 1.1.1.60)",499,-0.095,0.538
+10106483,enzyme,"Periplasmic ligand-binding sensor domain COG3292 / BaeS-type histidine kinase / OmpR-type DNA-binding response regulator",221,-0.209,0.393
+10123167,enzyme,"2-amino-4-hydroxy-6-hydroxymethyldihydropteridine pyrophosphokinase (EC 2.7.6.3)",588,-0.049,0.524
+10130596,membrane,"Lipoprotein releasing system transmembrane protein LolC/LolE",425,0.042,0.483
+10143857,enzyme,"Fructose-bisphosphate aldolase class II (EC 4.1.2.13)",725,-0.172,0.489
+10149521,enzyme,"Glucose-1-phosphate adenylyltransferase (EC 2.7.7.27)",579,-0.123,0.478
+10153092,enzyme,"Nitroreductase",260,-0.102,0.513
+10164212,enzyme,"Acetyl-CoA acetyltransferase (EC 2.3.1.9)",333,-0.130,0.546
+10176235,enzyme,"Oxidoreductase, molybdopterin-binding",282,-0.116,0.529
+10202888,enzyme,"tRNA (guanosine(18)-2'-O)-methyltransferase (EC 2.1.1.34)",153,-0.160,0.480
+10233208,enzyme,"16S rRNA (uracil(1498)-N(3))-methyltransferase (EC 2.1.1.193)",723,-0.089,0.526
+10234027,membrane,"ABC transporter, permease protein (cluster 2, ribose/xylose/arabinose/galactose)",716,0.158,0.511
+10245672,enzyme,"Ribulose-phosphate 3-epimerase (EC 5.1.3.1)",922,-0.082,0.497
+10251053,enzyme,"cAMP-binding proteins - catabolite gene activator and regulatory subunit of cAMP-dependent protein kinases",511,-0.084,0.452
+10279967,membrane,"Copper/silver efflux RND transporter, transmembrane protein CusA",169,0.012,0.515
+10289069,enzyme,"RNA pseudouridylate synthase, group 1",115,-0.228,0.451
+10294766,enzyme,"Glutamine amidotransferase, class I",646,-0.061,0.541
+10297270,enzyme,"3-deoxy-D-manno-octulosonic acid transferase (EC 2.4.99.12)(EC 2.4.99.13)",464,-0.026,0.524
+10300474,enzyme,"DNA topoisomerase I (EC 5.99.1.2)",972,-0.222,0.486
+10301134,machinery,"Chaperone protein DnaJ",1212,-0.200,0.529
+10302926,enzyme,"Cell division protein FtsI [Peptidoglycan synthetase] (EC 2.4.1.129)",759,-0.140,0.504
+10317148,enzyme,"UDP-N-acetylglucosamine 2-epimerase (EC 5.1.3.14)",533,-0.130,0.492
+10319157,enzyme,"Phytoene dehydrogenase (EC 1.14.99.-)",146,-0.059,0.516
+10319574,enzyme,"Hydroxypyruvate isomerase (EC 5.3.1.22)",253,-0.114,0.524
+10321631,enzyme,"Peptidylprolyl isomerase, FKBP-type (EC 5.2.1.8)",206,-0.092,0.543
+10321811,enzyme,"Acetyl-coenzyme A carboxyl transferase alpha chain (EC 6.4.1.2) / Acetyl-coenzyme A carboxyl transferase beta chain (EC 6.4.1.2); Propionyl-CoA carboxylase beta chain (EC 6.4.1.3)",303,-0.113,0.521
+10323631,enzyme,"NAD(FAD)-utilizing dehydrogenases",129,0.033,0.605
+10330358,membrane,"Nucleoside permease NupC",122,0.141,0.452
+10333762,membrane,"Na+/H+ antiporter",145,0.130,0.469
+10338075,enzyme,"Molybdenum cofactor cytidylyltransferase (EC 2.7.7.76)",144,-0.020,0.577
+10352738,enzyme,"Glucose-methanol-choline (GMC) oxidoreductase:NAD binding site",480,-0.131,0.527
+10353786,machinery,"Copper metallochaperone PCu(A)C, inserts Cu(I) into cytochrome oxidase subunit II",149,-0.134,0.540
+10357457,machinery,"Chaperone protein DnaK",1219,-0.220,0.495
+10361261,membrane,"Na+/H+ antiporter",460,0.156,0.495
+10363383,enzyme,"Murein hydrolase activator NlpD",166,-0.203,0.535
+10367439,enzyme,"Acylphosphate phosphohydrolase (EC 3.6.1.7)",344,-0.082,0.539
+10369163,enzyme,"4'-phosphopantetheinyl transferase (EC 2.7.8.-)",106,-0.015,0.509
+10370701,enzyme,"Xanthine dehydrogenase, molybdenum binding subunit (EC 1.17.1.4)",426,-0.126,0.535
+10372389,membrane,"ABC transporter, permease protein",111,-0.091,0.432
+10373331,enzyme,"Holo-[acyl-carrier-protein] synthase (EC 2.7.8.7)",502,-0.091,0.520
+10373609,enzyme,"CDP-diacylglycerol--serine O-phosphatidyltransferase (EC 2.7.8.8)",352,0.174,0.476
+10374939,enzyme,"Polyferredoxin NapH (periplasmic nitrate reductase)",105,0.135,0.499
+10380727,enzyme,"Allophanate hydrolase 2 subunit 1 (EC 3.5.1.54)",300,-0.029,0.539
+10381714,enzyme,"Orotate phosphoribosyltransferase (EC 2.4.2.10)",869,-0.086,0.514
+10386969,enzyme,"Acyl-CoA hydrolase (EC 3.1.2.20)",239,-0.118,0.501
+10387745,enzyme,"Phytoene dehydrogenase and related proteins",112,0.040,0.633
+10401812,enzyme,"Thymidine kinase (EC 2.7.1.21)",276,-0.075,0.492
+10410292,enzyme,"UDP-glucose 6-dehydrogenase (EC 1.1.1.22)",902,-0.122,0.490
+10414515,enzyme,"Nucleoside triphosphate pyrophosphohydrolase MazG (EC 3.6.1.8)",547,-0.173,0.518
+10416542,enzyme,"Sensory box histidine kinase/response regulator",335,-0.085,0.530
+10420457,enzyme,"MBL-fold metallo-hydrolase superfamily",2526,-0.103,0.523
+10420503,enzyme,"Acetyltransferase",613,-0.075,0.526
+10424554,enzyme,"Ferredoxin reductase",456,-0.036,0.580
+10426815,enzyme,"CDP-diacylglycerol--serine O-phosphatidyltransferase (EC 2.7.8.8) @ Archaetidylserine synthase (EC 2.7.8.38)",150,0.183,0.494
+10428547,enzyme,"Acyl-CoA dehydrogenase",2222,-0.095,0.542
+10429366,enzyme,"Acyl-CoA dehydrogenase, long-chain specific (EC 1.3.8.8)",420,-0.096,0.555
+10438906,enzyme,"Aldo/keto reductase",247,-0.133,0.519
+10439576,enzyme,"FAD:protein FMN transferase (EC 2.7.1.180) @ FAD:protein FMN transferase (EC 2.7.1.180), NqrBC-associated",100,-0.145,0.459
+10440725,enzyme,"Glutamate synthase [NADPH] small chain (EC 1.4.1.13)",649,-0.129,0.534
+10444249,enzyme,"Murein hydrolase activator EnvC",236,-0.244,0.511
+10447305,enzyme,"Mannose-1-phosphate guanylyltransferase / Phosphomannomutase (EC 5.4.2.8)",118,-0.109,0.478
+10450882,enzyme,"Tyrosine-protein kinase EpsD (EC 2.7.10.2)",139,-0.157,0.468
+10452187,enzyme,"Phosphoglucomutase (EC 5.4.2.2) @ Phosphomannomutase (EC 5.4.2.8)",187,-0.124,0.503
+10463241,enzyme,"3-hydroxybutyrate dehydrogenase (EC 1.1.1.30)",346,-0.104,0.540
+10466077,membrane,"Maltodextrin ABC transporter, permease protein MdxG",317,0.181,0.462
+10482116,enzyme,"Cardiolipin synthase, bacterial type ClsA",555,-0.048,0.446
+10483430,enzyme,"Methylated-DNA--protein-cysteine methyltransferase (EC 2.1.1.63)",685,-0.086,0.531
+10490900,enzyme,"Anthranilate synthase, amidotransferase component (EC 4.1.3.27) @ Para-aminobenzoate synthase, amidotransferase component (EC 2.6.1.85)",378,-0.068,0.507
+10495338,membrane,"ABC transporter, permease protein",127,0.029,0.408
+10500186,membrane,"L-arabinose ABC transporter, permease protein AraH",121,0.147,0.488
+10503453,enzyme,"Polyketide synthase modules and related proteins",1458,-0.033,0.537
+10505717,enzyme,"Glucose-6-phosphate isomerase (EC 5.3.1.9)",893,-0.103,0.496
+10506796,membrane,"Arsenite/antimonite:H+ antiporter ArsB",120,0.206,0.461
+10514011,enzyme,"Histone acetyltransferase HPA2 and related acetyltransferases",191,-0.022,0.527
+10519324,membrane,"ABC transporter, permease protein (cluster 10, nitrate/sulfonate/bicarbonate)",508,0.200,0.510
+10519603,enzyme,"Acetyltransferase, GNAT family",2740,-0.074,0.517
+10520214,enzyme,"Modular polyketide synthase",322,0.002,0.607
+10523783,enzyme,"Acetyl-CoA synthetase (EC 6.2.1.1)",1343,-0.101,0.525
+10527576,enzyme,"Glycerol-3-phosphate cytidylyltransferase (EC 2.7.7.39)",131,-0.163,0.412
+10532194,enzyme,"Oxidoreductase, short-chain dehydrogenase/reductase family",6944,-0.091,0.546
+10532418,enzyme,"Anaerobic dimethyl sulfoxide reductase chain A (EC 1.8.5.3), molybdopterin-binding domain",137,-0.182,0.506
+10540665,membrane,"Heterodimeric efflux ABC transporter, permease/ATP-binding subunit 1",676,0.009,0.479
+10543640,enzyme,"N-acyl-L-amino acid amidohydrolase (EC 3.5.1.14)",444,-0.117,0.523
+10546386,membrane,"Transmembrane protein YfcA",153,0.229,0.485
+10552060,membrane,"ABC transporter, permease protein 2 (cluster 1, maltose/g3p/polyamine/iron)",2249,0.182,0.467
+10555148,enzyme,"Xanthine dehydrogenase, FAD binding subunit (EC 1.17.1.4)",163,-0.070,0.554
+10555225,enzyme,"Ornithine aminotransferase (EC 2.6.1.13)",229,-0.097,0.513
+10561718,machinery,"DnaJ-class molecular chaperone CbpA",363,-0.207,0.534
+10562764,enzyme,"Short-chain dehydrogenase/reductase SDR?",137,-0.081,0.546
+10563189,enzyme,"Dehydrogenases with different specificities (related to short-chain alcohol dehydrogenases)",212,-0.065,0.564
+10565701,membrane,"ABC transporter, permease protein 2 (cluster 5, nickel/peptides/opines)",1089,0.167,0.539
+10569020,membrane,"Oligopeptide ABC transporter, permease protein OppC (TC 3.A.1.5.1)",654,0.118,0.476
+10569727,enzyme,"LSU rRNA pseudouridine(1911/1915/1917) synthase (EC 5.4.99.23)",884,-0.154,0.513
+12694106,enzyme,"2-isopropylmalate synthase (EC 2.3.3.13)",293,-0.140,0.506
+12771936,enzyme,"dNTP triphosphohydrolase, broad substrate specificity",322,-0.127,0.528
+12776283,membrane,"Putative transmembrane protein",128,0.254,0.570
+12785399,enzyme,"Tryptophan synthase (indole-salvaging) (EC 4.2.1.122)",178,-0.135,0.516
+12794564,enzyme,"Threonine-synthase-like protein 1",120,-0.103,0.529
+12872971,enzyme,"Oxidoreductase, Gfo/Idh/MocA family",116,-0.124,0.485
+12884281,enzyme,"dNTP triphosphohydrolase, broad substrate specificity",321,-0.120,0.442
+12886007,enzyme,"4-keto-6-deoxy-N-Acetyl-D-hexosaminyl-(Lipid carrier) aminotransferase",150,-0.122,0.468
+12908096,enzyme,"Spermidine synthase (EC 2.5.1.16)",331,-0.117,0.454

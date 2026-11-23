@@ -241,7 +241,8 @@ function Lines({ spec, records }) {
     ? spec.series.map(s => ({ label: s.label, points: records.map(r => ({ x: xOf(r), y: yOf(r, s.column), r })) }))
     : [...new Set(records.map(r => r[spec.seriesBy]))].map(v => ({ label: labelOf(spec, spec.seriesBy, v),
         points: records.filter(r => r[spec.seriesBy] === v).map(r => ({ x: xOf(r), y: yOf(r, spec.value), r })) })))
-    .map(s => ({ ...s, points: s.points.filter(p => p.x != null && p.y != null && (!spec.logX || p.x > 0) && (!spec.logY || p.y > 0)).sort((a, b) => a.x - b.x) }))
+    .map(s => ({ ...s, points: s.points.filter(p => p.x != null && p.y != null && (!spec.logX || p.x > 0) && (!spec.logY || p.y > 0)
+      && (!spec.xDomain || (p.x >= spec.xDomain[0] && p.x <= spec.xDomain[1]))).sort((a, b) => a.x - b.x) }))
     .filter(s => s.points.length > 0);
   if (series.length === 0) return html`<${Message}>No rows match this chart.<//>`;
   const format = formatOf(spec), xFormat = formatOf(spec, "xFormat");
@@ -288,43 +289,56 @@ function Lines({ spec, records }) {
 }
 
 // One dot per row on two axes of the same quantity, with the diagonal where they are equal; split colours the dots by which side of a
-// value a column falls.
+// value a column falls. With separate x and y domains (spec.xDomain / spec.yDomain, or spec.separateAxes to fit each), the axes are two
+// quantities, each with its own ticks and format (xFormat, format); colourBy colours the dots by a category column (its values in order
+// take the categorical colours, never by rank), and xReference draws a vertical dashed line at a value of x.
 function Scatter({ spec, records }) {
   const tip = useTip();
   const points = records.map(r => ({ record: r, x: toNumber(r[spec.x]), y: toNumber(r[spec.y]) })).filter(p => p.x != null && p.y != null);
   if (points.length === 0) return html`<${Message}>No rows match this chart.<//>`;
-  const format = formatOf(spec);
-  const values = points.flatMap(p => [p.x, p.y]);
+  const format = formatOf(spec), separate = Boolean(spec.separateAxes || spec.xDomain || spec.yDomain);
+  const xFormat = separate ? formatOf(spec, "xFormat") : format;
+  const values = points.flatMap(p => [p.x, p.y]), xs = points.map(p => p.x), ys = points.map(p => p.y);
   const [lo, hi] = spec.domain ?? [Math.min(...values), Math.max(...values)];
+  const [xlo, xhi] = separate ? spec.xDomain ?? [Math.min(...xs), Math.max(...xs)] : [lo, hi];
+  const [ylo, yhi] = separate ? spec.yDomain ?? [Math.min(...ys), Math.max(...ys)] : [lo, hi];
   const width = 640, height = 480, left = 56, right = 16, top = 16, bottom = 50;
-  const sx = v => left + ((v - lo) / (hi - lo)) * (width - left - right), sy = v => height - bottom - ((v - lo) / (hi - lo)) * (height - top - bottom);
-  const ticks = niceTicks(lo, hi);
-  const side = p => (spec.split ? (toNumber(p.record[spec.split.column]) > spec.split.at ? "above" : "below") : "above");
-  const swatch = { above: "p1", below: "p0" };
-  const counts = { above: points.filter(p => side(p) === "above").length, below: points.filter(p => side(p) === "below").length };
+  const sx = v => left + ((v - xlo) / (xhi - xlo)) * (width - left - right), sy = v => height - bottom - ((v - ylo) / (yhi - ylo)) * (height - top - bottom);
+  const xTicks = niceTicks(xlo, xhi), yTicks = niceTicks(ylo, yhi);
+  const categories = spec.colourBy ? spec.colourBy.values : null;
+  const side = p => (categories ? p.record[spec.colourBy.column]
+    : spec.split ? (toNumber(p.record[spec.split.column]) > spec.split.at ? "above" : "below") : "above");
+  const swatch = categories ? Object.fromEntries(categories.map((c, i) => [c, swatches[i % swatches.length]])) : { above: "p1", below: "p0" };
+  const keys = categories ?? ["above", "below"];
+  const counts = Object.fromEntries(keys.map(k => [k, points.filter(p => side(p) === k).length]));
+  const radius = points.length > 400 ? 3 : 4.5;
 
   return html`<figure class="chart scatter">
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label=${spec.title}>
-      ${ticks.map(t => html`<g key=${t}>
+      ${xTicks.map(t => html`<g key=${`x${t}`}>
         <line class="grid" x1=${sx(t)} x2=${sx(t)} y1=${top} y2=${height - bottom} />
+        <text class="axis" x=${sx(t)} y=${height - bottom + 16} text-anchor="middle">${xFormat(t)}</text></g>`)}
+      ${yTicks.map(t => html`<g key=${`y${t}`}>
         <line class="grid" x1=${left} x2=${width - right} y1=${sy(t)} y2=${sy(t)} />
-        <text class="axis" x=${sx(t)} y=${height - bottom + 16} text-anchor="middle">${format(t)}</text>
         <text class="axis" x=${left - 8} y=${sy(t) + 4} text-anchor="end">${format(t)}</text></g>`)}
       ${spec.diagonal && html`<line class="reference" x1=${sx(lo)} y1=${sy(lo)} x2=${sx(hi)} y2=${sy(hi)} />`}
+      ${spec.xReference && html`<line class="reference" x1=${sx(spec.xReference.value)} x2=${sx(spec.xReference.value)} y1=${top} y2=${height - bottom} />`}
       <text class="axistitle" x=${(left + width - right) / 2} y=${height - 10} text-anchor="middle">${spec.xLabel ?? spec.x}</text>
       <text class="axistitle" transform=${`translate(14 ${(top + height - bottom) / 2}) rotate(-90)`} text-anchor="middle">${spec.yLabel ?? spec.y}</text>
       ${points.map((p, i) => {
         const title = p.record[spec.name] ?? `Row ${i + 1}`;
-        const lines = [`${spec.yLabel ?? spec.y}: ${format(p.y)}`, `${spec.xLabel ?? spec.x}: ${format(p.x)}`, ...(spec.tip ?? []).map(c => `${c}: ${p.record[c]}`)];
+        const lines = [`${spec.yLabel ?? spec.y}: ${format(p.y)}`, `${spec.xLabel ?? spec.x}: ${xFormat(p.x)}`, ...(spec.tip ?? []).map(c => `${c}: ${p.record[c]}`)];
         return html`<g key=${i} class="row" tabIndex="0" aria-label=${`${title}, ${lines.join(", ")}`}
             onMouseEnter=${tip.show(title, lines)} onMouseMove=${tip.show(title, lines)} onMouseLeave=${tip.hide} onFocus=${tip.focus(title, lines)} onBlur=${tip.hide}>
-          <circle class="hit" cx=${sx(p.x)} cy=${sy(p.y)} r="8" />
-          <circle class=${`mark dot ${swatch[side(p)]}`} cx=${sx(p.x)} cy=${sy(p.y)} r="4.5" />
+          <circle class="hit" cx=${sx(p.x)} cy=${sy(p.y)} r=${radius + 3} />
+          <circle class=${`mark dot ${swatch[side(p)] ?? "p0"}${radius < 4 ? " dense" : ""}`} cx=${sx(p.x)} cy=${sy(p.y)} r=${radius} />
         </g>`;
       })}
     </svg>
     <figcaption class="legend">
-      ${spec.split && ["above", "below"].map(s => html`<span key=${s}><i class=${`swatch ${swatch[s]}`}></i>${spec.split[s]} (${counts[s]})</span>`)}
+      ${spec.split && !categories && ["above", "below"].map(s => html`<span key=${s}><i class=${`swatch ${swatch[s]}`}></i>${spec.split[s]} (${counts[s]})</span>`)}
+      ${categories && categories.map(c => html`<span key=${c}><i class=${`swatch ${swatch[c]}`}></i>${spec.colourBy.labels?.[c] ?? c} (${counts[c]})</span>`)}
+      ${spec.xReference && html`<span><i class="dash"></i>${spec.xReference.label}</span>`}
       ${spec.diagonal && html`<span><i class="dash"></i>${spec.diagonalLabel ?? "equal on both axes"}</span>`}
     </figcaption>
     ${tip.view}

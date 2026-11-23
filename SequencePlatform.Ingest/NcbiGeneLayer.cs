@@ -11,8 +11,8 @@ namespace SequencePlatform.Ingest
     /// <summary>A stored NCBI eukaryote record the gene pass hasn't done yet: no amino-acid k-mer row.</summary>
     internal sealed record PendingEukaryote(long SequenceId, string Accession, string FastaUrl, int? Taxid);
 
-    /// <summary>One coding sequence of an assembly, spliced and in coding orientation, and where it lies on its sequence.</summary>
-    internal sealed record NcbiCds(string SequenceName, string GeneKey, int Start, int End, bool Reverse, string Gene);
+    /// <summary>One coding sequence of an assembly, spliced and in coding orientation, where it lies on its sequence, and its [protein=] name.</summary>
+    internal sealed record NcbiCds(string SequenceName, string GeneKey, int Start, int End, bool Reverse, string Gene, string? Product = null);
 
     /// <summary>How many coding sequences a CDS file had, and why those left out were.</summary>
     internal sealed class CdsTally
@@ -30,8 +30,9 @@ namespace SequencePlatform.Ingest
     /// <summary>An assembly's gene layer before it's stored: the profile, its proteins for the 4-mers and checks, and its provenance.</summary>
     /// <param name="Proteins">One per gene of <paramref name="Genes"/>, in its order; kept in memory only.</param>
     /// <param name="AllProteins">Every kept coding sequence's protein, under 50 aa too, as the 4-mers count them.</param>
+    /// <param name="Names">NCBI's protein name of each gene of <paramref name="Genes"/>, in its order (<see cref="GeneNames"/>).</param>
     internal sealed record EukaryoteGenes(ZCurveGeneProfile Genes, List<string> Proteins, List<string> AllProteins, List<string> SequenceNames,
-        CdsTally Tally, byte[] CdsSha256);
+        CdsTally Tally, byte[] CdsSha256, string?[] Names);
 
     /// <summary>What the pass did with one record.</summary>
     internal sealed record EukaryoteGeneResult(PendingEukaryote Record, string Status, string Note, EukaryoteGenes? Layer = null, int MaxBucketBytes = 0);
@@ -41,7 +42,7 @@ namespace SequencePlatform.Ingest
     /// each annotated coding sequence spliced and in coding orientation, with its location, and the assembly report says which sequences
     /// are nuclear. Per gene (GeneID) only the longest isoform is kept, and partial, pseudo and exception-flagged coding sequences are left
     /// out, since the windows are anchored at the start codon. Genes lie on the assembly's sequences, numbered in assembly order (ZCGP version
-    /// 3), and the record's annotations list those sequences' names. The record's identity is its accession.version, whose sequence NCBI
+    /// 3), and the record's annotations list those sequences' names; each gene's [protein=] name goes to <see cref="GeneNames"/>. The record's identity is its accession.version, whose sequence NCBI
     /// never changes; the annotation can be re-released, so its name and the CDS file's SHA-256 are recorded. No base and no protein is stored.
     /// </summary>
     internal sealed class NcbiGeneLayer
@@ -64,17 +65,21 @@ namespace SequencePlatform.Ingest
             this.client = client;
         }
 
-        public async Task<List<PendingEukaryote>> PendingAsync(int limit, string? accession = null)
+        /// <param name="recheck">Also the records found without an annotation (no_cds) before: NCBI may have annotated them since.</param>
+        public async Task<List<PendingEukaryote>> PendingAsync(int limit, string? accession = null, bool recheck = false)
         {
             await using var command = dataSource.CreateCommand(
                 "select r.id, s.accession, s.url, r.ncbi_taxid from sequence_record r join sequence_source s on s.id = r.source_id " +
                 "where s.provider = $1 and s.owner_id is null and r.kind = $2 and ($3::text is null or s.accession = $3) and " +
-                "not exists (select 1 from protein_kmer k where k.sequence_id = r.id and k.k = $4) order by s.id limit $5");
+                "(not exists (select 1 from protein_kmer k where k.sequence_id = r.id and k.k = $4) or ($6 and exists (" +
+                "  select 1 from protein_kmer k where k.sequence_id = r.id and k.k = $4 and k.status = $7))) order by s.id limit $5");
             command.Parameters.AddWithValue(NcbiIngestor.Provider);
             command.Parameters.AddWithValue(NcbiIngestor.Kind);
             command.Parameters.Add(new NpgsqlParameter { Value = (object?)accession ?? DBNull.Value, NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text });
             command.Parameters.AddWithValue((short)ProteinKmers.Ks.Max());
             command.Parameters.AddWithValue(limit);
+            command.Parameters.AddWithValue(recheck);
+            command.Parameters.AddWithValue(ProteinKmers.NoCds);
             var pending = new List<PendingEukaryote>();
             await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -230,7 +235,7 @@ namespace SequencePlatform.Ingest
                 : fields.TryGetValue("gene", out var symbol) ? "gene:" + symbol
                 : fields.TryGetValue("protein_id", out var protein) ? "protein:" + protein : "id:" + id;
             var (start, end, reverse, _) = placed.Value;
-            return new NcbiCds(name, key, start, end, reverse, gene);
+            return new NcbiCds(name, key, start, end, reverse, gene, fields.GetValueOrDefault("protein"));
         }
 
         /// <summary>
@@ -282,7 +287,35 @@ namespace SequencePlatform.Ingest
                 proteinAt.TryAdd((number[c.SequenceName], c.Start, c.End, c.Reverse), protein);
             }
             var proteins = genes.Genes.Select(g => proteinAt[(g.Chromosome, g.Start, g.End, g.Reverse)]).ToList();
-            return new EukaryoteGenes(genes, proteins, all, names, tally, sha256);
+            return new EukaryoteGenes(genes, proteins, all, names, tally, sha256, GeneNames.Match(genes, ProductsByPlace(kept, nuclear)).Names);
+        }
+
+        /// <summary>
+        /// Each kept coding sequence's protein name by where it lies, its sequence numbered as <see cref="Compute"/> numbers them (assembly
+        /// order among the sequences that carry a kept gene), so the keys are the stored genes' (sequence, start, end, strand).
+        /// </summary>
+        internal static Dictionary<(int Sequence, int Start, int End, bool Reverse), string?> ProductsByPlace(List<NcbiCds> kept,
+            IReadOnlyDictionary<string, int> nuclear)
+        {
+            var number = kept.Select(c => c.SequenceName).Distinct(StringComparer.Ordinal).OrderBy(n => nuclear[n]).ThenBy(n => n, StringComparer.Ordinal)
+                .Select((n, i) => (n, i)).ToDictionary(x => x.n, x => x.i, StringComparer.Ordinal);
+            var byPlace = new Dictionary<(int, int, int, bool), string?>();
+            foreach (var c in kept) byPlace.TryAdd((number[c.SequenceName], c.Start, c.End, c.Reverse), c.Product);
+            return byPlace;
+        }
+
+        /// <summary>
+        /// The names of a stored assembly's genes, from its CDS file streamed again (the bases are read past and dropped): the stored
+        /// profile's genes matched by where they lie. The file's SHA-256 is returned to compare with the one the gene layer recorded.
+        /// </summary>
+        public async Task<(string?[] Names, int Unmatched, byte[] CdsSha256)> NamesAsync(string fastaUrl, ZCurveGeneProfile stored)
+        {
+            var nuclear = NuclearSequences(new StringReader(await client.ReadTextAsync(NcbiGenomeClient.SiblingUrl(fastaUrl, reportSuffix))));
+            using var response = await client.OpenFastaAsync(NcbiGenomeClient.SiblingUrl(fastaUrl, cdsSuffix));
+            await using var body = await response.Content.ReadAsStreamAsync();
+            var (kept, _, sha256) = await Task.Run(() => Read(body, nuclear));
+            var (names, unmatched) = GeneNames.Match(stored, ProductsByPlace(kept, nuclear));
+            return (names, unmatched, sha256);
         }
 
         // As GeneProfiles.WriteAsync splits a profile, to see the largest row before writing.
@@ -320,6 +353,7 @@ namespace SequencePlatform.Ingest
             foreach (var k in ProteinKmers.Ks)
                 await ProteinKmers.WriteAsync(connection, transaction, sequenceId, k, ProteinKmers.Done, layer.Genes.Genes.Count,
                     AminoAcidKmers.Count(layer.AllProteins, k));
+            await GeneNames.WriteAsync(connection, transaction, sequenceId, GeneNames.Ncbi, layer.Names);
             await GeneProfiles.AnnotateLayerAsync(connection, transaction, sequenceId, layerJson);
             await transaction.CommitAsync();
         }
